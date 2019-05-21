@@ -23,6 +23,9 @@ HINSTANCE hInst;
 // Forward declarations of functions included in this code module:
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
+// Pointer to WebView window
+static ComPtr<IWebView2WebView> webviewWindow;
+
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
@@ -125,6 +128,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
+	case WM_SIZE:
+		if (webviewWindow != nullptr) {
+			RECT bounds;
+			GetClientRect(hWnd, &bounds);
+			webviewWindow->put_Bounds(bounds);
+		};
+		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
