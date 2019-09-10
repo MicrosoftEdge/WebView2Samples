@@ -5,8 +5,8 @@
 #include <string>
 #include <tchar.h>
 #include <wrl.h>
+#include <wil/com.h>
 // include WebView2 header
-
 
 using namespace Microsoft::WRL;
 
@@ -24,7 +24,7 @@ HINSTANCE hInst;
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 // Pointer to WebView window
-static ComPtr<IWebView2WebView> webviewWindow;
+static wil::com_ptr<IWebView2WebView> webviewWindow;
 
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
