@@ -10,7 +10,7 @@ Start with the [Microsoft Edge WebView2 getting-started guide](https://docs.micr
 
 ## 2. WebView2 Browser Example
 
-Clone the project by running `git clone https://github.com/MicrosoftEdge/WebView2Browser.git` to get started.
+Clone the [WebView2Browser](https://github.com/MicrosoftEdge/WebView2Browser) by running `git clone https://github.com/MicrosoftEdge/WebView2Browser.git` to get started.
 
 Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Browser) to learn how to build an application that utilizes multiple WebViews.
 
