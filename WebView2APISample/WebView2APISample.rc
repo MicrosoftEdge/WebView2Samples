@@ -1,0 +1,258 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (United States) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_WEBVIEW2APISAMPLE   ICON                    "WebView2APISample.ico"
+
+IDI_SMALL               ICON                    "small.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDC_WEBVIEW2APISAMPLE MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "Save Screenshot",                             IDM_SAVE_SCREENSHOT
+        MENUITEM "Get Document Title",                          IDM_GET_DOCUMENT_TITLE
+        MENUITEM "Get Browser Version After Creation",          IDM_GET_BROWSER_VERSION_AFTER_CREATION
+        MENUITEM "Get Browser Version Before Creation",         IDM_GET_BROWSER_VERSION_BEFORE_CREATION
+        MENUITEM "E&xit",                                       IDM_EXIT
+    END
+    POPUP "&Script"
+    BEGIN
+        MENUITEM "Inject Script",               IDM_INJECT_SCRIPT
+        MENUITEM "Add Initialize Script",       ID_ADD_INITIALIZE_SCRIPT
+        MENUITEM "Remove Initialize Script",    ID_REMOVE_INITIALIZE_SCRIPT
+        MENUITEM SEPARATOR
+        MENUITEM "Post Message String",         IDM_POST_WEB_MESSAGE_STRING
+        MENUITEM "Post Message JSON",           IDM_POST_WEB_MESSAGE_JSON
+        MENUITEM SEPARATOR
+        MENUITEM "Subscribe to CDP event",      IDM_SUBSCRIBE_TO_CDP_EVENT
+        MENUITEM "Call CDP method",             IDM_CALL_CDP_METHOD
+        MENUITEM SEPARATOR
+        MENUITEM "Add COM object",              IDM_ADD_REMOTE_OBJECT
+        MENUITEM SEPARATOR
+        MENUITEM "Open DevTools Window",        IDM_OPEN_DEVTOOLS_WINDOW
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "Close WebView",               IDM_CLOSE_WEBVIEW
+        MENUITEM "Create WebView",              IDM_REINIT_INSTALLED
+        MENUITEM "Create New Window",           IDM_NEW_WINDOW
+        MENUITEM "Create New Thread",           IDM_NEW_THREAD
+    END
+    POPUP "&Process"
+    BEGIN
+        MENUITEM "Browser Process Info",        IDM_PROCESS_INFO
+        MENUITEM "Crash Browser Process",       IDM_CRASH_PROCESS
+    END
+    POPUP "S&ettings"
+    BEGIN
+        MENUITEM "Blocked Domains",             ID_BLOCKEDSITES
+        MENUITEM "Set User Agent",              ID_SETTINGS_SETUSERAGENT
+        MENUITEM SEPARATOR
+        MENUITEM "Toggle JavaScript",           IDM_TOGGLE_JAVASCRIPT
+        MENUITEM "Toggle Web Messaging",        IDM_TOGGLE_WEB_MESSAGING
+        MENUITEM "Toggle Status Bar enabled",   ID_SETTINGS_STATUS_BAR_ENABLED
+        MENUITEM "Toggle DevTools enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
+        MENUITEM "Toggle Block images",         ID_SETTINGS_BLOCKALLIMAGES
+        POPUP "JavaScript Dialogs"
+        BEGIN
+            MENUITEM "Use Default Script Dialogs",  IDM_USE_DEFAULT_SCRIPT_DIALOGS
+            MENUITEM "Use Custom Script Dialogs",   IDM_USE_CUSTOM_SCRIPT_DIALOGS
+            MENUITEM "Use Deferred Script Dialogs", IDM_USE_DEFERRED_SCRIPT_DIALOGS
+            MENUITEM "Complete Deferred Script Dialog", IDM_COMPLETE_JAVASCRIPT_DIALOG
+        END
+        MENUITEM "Toggle context menus enabled", ID_SETTINGS_CONTEXT_MENUS_ENABLED
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "Toggle Visibility",           IDM_TOGGLE_VISIBILITY
+        MENUITEM "Get WebView Bounds",          IDM_GET_WEBVIEW_BOUNDS
+        POPUP "WebView Area"
+        BEGIN
+            MENUITEM "25%",                     IDM_SIZE_25
+            MENUITEM "50%",                     IDM_SIZE_50
+            MENUITEM "75%",                     IDM_SIZE_75
+            MENUITEM "100%",                    IDM_SIZE_100
+        END
+        POPUP "WebView Zoom"
+        BEGIN
+            MENUITEM "0.5x",                    IDM_ZOOM_05
+            MENUITEM "1.0x",                    IDM_ZOOM_10
+            MENUITEM "2.0x",                    IDM_ZOOM_20
+        END
+        MENUITEM "Set Focus",                   IDM_FOCUS_SET
+        MENUITEM "Tab In",                      IDM_FOCUS_TAB_IN
+        MENUITEM "Reverse Tab In",              IDM_FOCUS_REVERSE_TAB_IN
+        MENUITEM "Toggle Tab Handling",         IDM_TOGGLE_TAB_HANDLING
+    END
+    POPUP "S&cenario"
+    BEGIN
+        MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
+        MENUITEM "Remote Objects",           IDM_SCENARIO_ADD_REMOTE_OBJECT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About ...",                  IDM_ABOUT
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDC_WEBVIEW2APISAMPLE ACCELERATORS
+BEGIN
+    "?",            IDM_ABOUT,              ASCII,  ALT
+    "/",            IDM_ABOUT,              ASCII,  ALT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About WebView2APISample"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+    LTEXT           "WebView2APISample, Version 1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2019",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_DIALOG_INPUT DIALOGEX 0, 0, 309, 151
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Input"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Static",IDC_STATIC_LABEL,7,7,295,121
+    EDITTEXT        IDC_EDIT_INPUT,14,55,281,69,ES_MULTILINE | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,198,130,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,252,130,50,14
+    EDITTEXT        IDC_EDIT_DESCRIPTION,14,18,281,33,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_DIALOG_INPUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 144
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_APP_TITLE           "WebView2APISample"
+    IDC_WEBVIEW2APISAMPLE   "WEBVIEW2APISAMPLE"
+END
+
+#endif    // English (United States) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

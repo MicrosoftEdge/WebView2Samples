@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AddRemoteObject Sample</title>
+</head>
+<body>
+    <h1>AddRemoteObject Sample</h1>
+    <p>The following buttons interact with the <code>chrome.webview.remoteObjects.sample</code> object. Open DevTools console to try running whatever code you like on this object.</p>
+    <h2>Get Property</h2>
+    <button id="getPropertyAsyncButton">Get property async</button>
+    <label for="getPropertyAsyncButton">Runs <code>await chrome.webview.remoteObjects.sample.property</code></label>
+    <div><code><pre><span id="getPropertyAsyncOutput"></span></pre></code></div>
+
+    <button id="getPropertySyncButton">Get property sync</button>
+    <label for="getPropertySyncButton">Runs <code>chrome.webview.remoteObjects.sync.sample.property</code></label>
+    <div><code><pre><span id="getPropertySyncOutput"></span></pre></code></div>
+
+    <h2>Set Property</h2>
+    <button id="setPropertyAsyncButton">Set property async</button><input type="text" id="setPropertyAsyncInput" placeholder="String property value" />
+    <label for="setPropertyAsyncButton">Runs <code>chrome.webview.remoteObjects.sample.property = value</code> which doesn't wait for the property to be set and returns immediately.</label>
+    <div><code><pre><span id="setPropertyAsyncOutput"></span></pre></code></div>
+
+    <button id="setPropertyExplicitAsyncButton">Set property explicit async</button><input type="text" id="setPropertyExplicitAsyncInput" placeholder="String property value" />
+    <label for="setPropertyExplicitAsyncButton">Runs <code>await chrome.webview.remoteObjects.sample.setRemote("property", value)</code> which waits for the property to be set.</label>
+    <div><code><pre><span id="setPropertyExplicitAsyncOutput"></span></pre></code></div>
+
+    <button id="setPropertySyncButton">Set property sync</button><input type="text" id="setPropertySyncInput" placeholder="String property value" />
+    <label for="setPropertySyncButton">Runs <code>chrome.webview.remoteObjects.sync.sample.property = value</code></label>
+    <div><code><pre><span id="setPropertySyncOutput"></span></pre></code></div>
+
+    <h2>Invoke Method</h2>
+    <button id="invokeMethodAsyncButton">Invoke method async</button><input type="text" id="invokeMethodAsyncParam1" placeholder="String parameter" /><input type="text" id="invokeMethodAsyncParam2" placeholder="Integer parameter" />
+    <label for="invokeMethodAsyncButton">Runs <code>await chrome.webview.remoteObjects.sample.MethodWithParametersAndReturnValue(paramValue1, paramValue2)</code></label>
+    <code><pre><span id="invokeMethodAsyncOutput"></span></pre></code>
+
+    <button id="invokeMethodSyncButton">Invoke method sync</button><input type="text" id="invokeMethodSyncParam1" placeholder="String parameter" /><input type="text" id="invokeMethodSyncParam2" placeholder="Integer parameter" />
+    <label for="invokeMethodSyncButton">Runs <code>chrome.webview.remoteObjects.sync.sample.MethodWithParametersAndReturnValue(paramValue1, paramValue2)</code></label>
+    <code><pre><span id="invokeMethodSyncOutput"></span></pre></code>
+
+    <h2>Invoke Callback</h2>
+    <button id="invokeCallbackButton">Invoke Callback</button>
+    <label for="invokeCallbackButton">Runs <code>chrome.webview.remoteObjects.sample.CallCallbackAsynchronously(() => { /* ... */ })</code></label>
+    <code><pre><span id="invokeCallbackOutput"></span></pre></code>
+
+    <script>
+        //! [RemoteObjectUsage]
+        document.getElementById("getPropertyAsyncButton").addEventListener("click", async () => {
+            const propertyValue = await chrome.webview.remoteObjects.sample.property;
+            document.getElementById("getPropertyAsyncOutput").textContent = propertyValue;
+        });
+
+        document.getElementById("getPropertySyncButton").addEventListener("click", () => {
+            const propertyValue = chrome.webview.remoteObjects.sync.sample.property;
+            document.getElementById("getPropertySyncOutput").textContent = propertyValue;
+        });
+
+        document.getElementById("setPropertyAsyncButton").addEventListener("click", async () => {
+            const propertyValue = document.getElementById("setPropertyAsyncInput").value;
+            // The following line will work but it will return immediately before the property value has actually been set.
+            // If you need to set the property and wait for the property to change value, use the setRemote function.
+            chrome.webview.remoteObjects.sample.property = propertyValue;
+            document.getElementById("setPropertyAsyncOutput").textContent = "Set";
+        });
+
+        document.getElementById("setPropertyExplicitAsyncButton").addEventListener("click", async () => {
+            const propertyValue = document.getElementById("setPropertyExplicitAsyncInput").value;
+            // If you care about waiting until the property has actually changed value use the setRemote function.
+            await chrome.webview.remoteObjects.sample.setRemote("property", propertyValue);
+            document.getElementById("setPropertyExplicitAsyncOutput").textContent = "Set";
+        });
+
+        document.getElementById("setPropertySyncButton").addEventListener("click", () => {
+            const propertyValue = document.getElementById("setPropertySyncInput").value;
+            chrome.webview.remoteObjects.sync.sample.property = propertyValue;
+            document.getElementById("setPropertySyncOutput").textContent = "Set";
+        });
+
+        document.getElementById("invokeMethodAsyncButton").addEventListener("click", async () => {
+            const paramValue1 = document.getElementById("invokeMethodAsyncParam1").value;
+            const paramValue2 = parseInt(document.getElementById("invokeMethodAsyncParam2").value);
+            const resultValue = await chrome.webview.remoteObjects.sample.MethodWithParametersAndReturnValue(paramValue1, paramValue2);
+            document.getElementById("invokeMethodAsyncOutput").textContent = resultValue;
+        });
+
+        document.getElementById("invokeMethodSyncButton").addEventListener("click", () => {
+            const paramValue1 = document.getElementById("invokeMethodSyncParam1").value;
+            const paramValue2 = parseInt(document.getElementById("invokeMethodSyncParam2").value);
+            const resultValue = chrome.webview.remoteObjects.sync.sample.MethodWithParametersAndReturnValue(paramValue1, paramValue2);
+            document.getElementById("invokeMethodSyncOutput").textContent = resultValue;
+        });
+
+        let callbackCount = 0;
+        document.getElementById("invokeCallbackButton").addEventListener("click", async () => {
+            chrome.webview.remoteObjects.sample.CallCallbackAsynchronously(() => {
+                document.getElementById("invokeCallbackOutput").textContent = "Native object called the callback " + (++callbackCount) + " time(s).";
+            });
+        });
+        //! [RemoteObjectUsage]
+    </script>
+</body>
+</html>

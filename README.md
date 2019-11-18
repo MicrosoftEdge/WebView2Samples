@@ -8,11 +8,15 @@ Start with the [Microsoft Edge WebView2 getting-started guide](https://docs.micr
 
 This Sample is found within the GettingStartedGuide directory.
 
-## 2. WebView2 Browser Example
+## 2. WebView2 API Sample
+
+This Sample is found within the [WebView2APISample](WebView2APISample) directory.
+
+The Microsoft Edge WebView2APISample is a comprehensive example of our SDK's capabilities. As we add more functionality, we will update the API Sample.
+
+## 3. WebView2 Browser Example
 
 Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Browser) to learn how to build an application that utilizes multiple WebViews.
 
 Clone the project by running `git clone https://github.com/MicrosoftEdge/WebView2Browser.git` to get started.
-
-
 
