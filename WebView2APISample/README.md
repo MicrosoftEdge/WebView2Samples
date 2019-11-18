@@ -2,7 +2,7 @@
 
 This is a hybrid application built with the [Microsoft Edge WebView2](https://docs.microsoft.com/en-us/microsoft-edge/hosting/webview2) control.
 
-![alt text](documentation/Screenshots/Sample-App-Screenshot.PNG)
+![alt text](documentation/Screenshots/Sample-App-Screenshot.png)
 
 
 The WebView2APISample is an example of an application that embeds a WebView within a Win32 native application. It is built as a Win32 [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) project and makes use of both C++ and HTML/CSS/JavaScript in the WebView2 environment.
@@ -41,7 +41,7 @@ This hybrid approach allows you to create and iterate faster using web technolog
 
 Both of these parts of the Sample App are displayed in the image below:
 
-![alt text](documentation/Screenshots/Sample-App-Layout-Diagram.PNG)
+![alt text](documentation/Screenshots/Sample-App-Layout-Diagram.png)
 1. Section One: The top part of the Sample App is a Win32 component written in C++. This part of the application takes in UI inputs from the user and uses them to control the WebView.
 
 2. Section Two: The main part of the Sample App is a WebView that can be repurposed using standard web technologies (HTML/CSS/JavaScript). It can be navigated to websites or local content.
@@ -74,7 +74,7 @@ This component handles commands from the View menu, and any functionality relate
 #### 8. ScenarioWebMessage.cpp and ScenarioWebMessage.html
 This component is created when you select the Scenario/Web Messaging menu item. It implements an example application with a C++ part and an HTML+JavaScript part, which communicate with each other by asynchronously posting and recieving messages.
 
-![alt text](documentation/Screenshots/Sample-App-WebMessaging-Screenshot.PNG)
+![alt text](documentation/Screenshots/Sample-App-WebMessaging-Screenshot.png)
 
 #### 9. ScenarioAddRemoteObject.cpp and ScenarioAddRemoteObject.html
 This component is created when you select the Scenario/Remote Objects menu item. It demonstrates communication between the native app and the HTML webpage by means of remote object injection.  The interface of the remote object is declared in RemoteObjectSample.idl, and the object itself is implemented in RemoteObjectSampleImpl.cpp.
@@ -180,7 +180,7 @@ First, navigate to the ScenarioWebMessage application within the Sample App, usi
 
 The WebView should display a simple webpage titled: "WebMessage sample page". The code for this page can be found in the ScenarioWebMessage.html file.
 
-![alt text](documentation/Screenshots/Sample-App-WebMessaging-Screenshot.PNG)
+![alt text](documentation/Screenshots/Sample-App-WebMessaging-Screenshot.png)
 
 To better understand ScenarioWebMessage functionality, you can either follow the instructions on the page or the steps detailed below.
 
