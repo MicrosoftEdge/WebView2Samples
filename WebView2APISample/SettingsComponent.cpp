@@ -16,13 +16,9 @@ static wil::unique_bstr GetDomainOfUri(PWSTR uri);
 static PCWSTR NameOfPermissionType(WEBVIEW2_PERMISSION_TYPE type);
 
 SettingsComponent::SettingsComponent(
-    AppWindow* appWindow,
-    IWebView2Environment* environment,
-    SettingsComponent* old
-) :
-    m_appWindow(appWindow),
-    m_webViewEnvironment(environment),
-    m_webView(appWindow->GetWebView())
+    AppWindow* appWindow, IWebView2Environment3* environment, SettingsComponent* old)
+    : m_appWindow(appWindow), m_webViewEnvironment(environment),
+      m_webView(appWindow->GetWebView())
 {
     wil::com_ptr<IWebView2Settings> settings;
     CHECK_FAILURE(m_webView->get_Settings(&settings));
@@ -50,11 +46,7 @@ SettingsComponent::SettingsComponent(
         m_blockedSites = std::move(old->m_blockedSites);
         m_overridingUserAgent = std::move(old->m_overridingUserAgent);
     }
-
-    // This setting will be deprecated and the default will always be false so
-    // we put that here
-    CHECK_FAILURE(m_settings->put_IsFullscreenAllowed(FALSE));
-
+    
     //! [NavigationStarting]
     // Register a handler for the NavigationStarting event.
     // This handler will check the domain being navigated to, and if the domain
@@ -463,27 +455,33 @@ void SettingsComponent::SetBlockImages(bool blockImages)
         //! [WebResourceRequested]
         if (m_blockImages)
         {
-            // Register a handler for the WebResourceRequested event.
-            // This handler blocks all resources that are in an image context, such
-            // as <img> elements and CSS background-image properties.
-            PCWSTR matchAllUris[] = { L"*" };
-            WEBVIEW2_WEB_RESOURCE_CONTEXT imagesFilter[] = {
-                WEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE };
+            m_webView->AddWebResourceRequestedFilter(L"*", WEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE);
             CHECK_FAILURE(m_webView->add_WebResourceRequested(
-                matchAllUris, imagesFilter, 1,
                 Callback<IWebView2WebResourceRequestedEventHandler>(
-                    [this](IWebView2WebView* sender,
-                           IWebView2WebResourceRequestedEventArgs* args)
-            {
-                // Override the response with an empty one to block the image.
-                // If put_Response is not called, the request will continue as normal.
-                wil::com_ptr<IWebView2WebResourceResponse> response;
-                CHECK_FAILURE(m_webViewEnvironment->CreateWebResourceResponse(
-                    nullptr, 200, L"OK", L"",
-                    &response));
-                CHECK_FAILURE(args->put_Response(response.get()));
-                return S_OK;
-            }).Get(), &m_webResourceRequestedTokenForImageBlocking));
+                    [this](
+                        IWebView2WebView* sender,
+                        IWebView2WebResourceRequestedEventArgs* args) {
+                        wil::com_ptr<IWebView2WebResourceRequestedEventArgs2>
+                            webResourceEventArgs2;
+                        args->QueryInterface(IID_PPV_ARGS(&webResourceEventArgs2));
+                        WEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
+                        CHECK_FAILURE(
+                            webResourceEventArgs2->get_ResourceContext(&resourceContext));
+                        // Ensure that the type is image
+                        if (resourceContext != WEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE)
+                        {
+                            return E_INVALIDARG;
+                        }
+                        // Override the response with an empty one to block the image.
+                        // If put_Response is not called, the request will continue as normal.
+                        wil::com_ptr<IWebView2WebResourceResponse> response;
+                        CHECK_FAILURE(m_webViewEnvironment->CreateWebResourceResponse(
+                            nullptr, 403 /*NoContent*/, L"Blocked", L"", &response));
+                        CHECK_FAILURE(args->put_Response(response.get()));
+                        return S_OK;
+                    })
+                    .Get(),
+                &m_webResourceRequestedTokenForImageBlocking));
         }
         else
         {
@@ -530,21 +528,20 @@ void SettingsComponent::SetUserAgent(const std::wstring& userAgent)
         // Register a handler for the WebResourceRequested event.
         // This handler adds a User-Agent HTTP header to the request,
         // then lets the request continue normally.
+        m_webView->AddWebResourceRequestedFilter(L"*", WEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
         m_webView->add_WebResourceRequested(
-            nullptr, nullptr, 0,
             Callback<IWebView2WebResourceRequestedEventHandler>(
-                [this](IWebView2WebView* sender,
-                       IWebView2WebResourceRequestedEventArgs* args)
-        {
-            wil::com_ptr<IWebView2WebResourceRequest> request;
-            CHECK_FAILURE(args->get_Request(&request));
-            wil::com_ptr<IWebView2HttpRequestHeaders> requestHeaders;
-            CHECK_FAILURE(request->get_Headers(&requestHeaders));
-            requestHeaders->SetHeader(L"User-Agent", m_overridingUserAgent.c_str());
+                [this](IWebView2WebView* sender, IWebView2WebResourceRequestedEventArgs* args) {
+                    wil::com_ptr<IWebView2WebResourceRequest> request;
+                    CHECK_FAILURE(args->get_Request(&request));
+                    wil::com_ptr<IWebView2HttpRequestHeaders> requestHeaders;
+                    CHECK_FAILURE(request->get_Headers(&requestHeaders));
+                    requestHeaders->SetHeader(L"User-Agent", m_overridingUserAgent.c_str());
 
-            return S_OK;
-        }).Get(),
-        &m_webResourceRequestedTokenForUserAgent);
+                    return S_OK;
+                })
+                .Get(),
+            &m_webResourceRequestedTokenForUserAgent);
     }
 }
 

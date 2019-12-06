@@ -17,6 +17,7 @@
 #include "Resource.h"
 #include "ScenarioAddRemoteObject.h"
 #include "ScenarioWebMessage.h"
+#include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
 #include "SettingsComponent.h"
 #include "ViewComponent.h"
@@ -29,7 +30,8 @@ static constexpr UINT s_runAsyncWindowMessage = WM_APP;
 static thread_local size_t s_appInstances = 0;
 
 // Creates a new window which is a copy of the entire app, but on the same thread.
-AppWindow::AppWindow(std::wstring initialUri) : m_initialUri(initialUri)
+AppWindow::AppWindow(std::wstring initialUri, std::function<void()> webviewCreatedCallback)
+    : m_initialUri(initialUri), m_onWebViewFirstInitialized(webviewCreatedCallback)
 {
     ++s_appInstances;
 
@@ -222,6 +224,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         NewComponent<ScenarioAddRemoteObject>(this);
         return true;
     }
+    case IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR:
+    {
+        NewComponent<ScenarioWebViewEventMonitor>(this);
+        return true;
+    }
     }
     return false;
 }
@@ -250,6 +257,19 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_REINIT_INSTALLED:
         InitializeWebView(kUseInstalledBrowser);
         return true;
+    case IDM_REINIT_WINDOWED:
+        InitializeWebView(kDefaultOption);
+        return true;
+    case IDM_TOGGLE_FULLSCREEN_ALLOWED:
+    {
+        m_fullScreenAllowed = !m_fullScreenAllowed;
+        MessageBox(nullptr,
+                   (std::wstring(L"Fullscreen is now ") +
+                       (m_fullScreenAllowed ? L"allowed" : L"disallowed"))
+                       .c_str(),
+                   L"", MB_OK);
+        return true;
+    }
     case IDM_NEW_WINDOW:
         new AppWindow();
         return true;
@@ -407,8 +427,7 @@ void AppWindow::ReinitializeWebView()
     // Save the settings component from being deleted when the WebView is closed, so we can
     // copy its properties to the next settings component.
     m_oldSettingsComponent = MoveComponent<SettingsComponent>();
-    // Workaround for Edge Bug 23006983
-    RunAsync([this] { InitializeWebView(m_lastUsedInitFlags); });
+    InitializeWebView(m_lastUsedInitFlags);
 }
 
 void AppWindow::ReinitializeWebViewWithNewBrowser()
@@ -470,6 +489,29 @@ void AppWindow::RestartApp()
 
 void AppWindow::RegisterEventHandlers()
 {
+    //! [ContainsFullScreenElementChanged]
+    // Register a handler for the ContainsFullScreenChanged event.
+    CHECK_FAILURE(m_webView->add_ContainsFullScreenElementChanged(
+        Callback<IWebView2ContainsFullScreenElementChangedEventHandler>(
+            [this](IWebView2WebView5* sender, IUnknown* args) -> HRESULT {
+                if (m_fullScreenAllowed)
+                {
+                    CHECK_FAILURE(sender->get_ContainsFullScreenElement(&m_containsFullscreenElement));
+                    if (m_containsFullscreenElement)
+                    {
+                        EnterFullScreen();
+                    }
+                    else
+                    {
+                        ExitFullScreen();
+                    }
+                }
+                return S_OK;
+            })
+            .Get(),
+        nullptr));
+    //! [ContainsFullScreenElementChanged]
+
     //! [NewWindowRequested]
     // Register a handler for the NewWindowRequested event.
     // This handler will defer the event, create a new app window, and then once the
@@ -491,7 +533,7 @@ void AppWindow::RegisterEventHandlers()
                 return S_OK;
             })
             .Get(),
-        &m_newWindowRequestedToken));
+        nullptr));
     //! [NewWindowRequested]
 
     //! [NewVersionAvailable]
@@ -509,12 +551,15 @@ void AppWindow::RegisterEventHandlers()
                 message += L"\n\nVersion number: ";
                 message += newVersion.get();
                 message += L"\n\n";
-                message += L"Do you want to restart the app? \n\n";
-                message += L"Click No if you only want to re-create the webviews. \n";
-                message += L"Click Cancel for no action. \n";
-
+                if (m_webView)
+                {
+                    message += L"Do you want to restart the app? \n\n";
+                    message += L"Click No if you only want to re-create the webviews. \n";
+                    message += L"Click Cancel for no action. \n";
+                }
                 int response = MessageBox(
-                    m_mainWindow, message.c_str(), L"New available version", MB_YESNOCANCEL);
+                    m_mainWindow, message.c_str(), L"New available version",
+                    m_webView ? MB_YESNOCANCEL : MB_OK);
 
                 if (response == IDYES)
                 {
@@ -532,7 +577,7 @@ void AppWindow::RegisterEventHandlers()
                 return S_OK;
             })
             .Get(),
-        &m_newVersionAvailableToken));
+        nullptr));
     //! [NewVersionAvailable]
 }
 
@@ -541,7 +586,12 @@ void AppWindow::ResizeEverything()
 {
     RECT availableBounds = {0};
     GetClientRect(m_mainWindow, &availableBounds);
+
+    if (!m_containsFullscreenElement)
+    {
         availableBounds = m_toolbar.Resize(availableBounds);
+    }
+
     if (auto view = GetComponent<ViewComponent>())
     {
         view->SetBounds(availableBounds);
@@ -642,4 +692,34 @@ void AppWindow::RunAsync(std::function<void()> callback)
 {
     auto* task = new std::function<void()>(callback);
     PostMessage(m_mainWindow, s_runAsyncWindowMessage, reinterpret_cast<WPARAM>(task), 0);
+}
+
+void AppWindow::EnterFullScreen()
+{
+    DWORD style = GetWindowLong(m_mainWindow, GWL_STYLE);
+    MONITORINFO monitor_info = {sizeof(monitor_info)};
+    m_hMenu = ::GetMenu(m_mainWindow);
+    ::SetMenu(m_mainWindow, nullptr);
+    if (GetWindowPlacement(m_mainWindow, &m_previousPlacement) &&
+        GetMonitorInfo(
+            MonitorFromWindow(m_mainWindow, MONITOR_DEFAULTTOPRIMARY), &monitor_info))
+    {
+        SetWindowLong(m_mainWindow, GWL_STYLE, style & ~WS_OVERLAPPEDWINDOW);
+        SetWindowPos(
+            m_mainWindow, HWND_TOP, monitor_info.rcMonitor.left, monitor_info.rcMonitor.top,
+            monitor_info.rcMonitor.right - monitor_info.rcMonitor.left,
+            monitor_info.rcMonitor.bottom - monitor_info.rcMonitor.top,
+            SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+    }
+}
+
+void AppWindow::ExitFullScreen()
+{
+    DWORD style = GetWindowLong(m_mainWindow, GWL_STYLE);
+    ::SetMenu(m_mainWindow, m_hMenu);
+    SetWindowLong(m_mainWindow, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+    SetWindowPlacement(m_mainWindow, &m_previousPlacement);
+    SetWindowPos(
+        m_mainWindow, NULL, 0, 0, 0, 0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 }

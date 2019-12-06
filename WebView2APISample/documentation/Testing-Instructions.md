@@ -471,7 +471,7 @@ Test that moves focus due to Tab traversal forward
 Test that moves focus due to Tab traversal backward
 1. Launch the sample app and load https://www.google.com
 2. Go to `View -> Reverse Tab In`
-3. Expected: See the focus is set to `How Search works` in Google (the last element) with the dotted line in the WebView
+3. Expected: See the focus is set to `How Search works` in Google (the last element).
 
 #### Toggle Tab Handling
 Test that enables/disables tab handling\

@@ -20,9 +20,10 @@ class SettingsComponent;
 class AppWindow
 {
 public:
-    AppWindow(std::wstring initialUri = L"https://www.bing.com/");
+    AppWindow(std::wstring initialUri = L"https://www.bing.com/",
+              std::function<void()> webviewCreatedCallback = nullptr);
 
-    IWebView2WebView4* GetWebView()
+    IWebView2WebView5* GetWebView()
     {
         return m_webView.get();
     }
@@ -89,9 +90,7 @@ private:
     // be reinitialized along with it.  Everything here is undefined when
     // m_webView is null.
     wil::com_ptr<IWebView2Environment3> m_webViewEnvironment;
-    wil::com_ptr<IWebView2WebView4> m_webView;
-    EventRegistrationToken m_newWindowRequestedToken = {};
-    EventRegistrationToken m_newVersionAvailableToken = {};
+    wil::com_ptr<IWebView2WebView5> m_webView;
 
     // All components are deleted when the WebView is closed.
     std::vector<std::unique_ptr<ComponentBase>> m_components;
@@ -100,6 +99,14 @@ private:
     // a new WebView based on the settings of the old one.
     InitializeWebViewFlags m_lastUsedInitFlags;
     std::unique_ptr<SettingsComponent> m_oldSettingsComponent;
+
+    // Fullscreen related code
+    WINDOWPLACEMENT m_previousPlacement;
+    HMENU m_hMenu;
+    BOOL m_containsFullscreenElement;
+    bool m_fullScreenAllowed = true;
+    void EnterFullScreen();
+    void ExitFullScreen();
 };
 
 template <class ComponentType, class... Args> void AppWindow::NewComponent(Args&&... args)

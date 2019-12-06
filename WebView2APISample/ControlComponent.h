@@ -36,7 +36,7 @@ public:
 
 private:
     AppWindow* m_appWindow;
-    wil::com_ptr<IWebView2WebView4> m_webView;
+    wil::com_ptr<IWebView2WebView5> m_webView;
     Toolbar* m_toolbar;
 
     std::vector<std::pair<HWND, WNDPROC>> m_tabbableWindows;
