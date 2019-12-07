@@ -20,8 +20,7 @@ class SettingsComponent : public ComponentBase
 {
 public:
     SettingsComponent(
-        AppWindow* appWindow,
-        IWebView2Environment* environment,
+        AppWindow* appWindow, IWebView2Environment3* environment,
         SettingsComponent* old = nullptr);
 
     bool HandleWindowMessage(
@@ -43,8 +42,8 @@ public:
 
 private:
     AppWindow* m_appWindow = nullptr;
-    wil::com_ptr<IWebView2Environment> m_webViewEnvironment;
-    wil::com_ptr<IWebView2WebView3> m_webView;
+    wil::com_ptr<IWebView2Environment3> m_webViewEnvironment;
+    wil::com_ptr<IWebView2WebView5> m_webView;
     wil::com_ptr<IWebView2Settings2> m_settings;
     bool m_blockImages = false;
     bool m_deferScriptDialogs = false;

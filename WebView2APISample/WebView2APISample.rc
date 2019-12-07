@@ -86,6 +86,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Toggle JavaScript",           IDM_TOGGLE_JAVASCRIPT
         MENUITEM "Toggle Web Messaging",        IDM_TOGGLE_WEB_MESSAGING
+        MENUITEM "Toggle Fullscreen allowed",   IDM_TOGGLE_FULLSCREEN_ALLOWED
         MENUITEM "Toggle Status Bar enabled",   ID_SETTINGS_STATUS_BAR_ENABLED
         MENUITEM "Toggle DevTools enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
         MENUITEM "Toggle Block images",         ID_SETTINGS_BLOCKALLIMAGES
@@ -123,7 +124,8 @@ BEGIN
     POPUP "S&cenario"
     BEGIN
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
-        MENUITEM "Remote Objects",           IDM_SCENARIO_ADD_REMOTE_OBJECT
+        MENUITEM "Remote Objects",              IDM_SCENARIO_ADD_REMOTE_OBJECT
+        MENUITEM "Event Monitor",               IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
     END
     POPUP "&Help"
     BEGIN
