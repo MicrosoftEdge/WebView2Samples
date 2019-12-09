@@ -125,6 +125,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScenarioAddRemoteObject.h" />
     <ClInclude Include="ScenarioWebMessage.h" />
+    <ClInclude Include="ScenarioWebViewEventMonitor.h" />
     <ClInclude Include="ScriptComponent.h" />
     <ClInclude Include="SettingsComponent.h" />
     <ClInclude Include="stdafx.h" />
@@ -143,6 +144,7 @@
     <ClCompile Include="RemoteObjectSampleImpl.cpp" />
     <ClCompile Include="ScenarioAddRemoteObject.cpp" />
     <ClCompile Include="ScenarioWebMessage.cpp" />
+    <ClCompile Include="ScenarioWebViewEventMonitor.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
     <ClCompile Include="SettingsComponent.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -166,20 +168,21 @@
     <None Include="packages.config" />
     <CopyFileToFolders Include="ScenarioAddRemoteObject.html" />
     <CopyFileToFolders Include="ScenarioWebMessage.html" />
+    <CopyFileToFolders Include="ScenarioWebViewEventMonitor.html" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="RemoteObjectSample.idl" TypeLibraryName="$(OutDir)WebView2APISample.tlb" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="packages\Microsoft.Web.WebView2.0.8.314\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('packages\Microsoft.Web.WebView2.0.8.314\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="packages\Microsoft.Web.WebView2.0.8.355\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('packages\Microsoft.Web.WebView2.0.8.355\build\native\Microsoft.Web.WebView2.targets')" />
     <Import Project="packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('packages\Microsoft.Web.WebView2.0.8.314\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Web.WebView2.0.8.314\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('packages\Microsoft.Web.WebView2.0.8.355\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Web.WebView2.0.8.355\build\native\Microsoft.Web.WebView2.targets'))" />
     <Error Condition="!Exists('packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
   </Target>
 </Project>

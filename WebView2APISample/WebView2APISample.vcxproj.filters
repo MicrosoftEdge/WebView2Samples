@@ -60,6 +60,9 @@
     <ClCompile Include="ViewComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScenarioWebViewEventMonitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -113,6 +116,9 @@
     <ClInclude Include="ViewComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ScenarioWebViewEventMonitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc">
@@ -120,6 +126,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ScenarioWebViewEventMonitor.html" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
