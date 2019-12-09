@@ -103,7 +103,7 @@ private:
     // Fullscreen related code
     WINDOWPLACEMENT m_previousPlacement;
     HMENU m_hMenu;
-    BOOL m_containsFullscreenElement;
+    BOOL m_containsFullscreenElement = FALSE;
     bool m_fullScreenAllowed = true;
     void EnterFullScreen();
     void ExitFullScreen();
