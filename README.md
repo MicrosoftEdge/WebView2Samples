@@ -1,6 +1,6 @@
 # WebView2 Samples
 
-This repository contain examples of how to use the [WebView 2 API](https://docs.microsoft.com/en-us/microsoft-edge/hosting/webview2). 
+This repository contain examples of how to use the [WebView 2 API](https://docs.microsoft.com/en-us/microsoft-edge/hosting/webview2). Please use [WebView2Samples issue tracker](https://github.com/MicrosoftEdge/WebView2Samples/issues) for sample issues and [WebViewFeedback issue tracker](https://github.com/MicrosoftEdge/WebViewFeedback/issues) for general WebView2 issues and feedback.
 
 ## 1. Getting Started Guide
 
