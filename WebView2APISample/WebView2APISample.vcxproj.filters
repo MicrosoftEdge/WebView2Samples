@@ -126,12 +126,12 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ScenarioWebViewEventMonitor.html" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="ScenarioWebMessage.html" />
     <CopyFileToFolders Include="ScenarioAddRemoteObject.html" />
+    <CopyFileToFolders Include="ScenarioWebViewEventMonitor.html" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
