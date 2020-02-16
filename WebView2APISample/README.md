@@ -66,7 +66,7 @@ This component handles commands from the Script menu, which involve interacting 
 This component handles commands from the Process menu, which involve interaction with the browser's process. It also handles the ProcessFailed event, in case the browser process or one of its render process crashes or is unresponsive.
 
 #### 6. SettingsComponent.cpp
-This component handles commands from the Settings menu, and is also in charge of copying settings from an old WebView when a new one is created. Most code that interacts with the IWebView2Settings interface can be found here.
+This component handles commands from the Settings menu, and is also in charge of copying settings from an old WebView when a new one is created. Most code that interacts with the ICoreWebView2Settings interface can be found here.
 
 #### 7. ViewComponent.cpp
 This component handles commands from the View menu, and any functionality related to sizing and visibility of the WebView. When the app window is resized, minimized, or restored, ViewComponent will resize, hide, or show the WebView in response. It also responds to the ZoomFactorChanged event.
@@ -95,7 +95,7 @@ To see these API calls in action, refer to the following code snippet from Initi
 HRESULT hr = CreateWebView2EnvironmentWithDetails(
     subFolder, nullptr,
     additionalBrowserSwitches,
-    Callback<IWebView2CreateWebView2EnvironmentCompletedHandler>(
+    Callback<ICoreWebView2CreateWebView2EnvironmentCompletedHandler>(
         this, &AppWindow::OnCreateEnvironmentCompleted).Get()));
 if (!SUCCEEDED(hr))
 {
@@ -118,14 +118,14 @@ This callback function is passed to CreateWebView2EnvironmentWithDetails() in In
 
 ``` c++
 HRESULT AppWindow::OnCreateEnvironmentCompleted(
-    HRESULT result, IWebView2Environment* environment)
+    HRESULT result, ICoreWebView2Environment* environment)
 {
     CHECK_FAILURE(result);
 
     CHECK_FAILURE(environment->QueryInterface(IID_PPV_ARGS(&m_webViewEnvironment)));
 
     CHECK_FAILURE(m_webViewEnvironment->CreateWebView(
-        m_mainWindow, Callback<IWebView2CreateWebViewCompletedHandler>(
+        m_mainWindow, Callback<ICoreWebView2CreateWebViewCompletedHandler>(
             this, &AppWindow::OnCreateWebViewCompleted).Get()));
 
     return S_OK;
@@ -146,11 +146,11 @@ Below is a code snippet from RegisterEventHandlers(), where we set up an event h
 
 ``` c++
 CHECK_FAILURE(m_webView->add_NewWindowRequested(
-    Callback<IWebView2NewWindowRequestedEventHandler>(
-        [this](IWebView2WebView* sender,
-            IWebView2NewWindowRequestedEventArgs* args)
+    Callback<ICoreWebView2NewWindowRequestedEventHandler>(
+        [this](ICoreWebView2WebView* sender,
+            ICoreWebView2NewWindowRequestedEventArgs* args)
 {
-    wil::com_ptr<IWebView2Deferral> deferral;
+    wil::com_ptr<ICoreWebView2Deferral> deferral;
     CHECK_FAILURE(args->GetDeferral(&deferral));
 
     auto newAppWindow = new AppWindow(L"");
@@ -252,8 +252,8 @@ function SetTitleText() {
 // Setup the web message received event handler before navigating to
 // ensure we don't miss any messages.
 CHECK_FAILURE(m_webview->add_WebMessageReceived(
-    Microsoft::WRL::Callback<IWebView2WebMessageReceivedEventHandler>(
-        [this](IWebView2WebView* sender, IWebView2WebMessageReceivedEventArgs* args)
+    Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+        [this](ICoreWebView2WebView* sender, ICoreWebView2WebMessageReceivedEventArgs* args)
 {
     wil::unique_cotaskmem_string uri;
     CHECK_FAILURE(args->get_Source(&uri));
