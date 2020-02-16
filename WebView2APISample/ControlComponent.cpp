@@ -12,7 +12,8 @@
 using namespace Microsoft::WRL;
 
 ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
-    : m_appWindow(appWindow), m_webView(appWindow->GetWebView()), m_toolbar(toolbar)
+    : m_appWindow(appWindow), m_host(appWindow->GetWebViewHost()),
+      m_webView(appWindow->GetWebView()), m_toolbar(toolbar)
 {
     m_toolbar->SetEnabled(true);
     EnableWindow(m_toolbar->backWindow, false);
@@ -21,8 +22,8 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
     // Register a handler for the NavigationStarting event.
     // This handler just enables the Cancel button.
     CHECK_FAILURE(m_webView->add_NavigationStarting(
-        Callback<IWebView2NavigationStartingEventHandler>(
-            [this](IWebView2WebView* sender, IWebView2NavigationStartingEventArgs* args)
+        Callback<ICoreWebView2NavigationStartingEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
                 -> HRESULT {
                 EnableWindow(m_toolbar->cancelWindow, TRUE);
                 return S_OK;
@@ -30,13 +31,13 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
             .Get(),
         &m_navigationStartingToken));
 
-    //! [DocumentStateChanged]
-    // Register a handler for the DocumentStateChanged event.
+    //! [SourceChanged]
+    // Register a handler for the SourceChanged event.
     // This handler will read the webview's source URI and update
     // the app's address bar.
-    CHECK_FAILURE(m_webView->add_DocumentStateChanged(
-        Callback<IWebView2DocumentStateChangedEventHandler>(
-            [this](IWebView2WebView* sender, IWebView2DocumentStateChangedEventArgs* args)
+    CHECK_FAILURE(m_webView->add_SourceChanged(
+        Callback<ICoreWebView2SourceChangedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2SourceChangedEventArgs* args)
                 -> HRESULT {
                 wil::unique_cotaskmem_string uri;
                 sender->get_Source(&uri);
@@ -49,37 +50,49 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                 return S_OK;
             })
             .Get(),
-        &m_documentStateChangedToken));
-    //! [DocumentStateChanged]
+        &m_sourceChangedToken));
+    //! [SourceChanged]
 
-    //! [NavigationCompleted]
-    // Register a handler for the NavigationCompleted event.
-    // Check whether the navigation succeeded, and if not, do something.
-    // Also update the Back, Forward, and Cancel buttons.
-    CHECK_FAILURE(m_webView->add_NavigationCompleted(
-        Callback<IWebView2NavigationCompletedEventHandler>(
-            [this](IWebView2WebView* sender, IWebView2NavigationCompletedEventArgs* args)
-                -> HRESULT {
-                BOOL success;
-                CHECK_FAILURE(args->get_IsSuccess(&success));
-                if (!success)
-                {
-                    WEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
-                    CHECK_FAILURE(args->get_WebErrorStatus(&webErrorStatus));
-                    if (webErrorStatus == WEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED)
-                    {
-                        // Do something here if you want to handle a specific error case.
-                        // In most cases this isn't necessary, because the WebView will
-                        // display its own error page automatically.
-                    }
-                }
-
+    //! [HistoryChanged]
+    // Register a handler for the HistoryChanged event.
+    // Update the Back, Forward buttons.
+    CHECK_FAILURE(m_webView->add_HistoryChanged(
+        Callback<ICoreWebView2HistoryChangedEventHandler>(
+            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
                 BOOL canGoBack;
                 BOOL canGoForward;
                 sender->get_CanGoBack(&canGoBack);
                 sender->get_CanGoForward(&canGoForward);
                 EnableWindow(m_toolbar->backWindow, canGoBack);
                 EnableWindow(m_toolbar->forwardWindow, canGoForward);
+
+                return S_OK;
+            })
+            .Get(),
+        &m_historyChangedToken));
+    //! [HistoryChanged]
+
+    //! [NavigationCompleted]
+    // Register a handler for the NavigationCompleted event.
+    // Check whether the navigation succeeded, and if not, do something.
+    // Also update the Cancel buttons.
+    CHECK_FAILURE(m_webView->add_NavigationCompleted(
+        Callback<ICoreWebView2NavigationCompletedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args)
+                -> HRESULT {
+                BOOL success;
+                CHECK_FAILURE(args->get_IsSuccess(&success));
+                if (!success)
+                {
+                    CORE_WEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
+                    CHECK_FAILURE(args->get_WebErrorStatus(&webErrorStatus));
+                    if (webErrorStatus == CORE_WEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED)
+                    {
+                        // Do something here if you want to handle a specific error case.
+                        // In most cases this isn't necessary, because the WebView will
+                        // display its own error page automatically.
+                    }
+                }
                 EnableWindow(m_toolbar->cancelWindow, FALSE);
                 return S_OK;
             })
@@ -92,20 +105,21 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
     // This event will be fired when the user tabs out of the webview.
     // The handler will focus another window in the app, depending on which
     // direction the focus is being shifted.
-    CHECK_FAILURE(m_webView->add_MoveFocusRequested(
-        Callback<IWebView2MoveFocusRequestedEventHandler>(
-            [this](IWebView2WebView* sender, IWebView2MoveFocusRequestedEventArgs* args)
-                -> HRESULT {
+    CHECK_FAILURE(m_host->add_MoveFocusRequested(
+        Callback<ICoreWebView2MoveFocusRequestedEventHandler>(
+            [this](
+                ICoreWebView2Host* sender,
+                ICoreWebView2MoveFocusRequestedEventArgs* args) -> HRESULT {
                 if (!g_autoTabHandle)
                 {
-                    WEBVIEW2_MOVE_FOCUS_REASON reason;
+                    CORE_WEBVIEW2_MOVE_FOCUS_REASON reason;
                     CHECK_FAILURE(args->get_Reason(&reason));
 
-                    if (reason == WEBVIEW2_MOVE_FOCUS_REASON_NEXT)
+                    if (reason == CORE_WEBVIEW2_MOVE_FOCUS_REASON_NEXT)
                     {
                         TabForwards(-1);
                     }
-                    else if (reason == WEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS)
+                    else if (reason == CORE_WEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS)
                     {
                         TabBackwards(int(m_tabbableWindows.size()));
                     }
@@ -130,15 +144,16 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
 
     //! [AcceleratorKeyPressed]
     // Register a handler for the AcceleratorKeyPressed event.
-    CHECK_FAILURE(m_webView->add_AcceleratorKeyPressed(
-        Callback<IWebView2AcceleratorKeyPressedEventHandler>(
-            [this](IWebView2WebView* sender, IWebView2AcceleratorKeyPressedEventArgs* args)
-                -> HRESULT {
-                WEBVIEW2_KEY_EVENT_TYPE type;
-                CHECK_FAILURE(args->get_KeyEventType(&type));
+    CHECK_FAILURE(m_host->add_AcceleratorKeyPressed(
+        Callback<ICoreWebView2AcceleratorKeyPressedEventHandler>(
+            [this](
+                ICoreWebView2Host* sender,
+                ICoreWebView2AcceleratorKeyPressedEventArgs* args) -> HRESULT {
+                CORE_WEBVIEW2_KEY_EVENT_KIND kind;
+                CHECK_FAILURE(args->get_KeyEventKind(&kind));
                 // We only care about key down events.
-                if (type == WEBVIEW2_KEY_EVENT_TYPE_KEY_DOWN ||
-                    type == WEBVIEW2_KEY_EVENT_TYPE_SYSTEM_KEY_DOWN)
+                if (kind == CORE_WEBVIEW2_KEY_EVENT_KIND_KEY_DOWN ||
+                    kind == CORE_WEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_DOWN)
                 {
                     UINT key;
                     CHECK_FAILURE(args->get_VirtualKey(&key));
@@ -148,10 +163,10 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                     {
                         // Keep the browser from handling this key, whether it's autorepeated or
                         // not.
-                        CHECK_FAILURE(args->Handle(TRUE));
+                        CHECK_FAILURE(args->put_Handled(TRUE));
 
                         // Filter out autorepeated keys.
-                        WEBVIEW2_PHYSICAL_KEY_STATUS status;
+                        CORE_WEBVIEW2_PHYSICAL_KEY_STATUS status;
                         CHECK_FAILURE(args->get_PhysicalKeyStatus(&status));
                         if (!status.WasKeyDown)
                         {
@@ -176,13 +191,13 @@ bool ControlComponent::HandleWindowMessage(
         switch (LOWORD(wParam))
         {
         case IDM_FOCUS_SET:
-            CHECK_FAILURE(m_webView->MoveFocus(WEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC));
+            CHECK_FAILURE(m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC));
             return true;
         case IDM_FOCUS_TAB_IN:
-            CHECK_FAILURE(m_webView->MoveFocus(WEBVIEW2_MOVE_FOCUS_REASON_NEXT));
+            CHECK_FAILURE(m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_NEXT));
             return true;
         case IDM_FOCUS_REVERSE_TAB_IN:
-            CHECK_FAILURE(m_webView->MoveFocus(WEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS));
+            CHECK_FAILURE(m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS));
             return true;
         case IDM_TOGGLE_TAB_HANDLING:
             g_autoTabHandle = !g_autoTabHandle;
@@ -303,9 +318,31 @@ bool ControlComponent::HandleChildWindowMessage(
 //! [Navigate]
 void ControlComponent::NavigateToAddressBar()
 {
-    WCHAR uri[2048] = L"";
-    GetWindowText(m_toolbar->addressBarWindow, uri, ARRAYSIZE(uri));
-    CHECK_FAILURE(m_webView->Navigate(uri));
+    int length = GetWindowTextLength(m_toolbar->addressBarWindow);
+    std::wstring uri(length, 0);
+    PWSTR buffer = const_cast<PWSTR>(uri.data());
+    GetWindowText(m_toolbar->addressBarWindow, buffer, length + 1);
+
+    HRESULT hr = m_webView->Navigate(uri.c_str());
+    if (hr == E_INVALIDARG)
+    {
+        // An invalid URI was provided.
+        if (uri.find(L' ') == std::wstring::npos
+            && uri.find(L'.') != std::wstring::npos)
+        {
+            // If it contains a dot and no spaces, try tacking http:// on the front.
+            hr = m_webView->Navigate((L"http://" + uri).c_str());
+        }
+        else
+        {
+            // Otherwise treat it as a web search. We aren't bothering to escape
+            // URL syntax characters such as & and #
+            hr = m_webView->Navigate((L"https://bing.com/search?q=" + uri).c_str());
+        }
+    }
+    if (hr != E_INVALIDARG) {
+        CHECK_FAILURE(hr);
+    }
 }
 //! [Navigate]
 
@@ -323,7 +360,7 @@ void ControlComponent::TabForwards(int currentIndex)
         }
     }
     // If this is the last enabled window, tab forwards into the WebView.
-    m_webView->MoveFocus(WEBVIEW2_MOVE_FOCUS_REASON_NEXT);
+    m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_NEXT);
 }
 
 void ControlComponent::TabBackwards(int currentIndex)
@@ -339,17 +376,18 @@ void ControlComponent::TabBackwards(int currentIndex)
         }
     }
     // If this is the last enabled window, tab forwards into the WebView.
-    CHECK_FAILURE(m_webView->MoveFocus(WEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS));
+    CHECK_FAILURE(m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS));
 }
 //! [MoveFocus2]
 
 ControlComponent::~ControlComponent()
 {
     m_webView->remove_NavigationStarting(m_navigationStartingToken);
-    m_webView->remove_DocumentStateChanged(m_documentStateChangedToken);
+    m_webView->remove_SourceChanged(m_sourceChangedToken);
+    m_webView->remove_HistoryChanged(m_historyChangedToken);
     m_webView->remove_NavigationCompleted(m_navigationCompletedToken);
-    m_webView->remove_MoveFocusRequested(m_moveFocusRequestedToken);
-    m_webView->remove_AcceleratorKeyPressed(m_acceleratorKeyPressedToken);
+    m_host->remove_MoveFocusRequested(m_moveFocusRequestedToken);
+    m_host->remove_AcceleratorKeyPressed(m_acceleratorKeyPressedToken);
 
     // Undo our modifications to the toolbar elements
     for (auto pair : m_tabbableWindows)

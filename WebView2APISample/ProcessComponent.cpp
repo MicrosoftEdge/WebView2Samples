@@ -18,19 +18,30 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
     // This handler checks if the browser process failed, and asks the user if
     // they want to recreate the webview.
     CHECK_FAILURE(m_webView->add_ProcessFailed(
-        Callback<IWebView2ProcessFailedEventHandler>(
-            [this](IWebView2WebView* sender,
-                IWebView2ProcessFailedEventArgs* args) -> HRESULT
+        Callback<ICoreWebView2ProcessFailedEventHandler>(
+            [this](ICoreWebView2* sender,
+                ICoreWebView2ProcessFailedEventArgs* args) -> HRESULT
     {
-        WEBVIEW2_PROCESS_FAILED_KIND failureType;
+        CORE_WEBVIEW2_PROCESS_FAILED_KIND failureType;
         CHECK_FAILURE(args->get_ProcessFailedKind(&failureType));
-        if (failureType == WEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED)
+        if (failureType == CORE_WEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED)
         {
             int button = MessageBox(
                 m_appWindow->GetMainWindow(),
                 L"Browser process exited unexpectedly.  Recreate webview?",
                 L"Browser process exited",
                 MB_YESNO);
+            if (button == IDYES)
+            {
+                m_appWindow->ReinitializeWebView();
+            }
+        }
+        else if (failureType == CORE_WEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE)
+        {
+            int button = MessageBox(
+                m_appWindow->GetMainWindow(),
+                L"Browser render process has stopped responding.  Recreate webview?",
+                L"Web page unresponsive", MB_YESNO);
             if (button == IDYES)
             {
                 m_appWindow->ReinitializeWebView();

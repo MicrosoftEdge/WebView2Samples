@@ -36,13 +36,15 @@ public:
 
 private:
     AppWindow* m_appWindow;
-    wil::com_ptr<IWebView2WebView5> m_webView;
+    wil::com_ptr<ICoreWebView2Host> m_host;
+    wil::com_ptr<ICoreWebView2> m_webView;
     Toolbar* m_toolbar;
 
     std::vector<std::pair<HWND, WNDPROC>> m_tabbableWindows;
 
     EventRegistrationToken m_navigationStartingToken = {};
-    EventRegistrationToken m_documentStateChangedToken = {};
+    EventRegistrationToken m_sourceChangedToken = {};
+    EventRegistrationToken m_historyChangedToken = {};
     EventRegistrationToken m_navigationCompletedToken = {};
     EventRegistrationToken m_moveFocusRequestedToken = {};
     EventRegistrationToken m_acceleratorKeyPressedToken = {};

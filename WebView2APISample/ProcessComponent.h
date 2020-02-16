@@ -33,7 +33,7 @@ public:
 
 private:
     AppWindow* m_appWindow = nullptr;
-    wil::com_ptr<IWebView2WebView> m_webView;
+    wil::com_ptr<ICoreWebView2> m_webView;
 
     UINT m_browserProcessId = 0;
     EventRegistrationToken m_processFailedToken = {};

@@ -5,7 +5,10 @@ S Release/
 ipch/
 x64/
 x86/
+ARM64/
 .vs/
+# Created by running event monitor
+enc_temp_folder/
 packages/
 
 # Override root .gitignore to ensure we pick up changes for the sample app

@@ -19,8 +19,8 @@ FileComponent::FileComponent(AppWindow* appWindow)
     // Register a handler for the DocumentTitleChanged event.
     // This handler just announces the new title on the window's title bar.
     CHECK_FAILURE(m_webView->add_DocumentTitleChanged(
-        Callback<IWebView2DocumentTitleChangedEventHandler>(
-            [this](IWebView2WebView3* sender, IUnknown* args) -> HRESULT {
+        Callback<ICoreWebView2DocumentTitleChangedEventHandler>(
+            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
                 wil::unique_cotaskmem_string title;
                 CHECK_FAILURE(sender->get_DocumentTitle(&title));
                 SetWindowText(m_appWindow->GetMainWindow(), title.get());
@@ -78,8 +78,8 @@ void FileComponent::SaveScreenshot()
         HWND mainWindow = m_appWindow->GetMainWindow();
 
         CHECK_FAILURE(m_webView->CapturePreview(
-            WEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG, stream.get(),
-            Callback<IWebView2CapturePreviewCompletedHandler>(
+            CORE_WEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG, stream.get(),
+            Callback<ICoreWebView2CapturePreviewCompletedHandler>(
                 [mainWindow](HRESULT error_code) -> HRESULT {
                     CHECK_FAILURE(error_code);
 
