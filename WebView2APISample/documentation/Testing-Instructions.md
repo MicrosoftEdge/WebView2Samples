@@ -366,7 +366,7 @@ Test that enables/disables Zoom\
 _It is enabled by default._
 1. Launch the sample app.
 2. Ctrl+ +/- or mouse wheel
-3. Expected: The Webview zooms in and out, ZoomView shows up as:\
+3. Expected: The Webview zooms in and out, ZoomView shown below shouldn't show up:\
 ![ZoomView](Screenshots/ZoomView.png)
 4. Go to `Settings -> Toggle zoom control enabled`
 5. Expected: Message Box that says `Zoom control is disabled after the next navigation.`
