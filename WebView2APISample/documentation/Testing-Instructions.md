@@ -318,12 +318,12 @@ _It is allowed by default._
 2. Load [this sample video](https://www.youtube.com/watch?v=JE8KNQFwMzE&feature=youtu.be&t=943) and request it in full screen mode
 3. Expected: The video element is allowed to be displayed full screen
 4. Go to `Settings -> Toggle Fullscreen allowed`
-5. Expected: Message box that says `Fullscreen will be disallowed after the next navigation.`
-6. Click `OK` inside the popup dialog and click `Reload`
+5. Expected: Message box that says `Fullscreen is now disallowed.`
+6. Click `OK`
 7. Repeat step 2
 8. Expected: The video element will fill the WebView bounds
 9. Repeat step 4
-10. Expected: Message box that says `Fullscreen will be allowed after the next navigation.`
+10. Expected: Message box that says `Fullscreen is now allowed.`
 11. Repeat steps 6-7
 12. Expected: The video element is allowed to be displayed full screen again
 
