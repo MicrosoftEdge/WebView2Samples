@@ -27,7 +27,9 @@ public:
     void SetSizeRatio(float ratio);
     void SetZoomFactor(float zoom);
     void SetBounds(RECT bounds);
+    void SetScale(float scale);
     void ShowWebViewBounds();
+    void ShowWebViewZoom();
 
     ~ViewComponent() override;
 
@@ -35,12 +37,14 @@ private:
     void ResizeWebView();
 
     AppWindow* m_appWindow = nullptr;
-    wil::com_ptr<IWebView2WebView> m_webView;
+    wil::com_ptr<ICoreWebView2Host> m_host;
+    wil::com_ptr<ICoreWebView2> m_webView;
 
     bool m_isVisible = true;
     float m_webViewRatio = 1.0f;
     float m_webViewZoomFactor = 1.0f;
     RECT m_webViewBounds = {};
+    float m_webViewScale = 1.0f;
 
     EventRegistrationToken m_zoomFactorChangedToken = {};
 };

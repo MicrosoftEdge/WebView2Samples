@@ -15,14 +15,15 @@
 using namespace Microsoft::WRL;
 
 ViewComponent::ViewComponent(AppWindow* appWindow)
-    : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
+    : m_appWindow(appWindow), m_host(appWindow->GetWebViewHost()),
+      m_webView(appWindow->GetWebView())
 {
     //! [ZoomFactorChanged]
     // Register a handler for the ZoomFactorChanged event.
     // This handler just announces the new level of zoom on the window's title bar.
-    CHECK_FAILURE(m_webView->add_ZoomFactorChanged(
-        Callback<IWebView2ZoomFactorChangedEventHandler>(
-            [this](IWebView2WebView* sender, IUnknown* args) -> HRESULT {
+    CHECK_FAILURE(m_host->add_ZoomFactorChanged(
+        Callback<ICoreWebView2ZoomFactorChangedEventHandler>(
+            [this](ICoreWebView2Host* sender, IUnknown* args) -> HRESULT {
                 double zoomFactor;
                 CHECK_FAILURE(sender->get_ZoomFactor(&zoomFactor));
 
@@ -69,8 +70,23 @@ bool ViewComponent::HandleWindowMessage(
         case IDM_SIZE_100:
             SetSizeRatio(1.0f);
             return true;
+        case IDM_SCALE_50:
+            SetScale(0.5f);
+            return true;
+        case IDM_SCALE_100:
+            SetScale(1.0f);
+            return true;
+        case IDM_SCALE_125:
+            SetScale(1.25f);
+            return true;
+        case IDM_SCALE_150:
+            SetScale(1.5f);
+            return true;
         case IDM_GET_WEBVIEW_BOUNDS:
             ShowWebViewBounds();
+            return true;
+        case IDM_GET_WEBVIEW_ZOOM:
+            ShowWebViewZoom();
             return true;
         }
     }
@@ -80,7 +96,7 @@ bool ViewComponent::HandleWindowMessage(
         if (wParam == SC_MINIMIZE)
         {
             // Hide the webview when the app window is minimized.
-            m_webView->put_IsVisible(FALSE);
+            m_host->put_IsVisible(FALSE);
         }
         else if (wParam == SC_RESTORE)
         {
@@ -88,20 +104,27 @@ bool ViewComponent::HandleWindowMessage(
             // (unless the user has toggle visibility off).
             if (m_isVisible)
             {
-                m_webView->put_IsVisible(TRUE);
+                m_host->put_IsVisible(TRUE);
             }
         }
     }
     //! [ToggleIsVisibleOnMinimize]
+    //! [NotifyParentWindowPositionChanged]
+    if (message == WM_MOVE || message == WM_MOVING)
+    {
+        m_host->NotifyParentWindowPositionChanged();
+        return true;
+    }
+    //! [NotifyParentWindowPositionChanged]
     return false;
 }
 //! [ToggleIsVisible]
 void ViewComponent::ToggleVisibility()
 {
     BOOL visible;
-    m_webView->get_IsVisible(&visible);
+    m_host->get_IsVisible(&visible);
     m_isVisible = !visible;
-    m_webView->put_IsVisible(m_isVisible);
+    m_host->put_IsVisible(m_isVisible);
 }
 //! [ToggleIsVisible]
 
@@ -114,7 +137,7 @@ void ViewComponent::SetSizeRatio(float ratio)
 void ViewComponent::SetZoomFactor(float zoom)
 {
     m_webViewZoomFactor = zoom;
-    m_webView->put_ZoomFactor(zoom);
+    m_host->put_ZoomFactor(zoom);
 }
 
 void ViewComponent::SetBounds(RECT bounds)
@@ -123,17 +146,37 @@ void ViewComponent::SetBounds(RECT bounds)
     ResizeWebView();
 }
 
+//! [SetBoundsAndZoomFactor]
+void ViewComponent::SetScale(float scale)
+{
+    RECT bounds;
+    CHECK_FAILURE(m_host->get_Bounds(&bounds));
+    double scaleChange = scale / m_webViewScale;
+
+    bounds.bottom = LONG(
+        (bounds.bottom - bounds.top) * scaleChange + bounds.top);
+    bounds.right = LONG(
+        (bounds.right - bounds.left) * scaleChange + bounds.left);
+
+    m_webViewScale = scale;
+    m_host->SetBoundsAndZoomFactor(bounds, scale);
+}
+//! [SetBoundsAndZoomFactor]
+
 //! [ResizeWebView]
 // Update the bounds of the WebView window to fit available space.
 void ViewComponent::ResizeWebView()
 {
+    SIZE webViewSize = {
+            LONG((m_webViewBounds.right - m_webViewBounds.left) * m_webViewRatio * m_webViewScale),
+            LONG((m_webViewBounds.bottom - m_webViewBounds.top) * m_webViewRatio * m_webViewScale) };
     RECT desiredBounds = m_webViewBounds;
     desiredBounds.bottom = LONG(
-        (m_webViewBounds.bottom - m_webViewBounds.top) * m_webViewRatio + m_webViewBounds.top);
+        webViewSize.cy + m_webViewBounds.top);
     desiredBounds.right = LONG(
-        (m_webViewBounds.right - m_webViewBounds.left) * m_webViewRatio + m_webViewBounds.left);
+        webViewSize.cx + m_webViewBounds.left);
 
-    m_webView->put_Bounds(desiredBounds);
+    m_host->put_Bounds(desiredBounds);
 }
 //! [ResizeWebView]
 
@@ -141,7 +184,7 @@ void ViewComponent::ResizeWebView()
 void ViewComponent::ShowWebViewBounds()
 {
     RECT bounds;
-    HRESULT result = m_webView->get_Bounds(&bounds);
+    HRESULT result = m_host->get_Bounds(&bounds);
     if (SUCCEEDED(result))
     {
         std::wstringstream message;
@@ -153,7 +196,20 @@ void ViewComponent::ShowWebViewBounds()
     }
 }
 
+// Show the current zoom factor of the WebView.
+void ViewComponent::ShowWebViewZoom()
+{
+    double zoomFactor;
+    HRESULT result = m_host->get_ZoomFactor(&zoomFactor);
+    if (SUCCEEDED(result))
+    {
+        std::wstringstream message;
+        message << L"Zoom Factor:\t" << zoomFactor << std::endl;
+        MessageBox(nullptr, message.str().c_str(), L"WebView Zoom Factor", MB_OK);
+    }
+}
+
 ViewComponent::~ViewComponent()
 {
-    m_webView->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
+    m_host->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
 }

@@ -71,7 +71,7 @@ void ScriptComponent::InjectScript()
     if (dialog.confirmed)
     {
         m_webView->ExecuteScript(dialog.input.c_str(),
-            Callback<IWebView2ExecuteScriptCompletedHandler>(
+            Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
                 [](HRESULT error, PCWSTR result) -> HRESULT
         {
             if (error != S_OK) {
@@ -104,7 +104,7 @@ void ScriptComponent::AddInitializeScript()
     {
         m_webView->AddScriptToExecuteOnDocumentCreated(
             dialog.input.c_str(),
-            Callback<IWebView2AddScriptToExecuteOnDocumentCreatedCompletedHandler>(
+            Callback<ICoreWebView2AddScriptToExecuteOnDocumentCreatedCompletedHandler>(
                 [this](HRESULT error, PCWSTR id) -> HRESULT
         {
             m_lastInitializeScriptId = id;
@@ -175,29 +175,33 @@ void ScriptComponent::SubscribeToCdpEvent()
         L"Log.entryAdded");
     if (dialog.confirmed)
     {
-        std::wstring eventName = dialog.input;
+		std::wstring eventName = dialog.input;
+        wil::com_ptr<ICoreWebView2DevToolsProtocolEventReceiver> receiver;
+        CHECK_FAILURE(
+            m_webView->GetDevToolsProtocolEventReceiver(eventName.c_str(), &receiver));
+
         // If we are already subscribed to this event, unsubscribe first.
         auto preexistingToken = m_devToolsProtocolEventReceivedTokenMap.find(eventName);
         if (preexistingToken != m_devToolsProtocolEventReceivedTokenMap.end())
         {
-            CHECK_FAILURE(m_webView->remove_DevToolsProtocolEventReceived(
-                eventName.c_str(),
+            CHECK_FAILURE(receiver->remove_DevToolsProtocolEventReceived(
                 preexistingToken->second));
         }
 
-        CHECK_FAILURE(m_webView->add_DevToolsProtocolEventReceived(
-            eventName.c_str(),
-            Callback<IWebView2DevToolsProtocolEventReceivedEventHandler>(
-                [eventName](IWebView2WebView* sender,
-                            IWebView2DevToolsProtocolEventReceivedEventArgs* args)
-                -> HRESULT
-        {
-            wil::unique_cotaskmem_string parameterObjectAsJson;
-            CHECK_FAILURE(args->get_ParameterObjectAsJson(&parameterObjectAsJson));
-            MessageBox(nullptr, parameterObjectAsJson.get(),
-                       (L"CDP Event Fired: " + eventName).c_str(), MB_OK);
-            return S_OK;
-        }).Get(), &m_devToolsProtocolEventReceivedTokenMap[eventName]));
+        CHECK_FAILURE(receiver->add_DevToolsProtocolEventReceived(
+            Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
+                [eventName](
+                    ICoreWebView2* sender,
+                    ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT {
+                    wil::unique_cotaskmem_string parameterObjectAsJson;
+                    CHECK_FAILURE(args->get_ParameterObjectAsJson(&parameterObjectAsJson));
+                    MessageBox(
+                        nullptr, parameterObjectAsJson.get(),
+                        (L"CDP Event Fired: " + eventName).c_str(), MB_OK);
+                    return S_OK;
+                })
+                .Get(),
+            &m_devToolsProtocolEventReceivedTokenMap[eventName]));
     }
 }
 //! [DevToolsProtocolEventReceived]
@@ -225,7 +229,7 @@ void ScriptComponent::CallCdpMethod()
         m_webView->CallDevToolsProtocolMethod(
             methodName.c_str(),
             methodParams.c_str(),
-            Callback<IWebView2CallDevToolsProtocolMethodCompletedHandler>(
+            Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
                 [](HRESULT error, PCWSTR resultJson) -> HRESULT
                 {
                     MessageBox(nullptr, resultJson, L"CDP Method Result", MB_OK);
@@ -297,6 +301,9 @@ ScriptComponent::~ScriptComponent()
 {
     for (auto& pair : m_devToolsProtocolEventReceivedTokenMap)
     {
-        m_webView->remove_DevToolsProtocolEventReceived(pair.first.c_str(), pair.second);
+        wil::com_ptr<ICoreWebView2DevToolsProtocolEventReceiver> receiver;
+        CHECK_FAILURE(
+            m_webView->GetDevToolsProtocolEventReceiver(pair.first.c_str(), &receiver));
+        receiver->remove_DevToolsProtocolEventReceived(pair.second);
     }
 }

@@ -31,14 +31,14 @@
 
     <h2>Posting Messages</h2>
     <p id="colorable">Messages can be posted from the host app to the webview using the
-    functions <code>IWebView2WebView::PostWebMessageAsJson</code> and
-    <code>IWebView2WebView::PostWebMessageAsString</code>. Try using the menu item
+    functions <code>ICoreWebView2::PostWebMessageAsJson</code> and
+    <code>ICoreWebView2::PostWebMessageAsString</code>. Try using the menu item
     "Script-&gt;Post Message JSON" to send the message <code>{"SetColor":"blue"}</code>.
     It should change the text color of this paragraph.</p>
 
     <h2>Receiving Messages</h2>
     <p>The host app can receive messages by registering an event handler with
-    <code>IWebView2WebView::add_WebMessageReceived</code>. If you enter text and click
+    <code>ICoreWebView2::add_WebMessageReceived</code>. If you enter text and click
     "Send", this page will send a message to the host app which will change the text of
     the title bar.</p>
     <input type="text" id="title-text"/>

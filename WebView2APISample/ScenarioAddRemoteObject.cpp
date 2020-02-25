@@ -24,8 +24,8 @@ ScenarioAddRemoteObject::ScenarioAddRemoteObject(AppWindow* appWindow)
     });
 
     CHECK_FAILURE(m_webView->add_NavigationStarting(
-        Microsoft::WRL::Callback<IWebView2NavigationStartingEventHandler>(
-            [this, sampleUri](IWebView2WebView* sender, IWebView2NavigationStartingEventArgs* args) -> HRESULT
+        Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+            [this, sampleUri](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT
     {
         wil::unique_cotaskmem_string navigationTargetUri;
         CHECK_FAILURE(args->get_Uri(&navigationTargetUri));

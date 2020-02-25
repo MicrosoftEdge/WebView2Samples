@@ -29,7 +29,7 @@ public:
 
 private:
     AppWindow* m_appWindow = nullptr;
-    wil::com_ptr<IWebView2WebView3> m_webView;
+    wil::com_ptr<ICoreWebView2> m_webView;
 
     EventRegistrationToken m_documentTitleChangedToken = {};
 };

@@ -20,8 +20,8 @@ public:
 
 private:
     AppWindow* m_appWindow;
-    wil::com_ptr<IWebView2WebView> m_webView;
+    wil::com_ptr<ICoreWebView2> m_webView;
     std::wstring m_sampleUri;
     EventRegistrationToken m_webMessageReceivedToken = {};
-    EventRegistrationToken m_documentStateChangedToken = {};
+    EventRegistrationToken m_contentLoadingToken = {};
 };

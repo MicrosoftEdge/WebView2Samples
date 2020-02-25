@@ -69,8 +69,9 @@ BEGIN
     END
     POPUP "&Window"
     BEGIN
-        MENUITEM "Close WebView",               IDM_CLOSE_WEBVIEW
-        MENUITEM "Create WebView",              IDM_REINIT_INSTALLED
+        MENUITEM "Close WebView",                              IDM_CLOSE_WEBVIEW
+        MENUITEM "Close WebView and cleanup user data folder", IDM_CLOSE_WEBVIEW_CLEANUP
+        MENUITEM "Create WebView",              IDM_REINIT
         MENUITEM "Create New Window",           IDM_NEW_WINDOW
         MENUITEM "Create New Thread",           IDM_NEW_THREAD
     END
@@ -98,13 +99,15 @@ BEGIN
             MENUITEM "Complete Deferred Script Dialog", IDM_COMPLETE_JAVASCRIPT_DIALOG
         END
         MENUITEM "Toggle context menus enabled", ID_SETTINGS_CONTEXT_MENUS_ENABLED
+        MENUITEM "Toggle remote objects allowed", ID_SETTINGS_REMOE_OBJECTS_ALLOWED
+        MENUITEM "Toggle zoom control enabled",           ID_SETTINGS_ZOOM_ENABLED
     END
     POPUP "&View"
     BEGIN
         MENUITEM "Toggle Visibility",           IDM_TOGGLE_VISIBILITY
-        MENUITEM "Get WebView Bounds",          IDM_GET_WEBVIEW_BOUNDS
         POPUP "WebView Area"
         BEGIN
+            MENUITEM "Get WebView Bounds",      IDM_GET_WEBVIEW_BOUNDS
             MENUITEM "25%",                     IDM_SIZE_25
             MENUITEM "50%",                     IDM_SIZE_50
             MENUITEM "75%",                     IDM_SIZE_75
@@ -112,9 +115,17 @@ BEGIN
         END
         POPUP "WebView Zoom"
         BEGIN
+            MENUITEM "Get WebView Zoom",        IDM_GET_WEBVIEW_ZOOM
             MENUITEM "0.5x",                    IDM_ZOOM_05
             MENUITEM "1.0x",                    IDM_ZOOM_10
             MENUITEM "2.0x",                    IDM_ZOOM_20
+        END
+        POPUP "WebView Scaling"
+        BEGIN
+            MENUITEM "Scale 0.5x"          IDM_SCALE_50
+            MENUITEM "Scale 1.0x"          IDM_SCALE_100
+            MENUITEM "Scale 1.25x"         IDM_SCALE_125
+            MENUITEM "Scale 1.5x"          IDM_SCALE_150
         END
         MENUITEM "Set Focus",                   IDM_FOCUS_SET
         MENUITEM "Tab In",                      IDM_FOCUS_TAB_IN

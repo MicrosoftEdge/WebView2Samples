@@ -19,7 +19,7 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
     m_sampleUri = m_appWindow->GetLocalUri(c_samplePath);
 
     //! [IsWebMessageEnabled]
-    ComPtr<IWebView2Settings> settings;
+    ComPtr<ICoreWebView2Settings> settings;
     CHECK_FAILURE(m_webView->get_Settings(&settings));
 
     CHECK_FAILURE(settings->put_IsWebMessageEnabled(TRUE));
@@ -29,8 +29,8 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
     // Setup the web message received event handler before navigating to
     // ensure we don't miss any messages.
     CHECK_FAILURE(m_webView->add_WebMessageReceived(
-        Microsoft::WRL::Callback<IWebView2WebMessageReceivedEventHandler>(
-            [this](IWebView2WebView* sender, IWebView2WebMessageReceivedEventArgs* args)
+        Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args)
     {
         wil::unique_cotaskmem_string uri;
         CHECK_FAILURE(args->get_Source(&uri));
@@ -41,7 +41,7 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
             return S_OK;
         }
         wil::unique_cotaskmem_string messageRaw;
-        CHECK_FAILURE(args->get_WebMessageAsString(&messageRaw));
+        CHECK_FAILURE(args->TryGetWebMessageAsString(&messageRaw));
         std::wstring message = messageRaw.get();
 
         if (message.compare(0, 13, L"SetTitleText ") == 0)
@@ -64,21 +64,23 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
     //! [WebMessageReceived]
 
     // Turn off this scenario if we navigate away from the sample page
-    CHECK_FAILURE(m_webView->add_DocumentStateChanged(
-        Callback<IWebView2DocumentStateChangedEventHandler>(
-            [this](IWebView2WebView* sender,
-                   IWebView2DocumentStateChangedEventArgs* args) -> HRESULT
-    {
-        wil::unique_cotaskmem_string uri;
-        sender->get_Source(&uri);
-        if (uri.get() != m_sampleUri)
-        {
-            m_appWindow->DeleteComponent(this);
-        }
-        return S_OK;
-    }).Get(), &m_documentStateChangedToken));
+    CHECK_FAILURE(m_webView->add_ContentLoading(
+        Callback<ICoreWebView2ContentLoadingEventHandler>(
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2ContentLoadingEventArgs* args) -> HRESULT {
+                wil::unique_cotaskmem_string uri;
+                sender->get_Source(&uri);
+                if (uri.get() != m_sampleUri)
+                {
+                    m_appWindow->DeleteComponent(this);
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_contentLoadingToken));
 
-    // Changes to IWebView2Settings::IsWebMessageEnabled apply to the next document
+    // Changes to ICoreWebView2Settings::IsWebMessageEnabled apply to the next document
     // to which we navigate.
     CHECK_FAILURE(m_webView->Navigate(m_sampleUri.c_str()));
 }
@@ -86,5 +88,5 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
 ScenarioWebMessage::~ScenarioWebMessage()
 {
     m_webView->remove_WebMessageReceived(m_webMessageReceivedToken);
-    m_webView->remove_DocumentStateChanged(m_documentStateChangedToken);
+    m_webView->remove_ContentLoading(m_contentLoadingToken);
 }

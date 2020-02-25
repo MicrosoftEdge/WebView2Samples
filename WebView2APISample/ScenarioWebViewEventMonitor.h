@@ -17,7 +17,7 @@ public:
     ScenarioWebViewEventMonitor(AppWindow* appWindowEventSource);
     ~ScenarioWebViewEventMonitor() override;
 
-    void InitializeEventView(IWebView2WebView5* webviewEventView);
+    void InitializeEventView(ICoreWebView2* webviewEventView);
 
 private:
     // Because WebResourceRequested fires so much more often than
@@ -28,18 +28,20 @@ private:
 
     // The event view displays the events and their details.
     AppWindow* m_appWindowEventView;
-    wil::com_ptr<IWebView2WebView5> m_webviewEventView;
+    wil::com_ptr<ICoreWebView2> m_webviewEventView;
     // The URI of the HTML document that displays the events.
     std::wstring m_sampleUri;
 
     // The event source objects fire the events.
     AppWindow* m_appWindowEventSource;
-    wil::com_ptr<IWebView2WebView5> m_webviewEventSource;
+    wil::com_ptr<ICoreWebView2> m_webviewEventSource;
 
     // The events we register on the event source
     EventRegistrationToken m_frameNavigationStartingToken = {};
     EventRegistrationToken m_navigationStartingToken = {};
-    EventRegistrationToken m_documentStateChangedToken = {};
+    EventRegistrationToken m_sourceChangedToken = {};
+    EventRegistrationToken m_contentLoadingToken = {};
+    EventRegistrationToken m_historyChangedToken = {};
     EventRegistrationToken m_navigationCompletedToken = {};
     EventRegistrationToken m_documentTitleChangedToken = {};
     EventRegistrationToken m_webMessageReceivedToken = {};

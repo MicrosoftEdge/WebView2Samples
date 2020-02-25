@@ -20,10 +20,15 @@ class SettingsComponent;
 class AppWindow
 {
 public:
-    AppWindow(std::wstring initialUri = L"https://www.bing.com/",
-              std::function<void()> webviewCreatedCallback = nullptr);
+    AppWindow(
+        std::wstring initialUri = L"https://www.bing.com/",
+        std::function<void()> webviewCreatedCallback = nullptr);
 
-    IWebView2WebView5* GetWebView()
+    ICoreWebView2Host* GetWebViewHost()
+    {
+        return m_host.get();
+    }
+    ICoreWebView2* GetWebView()
     {
         return m_webView.get();
     }
@@ -45,13 +50,7 @@ public:
     void DeleteComponent(ComponentBase* scenario);
 
     void RunAsync(std::function<void(void)> callback);
-
 private:
-    enum InitializeWebViewFlags
-    {
-        kDefaultOption = 0,
-        kUseInstalledBrowser = 1 << 0,
-    };
     static PCWSTR GetWindowClass();
 
     static INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -65,14 +64,14 @@ private:
     bool ExecuteAppCommands(WPARAM wParam, LPARAM lParam);
 
     void ResizeEverything();
-
-    void InitializeWebView(InitializeWebViewFlags webviewInitFlags);
-    HRESULT OnCreateEnvironmentCompleted(HRESULT result, IWebView2Environment* environment);
-    HRESULT OnCreateWebViewCompleted(HRESULT result, IWebView2WebView* webview);
+    void InitializeWebView();
+    HRESULT OnCreateEnvironmentCompleted(HRESULT result, ICoreWebView2Environment* environment);
+    HRESULT OnCreateCoreWebView2HostCompleted(HRESULT result, ICoreWebView2Host* host);
+    HRESULT DeleteFileRecursive(std::wstring path);
     void RegisterEventHandlers();
     void ReinitializeWebViewWithNewBrowser();
     void RestartApp();
-    void CloseWebView();
+    void CloseWebView(bool cleanupUserDataFolder = false);
     void CloseAppWindow();
 
     std::wstring GetLocalPath(std::wstring path);
@@ -89,22 +88,22 @@ private:
     // The following is state that belongs with the webview, and should
     // be reinitialized along with it.  Everything here is undefined when
     // m_webView is null.
-    wil::com_ptr<IWebView2Environment3> m_webViewEnvironment;
-    wil::com_ptr<IWebView2WebView5> m_webView;
+    wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
+    wil::com_ptr<ICoreWebView2Host> m_host;
+    wil::com_ptr<ICoreWebView2> m_webView;
 
     // All components are deleted when the WebView is closed.
     std::vector<std::unique_ptr<ComponentBase>> m_components;
 
     // This state is preserved between WebViews so we can recreate
     // a new WebView based on the settings of the old one.
-    InitializeWebViewFlags m_lastUsedInitFlags;
     std::unique_ptr<SettingsComponent> m_oldSettingsComponent;
-
     // Fullscreen related code
     WINDOWPLACEMENT m_previousPlacement;
     HMENU m_hMenu;
     BOOL m_containsFullscreenElement = FALSE;
     bool m_fullScreenAllowed = true;
+    bool m_isPopupWindow = false;
     void EnterFullScreen();
     void ExitFullScreen();
 };

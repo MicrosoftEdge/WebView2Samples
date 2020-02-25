@@ -31,6 +31,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Process](#Process)
         * [Browser Process Info](#Browser-Process-Info)
         * [Crash Browser Process](#Crash-Browser-Process)
+        * [Unresponsive Browser Process](#Unresponsive-Browser-Process)
     * [Setting](#Setting)
         * [Blocked Domains](#Blocked-Domains)
         * [Set User Agent](#Set-User-Agent)
@@ -39,14 +40,15 @@ These are instructions for manually testing all the features of the WebView2 API
         * [Toggle Fullscreen allowed](#Toggle-Fullscreen-allowed)
         * [Toggle Status Bar enabled](#Toggle-Status-Bar-enabled)
         * [Toggle DevTools enabled](#Toggle-DevTools-enabled)
+        * [Toggle ZoomControl enabled](#Toggle-ZoomControl-enabled)
         * [Toggle Block images](#Toggle-Block-images)
         * [JavaScript Dialogs](#JavaScript-Dialogs)
         * [Toggle context menus enabled](#Toggle-context-menus-enabled)
     * [View](#View)
         * [Toggle Visibility](#Toggle-Visibility)
-        * [Get WebView Bounds](#Get-WebView-Bounds)
         * [WebView Area](#WebView-Area)
         * [WebView Zoom](#WebView-Zoom)
+        * [WebView Scale](#WebView-Scale)
         * [Set Focus](#Set-Focus)
         * [Tab In](#Tab-In)
         * [Reverse Tab In](#Reverse-Tab-In)
@@ -238,6 +240,17 @@ Test browser process going away unexpectedly
 7. Expected: blank content inside the app\
   ![step 7](Screenshots/CrashBrowserProcess7.png)
 
+#### Unresponsive Browser Process
+Test browser process becoming unresponsive
+1. Launch the sample app. 
+2. Navigate to `edge://hang`.
+3. Wait ~20-30 seconds.
+4. Expected: Error dialog popup that says `Browser renderer process stopped responding. Recreate webview?`\
+  ![step 3](Screenshots/UnresponsiveRendererError.png)\
+  Note: 'This page isn't responding' dialog does not display if the hang is triggered via injecting script: `while (1) { console.log('hang') }`
+5. Click `Yes` inside the Popup dialog
+6. Expected: The app window resets to the same state as step 1.
+
 ### Settings
 
 #### Blocked Domains
@@ -305,12 +318,12 @@ _It is allowed by default._
 2. Load [this sample video](https://www.youtube.com/watch?v=JE8KNQFwMzE&feature=youtu.be&t=943) and request it in full screen mode
 3. Expected: The video element is allowed to be displayed full screen
 4. Go to `Settings -> Toggle Fullscreen allowed`
-5. Expected: Message box that says `Fullscreen will be disallowed after the next navigation.`
-6. Click `OK` inside the popup dialog and click `Reload`
+5. Expected: Message box that says `Fullscreen is now disallowed.`
+6. Click `OK`
 7. Repeat step 2
 8. Expected: The video element will fill the WebView bounds
 9. Repeat step 4
-10. Expected: Message box that says `Fullscreen will be allowed after the next navigation.`
+10. Expected: Message box that says `Fullscreen is now allowed.`
 11. Repeat steps 6-7
 12. Expected: The video element is allowed to be displayed full screen again
 
@@ -347,6 +360,22 @@ _It is enabled by default._
 11. Click `OK` inside the popup dialog and click `Reload`
 12. Right-click the mouse
 13. Expected: `Inspect` option available in the Right Click Menu again
+
+#### Toggle ZoomControl enabled ####
+Test that enables/disables Zoom\
+_It is enabled by default._
+1. Launch the sample app.
+2. Ctrl+ +/- or mouse wheel
+3. Expected: The Webview zooms in and out, ZoomView shown below shouldn't show up:\
+![ZoomView](Screenshots/ZoomView.png)
+4. Go to `Settings -> Toggle zoom control enabled`
+5. Expected: Message Box that says `Zoom control is disabled after the next navigation.`
+6. Click `OK` inside the popup dialog and click `Reload`
+7. Ctrl+ +/- or mouse wheel
+8. Expected: The Webview doesn't zoom in or out, nor ZoomView shows up
+9. Go to `Settings -> Toggle zoom control enabled`
+10. Expected: Message Box that says `Zoom control is enabled after the next navigation.`
+11. Verify that zooming works again with ZoomView showing up
 
 #### Toggle Block images
 Test that enables/disables image blocking\
@@ -416,42 +445,56 @@ Test that makes WebView visible/invisible
 4. Repeat step 2
 5. Expected: The WebView becomes visible
 
-#### Get WebView Bounds
-Test that gets WebView bounds
-1. Launch the sample app.
-2. Go to `Window -> Get WebView Bounds`
-3. Expected: WebView Bounds Message Box that contains WebView bounds
-4. Click `OK` inside the popup dialog
-5. Expected: dialog closed
-
 #### WebView Area
 Test that resizes WebView window\
 _Updates the bounds of the WebView window to resize_
 1. Launch the sample app.
-2. Go to `View -> WebView Area -> 25%`
-3. Expected: Set WebView size ratio to 25% and resize WebView
-4. Go to `View -> WebView Area -> 50%`
-5. Expected: Set WebView size ratio to 50% and resize WebView
-6. Go to `View -> WebView Area -> 100%`
-7. Expected: Set WebView size ratio to 100% and resize WebView
+2. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds.
+3. Go to `View -> WebView Area -> 25%`
+4. Go to `View -> WebView Area -> Get WebView Bounds`.
+5. Expected: WebView size ratio is 25% of bounds in step 2 and WebView was resized.
+6. Go to `View -> WebView Area -> 50%`
+7. Go to `View -> WebView Area -> Get WebView Bounds`.
+8. Expected: WebView size ratio to 50% of bounds in step 2 and WebView was resized.
+9. Go to `View -> WebView Area -> 100%`
+10. Go to `View -> WebView Area -> Get WebView Bounds`.
+11. Expected: WebView size matches bounds in step 2 and WebView was resized.
 
 #### WebView Zoom
 Test that zooms in/out WebView\
-_WebView associates the last used zoom factor for each site_
+_WebView maintains host set zoom factor across navigations_
 1. Launch the sample app.
 2. Go to `View -> WebView Zoom -> 0.5x`
-3. Expected: WebView zoom factor for https://www.bing.com is set to 0.5x
-4. Load https://www.google.com
-5. Go to `View -> WebView Zoom -> 2x`
-6. Expected: WebView zoom factor for https://www.google.com is set to 2x
-7. Click `Back`
-8. Expected: WebView zoom factor for https://www.bing.com is 0.5x as last used
-9. Click `Forward`
-10. Expected: WebView zoom factor for https://www.google.com is 2x as last used
-11. Go to `View -> WebView Zoom -> 1x`
-12. Expected: WebView zoom factor for https://www.google.com is set to 1x
-13. Click `Back` and then click `Forward`
-14. Expected: WebView zoom factor for https://www.google.com is 1x as last used
+3. Go to `View -> WebView Zoom -> Get WebView Zoom`
+4. Expected: WebView zoom factor is set to 0.5x
+5. Click inside the WebView, then type ctrl+ +.
+6. Go to `View -> WebView Zoom -> Get WebView Zoom`
+7. Expected: WebView zoom factor is set to .66x
+8. Load https://www.google.com
+9. Go to `View -> WebView Zoom -> Get WebView Zoom`
+10. Expected: WebView zoom factor is set to .5x
+11. Go to `View -> WebView Zoom -> 2x`
+12. Go to `View -> WebView Zoom -> Get WebView Zoom`
+13. Expected: WebView zoom factor is set to 2x
+14. Click `Back`
+15. Go to `View -> WebView Zoom -> Get WebView Zoom`
+16. Expected: WebView zoom factor is set to 2x
+
+#### WebView Scale
+Test scaling the WebView.\
+_Scale is a resize and zoom that happens atomically. It results in the WebView
+getting larger or smaller without the layout of the page changing._
+1. Launch the sample app.
+2. Go to `View -> WebView Area -> 50%`
+2. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds.
+3. Go to `View -> WebView Scale -> 1.5x`
+4. Go to `View -> WebView Area -> Get WebView Bounds`
+5. Expected: WebView size is 1.5x larger than bounds in step 2.
+6. Go to `View -> WebView Zoom -> Get WebView Zoom`
+7. Expected: WebView zoom factor is set to 1.5x
+8. Expected: WebView renders at the new size/zoom (looks larger) without the
+   layout of the page changing (elements are still in the same position relative
+   to other elements).
 
 #### Set Focus
 Test that sets focus into WebView
