@@ -126,10 +126,10 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
     CHECK_FAILURE(result);
 
     CHECK_FAILURE(environment->QueryInterface(IID_PPV_ARGS(&m_webViewEnvironment)));
-        CHECK_FAILURE(m_webViewEnvironment->CreateCoreWebView2Host(
-            m_mainWindow, Callback<ICoreWebView2CreateCoreWebView2HostCompletedHandler>(
-                              this, &AppWindow::OnCreateCoreWebView2HostCompleted)
-                              .Get()));
+    CHECK_FAILURE(m_webViewEnvironment->CreateCoreWebView2Host(
+        m_mainWindow, Callback<ICoreWebView2CreateCoreWebView2HostCompletedHandler>(
+                            this, &AppWindow::OnCreateCoreWebView2HostCompleted)
+                            .Get()));
     return S_OK;
 }
 ```
