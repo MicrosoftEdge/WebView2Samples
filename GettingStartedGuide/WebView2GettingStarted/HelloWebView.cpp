@@ -23,8 +23,8 @@ HINSTANCE hInst;
 // Forward declarations of functions included in this code module:
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
-// Pointer to WebViewHost
-static wil::com_ptr<ICoreWebView2Host> webviewHost;
+// Pointer to WebViewController
+static wil::com_ptr<ICoreWebView2Controller> webviewController;
 
 // Pointer to WebView window
 static wil::com_ptr<ICoreWebView2> webviewWindow;
@@ -132,10 +132,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_SIZE:
-		if (webviewHost != nullptr) {
+		if (webviewController != nullptr) {
 			RECT bounds;
 			GetClientRect(hWnd, &bounds);
-			webviewHost->put_Bounds(bounds);
+			webviewController->put_Bounds(bounds);
 		};
 		break;
 	case WM_DESTROY:
