@@ -36,7 +36,7 @@ public:
 
 private:
     AppWindow* m_appWindow;
-    wil::com_ptr<ICoreWebView2Host> m_host;
+    wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webView;
     Toolbar* m_toolbar;
 
@@ -48,4 +48,5 @@ private:
     EventRegistrationToken m_navigationCompletedToken = {};
     EventRegistrationToken m_moveFocusRequestedToken = {};
     EventRegistrationToken m_acceleratorKeyPressedToken = {};
+    EventRegistrationToken m_frameNavigationCompletedToken = {};
 };

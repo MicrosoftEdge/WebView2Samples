@@ -10,19 +10,19 @@
 #include <string>
 #include <wrl\client.h>
 
-#include "RemoteObjectSample_h.h"
+#include "HostObjectSample_h.h"
 
-class RemoteObjectSample : public Microsoft::WRL::RuntimeClass<
+class HostObjectSample : public Microsoft::WRL::RuntimeClass<
                                Microsoft::WRL::RuntimeClassFlags<Microsoft::WRL::ClassicCom>,
-                               IRemoteObjectSample, IDispatch>
+                               IHostObjectSample, IDispatch>
 {
 public:
     typedef std::function<void(void)> Callback;
     typedef std::function<void(Callback)> RunCallbackAsync;
 
-    RemoteObjectSample(RunCallbackAsync runCallbackAsync);
+    HostObjectSample(RunCallbackAsync runCallbackAsync);
 
-    // IRemoteObjectSample implementation
+    // IHostObjectSample implementation
     STDMETHODIMP MethodWithParametersAndReturnValue(
         BSTR stringParameter, INT integerParameter, BSTR* stringResult) override;
 

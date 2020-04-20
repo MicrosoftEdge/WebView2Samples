@@ -15,4 +15,5 @@
 #include <wil/result.h>
 #include <wrl.h>
 
-#include "webview2.h"
+#include "webview2experimental.h"
+#include "Webview2EnvironmentOptions.h"

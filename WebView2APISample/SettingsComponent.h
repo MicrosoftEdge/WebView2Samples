@@ -45,6 +45,7 @@ private:
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2> m_webView;
     wil::com_ptr<ICoreWebView2Settings> m_settings;
+
     bool m_blockImages = false;
     bool m_deferScriptDialogs = false;
     bool m_changeUserAgent = false;

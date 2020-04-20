@@ -8,6 +8,8 @@
 #include <string>
 #include "ComponentBase.h"
 
+std::wstring WebErrorStatusToString(COREWEBVIEW2_WEB_ERROR_STATUS status);
+
 // The event monitor examines events from the m_appWindowEventSource and
 // m_webviewEventSource and displays the details of those events in
 // m_appWindowEventView and m_webviewEventView.

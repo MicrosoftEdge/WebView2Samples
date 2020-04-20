@@ -44,6 +44,7 @@ These are instructions for manually testing all the features of the WebView2 API
         * [Toggle Block images](#Toggle-Block-images)
         * [JavaScript Dialogs](#JavaScript-Dialogs)
         * [Toggle context menus enabled](#Toggle-context-menus-enabled)
+        * [Toggle builtin error page enabled](#Toggle-builtin-error-page-enabled)
     * [View](#View)
         * [Toggle Visibility](#Toggle-Visibility)
         * [WebView Area](#WebView-Area)
@@ -60,6 +61,7 @@ These are instructions for manually testing all the features of the WebView2 API
         * [About ...](#About-...)
     * [Miscellaneous](#Miscellaneous)
         * [Accelerator Key Support](#Accelerator-Key-Support)
+        * [Language](#Language)
 
 ## Getting started
 * Install the [latest Edge Canary Channel](https://www.microsoftedgeinsider.com/en-us/download)
@@ -369,12 +371,12 @@ _It is enabled by default._
 3. Expected: The Webview zooms in and out, ZoomView shown below shouldn't show up:\
 ![ZoomView](Screenshots/ZoomView.png)
 4. Go to `Settings -> Toggle zoom control enabled`
-5. Expected: Message Box that says `Zoom control is disabled after the next navigation.`
+5. Expected: Message Box that says `Zoom control will be disabled after the next navigation.`
 6. Click `OK` inside the popup dialog and click `Reload`
 7. Ctrl+ +/- or mouse wheel
 8. Expected: The Webview doesn't zoom in or out, nor ZoomView shows up
 9. Go to `Settings -> Toggle zoom control enabled`
-10. Expected: Message Box that says `Zoom control is enabled after the next navigation.`
+10. Expected: Message Box that says `Zoom control will be enabled after the next navigation.`
 11. Verify that zooming works again with ZoomView showing up
 
 #### Toggle Block images
@@ -434,6 +436,26 @@ _Context menus are enabled by default._
 9. Click `OK` inside the popup dialog and click `Reload`
 10. Right click on reloaded page.
 11. Expected: Context menu shows up
+
+#### Toggle builtin error page enabled
+Test that enables/disables built-in error page\
+_Builtin error page is enabled by default._
+1. Launch the sample app.
+2. Go to `Settings -> Toggle built-in error page enabled`
+3. Expected: Message Box that says `Built-in error page will be disabled for future navigation.`
+4. Click `OK` inside the popup dialog
+5. Try navigate to https://www.bingaaa.com/
+6. Expected: blank page is shown
+7. Go to `Process -> Crash Render Process`
+8. Expected: WebView shows blank page and a dialog that says `Browser render process exited unexpectedly. Reload page?`
+9. Click `Yes` in the popup dialog, expect webview to reload and stay as blank
+10. Go to `Settings -> Toggle built-in error page enabled`
+11. Expected: Message Box that says `Built-in error page will be enabled for future navigation.`
+12. Click `OK` inside the popup dialog and click `Reload` button
+13. Expected: error page is shown with `Hmmm… can't reach this page`
+14. Go to `Process -> Crash Render Process`
+15. Expected: error page is shown with `This page is having a problem` and a dialog that says `Browser render process exited unexpectedly. Reload page?`
+16. Click `No` in the popup dialog, expect webview to stay at the error page
 
 ### View
 
@@ -571,3 +593,17 @@ Verify that accelerator key routing works
     * `CTRL-T`: A new app window opens.
     * `CTRL-W`: The webview inside the current app window closes.
     * `CTRL-Q`: The current app window closes.
+
+#### Language
+Verify that language and conflicting configuration works
+1. Launch the sample app.
+2. Right click on the page, expect that the context menu is shown in default language.
+3. Go to `Window -> Create New Window`, and right click in the window, expect that the context menu is shown in default language.
+4. Go to `Window -> Set WebView Language`, and set the text to `es` in the dialog and click `OK`.
+5. Go to `Window -> Create WebView with redistributable`, expect an error dialog stating `Failed to create webview: 0x8007139f`.
+6. Dismiss the dialog and close the app window created in step 3.
+7. Go to `Window -> Set WebView Language` and set the text to `es` in the dialog and click `OK`.
+8. Go to `Window -> Create WebView with redistributable`.
+9. After WebView recreation, right click on the page after webview recreation, expect that the context menu is shown in Spanlish.
+10. Launch another instance of the sample app.
+11. Expect the new instance to show a dialog stating `Failed to create webview: 0x8007139f`.

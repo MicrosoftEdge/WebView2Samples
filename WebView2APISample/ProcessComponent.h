@@ -25,6 +25,7 @@ public:
 
     void ShowBrowserProcessInfo();
     void CrashBrowserProcess();
+    void CrashRenderProcess();
 
     ~ProcessComponent() override;
 

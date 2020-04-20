@@ -42,9 +42,6 @@
     <ClCompile Include="ProcessComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RemoteObjectSampleImpl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ScenarioAddRemoteObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -61,6 +58,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ScenarioWebViewEventMonitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HostObjectSampleImpl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -98,9 +98,6 @@
     <ClInclude Include="ProcessComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RemoteObjectSampleImpl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ScenarioAddRemoteObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -119,6 +116,9 @@
     <ClInclude Include="ScenarioWebViewEventMonitor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HostObjectSampleImpl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc">
@@ -127,6 +127,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="$(MSBuildThisFileDirectory)$(EffectivePlatform)\WebView2Loader.dll" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="ScenarioWebMessage.html" />
@@ -142,7 +143,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Midl Include="RemoteObjectSample.idl">
+    <Midl Include="HostObjectSample.idl">
       <Filter>Source Files</Filter>
     </Midl>
   </ItemGroup>

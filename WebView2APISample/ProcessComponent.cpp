@@ -22,9 +22,9 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
             [this](ICoreWebView2* sender,
                 ICoreWebView2ProcessFailedEventArgs* args) -> HRESULT
     {
-        CORE_WEBVIEW2_PROCESS_FAILED_KIND failureType;
+        COREWEBVIEW2_PROCESS_FAILED_KIND failureType;
         CHECK_FAILURE(args->get_ProcessFailedKind(&failureType));
-        if (failureType == CORE_WEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED)
+        if (failureType == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED)
         {
             int button = MessageBox(
                 m_appWindow->GetMainWindow(),
@@ -36,7 +36,7 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
                 m_appWindow->ReinitializeWebView();
             }
         }
-        else if (failureType == CORE_WEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE)
+        else if (failureType == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE)
         {
             int button = MessageBox(
                 m_appWindow->GetMainWindow(),
@@ -45,6 +45,17 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
             if (button == IDYES)
             {
                 m_appWindow->ReinitializeWebView();
+            }
+        }
+        else if (failureType == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED)
+        {
+            int button = MessageBox(
+                m_appWindow->GetMainWindow(),
+                L"Browser render process exited unexpectedly. Reload page?",
+                L"Web page unresponsive", MB_YESNO);
+            if (button == IDYES)
+            {
+                CHECK_FAILURE(m_webView->Reload());
             }
         }
         return S_OK;
@@ -69,6 +80,9 @@ bool ProcessComponent::HandleWindowMessage(
         case IDM_CRASH_PROCESS:
             CrashBrowserProcess();
             return true;
+        case IDM_CRASH_RENDER_PROCESS:
+            CrashRenderProcess();
+            return true;
         }
     }
     return false;
@@ -88,6 +102,12 @@ void ProcessComponent::ShowBrowserProcessInfo() {
 void ProcessComponent::CrashBrowserProcess()
 {
     m_webView->Navigate(L"edge://inducebrowsercrashforrealz");
+}
+
+// Crash the browser's render process on command, to test crash handlers.
+void ProcessComponent::CrashRenderProcess()
+{
+    m_webView->Navigate(L"edge://kill");
 }
 
 /*static*/ void ProcessComponent::EnsureProcessIsClosed(UINT processId, int timeoutMs)

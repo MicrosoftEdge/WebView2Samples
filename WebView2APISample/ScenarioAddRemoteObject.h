@@ -10,7 +10,7 @@
 
 #include "AppWindow.h"
 #include "ComponentBase.h"
-#include "RemoteObjectSample_h.h"
+#include "HostObjectSample_h.h"
 
 class ScenarioAddRemoteObject : public ComponentBase
 {
@@ -21,7 +21,7 @@ public:
 private:
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<RemoteObjectSample> m_remoteObject;
+    wil::com_ptr<HostObjectSample> m_hostObject;
 
     EventRegistrationToken m_navigationStartingToken = {};
 };
