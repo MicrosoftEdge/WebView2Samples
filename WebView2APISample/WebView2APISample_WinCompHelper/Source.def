@@ -1,0 +1,3 @@
+LIBRARY WebView2APISampleWinCompHelper
+EXPORTS
+CreateWinCompHelper

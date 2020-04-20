@@ -11,6 +11,7 @@
 #include <vector>
 #include <ShObjIdl_core.h>
 #include <Shellapi.h>
+#include <ShlObj_core.h>
 #include "App.h"
 #include "CheckFailure.h"
 #include "ControlComponent.h"
@@ -22,17 +23,23 @@
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
 #include "SettingsComponent.h"
+#include "TextInputDialog.h"
 #include "ViewComponent.h"
 
 using namespace Microsoft::WRL;
+DEFINE_ENUM_FLAG_OPERATORS(AppWindow::InitializeWebViewFlags);
 static constexpr size_t s_maxLoadString = 100;
-
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
 
 static thread_local size_t s_appInstances = 0;
 
 // Creates a new window which is a copy of the entire app, but on the same thread.
-AppWindow::AppWindow(std::wstring initialUri, std::function<void()> webviewCreatedCallback)
+AppWindow::AppWindow(
+    std::wstring initialUri,
+    std::function<void()> webviewCreatedCallback,
+    bool customWindowRect,
+    RECT windowRect,
+    bool shouldHaveToolbar)
     : m_initialUri(initialUri), m_onWebViewFirstInitialized(webviewCreatedCallback)
 {
     ++s_appInstances;
@@ -40,18 +47,31 @@ AppWindow::AppWindow(std::wstring initialUri, std::function<void()> webviewCreat
     WCHAR szTitle[s_maxLoadString]; // The title bar text
     LoadStringW(g_hInstance, IDS_APP_TITLE, szTitle, s_maxLoadString);
 
-    m_mainWindow = CreateWindowExW(
-        WS_EX_CONTROLPARENT, GetWindowClass(), szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0,
-        CW_USEDEFAULT, 0, nullptr, nullptr, g_hInstance, nullptr);
+    if (customWindowRect)
+    {
+        m_mainWindow = CreateWindowExW(
+            WS_EX_CONTROLPARENT, GetWindowClass(), szTitle, WS_OVERLAPPEDWINDOW, windowRect.left,
+            windowRect.top, windowRect.right-windowRect.left, windowRect.bottom-windowRect.top, nullptr, nullptr, g_hInstance, nullptr);
+    }
+    else
+    {
+        m_mainWindow = CreateWindowExW(
+            WS_EX_CONTROLPARENT, GetWindowClass(), szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
+            0, CW_USEDEFAULT, 0, nullptr, nullptr, g_hInstance, nullptr);
+    }
+
     SetWindowLongPtr(m_mainWindow, GWLP_USERDATA, (LONG_PTR)this);
 
-    m_toolbar.Initialize(m_mainWindow);
+    if (shouldHaveToolbar)
+    {
+        m_toolbar.Initialize(m_mainWindow);
+    }
 
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
 
     RunAsync([this] {
-        InitializeWebView();
+        InitializeWebView(kDefaultOption);
     });
 }
 
@@ -204,13 +224,13 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     {
     case IDM_GET_BROWSER_VERSION_AFTER_CREATION:
     {
-        //! [GetBrowserVersionInfo]
+        //! [GetBrowserVersionString]
         wil::unique_cotaskmem_string version_info;
-        m_webViewEnvironment->get_BrowserVersionInfo(&version_info);
+        m_webViewEnvironment->get_BrowserVersionString(&version_info);
         MessageBox(
             m_mainWindow, version_info.get(), L"Browser Version Info After WebView Creation",
             MB_OK);
-        //! [GetBrowserVersionInfo]
+        //! [GetBrowserVersionString]
         return true;
     }
     case IDM_CLOSE_WEBVIEW:
@@ -254,7 +274,7 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_GET_BROWSER_VERSION_BEFORE_CREATION:
     {
         wil::unique_cotaskmem_string version_info;
-        GetCoreWebView2BrowserVersionInfo(nullptr, &version_info);
+        GetAvailableCoreWebView2BrowserVersionString(nullptr, &version_info);
         MessageBox(
             m_mainWindow, version_info.get(), L"Browser Version Info Before WebView Creation",
             MB_OK);
@@ -264,7 +284,13 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
         CloseAppWindow();
         return true;
     case IDM_REINIT:
-        InitializeWebView();
+        InitializeWebView(kDefaultOption);
+        return true;
+    case IDM_REINIT_WINDOWLESS_DCOMP_VISUAL:
+        InitializeWebView(kWindowlessDcompVisual);
+        return true;
+    case IDM_REINIT_WINDOWLESS_WINCOMP_VISUAL:
+        InitializeWebView(kWindowlessWincompVisual);
         return true;
     case IDM_TOGGLE_FULLSCREEN_ALLOWED:
     {
@@ -283,9 +309,26 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_NEW_THREAD:
         CreateNewThread();
         return true;
+    case IDM_SET_LANGUAGE:
+        ChangeLanguage();
+        return true;
     }
     return false;
 }
+
+// Prompt the user for a new language string
+void AppWindow::ChangeLanguage()
+{
+    TextInputDialog dialog(
+        GetMainWindow(), L"Language", L"Language:",
+        L"Enter a language to use for WebView, or leave blank to restore default.",
+        m_language.empty() ? L"zh-cn" : m_language.c_str());
+    if (dialog.confirmed)
+    {
+        m_language = (dialog.input);
+    }
+}
+
 // Message handler for about dialog.
 INT_PTR CALLBACK AppWindow::About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -334,22 +377,59 @@ std::function<void()> AppWindow::GetAcceleratorKeyFunction(UINT key)
     return nullptr;
 }
 
-//! [CreateCoreWebView2Host]
+//! [CreateCoreWebView2Controller]
 // Create or recreate the WebView and its environment.
-void AppWindow::InitializeWebView()
+void AppWindow::InitializeWebView(InitializeWebViewFlags webviewInitFlags)
 {
+    m_lastUsedInitFlags = webviewInitFlags;
     // To ensure browser switches get applied correctly, we need to close
     // the existing WebView. This will result in a new browser process
     // getting created which will apply the browser switches.
     CloseWebView();
 
     LPCWSTR subFolder = nullptr;
+    m_dcompDevice = nullptr;
+    m_wincompHelper = nullptr;
     LPCWSTR additionalBrowserSwitches = nullptr;
-    HRESULT hr = CreateCoreWebView2EnvironmentWithDetails(
-        subFolder, nullptr, additionalBrowserSwitches,
+    if (webviewInitFlags & kWindowlessDcompVisual)
+    {
+        HRESULT hr = DCompositionCreateDevice2(nullptr, IID_PPV_ARGS(&m_dcompDevice));
+        if (!SUCCEEDED(hr))
+        {
+            MessageBox(
+                m_mainWindow,
+                L"Attempting to create WebView using DComp Visual is not supported.\r\n"
+                "DComp device creation failed.\r\n"
+                "Current OS may not support DComp.",
+                L"Create with Windowless DComp Visual Failed", MB_OK);
+            return;
+        }
+    }
+    else if (webviewInitFlags & kWindowlessWincompVisual)
+    {
+        HRESULT hr = CreateWinCompCompositor();
+        if (!SUCCEEDED(hr))
+        {
+            MessageBox(
+                m_mainWindow,
+                L"Attempting to create WebView using WinComp Visual is not supported.\r\n"
+                "WinComp compositor creation failed.\r\n"
+                "Current OS may not support WinComp.",
+                L"Create with Windowless WinComp Visual Failed", MB_OK);
+            return;
+        }
+    }
+    //! [CreateCoreWebView2EnvironmentWithOptions]
+    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+    CHECK_FAILURE(options->put_AdditionalBrowserArguments(additionalBrowserSwitches));
+    if(!m_language.empty())
+        CHECK_FAILURE(options->put_Language(m_language.c_str()));
+    HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
+        subFolder, nullptr, options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             this, &AppWindow::OnCreateEnvironmentCompleted)
             .Get());
+    //! [CreateCoreWebView2EnvironmentWithOptions]
     if (!SUCCEEDED(hr))
     {
         if (hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
@@ -375,30 +455,52 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
 {
     CHECK_FAILURE(result);
 
-    CHECK_FAILURE(environment->QueryInterface(IID_PPV_ARGS(&m_webViewEnvironment)));
-    CHECK_FAILURE(m_webViewEnvironment->CreateCoreWebView2Host(
-        m_mainWindow, Callback<ICoreWebView2CreateCoreWebView2HostCompletedHandler>(
-                            this, &AppWindow::OnCreateCoreWebView2HostCompleted)
-                            .Get()));
+    m_webViewEnvironment = environment;
+
+    auto webViewExperimentalEnvironment =
+        m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment>();
+    if (webViewExperimentalEnvironment && (m_dcompDevice || m_wincompHelper))
+    {
+        CHECK_FAILURE(webViewExperimentalEnvironment->CreateCoreWebView2CompositionController(
+            m_mainWindow,
+            Callback<
+                ICoreWebView2ExperimentalCreateCoreWebView2CompositionControllerCompletedHandler>(
+                [this](
+                    HRESULT result,
+                    ICoreWebView2ExperimentalCompositionController* compositionController) -> HRESULT {
+                    auto controller =
+                        wil::com_ptr<ICoreWebView2ExperimentalCompositionController>(compositionController)
+                            .query<ICoreWebView2Controller>();
+                    return OnCreateCoreWebView2ControllerCompleted(result, controller.get());
+                })
+                .Get()));
+    }
+    else
+    {
+        CHECK_FAILURE(m_webViewEnvironment->CreateCoreWebView2Controller(
+            m_mainWindow, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                              this, &AppWindow::OnCreateCoreWebView2ControllerCompleted)
+                              .Get()));
+    }
+
     return S_OK;
 }
-//! [CreateCoreWebView2Host]
+//! [CreateCoreWebView2Controller]
 
-// This is the callback passed to CreateCoreWebView2Host. Here we initialize all WebView-related
+// This is the callback passed to CreateCoreWebView2Controller. Here we initialize all WebView-related
 // state and register most of our event handlers with the WebView.
-HRESULT AppWindow::OnCreateCoreWebView2HostCompleted(
-    HRESULT result, ICoreWebView2Host* host)
+HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICoreWebView2Controller* controller)
 {
     if (result == S_OK)
     {
-        m_host = host;
-        ICoreWebView2* coreWebView2;
-        CHECK_FAILURE(m_host->get_CoreWebView2(&coreWebView2));
+        m_controller = controller;
+        wil::com_ptr<ICoreWebView2> coreWebView2;
+        CHECK_FAILURE(m_controller->get_CoreWebView2(&coreWebView2));
         // We should check for failure here because if this app is using a newer
         // SDK version compared to the install of the Edge browser, the Edge
         // browser might not have support for the latest version of the
         // ICoreWebView2_N interface.
-        CHECK_FAILURE(coreWebView2->QueryInterface(IID_PPV_ARGS(&m_webView)));
+        coreWebView2.query_to(&m_webView);
         // Create components. These will be deleted when the WebView is closed.
         NewComponent<FileComponent>(this);
         NewComponent<ProcessComponent>(this);
@@ -406,7 +508,7 @@ HRESULT AppWindow::OnCreateCoreWebView2HostCompleted(
         NewComponent<SettingsComponent>(
             this, m_webViewEnvironment.get(), m_oldSettingsComponent.get());
         m_oldSettingsComponent = nullptr;
-        NewComponent<ViewComponent>(this);
+        NewComponent<ViewComponent>(this, m_dcompDevice.get(), m_wincompHelper.get());
         NewComponent<ControlComponent>(this, &m_toolbar);
 
         // We have a few of our own event handlers to register here as well
@@ -437,7 +539,7 @@ void AppWindow::ReinitializeWebView()
     // Save the settings component from being deleted when the WebView is closed, so we can
     // copy its properties to the next settings component.
     m_oldSettingsComponent = MoveComponent<SettingsComponent>();
-    InitializeWebView();
+    InitializeWebView(m_lastUsedInitFlags);
 }
 
 void AppWindow::ReinitializeWebViewWithNewBrowser()
@@ -457,7 +559,7 @@ void AppWindow::ReinitializeWebViewWithNewBrowser()
     // Make sure the browser process inside webview is closed
     ProcessComponent::EnsureProcessIsClosed(webviewProcessId, 2000);
 
-    InitializeWebView();
+    InitializeWebView(m_lastUsedInitFlags);
 }
 
 void AppWindow::RestartApp()
@@ -530,13 +632,13 @@ void AppWindow::RegisterEventHandlers()
     // the request.
     CHECK_FAILURE(m_webView->add_NewWindowRequested(
         Callback<ICoreWebView2NewWindowRequestedEventHandler>(
-            [this](
-                ICoreWebView2* sender,
-                ICoreWebView2NewWindowRequestedEventArgs* args) {
+            [this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) {
                 wil::com_ptr<ICoreWebView2Deferral> deferral;
                 CHECK_FAILURE(args->GetDeferral(&deferral));
+                AppWindow* newAppWindow;
 
-                auto newAppWindow = new AppWindow(L"");
+                newAppWindow = new AppWindow(L"");
+
                 newAppWindow->m_isPopupWindow = true;
                 newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]() {
                     CHECK_FAILURE(args->put_NewWindow(newAppWindow->m_webView.get()));
@@ -554,15 +656,15 @@ void AppWindow::RegisterEventHandlers()
     // Register a handler for the WindowCloseRequested event.
     // This handler will close the app window if it is not the main window.
     CHECK_FAILURE(m_webView->add_WindowCloseRequested(
-        Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
-            [this](ICoreWebView2* sender, IUnknown* args) {
-                if (m_isPopupWindow)
-                {
-                    CloseAppWindow();
-                }
-                return S_OK;
-            })
-            .Get(),
+        Callback<ICoreWebView2WindowCloseRequestedEventHandler>([this](
+                                                                    ICoreWebView2* sender,
+                                                                    IUnknown* args) {
+            if (m_isPopupWindow)
+            {
+                CloseAppWindow();
+            }
+            return S_OK;
+        }).Get(),
         nullptr));
     //! [WindowCloseRequested]
 
@@ -572,16 +674,8 @@ void AppWindow::RegisterEventHandlers()
     // This handler tells when there is a new Edge version available on the machine.
     CHECK_FAILURE(m_webViewEnvironment->add_NewBrowserVersionAvailable(
         Callback<ICoreWebView2NewBrowserVersionAvailableEventHandler>(
-            [this](
-                ICoreWebView2Environment* sender,
-                ICoreWebView2NewBrowserVersionAvailableEventArgs* args) -> HRESULT {
-                // Get the version value from args
-                wil::unique_cotaskmem_string newVersion;
-                CHECK_FAILURE(args->get_NewVersion(&newVersion));
+            [this](ICoreWebView2Environment* sender, IUnknown* args) -> HRESULT {
                 std::wstring message = L"We detected there is a new version for the browser.";
-                message += L"\n\nVersion number: ";
-                message += newVersion.get();
-                message += L"\n\n";
                 if (m_webView)
                 {
                     message += L"Do you want to restart the app? \n\n";
@@ -634,10 +728,10 @@ void AppWindow::ResizeEverything()
 void AppWindow::CloseWebView(bool cleanupUserDataFolder)
 {
     DeleteAllComponents();
-    if (m_host)
+    if (m_controller)
     {
-        m_host->Close();
-        m_host = nullptr;
+        m_controller->Close();
+        m_controller = nullptr;
         m_webView = nullptr;
     }
     m_webViewEnvironment = nullptr;
@@ -807,4 +901,61 @@ void AppWindow::ExitFullScreen()
     SetWindowPos(
         m_mainWindow, NULL, 0, 0, 0, 0,
         SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+}
+
+// We have our own implementation of DCompositionCreateDevice2 that dynamically
+// loads dcomp.dll to create the device. Not having a static dependency on dcomp.dll
+// enables the sample app to run on versions of Windows that don't support dcomp.
+HRESULT AppWindow::DCompositionCreateDevice2(IUnknown* renderingDevice, REFIID riid, void** ppv)
+{
+    HRESULT hr = E_FAIL;
+    static decltype(::DCompositionCreateDevice2)* fnCreateDCompDevice2 = nullptr;
+    if (fnCreateDCompDevice2 == nullptr)
+    {
+        HMODULE hmod = ::LoadLibraryEx(L"dcomp.dll", nullptr, 0);
+        if (hmod != nullptr)
+        {
+            fnCreateDCompDevice2 = reinterpret_cast<decltype(::DCompositionCreateDevice2)*>(
+                ::GetProcAddress(hmod, "DCompositionCreateDevice2"));
+        }
+    }
+    if (fnCreateDCompDevice2 != nullptr)
+    {
+        hr = fnCreateDCompDevice2(renderingDevice, riid, ppv);
+    }
+    return hr;
+}
+
+// Helper function that loads WebView2APISampleWinCompHelper.dll which provides an
+// IWinCompHelper abstraction for building a WinComp visual tree. The DLL is dynamically
+// loaded to create the helper interface and create the compositor. Not having a static
+// dependency on WebView2APISampleWinCompHelper.dll enables the sample app to run on
+// versions of Windows that don't support WinComp (since the DLL has a static dependency on
+// WinComp).
+HRESULT AppWindow::CreateWinCompCompositor()
+{
+    HRESULT hr = E_FAIL;
+    static decltype(::CreateWinCompHelper)* fnCreateWinCompHelper = nullptr;
+    if (fnCreateWinCompHelper == nullptr)
+    {
+        // Use SetErrorMode to ensure an error dialog doesn't pop up if the
+        // WebView2APISampleWinCompHelper.dll fails to load for a missing dependency.
+        SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
+        HMODULE hmod = ::LoadLibraryEx(L"WebView2APISampleWinCompHelper.dll", nullptr, 0);
+        if (hmod != nullptr)
+        {
+            fnCreateWinCompHelper = reinterpret_cast<decltype(::CreateWinCompHelper)*>(
+                ::GetProcAddress(hmod, "CreateWinCompHelper"));
+        }
+        SetErrorMode(0);
+    }
+    if (fnCreateWinCompHelper != nullptr)
+    {
+        hr = fnCreateWinCompHelper(&m_wincompHelper);
+        if (SUCCEEDED(hr))
+        {
+            hr = m_wincompHelper->CreateCompositor();
+        }
+    }
+    return hr;
 }

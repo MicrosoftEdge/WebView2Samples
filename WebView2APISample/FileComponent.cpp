@@ -78,7 +78,7 @@ void FileComponent::SaveScreenshot()
         HWND mainWindow = m_appWindow->GetMainWindow();
 
         CHECK_FAILURE(m_webView->CapturePreview(
-            CORE_WEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG, stream.get(),
+            COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG, stream.get(),
             Callback<ICoreWebView2CapturePreviewCompletedHandler>(
                 [mainWindow](HRESULT error_code) -> HRESULT {
                     CHECK_FAILURE(error_code);

@@ -2,11 +2,11 @@ import "oaidl.idl";
 import "ocidl.idl";
 
 [uuid(0a7a4655-5660-47d0-8a37-98ae21399e57), version(0.1)]
-library RemoteObjectSampleLibrary
+library HostObjectSampleLibrary
 {
-    //! [AddRemoteObjectInterface]
+    //! [AddHostObjectInterface]
     [uuid(3a14c9c0-bc3e-453f-a314-4ce4a0ec81d8), object, local]
-    interface IRemoteObjectSample : IUnknown
+    interface IHostObjectSample : IUnknown
     {
         // Demonstrate basic method call with some parameters and a return value.
         HRESULT MethodWithParametersAndReturnValue([in] BSTR stringParameter, [in] INT integerParameter, [out, retval] BSTR* stringResult);
@@ -18,12 +18,12 @@ library RemoteObjectSampleLibrary
         // Demonstrate native calling back into JavaScript.
         HRESULT CallCallbackAsynchronously([in] IDispatch* callbackParameter);
     };
-    //! [AddRemoteObjectInterface]
+    //! [AddHostObjectInterface]
 
     [uuid(637abc45-11f7-4dde-84b4-317d62a638d3)]
-    coclass RemoteObjectSample
+    coclass HostObjectSample
     {
-        [default] interface IRemoteObjectSample;
+        [default] interface IHostObjectSample;
         interface IDispatch;
     };
 }

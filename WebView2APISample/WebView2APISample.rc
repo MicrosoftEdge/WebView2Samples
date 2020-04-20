@@ -69,9 +69,16 @@ BEGIN
     END
     POPUP "&Window"
     BEGIN
+        MENUITEM "Set WebView Language",                       IDM_SET_LANGUAGE
         MENUITEM "Close WebView",                              IDM_CLOSE_WEBVIEW
         MENUITEM "Close WebView and cleanup user data folder", IDM_CLOSE_WEBVIEW_CLEANUP
-        MENUITEM "Create WebView",              IDM_REINIT
+        MENUITEM SEPARATOR
+        POPUP "Create WebView"
+        BEGIN
+            MENUITEM "Create with Windowed",                  IDM_REINIT
+            MENUITEM "Create with Windowless DComp Visual",   IDM_REINIT_WINDOWLESS_DCOMP_VISUAL
+            MENUITEM "Create with Windowless WinComp Visual", IDM_REINIT_WINDOWLESS_WINCOMP_VISUAL
+        END
         MENUITEM "Create New Window",           IDM_NEW_WINDOW
         MENUITEM "Create New Thread",           IDM_NEW_THREAD
     END
@@ -79,6 +86,7 @@ BEGIN
     BEGIN
         MENUITEM "Browser Process Info",        IDM_PROCESS_INFO
         MENUITEM "Crash Browser Process",       IDM_CRASH_PROCESS
+        MENUITEM "Crash Render Process",        IDM_CRASH_RENDER_PROCESS
     END
     POPUP "S&ettings"
     BEGIN
@@ -98,9 +106,10 @@ BEGIN
             MENUITEM "Use Deferred Script Dialogs", IDM_USE_DEFERRED_SCRIPT_DIALOGS
             MENUITEM "Complete Deferred Script Dialog", IDM_COMPLETE_JAVASCRIPT_DIALOG
         END
-        MENUITEM "Toggle context menus enabled", ID_SETTINGS_CONTEXT_MENUS_ENABLED
+        MENUITEM "Toggle context menus enabled",  ID_SETTINGS_CONTEXT_MENUS_ENABLED
         MENUITEM "Toggle remote objects allowed", ID_SETTINGS_REMOE_OBJECTS_ALLOWED
-        MENUITEM "Toggle zoom control enabled",           ID_SETTINGS_ZOOM_ENABLED
+        MENUITEM "Toggle zoom control enabled",   ID_SETTINGS_ZOOM_ENABLED
+        MENUITEM "Toggle built-in error page enabled", ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED
     END
     POPUP "&View"
     BEGIN
@@ -127,6 +136,13 @@ BEGIN
             MENUITEM "Scale 1.25x"         IDM_SCALE_125
             MENUITEM "Scale 1.5x"          IDM_SCALE_150
         END
+        POPUP "WebView Transform"
+        BEGIN
+          MENUITEM "No transform"               IDM_TRANSFORM_NONE
+          MENUITEM "Scale 2X"                   IDM_TRANSFORM_SCALE_2X
+          MENUITEM "Rotate 30Deg"               IDM_TRANSFORM_ROTATE_30DEG
+          MENUITEM "Rotate 60Deg Diagonally"    IDM_TRANSFORM_ROTATE_60DEG_DIAG
+        END
         MENUITEM "Set Focus",                   IDM_FOCUS_SET
         MENUITEM "Tab In",                      IDM_FOCUS_TAB_IN
         MENUITEM "Reverse Tab In",              IDM_FOCUS_REVERSE_TAB_IN
@@ -135,7 +151,7 @@ BEGIN
     POPUP "S&cenario"
     BEGIN
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
-        MENUITEM "Remote Objects",              IDM_SCENARIO_ADD_REMOTE_OBJECT
+        MENUITEM "Host Objects",                IDM_SCENARIO_ADD_REMOTE_OBJECT
         MENUITEM "Event Monitor",               IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
     END
     POPUP "&Help"
@@ -268,4 +284,3 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
-

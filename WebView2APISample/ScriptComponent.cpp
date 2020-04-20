@@ -273,10 +273,10 @@ void ScriptComponent::AddComObject()
                 hr = objectAsDispatch.query_to(IID_PPV_ARGS(&objectAsVariant.pdispVal));
                 if (SUCCEEDED(hr))
                 {
-                    hr = m_webView->AddRemoteObject(L"example", &objectAsVariant);
+                    hr = m_webView->AddHostObjectToScript(L"example", &objectAsVariant);
                     if (FAILED(hr))
                     {
-                        ShowFailure(hr, L"AddRemoteObject failed");
+                        ShowFailure(hr, L"AddHostObjectToScript failed");
                     }
                 }
                 else

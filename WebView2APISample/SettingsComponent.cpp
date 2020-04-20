@@ -13,7 +13,7 @@ using namespace Microsoft::WRL;
 
 // Some utility functions
 static wil::unique_bstr GetDomainOfUri(PWSTR uri);
-static PCWSTR NameOfPermissionKind(CORE_WEBVIEW2_PERMISSION_KIND kind);
+static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
 
 SettingsComponent::SettingsComponent(
     AppWindow* appWindow, ICoreWebView2Environment* environment, SettingsComponent* old)
@@ -124,7 +124,7 @@ SettingsComponent::SettingsComponent(
         auto showDialog = [this, eventArgs]
         {
             wil::unique_cotaskmem_string uri;
-            CORE_WEBVIEW2_SCRIPT_DIALOG_KIND type;
+            COREWEBVIEW2_SCRIPT_DIALOG_KIND type;
             wil::unique_cotaskmem_string message;
             wil::unique_cotaskmem_string defaultText;
 
@@ -141,7 +141,7 @@ SettingsComponent::SettingsComponent(
                 promptString.c_str(),
                 message.get(),
                 defaultText.get(),
-                /* readonly */ type != CORE_WEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT);
+                /* readonly */ type != COREWEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT);
             if (dialog.confirmed)
             {
                 CHECK_FAILURE(eventArgs->put_ResultText(dialog.input.c_str()));
@@ -178,7 +178,7 @@ SettingsComponent::SettingsComponent(
                 ICoreWebView2PermissionRequestedEventArgs* args) -> HRESULT
     {
         wil::unique_cotaskmem_string uri;
-        CORE_WEBVIEW2_PERMISSION_KIND kind = CORE_WEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
+        COREWEBVIEW2_PERMISSION_KIND kind = COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
         BOOL userInitiated = FALSE;
 
         CHECK_FAILURE(args->get_Uri(&uri));
@@ -197,10 +197,10 @@ SettingsComponent::SettingsComponent(
         int response = MessageBox(nullptr, message.c_str(), L"Permission Request",
                                    MB_YESNOCANCEL | MB_ICONWARNING);
 
-        CORE_WEBVIEW2_PERMISSION_STATE state =
-              response == IDYES ? CORE_WEBVIEW2_PERMISSION_STATE_ALLOW
-            : response == IDNO  ? CORE_WEBVIEW2_PERMISSION_STATE_DENY
-            :                     CORE_WEBVIEW2_PERMISSION_STATE_DEFAULT;
+        COREWEBVIEW2_PERMISSION_STATE state =
+              response == IDYES ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
+            : response == IDNO  ? COREWEBVIEW2_PERMISSION_STATE_DENY
+            :                     COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
         CHECK_FAILURE(args->put_State(state));
 
         return S_OK;
@@ -398,17 +398,39 @@ bool SettingsComponent::HandleWindowMessage(
             {
                 CHECK_FAILURE(m_settings->put_IsZoomControlEnabled(FALSE));
                 MessageBox(
-                    nullptr, L"Zoom control is disabled after the next navigation.", L"Settings change",
+                    nullptr, L"Zoom control will be disabled after the next navigation.", L"Settings change",
                     MB_OK);
             }
             else
             {
                 CHECK_FAILURE(m_settings->put_IsZoomControlEnabled(TRUE));
                 MessageBox(
-                    nullptr, L"Zoom control is enabled after the next navigation.", L"Settings change",
+                    nullptr, L"Zoom control will be enabled after the next navigation.", L"Settings change",
                     MB_OK);
             }
             //! [DisableZoomControl]
+            return true;
+        }
+        case ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED:
+        {
+            //! [BuiltInErrorPageEnabled]
+            BOOL enabled;
+            CHECK_FAILURE(m_settings->get_IsBuiltInErrorPageEnabled(&enabled));
+            if (enabled)
+            {
+                CHECK_FAILURE(m_settings->put_IsBuiltInErrorPageEnabled(FALSE));
+                MessageBox(
+                    nullptr, L"Built-in error page will be disabled for future navigation.",
+                    L"Settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(m_settings->put_IsBuiltInErrorPageEnabled(TRUE));
+                MessageBox(
+                    nullptr, L"Built-in error page will be enabled for future navigation.",
+                    L"Settings change", MB_OK);
+            }
+            //! [BuiltInErrorPageEnabled]
             return true;
         }
         }
@@ -494,17 +516,17 @@ void SettingsComponent::SetBlockImages(bool blockImages)
         //! [WebResourceRequested]
         if (m_blockImages)
         {
-            m_webView->AddWebResourceRequestedFilter(L"*", CORE_WEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE);
+            m_webView->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE);
             CHECK_FAILURE(m_webView->add_WebResourceRequested(
                 Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                     [this](
                         ICoreWebView2* sender,
                         ICoreWebView2WebResourceRequestedEventArgs* args) {
-                        CORE_WEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
+                        COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
                         CHECK_FAILURE(
                             args->get_ResourceContext(&resourceContext));
                         // Ensure that the type is image
-                        if (resourceContext != CORE_WEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE)
+                        if (resourceContext != COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE)
                         {
                             return E_INVALIDARG;
                         }
@@ -564,7 +586,7 @@ void SettingsComponent::SetUserAgent(const std::wstring& userAgent)
         // Register a handler for the WebResourceRequested event.
         // This handler adds a User-Agent HTTP header to the request,
         // then lets the request continue normally.
-        m_webView->AddWebResourceRequestedFilter(L"*", CORE_WEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+        m_webView->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
         m_webView->add_WebResourceRequested(
             Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                 [this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) {
@@ -612,21 +634,21 @@ static wil::unique_bstr GetDomainOfUri(PWSTR uri)
     return domain;
 }
 
-static PCWSTR NameOfPermissionKind(CORE_WEBVIEW2_PERMISSION_KIND kind)
+static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind)
 {
     switch (kind)
     {
-    case CORE_WEBVIEW2_PERMISSION_KIND_MICROPHONE:
+    case COREWEBVIEW2_PERMISSION_KIND_MICROPHONE:
         return L"Microphone";
-    case CORE_WEBVIEW2_PERMISSION_KIND_CAMERA:
+    case COREWEBVIEW2_PERMISSION_KIND_CAMERA:
         return L"Camera";
-    case CORE_WEBVIEW2_PERMISSION_KIND_GEOLOCATION:
+    case COREWEBVIEW2_PERMISSION_KIND_GEOLOCATION:
         return L"Geolocation";
-    case CORE_WEBVIEW2_PERMISSION_KIND_NOTIFICATIONS:
+    case COREWEBVIEW2_PERMISSION_KIND_NOTIFICATIONS:
         return L"Notifications";
-    case CORE_WEBVIEW2_PERMISSION_KIND_OTHER_SENSORS:
+    case COREWEBVIEW2_PERMISSION_KIND_OTHER_SENSORS:
         return L"Generic Sensors";
-    case CORE_WEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ:
+    case COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ:
         return L"Clipboard Read";
     default:
         return L"Unknown resources";

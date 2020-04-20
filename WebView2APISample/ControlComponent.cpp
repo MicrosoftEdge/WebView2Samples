@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 #include "ControlComponent.h"
+#include "ScenarioWebViewEventMonitor.h"
 
 #include "App.h"
 #include "CheckFailure.h"
@@ -12,7 +13,7 @@
 using namespace Microsoft::WRL;
 
 ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
-    : m_appWindow(appWindow), m_host(appWindow->GetWebViewHost()),
+    : m_appWindow(appWindow), m_controller(appWindow->GetWebViewController()),
       m_webView(appWindow->GetWebView()), m_toolbar(toolbar)
 {
     m_toolbar->SetEnabled(true);
@@ -84,9 +85,9 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                 CHECK_FAILURE(args->get_IsSuccess(&success));
                 if (!success)
                 {
-                    CORE_WEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
+                    COREWEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
                     CHECK_FAILURE(args->get_WebErrorStatus(&webErrorStatus));
-                    if (webErrorStatus == CORE_WEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED)
+                    if (webErrorStatus == COREWEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED)
                     {
                         // Do something here if you want to handle a specific error case.
                         // In most cases this isn't necessary, because the WebView will
@@ -100,26 +101,57 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
         &m_navigationCompletedToken));
     //! [NavigationCompleted]
 
+    //! [FrameNavigationCompleted]
+    // Register a handler for the FrameNavigationCompleted event.
+    // Check whether the navigation succeeded, and if not, do something.
+    CHECK_FAILURE(m_webView->add_FrameNavigationCompleted(
+        Callback<ICoreWebView2NavigationCompletedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args)
+                -> HRESULT {
+                BOOL success;
+                CHECK_FAILURE(args->get_IsSuccess(&success));
+                if (!success)
+                {
+                    COREWEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
+                    CHECK_FAILURE(args->get_WebErrorStatus(&webErrorStatus));
+                    std::wstring error_msg = WebErrorStatusToString(webErrorStatus);
+                    MessageBox(nullptr,
+                       (std::wstring(L"IFrame navigation failed with the ") +
+                         L"give in error " + error_msg).c_str(),
+                       L"Navigation Failure", MB_OK);
+                    if (webErrorStatus == COREWEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED)
+                    {
+                        // Do something here if you want to handle a specific error case.
+                        // In most cases this isn't necessary, because the WebView will
+                        // display its own error page automatically.
+                    }
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_frameNavigationCompletedToken));
+    //! [FrameNavigationCompleted]
+
     //! [MoveFocusRequested]
     // Register a handler for the MoveFocusRequested event.
     // This event will be fired when the user tabs out of the webview.
     // The handler will focus another window in the app, depending on which
     // direction the focus is being shifted.
-    CHECK_FAILURE(m_host->add_MoveFocusRequested(
+    CHECK_FAILURE(m_controller->add_MoveFocusRequested(
         Callback<ICoreWebView2MoveFocusRequestedEventHandler>(
             [this](
-                ICoreWebView2Host* sender,
+                ICoreWebView2Controller* sender,
                 ICoreWebView2MoveFocusRequestedEventArgs* args) -> HRESULT {
                 if (!g_autoTabHandle)
                 {
-                    CORE_WEBVIEW2_MOVE_FOCUS_REASON reason;
+                    COREWEBVIEW2_MOVE_FOCUS_REASON reason;
                     CHECK_FAILURE(args->get_Reason(&reason));
 
-                    if (reason == CORE_WEBVIEW2_MOVE_FOCUS_REASON_NEXT)
+                    if (reason == COREWEBVIEW2_MOVE_FOCUS_REASON_NEXT)
                     {
                         TabForwards(-1);
                     }
-                    else if (reason == CORE_WEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS)
+                    else if (reason == COREWEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS)
                     {
                         TabBackwards(int(m_tabbableWindows.size()));
                     }
@@ -144,16 +176,16 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
 
     //! [AcceleratorKeyPressed]
     // Register a handler for the AcceleratorKeyPressed event.
-    CHECK_FAILURE(m_host->add_AcceleratorKeyPressed(
+    CHECK_FAILURE(m_controller->add_AcceleratorKeyPressed(
         Callback<ICoreWebView2AcceleratorKeyPressedEventHandler>(
             [this](
-                ICoreWebView2Host* sender,
+                ICoreWebView2Controller* sender,
                 ICoreWebView2AcceleratorKeyPressedEventArgs* args) -> HRESULT {
-                CORE_WEBVIEW2_KEY_EVENT_KIND kind;
+                COREWEBVIEW2_KEY_EVENT_KIND kind;
                 CHECK_FAILURE(args->get_KeyEventKind(&kind));
                 // We only care about key down events.
-                if (kind == CORE_WEBVIEW2_KEY_EVENT_KIND_KEY_DOWN ||
-                    kind == CORE_WEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_DOWN)
+                if (kind == COREWEBVIEW2_KEY_EVENT_KIND_KEY_DOWN ||
+                    kind == COREWEBVIEW2_KEY_EVENT_KIND_SYSTEM_KEY_DOWN)
                 {
                     UINT key;
                     CHECK_FAILURE(args->get_VirtualKey(&key));
@@ -166,7 +198,7 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                         CHECK_FAILURE(args->put_Handled(TRUE));
 
                         // Filter out autorepeated keys.
-                        CORE_WEBVIEW2_PHYSICAL_KEY_STATUS status;
+                        COREWEBVIEW2_PHYSICAL_KEY_STATUS status;
                         CHECK_FAILURE(args->get_PhysicalKeyStatus(&status));
                         if (!status.WasKeyDown)
                         {
@@ -191,13 +223,13 @@ bool ControlComponent::HandleWindowMessage(
         switch (LOWORD(wParam))
         {
         case IDM_FOCUS_SET:
-            CHECK_FAILURE(m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC));
+            CHECK_FAILURE(m_controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC));
             return true;
         case IDM_FOCUS_TAB_IN:
-            CHECK_FAILURE(m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_NEXT));
+            CHECK_FAILURE(m_controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_NEXT));
             return true;
         case IDM_FOCUS_REVERSE_TAB_IN:
-            CHECK_FAILURE(m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS));
+            CHECK_FAILURE(m_controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS));
             return true;
         case IDM_TOGGLE_TAB_HANDLING:
             g_autoTabHandle = !g_autoTabHandle;
@@ -262,7 +294,7 @@ bool ControlComponent::HandleChildWindowMessage(
         if (wParam == VK_TAB)
         {
             // Find out if the window is one we've customized for tab handling
-            for (int i = 0; i < m_tabbableWindows.size(); i++)
+            for (size_t i = 0; i < m_tabbableWindows.size(); i++)
             {
                 if (m_tabbableWindows[i].first == hWnd)
                 {
@@ -350,7 +382,7 @@ void ControlComponent::NavigateToAddressBar()
 void ControlComponent::TabForwards(int currentIndex)
 {
     // Find first enabled window after the active one
-    for (int i = currentIndex + 1; i < m_tabbableWindows.size(); i++)
+    for (size_t i = currentIndex + 1; i < m_tabbableWindows.size(); i++)
     {
         HWND hwnd = m_tabbableWindows.at(i).first;
         if (IsWindowEnabled(hwnd))
@@ -360,7 +392,7 @@ void ControlComponent::TabForwards(int currentIndex)
         }
     }
     // If this is the last enabled window, tab forwards into the WebView.
-    m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_NEXT);
+    m_controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_NEXT);
 }
 
 void ControlComponent::TabBackwards(int currentIndex)
@@ -376,7 +408,7 @@ void ControlComponent::TabBackwards(int currentIndex)
         }
     }
     // If this is the last enabled window, tab forwards into the WebView.
-    CHECK_FAILURE(m_host->MoveFocus(CORE_WEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS));
+    CHECK_FAILURE(m_controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS));
 }
 //! [MoveFocus2]
 
@@ -386,8 +418,9 @@ ControlComponent::~ControlComponent()
     m_webView->remove_SourceChanged(m_sourceChangedToken);
     m_webView->remove_HistoryChanged(m_historyChangedToken);
     m_webView->remove_NavigationCompleted(m_navigationCompletedToken);
-    m_host->remove_MoveFocusRequested(m_moveFocusRequestedToken);
-    m_host->remove_AcceleratorKeyPressed(m_acceleratorKeyPressedToken);
+    m_webView->remove_FrameNavigationCompleted(m_frameNavigationCompletedToken);
+    m_controller->remove_MoveFocusRequested(m_moveFocusRequestedToken);
+    m_controller->remove_AcceleratorKeyPressed(m_acceleratorKeyPressedToken);
 
     // Undo our modifications to the toolbar elements
     for (auto pair : m_tabbableWindows)

@@ -4,14 +4,14 @@
 
 #include "stdafx.h"
 
-#include "RemoteObjectSampleImpl.h"
+#include "HostObjectSampleImpl.h"
 
-RemoteObjectSample::RemoteObjectSample(RemoteObjectSample::RunCallbackAsync runCallbackAsync)
+HostObjectSample::HostObjectSample(HostObjectSample::RunCallbackAsync runCallbackAsync)
     : m_propertyValue(L"Example Property String Value"), m_runCallbackAsync(runCallbackAsync)
 {
 }
 
-STDMETHODIMP RemoteObjectSample::MethodWithParametersAndReturnValue(
+STDMETHODIMP HostObjectSample::MethodWithParametersAndReturnValue(
     BSTR stringParameter, INT integerParameter, BSTR* stringResult)
 {
     std::wstring result = L"MethodWithParametersAndReturnValue(";
@@ -24,19 +24,19 @@ STDMETHODIMP RemoteObjectSample::MethodWithParametersAndReturnValue(
     return S_OK;
 }
 
-STDMETHODIMP RemoteObjectSample::get_Property(BSTR* stringResult)
+STDMETHODIMP HostObjectSample::get_Property(BSTR* stringResult)
 {
     *stringResult = SysAllocString(m_propertyValue.c_str());
     return S_OK;
 }
 
-STDMETHODIMP RemoteObjectSample::put_Property(BSTR stringValue)
+STDMETHODIMP HostObjectSample::put_Property(BSTR stringValue)
 {
     m_propertyValue = stringValue;
     return S_OK;
 }
 
-STDMETHODIMP RemoteObjectSample::CallCallbackAsynchronously(IDispatch* callbackParameter)
+STDMETHODIMP HostObjectSample::CallCallbackAsynchronously(IDispatch* callbackParameter)
 {
     wil::com_ptr<IDispatch> callbackParameterForCapture = callbackParameter;
     m_runCallbackAsync([callbackParameterForCapture]() -> void {
@@ -48,13 +48,13 @@ STDMETHODIMP RemoteObjectSample::CallCallbackAsynchronously(IDispatch* callbackP
     return S_OK;
 }
 
-STDMETHODIMP RemoteObjectSample::GetTypeInfoCount(UINT* pctinfo)
+STDMETHODIMP HostObjectSample::GetTypeInfoCount(UINT* pctinfo)
 {
     *pctinfo = 1;
     return S_OK;
 }
 
-STDMETHODIMP RemoteObjectSample::GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo)
+STDMETHODIMP HostObjectSample::GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo)
 {
     if (0 != iTInfo)
     {
@@ -64,10 +64,10 @@ STDMETHODIMP RemoteObjectSample::GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo**
     {
         RETURN_IF_FAILED(LoadTypeLib(L"WebView2APISample.tlb", &m_typeLib));
     }
-    return m_typeLib->GetTypeInfoOfGuid(__uuidof(IRemoteObjectSample), ppTInfo);
+    return m_typeLib->GetTypeInfoOfGuid(__uuidof(IHostObjectSample), ppTInfo);
 }
 
-STDMETHODIMP RemoteObjectSample::GetIDsOfNames(
+STDMETHODIMP HostObjectSample::GetIDsOfNames(
     REFIID riid, LPOLESTR* rgszNames, UINT cNames, LCID lcid, DISPID* rgDispId)
 {
     wil::com_ptr<ITypeInfo> typeInfo;
@@ -75,7 +75,7 @@ STDMETHODIMP RemoteObjectSample::GetIDsOfNames(
     return typeInfo->GetIDsOfNames(rgszNames, cNames, rgDispId);
 }
 
-STDMETHODIMP RemoteObjectSample::Invoke(
+STDMETHODIMP HostObjectSample::Invoke(
     DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS* pDispParams,
     VARIANT* pVarResult, EXCEPINFO* pExcepInfo, UINT* puArgErr)
 {
