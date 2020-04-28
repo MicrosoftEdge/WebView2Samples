@@ -17,6 +17,7 @@ To learn more specifics about events and API Handlers in WebView2, you can refer
 
 - [Microsoft Edge (Chromium)](https://www.microsoftedgeinsider.com/download/) installed on a supported OS. Currently we recommend the latest version of the Edge Canary channel.
 - [Visual Studio](https://visualstudio.microsoft.com/vs/) with C++ support installed.
+- Latest pre-release version of our [WebView2 SDK](https://aka.ms/webviewnuget), which is included in this project.
 
 ## Build the WebView2 API Sample
 
@@ -85,15 +86,15 @@ The section below briefly explains some of the key functions in the Sample App.
 ### AppWindow.cpp
 
 #### InitializeWebView()
-In the AppWindow file, we use the InitializeWebView() function to create the WebView2 environment by using [CreateCoreWebView2EnvironmentWithDetails](https://docs.microsoft.com/microsoft-edge/hosting/webview2/reference/webview2.idl#createcorewebview2environmentwithdetails).
+In the AppWindow file, we use the InitializeWebView() function to create the WebView2 environment by using [CreateCoreWebView2EnvironmentWithOptions](https://docs.microsoft.com/microsoft-edge/hosting/webview2/reference/webview2.idl#createcorewebview2environmentwithoptions).
 
-Once we've created the environment, we create the WebView by using `CreateCoreWebView2Host`.
+Once we've created the environment, we create the WebView by using `CreateCoreWebView2Controller`.
 
 To see these API calls in action, refer to the following code snippet from `InitializeWebView()`.
 
 ```cpp
-HRESULT hr = CreateCoreWebView2EnvironmentWithDetails(
-    subFolder, nullptr, additionalBrowserSwitches,
+HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
+    subFolder, nullptr, options.Get(),
     Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
         this, &AppWindow::OnCreateEnvironmentCompleted)
         .Get());
@@ -117,7 +118,7 @@ if (!SUCCEEDED(hr))
 
 #### OnCreateEnvironmentCompleted()
 
-This callback function is passed to `CreateCoreWebView2EnvironmentWithDetails` in `InitializeWebView()`.  It stored the environment pointer and then uses it to create a new WebView.
+This callback function is passed to `CreateCoreWebView2EnvironmentWithOptions` in `InitializeWebView()`.  It stored the environment pointer and then uses it to create a new WebView.
 
 ```cpp
 HRESULT AppWindow::OnCreateEnvironmentCompleted(
@@ -125,26 +126,27 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
 {
     CHECK_FAILURE(result);
 
-    CHECK_FAILURE(environment->QueryInterface(IID_PPV_ARGS(&m_webViewEnvironment)));
-    CHECK_FAILURE(m_webViewEnvironment->CreateCoreWebView2Host(
-        m_mainWindow, Callback<ICoreWebView2CreateCoreWebView2HostCompletedHandler>(
-                            this, &AppWindow::OnCreateCoreWebView2HostCompleted)
+    m_webViewEnvironment = environment;
+
+    CHECK_FAILURE(m_webViewEnvironment->CreateCoreWebView2Controller(
+        m_mainWindow, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+                            this, &AppWindow::OnCreateCoreWebView2ControllerCompleted)
                             .Get()));
     return S_OK;
 }
 ```
 
-#### OnCreateCoreWebView2HostCompleted()
+#### OnCreateCoreWebView2ControllerCompleted()
 
-This callback function is passed to `CreateCoreWebView2Host` in `InitializeWebView()`. Here, we initialize the WebView-related state, register some event handlers, and create the app components.
+This callback function is passed to `CreateCoreWebView2Controller` in `InitializeWebView()`. Here, we initialize the WebView-related state, register some event handlers, and create the app components.
 
 #### RegisterEventHandlers()
 
-This function is called within `CreateCoreWebView2Host`. It sets up some of the event handlers used by the application, and adds them to the WebView.
+This function is called within `CreateCoreWebView2Controller`. It sets up some of the event handlers used by the application, and adds them to the WebView.
 
 To read more about event handlers in WebView2, you can refer to this [documentation](https://docs.microsoft.com/microsoft-edge/hosting/webview2/reference/icorewebview2).
 
-Below is a code snippet from `RegisterEventHandlers()`, where we set up an event handler for the `NewWindowRequested` event. This event is fired when JavaScript in the webpage calls `window.open()`, and our handler makes a new `AppWindow` and passes the new window's WebView back to the browser so it can return it from the `window.open()` call. Unlike our calls to `CreateCoreWebView2EnvironmentWithDetails` and `CreateCoreWebView2Host`, instead of providing a method for the callback, we just provide a C++ lambda right then and there.
+Below is a code snippet from `RegisterEventHandlers()`, where we set up an event handler for the `NewWindowRequested` event. This event is fired when JavaScript in the webpage calls `window.open()`, and our handler makes a new `AppWindow` and passes the new window's WebView back to the browser so it can return it from the `window.open()` call. Unlike our calls to `CreateCoreWebView2EnvironmentWithOptions` and `CreateCoreWebView2Controller`, instead of providing a method for the callback, we just provide a C++ lambda right then and there.
 
 ```cpp
 CHECK_FAILURE(m_webView->add_NewWindowRequested(
