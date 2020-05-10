@@ -187,6 +187,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="App.h" />
     <ClInclude Include="AppWindow.h" />
     <ClInclude Include="CheckFailure.h" />
     <ClInclude Include="ComponentBase.h" />

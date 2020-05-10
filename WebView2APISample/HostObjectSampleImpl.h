@@ -7,6 +7,7 @@
 #include "stdafx.h"
 
 #include <functional>
+#include <map>
 #include <string>
 #include <wrl\client.h>
 
@@ -29,6 +30,8 @@ public:
     // Demonstrate getting and setting a property.
     STDMETHODIMP get_Property(BSTR* stringResult) override;
     STDMETHODIMP put_Property(BSTR stringValue) override;
+    STDMETHODIMP get_IndexedProperty(INT index, BSTR* stringResult) override;
+    STDMETHODIMP put_IndexedProperty(INT index, BSTR stringValue) override;
 
     // Demonstrate native calling back into JavaScript.
     STDMETHODIMP CallCallbackAsynchronously(IDispatch* callbackParameter) override;
@@ -47,6 +50,7 @@ public:
 
 private:
     std::wstring m_propertyValue;
+    std::map<INT, std::wstring> m_propertyValues;
     wil::com_ptr<IDispatch> m_callback;
     RunCallbackAsync m_runCallbackAsync;
     wil::com_ptr<ITypeLib> m_typeLib;

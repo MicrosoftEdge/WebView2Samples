@@ -27,7 +27,6 @@
 #include "ViewComponent.h"
 
 using namespace Microsoft::WRL;
-DEFINE_ENUM_FLAG_OPERATORS(AppWindow::InitializeWebViewFlags);
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
 
@@ -35,12 +34,15 @@ static thread_local size_t s_appInstances = 0;
 
 // Creates a new window which is a copy of the entire app, but on the same thread.
 AppWindow::AppWindow(
+    UINT creationModeId,
     std::wstring initialUri,
     std::function<void()> webviewCreatedCallback,
     bool customWindowRect,
     RECT windowRect,
     bool shouldHaveToolbar)
-    : m_initialUri(initialUri), m_onWebViewFirstInitialized(webviewCreatedCallback)
+    : m_creationModeId(creationModeId),
+      m_initialUri(initialUri),
+      m_onWebViewFirstInitialized(webviewCreatedCallback)
 {
     ++s_appInstances;
 
@@ -67,11 +69,12 @@ AppWindow::AppWindow(
         m_toolbar.Initialize(m_mainWindow);
     }
 
+    UpdateCreationModeMenu();
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
 
     RunAsync([this] {
-        InitializeWebView(kDefaultOption);
+        InitializeWebView();
     });
 }
 
@@ -283,14 +286,14 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_EXIT:
         CloseAppWindow();
         return true;
+    case IDM_CREATION_MODE_WINDOWED:
+    case IDM_CREATION_MODE_VISUAL_DCOMP:
+    case IDM_CREATION_MODE_VISUAL_WINCOMP:
+        m_creationModeId = LOWORD(wParam);
+        UpdateCreationModeMenu();
+        return true;
     case IDM_REINIT:
-        InitializeWebView(kDefaultOption);
-        return true;
-    case IDM_REINIT_WINDOWLESS_DCOMP_VISUAL:
-        InitializeWebView(kWindowlessDcompVisual);
-        return true;
-    case IDM_REINIT_WINDOWLESS_WINCOMP_VISUAL:
-        InitializeWebView(kWindowlessWincompVisual);
+        InitializeWebView();
         return true;
     case IDM_TOGGLE_FULLSCREEN_ALLOWED:
     {
@@ -304,10 +307,10 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
         return true;
     }
     case IDM_NEW_WINDOW:
-        new AppWindow();
+        new AppWindow(m_creationModeId);
         return true;
     case IDM_NEW_THREAD:
-        CreateNewThread();
+        CreateNewThread(m_creationModeId);
         return true;
     case IDM_SET_LANGUAGE:
         ChangeLanguage();
@@ -358,7 +361,7 @@ std::function<void()> AppWindow::GetAcceleratorKeyFunction(UINT key)
         switch (key)
         {
         case 'N':
-            return [this] { new AppWindow(); };
+            return [this] { new AppWindow(m_creationModeId); };
         case 'Q':
             return [this] { CloseAppWindow(); };
         case 'S':
@@ -369,7 +372,7 @@ std::function<void()> AppWindow::GetAcceleratorKeyFunction(UINT key)
                 }
             };
         case 'T':
-            return [this] { CreateNewThread(); };
+            return [this] { CreateNewThread(m_creationModeId); };
         case 'W':
             return [this] { CloseWebView(); };
         }
@@ -379,19 +382,18 @@ std::function<void()> AppWindow::GetAcceleratorKeyFunction(UINT key)
 
 //! [CreateCoreWebView2Controller]
 // Create or recreate the WebView and its environment.
-void AppWindow::InitializeWebView(InitializeWebViewFlags webviewInitFlags)
+void AppWindow::InitializeWebView()
 {
-    m_lastUsedInitFlags = webviewInitFlags;
     // To ensure browser switches get applied correctly, we need to close
     // the existing WebView. This will result in a new browser process
     // getting created which will apply the browser switches.
     CloseWebView();
-
-    LPCWSTR subFolder = nullptr;
     m_dcompDevice = nullptr;
     m_wincompHelper = nullptr;
-    LPCWSTR additionalBrowserSwitches = nullptr;
-    if (webviewInitFlags & kWindowlessDcompVisual)
+
+    LPCWSTR subFolder = nullptr;
+
+    if (m_creationModeId == IDM_CREATION_MODE_VISUAL_DCOMP)
     {
         HRESULT hr = DCompositionCreateDevice2(nullptr, IID_PPV_ARGS(&m_dcompDevice));
         if (!SUCCEEDED(hr))
@@ -405,7 +407,7 @@ void AppWindow::InitializeWebView(InitializeWebViewFlags webviewInitFlags)
             return;
         }
     }
-    else if (webviewInitFlags & kWindowlessWincompVisual)
+    else if (m_creationModeId == IDM_CREATION_MODE_VISUAL_WINCOMP)
     {
         HRESULT hr = CreateWinCompCompositor();
         if (!SUCCEEDED(hr))
@@ -421,7 +423,6 @@ void AppWindow::InitializeWebView(InitializeWebViewFlags webviewInitFlags)
     }
     //! [CreateCoreWebView2EnvironmentWithOptions]
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
-    CHECK_FAILURE(options->put_AdditionalBrowserArguments(additionalBrowserSwitches));
     if(!m_language.empty())
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
@@ -448,7 +449,7 @@ void AppWindow::InitializeWebView(InitializeWebViewFlags webviewInitFlags)
     }
 }
 
-// This is the callback passed to CreateWebViewEnvironmnetWithDetails.
+// This is the callback passed to CreateWebViewEnvironmentWithOptions.
 // Here we simply create the WebView.
 HRESULT AppWindow::OnCreateEnvironmentCompleted(
     HRESULT result, ICoreWebView2Environment* environment)
@@ -539,7 +540,7 @@ void AppWindow::ReinitializeWebView()
     // Save the settings component from being deleted when the WebView is closed, so we can
     // copy its properties to the next settings component.
     m_oldSettingsComponent = MoveComponent<SettingsComponent>();
-    InitializeWebView(m_lastUsedInitFlags);
+    InitializeWebView();
 }
 
 void AppWindow::ReinitializeWebViewWithNewBrowser()
@@ -559,7 +560,7 @@ void AppWindow::ReinitializeWebViewWithNewBrowser()
     // Make sure the browser process inside webview is closed
     ProcessComponent::EnsureProcessIsClosed(webviewProcessId, 2000);
 
-    InitializeWebView(m_lastUsedInitFlags);
+    InitializeWebView();
 }
 
 void AppWindow::RestartApp()
@@ -637,8 +638,7 @@ void AppWindow::RegisterEventHandlers()
                 CHECK_FAILURE(args->GetDeferral(&deferral));
                 AppWindow* newAppWindow;
 
-                newAppWindow = new AppWindow(L"");
-
+                newAppWindow = new AppWindow(m_creationModeId, L"");
                 newAppWindow->m_isPopupWindow = true;
                 newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]() {
                     CHECK_FAILURE(args->put_NewWindow(newAppWindow->m_webView.get()));
@@ -742,7 +742,7 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
         // developers specify userDataFolder during WebView environment
         // creation, they would need to pass in that explicit value here.
         // For more information about userDataFolder:
-        // https://docs.microsoft.com/microsoft-edge/hosting/webview2/reference/webview2.idl#createwebview2environmentwithdetails
+        // https://docs.microsoft.com/microsoft-edge/hosting/webview2/reference/win32/0-9-488/webview2-idl#createwebview2environmentwithoptions
         WCHAR userDataFolder[MAX_PATH] = L"";
         // Obtain the absolute path for relative paths that include "./" or "../"
         _wfullpath(
@@ -752,7 +752,7 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
         std::wstring message = L"Are you sure you want to clean up the user data folder at\n";
         message += userDataFolderPath;
         message += L"\n?\nWarning: This action is not reversible.\n\n";
-        message += L"Click No if there are other open WebView instnaces.\n";
+        message += L"Click No if there are other open WebView instances.\n";
 
         if (MessageBox(m_mainWindow, message.c_str(), L"Cleanup User Data Folder", MB_YESNO) ==
             IDYES)
@@ -959,3 +959,15 @@ HRESULT AppWindow::CreateWinCompCompositor()
     }
     return hr;
 }
+
+void AppWindow::UpdateCreationModeMenu()
+{
+    HMENU hMenu = GetMenu(m_mainWindow);
+    CheckMenuRadioItem(
+        hMenu,
+        IDM_CREATION_MODE_WINDOWED,
+        IDM_CREATION_MODE_VISUAL_WINCOMP,
+        m_creationModeId,
+        MF_BYCOMMAND);
+}
+

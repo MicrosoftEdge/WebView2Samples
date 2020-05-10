@@ -5,75 +5,79 @@ These are instructions for manually testing all the features of the WebView2 API
 ## Table Of Contents
 
 * [Getting started](#Getting-started)
-    * [Install a NuGet package Locally in VS](#Install-a-NuGet-package-Locally-in-VS)
+  * [Install a NuGet package Locally in VS](#Install-a-NuGet-package-Locally-in-VS)
 * [UI Entries](#UI_Entries)
-    * [File](#File)
-        * [Save Screenshot](#Save-Screenshot)
-        * [Get Document Title](#Get-Document-Title)
-        * [Get Browser Version After Creation](#Get-Browser-Version-After-Creation)
-        * [Get Browser Version Befor Creation](#Get-Browser-Version-After-Creation)
-        * [Exit](#Exit)
-    * [Script](#Script)
-        * [Inject Script](#Inject-Script)
-        * [Post Message String](#Post-Message-String)
-        * [Post Message JSON](#Post-Message-JSON)
-        * [Add Initialize Script](#Add/Remove-Initialize-Script)
-        * [Remove Initialize Script](#Add/Remove-Initialize-Script)
-        * [Subscribe to CDP event](#Subscribe-to-CDP-event-&-Call-CDP-method)
-        * [Call CDP method](#Subscribe-to-CDP-event-&-Call-CDP-method)
-        * [Add COM Object](#Add-COM-Object)
-        * [Open DevTools Window](#Open-DevTools-Window)
-    * [Window](#Window)
-        * [Close WebView](#Close-WebView)
-        * [Create WebView](#Create-WebView)
-        * [Create New Window](#Create-New-Window)
-        * [Create New Thread](#Create-New-Thread)
-    * [Process](#Process)
-        * [Browser Process Info](#Browser-Process-Info)
-        * [Crash Browser Process](#Crash-Browser-Process)
-        * [Unresponsive Browser Process](#Unresponsive-Browser-Process)
-    * [Setting](#Setting)
-        * [Blocked Domains](#Blocked-Domains)
-        * [Set User Agent](#Set-User-Agent)
-        * [Toggle JavaScript](#Toggle-JavaScript)
-        * [Toggle Web Messaging](#Toggle-Web-Messaging)
-        * [Toggle Fullscreen allowed](#Toggle-Fullscreen-allowed)
-        * [Toggle Status Bar enabled](#Toggle-Status-Bar-enabled)
-        * [Toggle DevTools enabled](#Toggle-DevTools-enabled)
-        * [Toggle ZoomControl enabled](#Toggle-ZoomControl-enabled)
-        * [Toggle Block images](#Toggle-Block-images)
-        * [JavaScript Dialogs](#JavaScript-Dialogs)
-        * [Toggle context menus enabled](#Toggle-context-menus-enabled)
-        * [Toggle builtin error page enabled](#Toggle-builtin-error-page-enabled)
-    * [View](#View)
-        * [Toggle Visibility](#Toggle-Visibility)
-        * [WebView Area](#WebView-Area)
-        * [WebView Zoom](#WebView-Zoom)
-        * [WebView Scale](#WebView-Scale)
-        * [Set Focus](#Set-Focus)
-        * [Tab In](#Tab-In)
-        * [Reverse Tab In](#Reverse-Tab-In)
-        * [Toggle Tab Handling](#Toggle-Tab-Handling)
-    * [Scenario](#Scenario)
-        * [Web Messaging](#Web-Messaging)
-        * [Add Remote Object](#Add-Remote-Object)
-    * [Help](#Help)
-        * [About ...](#About-...)
-    * [Miscellaneous](#Miscellaneous)
-        * [Accelerator Key Support](#Accelerator-Key-Support)
-        * [Language](#Language)
+  * [File](#File)
+    * [Save Screenshot](#Save-Screenshot)
+    * [Get Document Title](#Get-Document-Title)
+    * [Get Browser Version After Creation](#Get-Browser-Version-After-Creation)
+    * [Get Browser Version Before Creation](#Get-Browser-Version-After-Creation)
+    * [Exit](#Exit)
+  * [Script](#Script)
+    * [Inject Script](#Inject-Script)
+    * [Post Message String](#Post-Message-String)
+    * [Post Message JSON](#Post-Message-JSON)
+    * [Add Initialize Script](#Add/Remove-Initialize-Script)
+    * [Remove Initialize Script](#Add/Remove-Initialize-Script)
+    * [Subscribe to CDP event](#Subscribe-to-CDP-event-&-Call-CDP-method)
+    * [Call CDP method](#Subscribe-to-CDP-event-&-Call-CDP-method)
+    * [Add COM Object](#Add-COM-Object)
+    * [Open DevTools Window](#Open-DevTools-Window)
+  * [Window](#Window)
+    * [Close WebView](#Close-WebView)
+    * [Create WebView](#Create-WebView)
+    * [Create New Window](#Create-New-Window)
+    * [Create New Thread](#Create-New-Thread)
+  * [Process](#Process)
+    * [Browser Process Info](#Browser-Process-Info)
+    * [Crash Browser Process](#Crash-Browser-Process)
+    * [Unresponsive Browser Process](#Unresponsive-Browser-Process)
+  * [Setting](#Setting)
+    * [Blocked Domains](#Blocked-Domains)
+    * [Set User Agent](#Set-User-Agent)
+    * [Toggle JavaScript](#Toggle-JavaScript)
+    * [Toggle Web Messaging](#Toggle-Web-Messaging)
+    * [Toggle Fullscreen allowed](#Toggle-Fullscreen-allowed)
+    * [Toggle Status Bar enabled](#Toggle-Status-Bar-enabled)
+    * [Toggle DevTools enabled](#Toggle-DevTools-enabled)
+    * [Toggle ZoomControl enabled](#Toggle-ZoomControl-enabled)
+    * [Toggle Block images](#Toggle-Block-images)
+    * [JavaScript Dialogs](#JavaScript-Dialogs)
+    * [Toggle context menus enabled](#Toggle-context-menus-enabled)
+    * [Toggle builtin error page enabled](#Toggle-builtin-error-page-enabled)
+  * [View](#View)
+    * [Toggle Visibility](#Toggle-Visibility)
+    * [WebView Area](#WebView-Area)
+    * [WebView Zoom](#WebView-Zoom)
+    * [WebView Scale](#WebView-Scale)
+    * [Set Focus](#Set-Focus)
+    * [Tab In](#Tab-In)
+    * [Reverse Tab In](#Reverse-Tab-In)
+    * [Toggle Tab Handling](#Toggle-Tab-Handling)
+  * [Scenario](#Scenario)
+    * [Web Messaging](#Web-Messaging)
+    * [Add Remote Object](#Add-Remote-Object)
+  * [Help](#Help)
+    * [About ...](#About-...)
+  * [Miscellaneous](#Miscellaneous)
+    * [Accelerator Key Support](#Accelerator-Key-Support)
+    * [Language](#Language)
 
 ## Getting started
-* Install the [latest Edge Canary Channel](https://www.microsoftedgeinsider.com/en-us/download)
+
+* Install the [latest Edge Canary Channel](https://www.microsoftedgeinsider.com/download)
 
 ### Install a NuGet package Locally in VS
+
 1. Open Visual Studio
 2. Go to `View -> Other Windows -> Package Manager Console`
 3. Select `WebView2APISample` as Default project
 4. Run:
-    ```
+
+    ```powershell
     Install-Package <NuGet package file path>
     ```
+
 5. Press `F5` to build and run the app.
 
 ## UI Entries
@@ -81,7 +85,9 @@ These are instructions for manually testing all the features of the WebView2 API
 ### File
 
 #### Save Screenshot
+
 Test that captures and saves a screenshot
+
 1. Launch the sample app.
 2. Go to `File -> Save Screenshot`
 3. Expected: A file selection dialog with default file name `WebView2_Screenshot`, then save the screenshot of the WebView to the selected file
@@ -89,7 +95,9 @@ Test that captures and saves a screenshot
 5. Click `OK`
 
 #### Get Document Title
+
 Test that gets Document Title
+
 1. Launch the sample app.
 2. Go to `File -> Get Document Title`
 3. Expected: Document Title Message Box that says `Bing`.
@@ -97,7 +105,9 @@ Test that gets Document Title
 5. Expected: dialog closed
 
 #### Get Browser Version After Creation
+
 Test that gets browser version after webview creation
+
 1. Launch the sample app.
 2. Go to `File -> Get Browser Version After Creation`
 3. Expected: Message Box that contains browser version and channel name (if not stable) after WebView creation
@@ -105,7 +115,9 @@ Test that gets browser version after webview creation
 5. Expected: dialog closed
 
 #### Get Browser Version Before Creation
+
 Test that gets installed browser version before webview creation
+
 1. Launch the sample app.
 2. Go to `File -> Get Browser Version Before Creation`
 3. Expected: Message Box that contains browser version and channel name (if not stable) before WebView creation
@@ -113,7 +125,9 @@ Test that gets installed browser version before webview creation
 5. Expected: dialog closed
 
 #### Exit
+
 Test that exits the sample app
+
 1. Launch the sample app.
 2. Go to `File -> Exit`
 3. Expected: App Window and WebView closed
@@ -121,7 +135,9 @@ Test that exits the sample app
 ### Script
 
 #### Inject Script
+
 Test that prompts the user for some script to run in the WebView
+
 1. Launch the sample app.
 2. Go to `Script -> Inject Script`
 3. Expected: Text Input Dialog that prompts the user for JavaScript code to execute in the current top level document rendered in the WebView
@@ -135,17 +151,24 @@ Test that prompts the user for some script to run in the WebView
 11. Expected: dialog closed
 
 #### Post Message string
+
 Test that prompts the user for some string web message to the top level document
+
 1. See [Web Messaging](#Web-Messaging)
 
 #### Post Message JSON
+
 Test that prompts the user for some JSON web message to the top level document
+
 1. See [Web Messaging](#Web-Messaging)
 
 #### Add/Remove Initialize Script
+
 Test that prompts the user for some script to run as the initialization script
+
 Test that prompts the user for the ID of the initialize scripts that the user would like to remove
 _Scripts are executed after the global object has been created and before the HTML document has been parsed every navigation_
+
 1. Launch the sample app.
 2. Go to `Script -> Add Initialize Script`
 3. Expected: Text Input Dialog that prompts the user for some JavaScript
@@ -167,15 +190,18 @@ _Scripts are executed after the global object has been created and before the HT
 19. Expected: No more Alert Box popup
 
 #### Subscribe to CDP event & Call CDP method
+
 Test that prompts the user for the name of the CDP event to subscribe to
+
 Test that prompts the user for the CDP method name to call
+
 1. Launch the sample app.
 2. Go to `Script -> Call CDP method`
 3. Expected: Text Input Dialog that prompts the user for the CDP method name (and parameters, if any) to call
 4. Click `Cancel`
 5. Repeat steps 2-3
 6. Type `Page.enable` and click `OK`
-7. Expected: CDP Method Resutl Message Box that says `{}`
+7. Expected: CDP Method Result Message Box that says `{}`
 8. Go to `Script -> Subscribe to CDP event`
 9. Expected: Text Input Dialog that prompts the user for the name of the CDP event to subscribe to
 10. Click `Cancel`
@@ -188,7 +214,9 @@ Test that prompts the user for the CDP method name to call
 17. Click `OK` inside both popup dialogs
 
 #### Open DevTools Window
+
 Test that open DevTools in WebView window
+
 1. Launch the sample app.
 2. Go to `View -> Open DevTools Window`
 3. Expected: DevTools Window to pop up
@@ -196,25 +224,33 @@ Test that open DevTools in WebView window
 ### Window
 
 #### Close WebView
+
 Test that closes WebView
+
 1. Launch the sample app.
 2. Go to `Window -> Close WebView`
 3. Expected: WebView closed.
 
 #### Create WebView
+
 Test that creates WebView with installed edge
+
 1. Launch the sample app.
 2. Go to `Window -> Create WebView`
 3. Expected: WebView created with installed Edge
 
 #### Create New Window
+
 Test that creates new window
+
 1. Launch the sample app.
 2. Go to `Window -> Create New Window`
 3. Expected: A new app window opened on the same thread
 
 #### Create New Thread
+
 Test that opens a new app window on a new thread
+
 1. Launch the sample app.
 2. Go to `Window -> Create New Thread`
 3. Expected:  A new app window opened on a new thread
@@ -222,7 +258,9 @@ Test that opens a new app window on a new thread
 ### Process
 
 #### Browser Process Info
+
 Test that gets browser process information
+
 1. Launch the sample app.
 2. Go to `Process -> Browser Process Info`
 3. Expected: Process Info Message Box that contains the browser process ID
@@ -230,25 +268,29 @@ Test that gets browser process information
 5. Expected: The dialog closed
 
 #### Crash Browser Process
+
 Test browser process going away unexpectedly
-1. Launch the sample app. 
+
+1. Launch the sample app.
 2. Go to `Process -> Crash Browser Process`
 3. Expected: Error dialog popup that says `Browser process exited unexpectedly. Recreate webview?`\
-  ![step 3](Screenshots/CrashBrowserProcess3.png)
+  ![step 3](screenshots/crash-browser-process-3.png)
 4. Click `Yes` inside the Popup dialog
 5. Expected: The content from https://www.bing.com rendered inside the app, just like after step  1 above\
-  ![step 5](Screenshots/CrashBrowserProcess5.png)
+  ![step 5](screenshots/crash-browser-process-5.png)
 6. Repeat step 2-3, then click `No` inside the popup dialog
 7. Expected: blank content inside the app\
-  ![step 7](Screenshots/CrashBrowserProcess7.png)
+  ![step 7](screenshots/crash-browser-process-7.png)
 
 #### Unresponsive Browser Process
+
 Test browser process becoming unresponsive
-1. Launch the sample app. 
+
+1. Launch the sample app.
 2. Navigate to `edge://hang`.
 3. Wait ~20-30 seconds.
 4. Expected: Error dialog popup that says `Browser renderer process stopped responding. Recreate webview?`\
-  ![step 3](Screenshots/UnresponsiveRendererError.png)\
+  ![step 3](screenshots/unresponsive-renderer-error.png)\
   Note: 'This page isn't responding' dialog does not display if the hang is triggered via injecting script: `while (1) { console.log('hang') }`
 5. Click `Yes` inside the Popup dialog
 6. Expected: The app window resets to the same state as step 1.
@@ -256,8 +298,11 @@ Test browser process becoming unresponsive
 ### Settings
 
 #### Blocked Domains
+
 Test that prompts user for sites to block\
+
 _It includes foo.com and bar.org by default_
+
 1. Launch the sample app.
 2. Load https://www.microsoft.com
 3. Go to `Settings -> Blocked Domains`
@@ -271,8 +316,11 @@ _It includes foo.com and bar.org by default_
 11. Expected: Navigation to https://www.bing.com completes
 
 #### Set User Agent
+
 Test that prompts the user for a new user agent string and sets user agent\
+
 _It only modifies the header for HTTP. Change won't be reflected if checked with `navigator.userAgent`_
+
 1. Launch the sample app.
 2. Go to `Settings -> Set User Agent`
 3. Expected: Text Input Dialog that prompts the user for the user agent
@@ -286,8 +334,11 @@ _It only modifies the header for HTTP. Change won't be reflected if checked with
 11. Expected: See that User Agent is restored to default
 
 #### Toggle JavaScript
+
 Test that enables/disables JavaScript\
+
 _It is enabled by default. `Script -> Inject Script` won't be affected if disabled._
+
 1. Launch the sample app.
 2. Expected: The JavaScript elements on https://www.bing.com are rendered accordingly
 3. Go to `Settings -> Toggle JavaScript`
@@ -300,22 +351,28 @@ _It is enabled by default. `Script -> Inject Script` won't be affected if disabl
 10. Expected: The JavaScript elements on https://www.bing.com are rendered again
 
 #### Toggle Web Messaging
+
 Test that enables/disables web messaging\
+
 _It is enabled by default._
+
 1. Launch the sample app.
 2. Go to `Scenario -> Web Messaging`
 3. Go to `Settings -> Toggle Web Messaging`
 4. Expected: Message box that says `Web Messaging will be disabled after the next navigation.`
 5. Click `OK` inside the popup dialog and click `Reload`
-6. Expected: Scenario in section `Posting Messages` wouldn`t work
+6. Expected: Scenario in section `Posting Messages` wouldn't work
 7. Repeat step 3
 8. Expected: Message box that says `Web Messaging will be enabled after the next navigation.`
 9. Repeat step 5
 10. Expected: Scenario in section `Posting Messages` works as described
 
 #### Toggle Fullscreen allowed
+
 Test the allows/disallows Fullscreen mode\
+
 _It is allowed by default._
+
 1. Launch the sample app.
 2. Load [this sample video](https://www.youtube.com/watch?v=JE8KNQFwMzE&feature=youtu.be&t=943) and request it in full screen mode
 3. Expected: The video element is allowed to be displayed full screen
@@ -330,8 +387,11 @@ _It is allowed by default._
 12. Expected: The video element is allowed to be displayed full screen again
 
 #### Toggle Status Bar enabled
+
 Test that enables/disables Status Bar\
+
 _It is enabled by default._
+
 1. Launch the sample app.
 2. Hover the cursor to the `Images` tab on https://www.bing.com
 3. Expected: See status bar at the bottom left corner
@@ -345,10 +405,12 @@ _It is enabled by default._
 11. Repeat steps 6-7
 12. Expected: Status bar comes back up the bottom left corner
 
-
 #### Toggle DevTools enabled
+
 Test that enables/disables DevTools\
+
 _It is enabled by default._
+
 1. Launch the sample app.
 2. Right-click the mouse
 3. Expected: `Inspect` option available in the Right Click Menu
@@ -363,13 +425,16 @@ _It is enabled by default._
 12. Right-click the mouse
 13. Expected: `Inspect` option available in the Right Click Menu again
 
-#### Toggle ZoomControl enabled ####
+#### Toggle ZoomControl enabled
+
 Test that enables/disables Zoom\
+
 _It is enabled by default._
+
 1. Launch the sample app.
 2. Ctrl+ +/- or mouse wheel
 3. Expected: The Webview zooms in and out, ZoomView shown below shouldn't show up:\
-![ZoomView](Screenshots/ZoomView.png)
+![ZoomView](screenshots/zoomview.png)
 4. Go to `Settings -> Toggle zoom control enabled`
 5. Expected: Message Box that says `Zoom control will be disabled after the next navigation.`
 6. Click `OK` inside the popup dialog and click `Reload`
@@ -380,8 +445,11 @@ _It is enabled by default._
 11. Verify that zooming works again with ZoomView showing up
 
 #### Toggle Block images
+
 Test that enables/disables image blocking\
+
 _It is disabled by default. Data URI won't e affected if disabled._
+
 1. Launch the sample app.
 2. Go to `Settings -> Toggle Block images`
 3. Expected: Message Box that says `Image blocking has been enabled.`
@@ -394,16 +462,18 @@ _It is disabled by default. Data URI won't e affected if disabled._
 10. Expected: No images are blocked
 
 #### JavaScript Dialogs
+
 Tests JavaScript Dialogs with different configurations
+
 1. Launch the sample app
 2. Go to `Settings -> JavaScript Dialogs -> Use Custom Script Dialogs`
 3. Expected: Message Box that says `Custom script dialogs without deferral will be used after the next navigation.`
 4. Click `OK` inside the popup dialog and click `Reload`
 5. Go to `Script -> Inject Script` and inject JavaScript `alert()`
 6. Expected: Custom Alert Box popup\
-  ![Custom Script Dialog](Screenshots/CustomScriptDialog.png)
+  ![Custom Script Dialog](screenshots/custom-script-dialog.png)
 7. Make sure the default JavaScript Dialog does not show\
-  ![Default Script Dialog](Screenshots/DefaultScriptDialog.png)
+  ![Default Script Dialog](screenshots/default-script-dialog.png)
 8. Click `OK` inside the Alert Box
 9. Expected: ExecuteScript Result popup that says `null`
 10. Go to `Settings -> JavaScript Dialogs -> Use Deferred Script Dialogs`
@@ -423,8 +493,11 @@ Tests JavaScript Dialogs with different configurations
 24. Expected: ExecuteScript Result popup that says `null`
 
 #### Toggle context menus enabled
+
 Test that enables/disables context menu blocking\
+
 _Context menus are enabled by default._
+
 1. Launch the sample app.
 2. Go to `Settings -> Toggle context menus`
 3. Expected: Message Box that says `Context menus will be disabled after next navigation.`
@@ -438,8 +511,11 @@ _Context menus are enabled by default._
 11. Expected: Context menu shows up
 
 #### Toggle builtin error page enabled
+
 Test that enables/disables built-in error page\
+
 _Builtin error page is enabled by default._
+
 1. Launch the sample app.
 2. Go to `Settings -> Toggle built-in error page enabled`
 3. Expected: Message Box that says `Built-in error page will be disabled for future navigation.`
@@ -460,7 +536,9 @@ _Builtin error page is enabled by default._
 ### View
 
 #### Toggle Visibility
+
 Test that makes WebView visible/invisible
+
 1. Launch the sample app.
 2. Go to `View -> Toggle Visibility`
 3. Expected: The WebView becomes invisible
@@ -468,8 +546,11 @@ Test that makes WebView visible/invisible
 5. Expected: The WebView becomes visible
 
 #### WebView Area
+
 Test that resizes WebView window\
+
 _Updates the bounds of the WebView window to resize_
+
 1. Launch the sample app.
 2. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds.
 3. Go to `View -> WebView Area -> 25%`
@@ -483,8 +564,11 @@ _Updates the bounds of the WebView window to resize_
 11. Expected: WebView size matches bounds in step 2 and WebView was resized.
 
 #### WebView Zoom
+
 Test that zooms in/out WebView\
+
 _WebView maintains host set zoom factor across navigations_
+
 1. Launch the sample app.
 2. Go to `View -> WebView Zoom -> 0.5x`
 3. Go to `View -> WebView Zoom -> Get WebView Zoom`
@@ -503,9 +587,12 @@ _WebView maintains host set zoom factor across navigations_
 16. Expected: WebView zoom factor is set to 2x
 
 #### WebView Scale
+
 Test scaling the WebView.\
+
 _Scale is a resize and zoom that happens atomically. It results in the WebView
 getting larger or smaller without the layout of the page changing._
+
 1. Launch the sample app.
 2. Go to `View -> WebView Area -> 50%`
 2. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds.
@@ -519,7 +606,9 @@ getting larger or smaller without the layout of the page changing._
    to other elements).
 
 #### Set Focus
+
 Test that sets focus into WebView
+
 1. Launch the sample app.
 2. Click on the Bing address bar and press `Tab` key once, which sets the focus to the camera icon
 3. Click `Cancel` in the app window, which moves the focus from the WebView to the app window
@@ -527,19 +616,25 @@ Test that sets focus into WebView
 5. Expected: See the focus is moved back the camera icon, which was the last focus in the WebView
 
 #### Tab In
+
 Test that moves focus due to Tab traversal forward
+
 1. Launch the sample app.
 2. Go to `View -> Tab In`
 3. Expected: See the focus is set to the Bing search bar (the first element) in the WebView
 
 #### ReverseTab In
+
 Test that moves focus due to Tab traversal backward
+
 1. Launch the sample app and load https://www.google.com
 2. Go to `View -> Reverse Tab In`
 3. Expected: See the focus is set to `How Search works` in Google (the last element).
 
 #### Toggle Tab Handling
+
 Test that enables/disables tab handling\
+
 _It is disabled by default. Tabbing behavior should be identical whether this is enabled or disabled._
 
 1. Launch the sample app and load https://www.google.com
@@ -558,15 +653,19 @@ _It is disabled by default. Tabbing behavior should be identical whether this is
 ### Scenario
 
 #### Web Messaging
-Test that demonstrates basic interaction between the host app and the WebView by means of Web Messages
+
+Test that demonstrates basic interaction between the host app and the WebView by means of Web Messages  
 Menu items `Script -> Post Message String` & `Script -> Post Message JSON` are demonstrated.
+
 1. Launch the sample app.
 2. Go to `Scenario -> Web Messaging`
 3. Follow the instructions on the page
 
 #### Add Remote Object
-Test that demonstrates basic interaction between the host app and the WebView by means of Web Messages
+
+Test that demonstrates basic interaction between the host app and the WebView by means of Web Messages  
 Menu item `Script -> Add Remote Object` is demonstrated.
+
 1. Launch the sample app.
 2. Go to `Scenario -> Add Remote Object`
 3. Follow the instructions on the page
@@ -574,7 +673,9 @@ Menu item `Script -> Add Remote Object` is demonstrated.
 ### Help
 
 #### About ...
+
 Test that gets `About …`
+
 1. Launch the sample app.
 2. Go to `Help -> About …`
 3. Expected: About Message Box that contains the sample app information.
@@ -584,7 +685,9 @@ Test that gets `About …`
 ### Miscellaneous
 
 #### Accelerator Key Support
+
 Verify that accelerator key routing works
+
 1. Launch the sample app.
 2. Put focus inside the webpage.
 3. For each of the following accelerator keys, press it while the webview is focused, and verify that the expected result happens.
@@ -595,7 +698,9 @@ Verify that accelerator key routing works
     * `CTRL-Q`: The current app window closes.
 
 #### Language
+
 Verify that language and conflicting configuration works
+
 1. Launch the sample app.
 2. Right click on the page, expect that the context menu is shown in default language.
 3. Go to `Window -> Create New Window`, and right click in the window, expect that the context menu is shown in default language.
@@ -604,6 +709,6 @@ Verify that language and conflicting configuration works
 6. Dismiss the dialog and close the app window created in step 3.
 7. Go to `Window -> Set WebView Language` and set the text to `es` in the dialog and click `OK`.
 8. Go to `Window -> Create WebView with redistributable`.
-9. After WebView recreation, right click on the page after webview recreation, expect that the context menu is shown in Spanlish.
+9. After WebView recreation, right click on the page after webview recreation, expect that the context menu is shown in Spanish.
 10. Launch another instance of the sample app.
 11. Expect the new instance to show a dialog stating `Failed to create webview: 0x8007139f`.
