@@ -1,0 +1,8 @@
+{
+    "profiles": {
+        "WebView2WindowsFormsBrowser": {
+            "commandName" : "Project",
+            "nativeDebugging": true
+        }
+    }
+}
