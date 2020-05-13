@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFrameworks>netcoreapp3.0;net462</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <Authors>Hybrid Application Team</Authors>
+    <Company>Microsoft</Company>
+    <Product>WebView2 WPF Sample Browser App</Product>
+    <Copyright>Copyright ©2020</Copyright>
+    <NoWin32Manifest>true</NoWin32Manifest>
+  </PropertyGroup>
+</Project>

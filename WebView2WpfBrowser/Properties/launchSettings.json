@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WebView2WpfBrowser": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
