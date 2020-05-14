@@ -25,8 +25,6 @@ namespace WebView2WpfBrowser
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		public static RoutedCommand AddRemoteObjectCommand = new RoutedCommand();
-
 		private bool _isNavigating = false;
 
 		public MainWindow()
@@ -73,6 +71,7 @@ namespace WebView2WpfBrowser
 		{
 			webView.CoreWebView2.Stop();
 		}
+
 		void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
 		{
 			e.CanExecute = webView != null && webView.CoreWebView2 != null && !_isNavigating;
@@ -82,13 +81,14 @@ namespace WebView2WpfBrowser
 		{
 			webView.CoreWebView2.Navigate((string)e.Parameter);
 		}
-		private void webView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
+
+		private void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
 		{
 			_isNavigating = true;
 			RequeryCommands();
 		}
 
-		private void webView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+		private void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
 		{
 			_isNavigating = false;
 			RequeryCommands();

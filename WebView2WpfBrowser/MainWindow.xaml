@@ -11,8 +11,6 @@ found in the LICENSE file.
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:local="clr-namespace:WebView2WpfBrowser"
-        xmlns:uwv2p="USE_WEBVIEW2_PRIVATE"
-        xmlns:uwv2s="USE_WEBVIEW2_STAGING"
         mc:Ignorable="d"
         x:Name="MyWindow"
         Title="MainWindow"
@@ -45,8 +43,8 @@ found in the LICENSE file.
             x:Name="webView"
             CreationProperties="{StaticResource EvergreenWebView2CreationProperties}"
             Source="http://www.bing.com"
-            NavigationStarting="webView_NavigationStarting"
-            NavigationCompleted="webView_NavigationCompleted"
+            NavigationStarting="WebView_NavigationStarting"
+            NavigationCompleted="WebView_NavigationCompleted"
         />
     </DockPanel>
 </Window>
