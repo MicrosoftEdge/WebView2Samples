@@ -47,9 +47,13 @@ ViewComponent::ViewComponent(
     {
         if (m_dcompDevice)
         {
+            //! [SetRootVisualTarget]
+            // Set the host app visual that the WebView will connect its visual
+            // tree to.
             BuildDCompTreeUsingVisual();
             CHECK_FAILURE(m_compositionController->put_RootVisualTarget(m_dcompWebViewVisual.get()));
             CHECK_FAILURE(m_dcompDevice->Commit());
+            //! [SetRootVisualTarget]
         }
         else if (m_wincompHelper)
         {
@@ -117,9 +121,6 @@ bool ViewComponent::HandleWindowMessage(
             return true;
         case IDM_TRANSFORM_NONE:
             SetTransform(TransformType::kIdentity);
-            return true;
-        case IDM_TRANSFORM_SCALE_2X:
-            SetTransform(TransformType::kScale2X);
             return true;
         case IDM_TRANSFORM_ROTATE_30DEG:
             SetTransform(TransformType::kRotate30Deg);
@@ -298,16 +299,21 @@ void ViewComponent::ShowWebViewZoom()
 
 void ViewComponent::SetTransform(TransformType transformType)
 {
-    D2D1_POINT_2F center = D2D1::Point2F(
-        (m_webViewBounds.right - m_webViewBounds.left) / 2.f,
-        (m_webViewBounds.bottom - m_webViewBounds.top) / 2.f);
-    if (transformType == TransformType::kScale2X)
+    if (!m_compositionController)
     {
-        m_webViewTransformMatrix =
-            Convert3x2MatrixTo4x4Matrix(&D2D1::Matrix3x2F::Scale(2, 2, center));
+        MessageBox(
+            nullptr,
+            L"Setting transform is not supported in windowed mode."
+            "Choose a windowless mode for creation before trying to apply a transform.",
+            L"Applying transform failed.", MB_OK);
+        return;
     }
-    else if (transformType == TransformType::kRotate30Deg)
+
+    if (transformType == TransformType::kRotate30Deg)
     {
+        D2D1_POINT_2F center = D2D1::Point2F(
+            (m_webViewBounds.right - m_webViewBounds.left) / 2.f,
+            (m_webViewBounds.bottom - m_webViewBounds.top) / 2.f);
         m_webViewTransformMatrix =
             Convert3x2MatrixTo4x4Matrix(&D2D1::Matrix3x2F::Rotation(30.0f, center));
     }
@@ -321,15 +327,7 @@ void ViewComponent::SetTransform(TransformType transformType)
         m_webViewTransformMatrix = D2D1::Matrix4x4F();
     }
 
-    if (!m_compositionController)
-    {
-        MessageBox(
-            nullptr,
-            L"Setting transform is not supported in windowed mode."
-            "Choose a windowless mode for creation before trying to apply a transform.",
-            L"Applying transform failed.", MB_OK);
-    }
-    else if (m_dcompDevice && !m_wincompHelper)
+    if (m_dcompDevice && !m_wincompHelper)
     {
         wil::com_ptr<IDCompositionVisual3> dcompWebViewVisual3;
         m_dcompWebViewVisual->QueryInterface(IID_PPV_ARGS(&dcompWebViewVisual3));
@@ -512,6 +510,12 @@ void ViewComponent::TrackMouseEvents(DWORD mouseTrackingFlags)
     ::TrackMouseEvent(&tme);
 }
 
+//! [BuildDCompTree]
+// Create host app visual that the WebView will connect to.
+//   - Create a IDCompositionTarget for the host window
+//   - Create a visual and set that as the IDCompositionTarget's root
+//   - Create another visual and add that to the IDCompositionTarget's root.
+//     This visual will be the visual root for the WebView.
 void ViewComponent::BuildDCompTreeUsingVisual()
 {
     CHECK_FAILURE_BOOL(m_dcompDevice != nullptr);
@@ -526,6 +530,7 @@ void ViewComponent::BuildDCompTreeUsingVisual()
         CHECK_FAILURE(m_dcompRootVisual->AddVisual(m_dcompWebViewVisual.get(), TRUE, nullptr));
     }
 }
+//! [BuildDCompTree]
 
 void ViewComponent::DestroyDCompVisualTree()
 {

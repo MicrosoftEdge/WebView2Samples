@@ -140,7 +140,6 @@ BEGIN
         POPUP "WebView Transform"
         BEGIN
           MENUITEM "No transform"               IDM_TRANSFORM_NONE
-          MENUITEM "Scale 2X"                   IDM_TRANSFORM_SCALE_2X
           MENUITEM "Rotate 30Deg"               IDM_TRANSFORM_ROTATE_30DEG
           MENUITEM "Rotate 60Deg Diagonally"    IDM_TRANSFORM_ROTATE_60DEG_DIAG
         END
