@@ -3,9 +3,7 @@
 // found in the LICENSE file.
 
 using System;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-
 namespace WebView2WindowsFormsBrowser
 {
     static class Program
