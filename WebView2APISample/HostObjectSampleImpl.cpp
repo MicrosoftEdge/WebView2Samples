@@ -36,6 +36,20 @@ STDMETHODIMP HostObjectSample::put_Property(BSTR stringValue)
     return S_OK;
 }
 
+STDMETHODIMP HostObjectSample::get_IndexedProperty(INT index, BSTR* stringResult)
+{
+    std::wstring result(L"[");
+    result = result + std::to_wstring(index) + L"] is " + m_propertyValues[index] + L".";
+    *stringResult = SysAllocString(result.c_str());
+    return S_OK;
+}
+
+STDMETHODIMP HostObjectSample::put_IndexedProperty(INT index, BSTR stringValue)
+{
+    m_propertyValues[index] = stringValue;
+    return S_OK;
+}
+
 STDMETHODIMP HostObjectSample::CallCallbackAsynchronously(IDispatch* callbackParameter)
 {
     wil::com_ptr<IDispatch> callbackParameterForCapture = callbackParameter;

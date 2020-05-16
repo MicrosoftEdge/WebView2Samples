@@ -15,8 +15,12 @@ library HostObjectSampleLibrary
         [propget] HRESULT Property([out, retval] BSTR* stringResult);
         [propput] HRESULT Property([in] BSTR stringValue);
 
+        [propget] HRESULT IndexedProperty(INT index, [out, retval] BSTR * stringResult);
+        [propput] HRESULT IndexedProperty(INT index, [in] BSTR stringValue);
+
         // Demonstrate native calling back into JavaScript.
         HRESULT CallCallbackAsynchronously([in] IDispatch* callbackParameter);
+
     };
     //! [AddHostObjectInterface]
 

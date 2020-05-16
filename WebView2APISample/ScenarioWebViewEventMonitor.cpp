@@ -22,9 +22,12 @@ ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEve
       m_webviewEventSource(appWindowEventSource->GetWebView())
 {
     m_sampleUri = m_appWindowEventSource->GetLocalUri(c_samplePath);
-    m_appWindowEventView = new AppWindow(m_sampleUri, [this]() -> void {
-        InitializeEventView(m_appWindowEventView->GetWebView());
-    });
+    m_appWindowEventView = new AppWindow(
+        IDM_CREATION_MODE_WINDOWED,
+        m_sampleUri,
+        [this]() -> void {
+            InitializeEventView(m_appWindowEventView->GetWebView());
+        });
 }
 
 ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()

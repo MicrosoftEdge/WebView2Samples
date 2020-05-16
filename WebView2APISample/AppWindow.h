@@ -24,6 +24,7 @@ class AppWindow
 {
 public:
     AppWindow(
+        UINT creationModeId,
         std::wstring initialUri = L"https://www.bing.com/",
         std::function<void()> webviewCreatedCallback = nullptr,
         bool customWindowRect = false,
@@ -57,14 +58,9 @@ public:
 
     void RunAsync(std::function<void(void)> callback);
 
-    enum InitializeWebViewFlags
-    {
-        kDefaultOption = 0,
-        kWindowlessDcompVisual = 1 << 0,
-        kWindowlessWincompVisual = 1 << 1,
-    };
 private:
     static PCWSTR GetWindowClass();
+
     static INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
     static LRESULT CALLBACK
@@ -76,7 +72,7 @@ private:
     bool ExecuteAppCommands(WPARAM wParam, LPARAM lParam);
 
     void ResizeEverything();
-    void InitializeWebView(InitializeWebViewFlags webviewInitFlags);
+    void InitializeWebView();
     HRESULT OnCreateEnvironmentCompleted(HRESULT result, ICoreWebView2Environment* environment);
     HRESULT OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICoreWebView2Controller* controller);
     HRESULT DeleteFileRecursive(std::wstring path);
@@ -86,6 +82,7 @@ private:
     void CloseWebView(bool cleanupUserDataFolder = false);
     void CloseAppWindow();
     void ChangeLanguage();
+    void UpdateCreationModeMenu();
     std::wstring GetLocalPath(std::wstring path);
 
     void DeleteAllComponents();
@@ -96,6 +93,7 @@ private:
     HWND m_mainWindow = nullptr;
     Toolbar m_toolbar;
     std::function<void()> m_onWebViewFirstInitialized;
+    DWORD m_creationModeId = 0;
 
     // The following is state that belongs with the webview, and should
     // be reinitialized along with it. Everything here is undefined when
@@ -106,10 +104,6 @@ private:
 
     // All components are deleted when the WebView is closed.
     std::vector<std::unique_ptr<ComponentBase>> m_components;
-
-    // This state is preserved between WebViews so we can recreate
-    // a new WebView based on the settings of the old one.
-    InitializeWebViewFlags m_lastUsedInitFlags;
     std::unique_ptr<SettingsComponent> m_oldSettingsComponent;
 
     std::wstring m_language;
