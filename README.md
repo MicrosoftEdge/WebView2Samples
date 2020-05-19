@@ -12,7 +12,7 @@ Start with the [Microsoft Edge WebView2 getting-started guide](https://docs.micr
 
 The Samples demonstrate all of the WebView2 SDK's features and their API use patterns. As we add more features to the WebView2 SDK, we will regularly update our sample applications. See [WebView2Samples.sln](./WebView2Samples.sln) that includes all three projects below:
 
-* Win32 C/C++ Sample can be found within [WebView2APISample](./WebView2APISample) directory.
+* Win32 C++ Sample can be found within [WebView2APISample](./WebView2APISample) directory.
 * WPF Sample can be found within [WebView2WpfBrowser](./WebView2WpfBrowser) directory.
 * Windows Forms Sample can be found within [WebView2WindowsFormsBrowser](./WebView2WindowsFormsBrowser) directory.
 
