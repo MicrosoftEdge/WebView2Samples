@@ -1,8 +1,8 @@
 # WebView2 Samples
 
-This repository contains sampples that demonstrate the features and usage patterns of [WebView2](https://aka.ms/webview2). As we add more features to WebView2, we will regularly update our samples.
+This repository contains samples that demonstrate the features and usage patterns of [WebView2](https://aka.ms/webview2). As we add more features to WebView2, we will regularly update our samples.
 
-Please leave feedback in out [our feedback repo](https://aka.ms/webviewfeedback)!
+Please leave feedback in our [our feedback repo](https://aka.ms/webviewfeedback)!
 
 ## Win32 C/C++
 #### Getting Started
@@ -19,10 +19,10 @@ The [WebView2Browser](https://github.com/MicrosoftEdge/WebView2Browser) is an ad
 
 Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Browser) to learn how to build an application that utilizes multiple WebViews.
 
-## .NET WPF/WinForms
+## .NET (WPF and Windows Forms)
 #### Getting Started 
 * Checkout the [WPF getting started guide](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/wpf) for WebView2 in WPF applications
-* Checkout the [WinForms getting started guide](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/winforms) for WebView2 in WinForms applications
+* Checkout the [Windows Forms getting started guide](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/winforms) for WebView2 in WinForms applications
 
 #### Comprehensive API Sample
 * The **WPF Sample** can be found in the [WebView2WpfBrowser](./WebView2WpfBrowser) directory.
@@ -33,7 +33,7 @@ Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Brow
 The **UWP WinUI Sample** can be found in the [WinUI Controls Gallery](https://github.com/microsoft/Xaml-Controls-Gallery/tree/winui3preview).
 
 ## Next Steps
-1. Checkout [Introduction to Microsoft Edge WebView2](aka.ms/webview) to learn more about WebView2
-2. Please leave us feedback in out [feedback repo](https://aka.ms/webviewfeedback).
+* Checkout [Introduction to Microsoft Edge WebView2](aka.ms/webview) to learn more about WebView2
+* Please leave us feedback in out [feedback repo](https://aka.ms/webviewfeedback).
 
 
