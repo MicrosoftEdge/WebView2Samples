@@ -28,12 +28,12 @@ Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Brow
 * The **WPF Sample** can be found in the [WebView2WpfBrowser](./WebView2WpfBrowser) directory.
 * The **Windows Forms Sample** can be found in the[WebView2WindowsFormsBrowser](./WebView2WindowsFormsBrowser) directory.
 
-## WinUI/UWP 
+## UWP/WinUI
 #### Comprehensive API Sample
 The **UWP WinUI Sample** can be found in the [WinUI Controls Gallery](https://github.com/microsoft/Xaml-Controls-Gallery/tree/winui3preview).
 
 ## Next Steps
 * Checkout [Introduction to Microsoft Edge WebView2](aka.ms/webview) to learn more about WebView2
-* Please leave us feedback in out [feedback repo](https://aka.ms/webviewfeedback).
+* Please leave us feedback in our [feedback repo](https://aka.ms/webviewfeedback).
 
 
