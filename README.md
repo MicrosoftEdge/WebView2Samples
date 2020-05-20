@@ -1,23 +1,39 @@
 # WebView2 Samples
 
-This repository contain examples of how to use the [WebView 2 API](https://aka.ms/webview2). Please use [WebView2Samples issue tracker](https://github.com/MicrosoftEdge/WebView2Samples/issues) for sample issues and [WebViewFeedback issue tracker](https://aka.ms/webviewfeedback) for general WebView2 issues and feedback.
+This repository contains sampples that demonstrate the features and usage patterns of [WebView2](https://aka.ms/webview2). As we add more features to WebView2, we will regularly update our samples.
 
-## 1. Getting Started Guide
+Please leave feedback in out [our feedback repo](https://aka.ms/webviewfeedback)!
 
-This Sample is found within the [GettingStartedGuide](https://github.com/MicrosoftEdge/WebView2Samples/tree/master/GettingStartedGuide) directory.
+## Win32 C/C++
+#### Getting Started
+Start with the [Win32 WebView2 getting-started guide](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/win32) to learn how to setup a WebView within a Win32 application.
 
-Start with the [Microsoft Edge WebView2 getting-started guide](https://docs.microsoft.com/microsoft-edge/hosting/webview2/gettingstarted) to learn how to setup a WebView within a Win32 application.
+This will require downloading the [Getting Started Guide](https://github.com/MicrosoftEdge/WebView2Samples/tree/master/GettingStartedGuide) directory.
 
-## 2. WebView2 API Samples
+#### Comprehensive API Sample
+The **Win32 C++ Sample** can be found in the [WebView2APISample](./WebView2APISample) directory.
 
-The Samples demonstrate all of the WebView2 SDK's features and their API use patterns. As we add more features to the WebView2 SDK, we will regularly update our sample applications. See [WebView2Samples.sln](./WebView2Samples.sln) that includes all three projects below:
+#### Multiple WebView Sample
 
-* Win32 C++ Sample can be found within [WebView2APISample](./WebView2APISample) directory.
-* WPF Sample can be found within [WebView2WpfBrowser](./WebView2WpfBrowser) directory.
-* Windows Forms Sample can be found within [WebView2WindowsFormsBrowser](./WebView2WindowsFormsBrowser) directory.
-
-## 3. WebView2 Browser Example
-
-Clone the [WebView2Browser](https://github.com/MicrosoftEdge/WebView2Browser) by running `git clone https://github.com/MicrosoftEdge/WebView2Browser.git` to get started.
+The [WebView2Browser](https://github.com/MicrosoftEdge/WebView2Browser) is an additional Win32 WebView2 sample project that uses multiple WebViews in a single application. Clone this project by running `git clone https://github.com/MicrosoftEdge/WebView2Browser.git`.
 
 Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Browser) to learn how to build an application that utilizes multiple WebViews.
+
+## .NET WPF/WinForms
+#### Getting Started 
+* Checkout the [WPF getting started guide](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/wpf) for WebView2 in WPF applications
+* Checkout the [WinForms getting started guide](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/winforms) for WebView2 in WinForms applications
+
+#### Comprehensive API Sample
+* The **WPF Sample** can be found in the [WebView2WpfBrowser](./WebView2WpfBrowser) directory.
+* The **Windows Forms Sample** can be found in the[WebView2WindowsFormsBrowser](./WebView2WindowsFormsBrowser) directory.
+
+## WinUI/UWP 
+#### Comprehensive API Sample
+The **UWP WinUI Sample** can be found in the [WinUI Controls Gallery](https://github.com/microsoft/Xaml-Controls-Gallery/tree/winui3preview).
+
+## Next Steps
+1. Checkout [Introduction to Microsoft Edge WebView2](aka.ms/webview) to learn more about WebView2
+2. Please leave us feedback in out [feedback repo](https://aka.ms/webviewfeedback).
+
+
