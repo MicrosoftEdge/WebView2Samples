@@ -26,7 +26,7 @@ Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Brow
 
 #### Comprehensive API Sample
 * The **WPF Sample** can be found in the [WebView2WpfBrowser](./WebView2WpfBrowser) directory.
-* The **Windows Forms Sample** can be found in the[WebView2WindowsFormsBrowser](./WebView2WindowsFormsBrowser) directory.
+* The **Windows Forms Sample** can be found in the [WebView2WindowsFormsBrowser](./WebView2WindowsFormsBrowser) directory.
 
 ## UWP/WinUI
 #### Comprehensive API Sample
