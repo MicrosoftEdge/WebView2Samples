@@ -1,3 +1,7 @@
 # VS Code
 .vs/
 .vscode/
+packages/
+
+*.csproj.user
+*.vcxproj.user
