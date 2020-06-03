@@ -244,6 +244,10 @@
     <CopyFileToFolders Include="ScenarioAddHostObject.html" />
     <CopyFileToFolders Include="ScenarioWebMessage.html" />
     <CopyFileToFolders Include="ScenarioWebViewEventMonitor.html" />
+    <CopyFileToFolders Include="ScenarioJavaScriptDebugIndex.html" />
+    <CopyFileToFolders Include="ScenarioJavaScriptDebugIndex.js" />
+    <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.html" />
+    <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.ts" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="HostObjectSample.idl" TypeLibraryName="$(OutDir)WebView2APISample.tlb" />
