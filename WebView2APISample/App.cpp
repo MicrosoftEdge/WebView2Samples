@@ -17,7 +17,6 @@
 HINSTANCE g_hInstance;
 int g_nCmdShow;
 bool g_autoTabHandle = true;
-
 static std::map<DWORD, HANDLE> s_threads;
 
 static int RunMessagePump();
@@ -123,7 +122,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
         {
             commandLineError = true;
         }
-
         if (commandLineError)
         {
             MessageBox(nullptr,
@@ -213,8 +211,8 @@ static int RunMessagePump()
 void CreateNewThread(UINT creationModeId)
 {
     DWORD threadId;
-    HANDLE thread = CreateThread(nullptr, 0, ThreadProc, 
-        reinterpret_cast<LPVOID>(creationModeId),
+    HANDLE thread = CreateThread(
+        nullptr, 0, ThreadProc, reinterpret_cast<LPVOID>(creationModeId),
         STACK_SIZE_PARAM_IS_A_RESERVATION, &threadId);
     s_threads.insert(std::pair<DWORD, HANDLE>(threadId, thread));
 }

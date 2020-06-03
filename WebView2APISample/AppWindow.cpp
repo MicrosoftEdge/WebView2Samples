@@ -18,7 +18,7 @@
 #include "FileComponent.h"
 #include "ProcessComponent.h"
 #include "Resource.h"
-#include "ScenarioAddRemoteObject.h"
+#include "ScenarioAddHostObject.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
@@ -164,11 +164,12 @@ bool AppWindow::HandleWindowMessage(
     break;
     case WM_NCDESTROY:
     {
+        int retValue = 0;
         SetWindowLongPtr(hWnd, GWLP_USERDATA, NULL);
         delete this;
         if (--s_appInstances == 0)
         {
-            PostQuitMessage(0);
+            PostQuitMessage(retValue);
         }
     }
     break;
@@ -213,7 +214,6 @@ bool AppWindow::HandleWindowMessage(
     }
     break;
     }
-
     return false;
 }
 
@@ -251,14 +251,28 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         NewComponent<ScenarioWebMessage>(this);
         return true;
     }
-    case IDM_SCENARIO_ADD_REMOTE_OBJECT:
+    case IDM_SCENARIO_ADD_HOST_OBJECT:
     {
-        NewComponent<ScenarioAddRemoteObject>(this);
+        NewComponent<ScenarioAddHostObject>(this);
         return true;
     }
     case IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR:
     {
         NewComponent<ScenarioWebViewEventMonitor>(this);
+        return true;
+    }
+    case IDM_SCENARIO_JAVA_SCRIPT:
+    {
+        WCHAR c_scriptPath[] = L"ScenarioJavaScriptDebugIndex.html";
+        std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
+        CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
+        return true;
+    }
+    case IDM_SCENARIO_TYPE_SCRIPT:
+    {
+        WCHAR c_scriptPath[] = L"ScenarioTypeScriptDebugIndex.html";
+        std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
+        CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
         return true;
     }
     }
@@ -448,14 +462,12 @@ void AppWindow::InitializeWebView()
         }
     }
 }
-
 // This is the callback passed to CreateWebViewEnvironmentWithOptions.
 // Here we simply create the WebView.
 HRESULT AppWindow::OnCreateEnvironmentCompleted(
     HRESULT result, ICoreWebView2Environment* environment)
 {
     CHECK_FAILURE(result);
-
     m_webViewEnvironment = environment;
 
     auto webViewExperimentalEnvironment =
@@ -970,4 +982,3 @@ void AppWindow::UpdateCreationModeMenu()
         m_creationModeId,
         MF_BYCOMMAND);
 }
-

@@ -63,7 +63,7 @@ BEGIN
         MENUITEM "Subscribe to CDP event",      IDM_SUBSCRIBE_TO_CDP_EVENT
         MENUITEM "Call CDP method",             IDM_CALL_CDP_METHOD
         MENUITEM SEPARATOR
-        MENUITEM "Add COM object",              IDM_ADD_REMOTE_OBJECT
+        MENUITEM "Add COM object",              IDM_ADD_HOST_OBJECT
         MENUITEM SEPARATOR
         MENUITEM "Open DevTools Window",        IDM_OPEN_DEVTOOLS_WINDOW
     END
@@ -108,7 +108,7 @@ BEGIN
             MENUITEM "Complete Deferred Script Dialog", IDM_COMPLETE_JAVASCRIPT_DIALOG
         END
         MENUITEM "Toggle context menus enabled",  ID_SETTINGS_CONTEXT_MENUS_ENABLED
-        MENUITEM "Toggle remote objects allowed", ID_SETTINGS_REMOE_OBJECTS_ALLOWED
+        MENUITEM "Toggle host objects allowed", ID_SETTINGS_HOST_OBJECTS_ALLOWED
         MENUITEM "Toggle zoom control enabled",   ID_SETTINGS_ZOOM_ENABLED
         MENUITEM "Toggle built-in error page enabled", ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED
     END
@@ -151,8 +151,13 @@ BEGIN
     POPUP "S&cenario"
     BEGIN
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
-        MENUITEM "Host Objects",                IDM_SCENARIO_ADD_REMOTE_OBJECT
+        MENUITEM "Host Objects",                IDM_SCENARIO_ADD_HOST_OBJECT
         MENUITEM "Event Monitor",               IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
+        POPUP "Script Debugging"
+        BEGIN
+            MENUITEM "JavaScript",  IDM_SCENARIO_JAVA_SCRIPT
+            MENUITEM "TypeScript",  IDM_SCENARIO_TYPE_SCRIPT
+        END
     END
     POPUP "&Help"
     BEGIN

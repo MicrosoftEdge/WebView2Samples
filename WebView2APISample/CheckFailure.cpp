@@ -6,7 +6,6 @@
 
 #include <iomanip>
 #include <sstream>
-
 // Notify the user of a failure with a message box.
 void ShowFailure(HRESULT hr, const std::wstring& message)
 {

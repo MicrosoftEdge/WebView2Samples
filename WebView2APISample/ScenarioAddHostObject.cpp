@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 
-#include "ScenarioAddRemoteObject.h"
+#include "ScenarioAddHostObject.h"
 
 #include <algorithm>
 
@@ -25,10 +25,10 @@ bool AreFileUrisEqual (std::wstring leftUri, std::wstring rightUri)
     return leftUri == rightUri;
 }
 
-ScenarioAddRemoteObject::ScenarioAddRemoteObject(AppWindow* appWindow)
+ScenarioAddHostObject::ScenarioAddHostObject(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
 {
-    std::wstring sampleUri = m_appWindow->GetLocalUri(L"ScenarioAddRemoteObject.html");
+    std::wstring sampleUri = m_appWindow->GetLocalUri(L"ScenarioAddHostObject.html");
 
     m_hostObject = Microsoft::WRL::Make<HostObjectSample>(
         [appWindow = m_appWindow](std::function<void(void)> callback)
@@ -78,7 +78,7 @@ ScenarioAddRemoteObject::ScenarioAddRemoteObject(AppWindow* appWindow)
     CHECK_FAILURE(m_webView->Navigate(sampleUri.c_str()));
 }
 
-ScenarioAddRemoteObject::~ScenarioAddRemoteObject()
+ScenarioAddHostObject::~ScenarioAddHostObject()
 {
     m_webView->RemoveHostObjectFromScript(L"sample");
     m_webView->remove_NavigationStarting(m_navigationStartingToken);

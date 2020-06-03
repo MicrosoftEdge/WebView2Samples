@@ -25,7 +25,7 @@ Clone the repository and open the solution in Visual Studio. WebView2 is already
 - Clone this repository
 - Open the solution in Visual Studio 2019**
 - Set the target you want to build (Debug/Release, x86/x64/ARM64)
-- Build the project file: `WebView2APISample.vcxproj`
+- Build the solution file: WebView2APISample.sln
 
 That's it! Everything should be ready to just launch the app.
 
@@ -73,7 +73,7 @@ This component handles commands from the Process menu, which involve interaction
 
 #### 6. SettingsComponent.cpp
 
-This component handles commands from the Settings menu, and is also in charge of copying settings from an old WebView when a new one is created. Most code that interacts with the `ICoreWebView2Settings` interface can be found here.
+This component handles commands from the Settings menu, and is also in charge of copying settings from an old WebView when a new one is created. Most code that interacts with the ICoreWebView2Settings interface can be found here.
 
 #### 7. ViewComponent.cpp
 
@@ -85,9 +85,9 @@ This component is created when you select the Scenario/Web Messaging menu item. 
 
 ![alt text](documentation/screenshots/sample-app-webmessaging-screenshot.png)
 
-#### 9. ScenarioAddRemoteObject.cpp and ScenarioAddRemoteObject.html
+#### 9. ScenarioAddHostObject.cpp and ScenarioAddHostObject.html
 
-This component is created when you select the Scenario/Host Objects menu item. It demonstrates communication between the native app and the HTML webpage by means of remote object injection.  The interface of the remote object is declared in `HostObjectSample.idl`, and the object itself is implemented in `HostObjectSampleImpl.cpp`.
+This component is created when you select the Scenario/Host Objects menu item. It demonstrates communication between the native app and the HTML webpage by means of host object injection.  The interface of the host object is declared in HostObjectSample.idl, and the object itself is implemented in HostObjectSampleImpl.cpp.
 
 ## Key Functions
 
@@ -194,7 +194,7 @@ First, navigate to the ScenarioWebMessage application within the Sample App, usi
 2. Click on Scenario
 3. Click on Web Messaging
 
-The WebView should display a simple webpage titled: "WebMessage sample page". The code for this page can be found in the `ScenarioWebMessage.html` file.
+The WebView should display a simple webpage titled: "WebMessage sample page". The code for this page can be found in the ScenarioWebMessage.html file.
 
 ![alt text](documentation/screenshots/sample-app-webmessaging-screenshot.png)
 
