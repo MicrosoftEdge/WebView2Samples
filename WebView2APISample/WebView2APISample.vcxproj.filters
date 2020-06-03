@@ -42,7 +42,7 @@
     <ClCompile Include="ProcessComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ScenarioAddRemoteObject.cpp">
+    <ClCompile Include="ScenarioAddHostObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ScriptComponent.cpp">
@@ -98,7 +98,7 @@
     <ClInclude Include="ProcessComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ScenarioAddRemoteObject.h">
+    <ClInclude Include="ScenarioAddHostObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ScriptComponent.h">
@@ -134,7 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="ScenarioWebMessage.html" />
-    <CopyFileToFolders Include="ScenarioAddRemoteObject.html" />
+    <CopyFileToFolders Include="ScenarioAddHostObject.html" />
     <CopyFileToFolders Include="ScenarioWebViewEventMonitor.html" />
   </ItemGroup>
   <ItemGroup>

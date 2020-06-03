@@ -196,7 +196,7 @@
     <ClInclude Include="ProcessComponent.h" />
     <ClInclude Include="HostObjectSampleImpl.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="ScenarioAddRemoteObject.h" />
+    <ClInclude Include="ScenarioAddHostObject.h" />
     <ClInclude Include="ScenarioWebMessage.h" />
     <ClInclude Include="ScenarioWebViewEventMonitor.h" />
     <ClInclude Include="ScriptComponent.h" />
@@ -215,7 +215,7 @@
     <ClCompile Include="FileComponent.cpp" />
     <ClCompile Include="ProcessComponent.cpp" />
     <ClCompile Include="HostObjectSampleImpl.cpp" />
-    <ClCompile Include="ScenarioAddRemoteObject.cpp" />
+    <ClCompile Include="ScenarioAddHostObject.cpp" />
     <ClCompile Include="ScenarioWebMessage.cpp" />
     <ClCompile Include="ScenarioWebViewEventMonitor.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
@@ -241,7 +241,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <CopyFileToFolders Include="ScenarioAddRemoteObject.html" />
+    <CopyFileToFolders Include="ScenarioAddHostObject.html" />
     <CopyFileToFolders Include="ScenarioWebMessage.html" />
     <CopyFileToFolders Include="ScenarioWebViewEventMonitor.html" />
   </ItemGroup>
