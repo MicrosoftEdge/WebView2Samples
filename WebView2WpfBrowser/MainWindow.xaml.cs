@@ -20,96 +20,106 @@ using Microsoft.Web.WebView2.Core;
 
 namespace WebView2WpfBrowser
 {
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
-	public partial class MainWindow : Window
-	{
-		private bool _isNavigating = false;
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        bool _isNavigating = false;
 
-		public MainWindow()
-		{
-			InitializeComponent();
-		}
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
 
-		void BackCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
-		{
-			e.CanExecute = webView != null && webView.CoreWebView2 != null && webView.CanGoBack;
-		}
+        void NewCmdExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            new MainWindow().Show();
+        }
 
-		void BackCmdExecuted(object target, ExecutedRoutedEventArgs e)
-		{
-			webView.CoreWebView2.GoBack();
-		}
+        void CloseCmdExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            this.Close();
+        }
 
-		void ForwardCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
-		{
-			e.CanExecute = webView != null && webView.CoreWebView2 != null && webView.CanGoForward;
-		}
+        void BackCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = webView != null && webView.CanGoBack;
+        }
 
-		void ForwardCmdExecuted(object target, ExecutedRoutedEventArgs e)
-		{
-			webView.CoreWebView2.GoForward();
-		}
+        void BackCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.GoBack();
+        }
 
-		void RefreshCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
-		{
-			e.CanExecute = webView != null && webView.CoreWebView2 != null && !_isNavigating;
-		}
+        void ForwardCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = webView != null && webView.CanGoForward;
+        }
 
-		void RefreshCmdExecuted(object target, ExecutedRoutedEventArgs e)
-		{
-			webView.CoreWebView2.Reload();
-		}
+        void ForwardCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.GoForward();
+        }
 
-		void BrowseStopCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
-		{
-			e.CanExecute = webView != null && webView.CoreWebView2 != null && _isNavigating;
-		}
+        void RefreshCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = webView != null && !_isNavigating;
+        }
 
-		void BrowseStopCmdExecuted(object target, ExecutedRoutedEventArgs e)
-		{
-			webView.CoreWebView2.Stop();
-		}
+        void RefreshCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.Reload();
+        }
 
-		void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
-		{
-			e.CanExecute = webView != null && webView.CoreWebView2 != null && !_isNavigating;
-		}
+        void BrowseStopCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = webView != null && _isNavigating;
+        }
 
-		void GoToPageCmdExecuted(object target, ExecutedRoutedEventArgs e)
-		{
-			webView.CoreWebView2.Navigate((string)e.Parameter);
-		}
+        void BrowseStopCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.Stop();
+        }
 
-		private void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
-		{
-			_isNavigating = true;
-			RequeryCommands();
-		}
+        void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = webView != null && !_isNavigating;
+        }
 
-		private void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
-		{
-			_isNavigating = false;
-			RequeryCommands();
-		}
+        void GoToPageCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.Source = new Uri((string)e.Parameter);
+        }
 
-		private void RequeryCommands()
-		{
-			// Seems like there should be a way to bind CanExecute directly to a bool property
-			// so that the binding can take care keeping CanExecute up-to-date when the property's
-			// value changes, but apparently there isn't.  Instead we listen for the WebView events
-			// which signal that one of the underlying bool properties might have changed and
-			// bluntly tell all commands to re-check their CanExecute status.
-			//
-			// Another way to trigger this re-check would be to create our own bool dependency 
-			// properties on this class, bind them to the underlying properties, and implement a
-			// PropertyChangedCallback on them.  That arguably more directly binds the status of
-			// the commands to the WebView's state, but at the cost of having an extraneous
-			// dependency property sitting around for each underlying property, which doesn't seem
-			// worth it, especially given that the WebView API explicitly documents which events
-			// signal the property value changes.
-			CommandManager.InvalidateRequerySuggested();
-		}
-	}
+        void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
+        {
+            _isNavigating = true;
+            RequeryCommands();
+        }
+
+        void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            _isNavigating = false;
+            RequeryCommands();
+        }
+
+        void RequeryCommands()
+        {
+            // Seems like there should be a way to bind CanExecute directly to a bool property
+            // so that the binding can take care keeping CanExecute up-to-date when the property's
+            // value changes, but apparently there isn't.  Instead we listen for the WebView events
+            // which signal that one of the underlying bool properties might have changed and
+            // bluntly tell all commands to re-check their CanExecute status.
+            //
+            // Another way to trigger this re-check would be to create our own bool dependency 
+            // properties on this class, bind them to the underlying properties, and implement a
+            // PropertyChangedCallback on them.  That arguably more directly binds the status of
+            // the commands to the WebView's state, but at the cost of having an extraneous
+            // dependency property sitting around for each underlying property, which doesn't seem
+            // worth it, especially given that the WebView API explicitly documents which events
+            // signal the property value changes.
+            CommandManager.InvalidateRequerySuggested();
+        }
+    }
 }
