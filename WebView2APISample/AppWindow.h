@@ -84,7 +84,6 @@ private:
     void ChangeLanguage();
     void UpdateCreationModeMenu();
     std::wstring GetLocalPath(std::wstring path);
-
     void DeleteAllComponents();
 
     template <class ComponentType> std::unique_ptr<ComponentType> MoveComponent();
