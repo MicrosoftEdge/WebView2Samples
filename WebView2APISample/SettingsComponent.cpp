@@ -367,26 +367,26 @@ bool SettingsComponent::HandleWindowMessage(
             //! [DisableContextMenu]
             return true;
         }
-        case ID_SETTINGS_REMOE_OBJECTS_ALLOWED:
+        case ID_SETTINGS_HOST_OBJECTS_ALLOWED:
         {
-            //! [RemoteObjectsAccess]
-            BOOL allowRemoteObjects;
-            CHECK_FAILURE(m_settings->get_AreRemoteObjectsAllowed(&allowRemoteObjects));
-            if (allowRemoteObjects)
+            //! [HostObjectsAccess]
+            BOOL allowHostObjects;
+            CHECK_FAILURE(m_settings->get_AreHostObjectsAllowed(&allowHostObjects));
+            if (allowHostObjects)
             {
-                CHECK_FAILURE(m_settings->put_AreRemoteObjectsAllowed(FALSE));
+                CHECK_FAILURE(m_settings->put_AreHostObjectsAllowed(FALSE));
                 MessageBox(
-                    nullptr, L"Access to remote objects will be denied after the next navigation.",
+                    nullptr, L"Access to host objects will be denied after the next navigation.",
                     L"Settings change", MB_OK);
             }
             else
             {
-                CHECK_FAILURE(m_settings->put_AreRemoteObjectsAllowed(TRUE));
+                CHECK_FAILURE(m_settings->put_AreHostObjectsAllowed(TRUE));
                 MessageBox(
-                    nullptr, L"Access to remote objects will be allowed after the next navigation.",
+                    nullptr, L"Access to host objects will be allowed after the next navigation.",
                     L"Settings change", MB_OK);
             }
-            //! [RemoteObjectsAccess]
+            //! [HostObjectsAccess]
             return true;
         }
         case ID_SETTINGS_ZOOM_ENABLED:

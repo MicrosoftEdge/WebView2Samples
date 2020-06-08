@@ -11,13 +11,11 @@
 #include <shobjidl.h>
 #include <string.h>
 #include <vector>
-
 #include "AppWindow.h"
 
 HINSTANCE g_hInstance;
 int g_nCmdShow;
 bool g_autoTabHandle = true;
-
 static std::map<DWORD, HANDLE> s_threads;
 
 static int RunMessagePump();
@@ -41,7 +39,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
     PROCESS_DPI_AWARENESS oldDpiAwareness = PROCESS_PER_MONITOR_DPI_AWARE;
     std::wstring appId(L"EBWebView.SampleApp");
     std::wstring initialUri(L"https://www.bing.com");
-
     if (lpCmdLine && lpCmdLine[0])
     {
         bool commandLineError = false;
@@ -104,7 +101,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
             }
             else
             {
-                // --edge-webview-switches is a supported switch to pass addtional
+                // --edge-webview-switches is a supported switch to pass additional
                 // command line switches to WebView's browser process.
                 // For example, adding
                 //   --edge-webview-switches="--remote-debugging-port=9222"
@@ -213,12 +210,11 @@ static int RunMessagePump()
 void CreateNewThread(UINT creationModeId)
 {
     DWORD threadId;
-    HANDLE thread = CreateThread(nullptr, 0, ThreadProc, 
-        reinterpret_cast<LPVOID>(creationModeId),
+    HANDLE thread = CreateThread(
+        nullptr, 0, ThreadProc, reinterpret_cast<LPVOID>(creationModeId),
         STACK_SIZE_PARAM_IS_A_RESERVATION, &threadId);
     s_threads.insert(std::pair<DWORD, HANDLE>(threadId, thread));
 }
-
 // This function is the starting point for new threads. It will open a new app window.
 static DWORD WINAPI ThreadProc(void* pvParam)
 {

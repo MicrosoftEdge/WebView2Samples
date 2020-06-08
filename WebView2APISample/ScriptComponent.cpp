@@ -47,7 +47,7 @@ bool ScriptComponent::HandleWindowMessage(
         case IDM_CALL_CDP_METHOD:
             CallCdpMethod();
             return true;
-        case IDM_ADD_REMOTE_OBJECT:
+        case IDM_ADD_HOST_OBJECT:
             AddComObject();
             return true;
         case IDM_OPEN_DEVTOOLS_WINDOW:

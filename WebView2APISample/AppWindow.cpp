@@ -18,7 +18,7 @@
 #include "FileComponent.h"
 #include "ProcessComponent.h"
 #include "Resource.h"
-#include "ScenarioAddRemoteObject.h"
+#include "ScenarioAddHostObject.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
@@ -31,6 +31,9 @@ static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
 
 static thread_local size_t s_appInstances = 0;
+// The minimum height and width for Window Features.
+// See https://developer.mozilla.org/en-US/docs/Web/API/Window/open#Size
+static constexpr int s_minNewWindowSize = 100;
 
 // Creates a new window which is a copy of the entire app, but on the same thread.
 AppWindow::AppWindow(
@@ -164,11 +167,12 @@ bool AppWindow::HandleWindowMessage(
     break;
     case WM_NCDESTROY:
     {
+        int retValue = 0;
         SetWindowLongPtr(hWnd, GWLP_USERDATA, NULL);
         delete this;
         if (--s_appInstances == 0)
         {
-            PostQuitMessage(0);
+            PostQuitMessage(retValue);
         }
     }
     break;
@@ -213,7 +217,6 @@ bool AppWindow::HandleWindowMessage(
     }
     break;
     }
-
     return false;
 }
 
@@ -251,14 +254,28 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         NewComponent<ScenarioWebMessage>(this);
         return true;
     }
-    case IDM_SCENARIO_ADD_REMOTE_OBJECT:
+    case IDM_SCENARIO_ADD_HOST_OBJECT:
     {
-        NewComponent<ScenarioAddRemoteObject>(this);
+        NewComponent<ScenarioAddHostObject>(this);
         return true;
     }
     case IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR:
     {
         NewComponent<ScenarioWebViewEventMonitor>(this);
+        return true;
+    }
+    case IDM_SCENARIO_JAVA_SCRIPT:
+    {
+        WCHAR c_scriptPath[] = L"ScenarioJavaScriptDebugIndex.html";
+        std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
+        CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
+        return true;
+    }
+    case IDM_SCENARIO_TYPE_SCRIPT:
+    {
+        WCHAR c_scriptPath[] = L"ScenarioTypeScriptDebugIndex.html";
+        std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
+        CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
         return true;
     }
     }
@@ -390,7 +407,6 @@ void AppWindow::InitializeWebView()
     CloseWebView();
     m_dcompDevice = nullptr;
     m_wincompHelper = nullptr;
-
     LPCWSTR subFolder = nullptr;
 
     if (m_creationModeId == IDM_CREATION_MODE_VISUAL_DCOMP)
@@ -448,14 +464,12 @@ void AppWindow::InitializeWebView()
         }
     }
 }
-
 // This is the callback passed to CreateWebViewEnvironmentWithOptions.
 // Here we simply create the WebView.
 HRESULT AppWindow::OnCreateEnvironmentCompleted(
     HRESULT result, ICoreWebView2Environment* environment)
 {
     CHECK_FAILURE(result);
-
     m_webViewEnvironment = environment;
 
     auto webViewExperimentalEnvironment =
@@ -638,7 +652,49 @@ void AppWindow::RegisterEventHandlers()
                 CHECK_FAILURE(args->GetDeferral(&deferral));
                 AppWindow* newAppWindow;
 
-                newAppWindow = new AppWindow(m_creationModeId, L"");
+                wil::com_ptr<ICoreWebView2ExperimentalNewWindowRequestedEventArgs>
+                    experimentalArgs;
+                CHECK_FAILURE(args->QueryInterface(IID_PPV_ARGS(&experimentalArgs)));
+                wil::com_ptr<ICoreWebView2ExperimentalWindowFeatures> windowFeatures;
+                CHECK_FAILURE(experimentalArgs->get_WindowFeatures(&windowFeatures));
+
+                RECT windowRect = {0};
+                UINT32 left = 0;
+                UINT32 top = 0;
+                UINT32 height = 0;
+                UINT32 width = 0;
+                BOOL shouldHaveToolbar = true;
+
+                BOOL hasPosition = FALSE;
+                BOOL hasSize = FALSE;
+                CHECK_FAILURE(windowFeatures->HasPosition(&hasPosition));
+                CHECK_FAILURE(windowFeatures->HasSize(&hasSize));
+
+                bool useDefaultWindow = true;
+
+                if (!!hasPosition && !!hasSize)
+                {
+                    CHECK_FAILURE(windowFeatures->get_Left(&left));
+                    CHECK_FAILURE(windowFeatures->get_Top(&top));
+                    CHECK_FAILURE(windowFeatures->get_Height(&height));
+                    CHECK_FAILURE(windowFeatures->get_Width(&width));
+                    useDefaultWindow = false;
+                }
+                CHECK_FAILURE(windowFeatures->get_Toolbar(&shouldHaveToolbar));
+
+                windowRect.left = left;
+                windowRect.right = left + (width < s_minNewWindowSize ? s_minNewWindowSize : width);
+                windowRect.top = top;
+                windowRect.bottom = top + (height < s_minNewWindowSize ? s_minNewWindowSize : height);
+
+                if (!useDefaultWindow)
+                {
+                  newAppWindow = new AppWindow(m_creationModeId, L"", nullptr, true, windowRect, !!shouldHaveToolbar);
+                }
+                else
+                {
+                  newAppWindow = new AppWindow(m_creationModeId, L"");
+                }
                 newAppWindow->m_isPopupWindow = true;
                 newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]() {
                     CHECK_FAILURE(args->put_NewWindow(newAppWindow->m_webView.get()));
@@ -854,7 +910,6 @@ std::wstring AppWindow::GetLocalPath(std::wstring relativePath)
     path.replace(index, path.length(), relativePath);
     return path;
 }
-
 std::wstring AppWindow::GetLocalUri(std::wstring relativePath)
 {
     std::wstring path = GetLocalPath(relativePath);
@@ -970,4 +1025,3 @@ void AppWindow::UpdateCreationModeMenu()
         m_creationModeId,
         MF_BYCOMMAND);
 }
-

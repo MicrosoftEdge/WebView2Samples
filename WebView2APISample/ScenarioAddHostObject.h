@@ -12,11 +12,11 @@
 #include "ComponentBase.h"
 #include "HostObjectSample_h.h"
 
-class ScenarioAddRemoteObject : public ComponentBase
+class ScenarioAddHostObject : public ComponentBase
 {
 public:
-    ScenarioAddRemoteObject(AppWindow* appWindow);
-    ~ScenarioAddRemoteObject() override;
+    ScenarioAddHostObject(AppWindow* appWindow);
+    ~ScenarioAddHostObject() override;
 
 private:
     AppWindow* m_appWindow = nullptr;

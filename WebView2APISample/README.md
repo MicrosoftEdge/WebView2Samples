@@ -85,9 +85,9 @@ This component is created when you select the Scenario/Web Messaging menu item. 
 
 ![alt text](documentation/screenshots/sample-app-webmessaging-screenshot.png)
 
-#### 9. ScenarioAddRemoteObject.cpp and ScenarioAddRemoteObject.html
+#### 9. ScenarioAddHostObject.cpp and ScenarioAddHostObject.html
 
-This component is created when you select the Scenario/Host Objects menu item. It demonstrates communication between the native app and the HTML webpage by means of remote object injection.  The interface of the remote object is declared in `HostObjectSample.idl`, and the object itself is implemented in `HostObjectSampleImpl.cpp`.
+This component is created when you select the Scenario/Host Objects menu item. It demonstrates communication between the native app and the HTML webpage by means of host object injection.  The interface of the host object is declared in `HostObjectSample.idl`, and the object itself is implemented in `HostObjectSampleImpl.cpp`.
 
 ## Key Functions
 

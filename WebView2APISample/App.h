@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 #include "stdafx.h"
+#include <string>
 
 extern HINSTANCE g_hInstance;
 extern int g_nCmdShow;
 extern bool g_autoTabHandle;
-
 void CreateNewThread(UINT creationModeId);
