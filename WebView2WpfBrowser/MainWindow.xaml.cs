@@ -64,7 +64,7 @@ namespace WebView2WpfBrowser
 
         void RefreshCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = webView != null && !_isNavigating;
+            e.CanExecute = webView != null && webView.CoreWebView2 != null && !_isNavigating;
         }
 
         void RefreshCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -74,7 +74,7 @@ namespace WebView2WpfBrowser
 
         void BrowseStopCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = webView != null && _isNavigating;
+            e.CanExecute = webView != null && webView.CoreWebView2 != null && _isNavigating;
         }
 
         void BrowseStopCmdExecuted(object target, ExecutedRoutedEventArgs e)
