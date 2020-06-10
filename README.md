@@ -2,6 +2,8 @@
 
 This repository contains samples that demonstrate the features and usage patterns of [WebView2](https://aka.ms/webview2). As we add more features to WebView2, we will regularly update our samples.
 
+[WebView2Samples.sln](WebView2Samples.sln) is a collective soluction that inlcudes [WebView2APISample.vcxproj](WebView2APISample/WebView2APISample.vcxproj), [WebView2WpfBrowser.csproj](WebView2WpfBrowser/WebView2WpfBrowser.csproj), and [WebView2WindowsFormsBrowser.csproj](WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj).
+
 Please leave feedback in our [our feedback repo](https://aka.ms/webviewfeedback)!
 
 ## Win32 C/C++
@@ -14,7 +16,7 @@ This will require downloading the [Getting Started Guide](https://github.com/Mic
 
 #### Comprehensive API Sample
 
-The **Win32 C++ Sample** `WebView2APISample.vcxproj` can be found in the [WebView2APISample](./WebView2APISample) directory.
+The **Win32 C++ Sample** can be found in the [WebView2APISample](./WebView2APISample) directory.
 
 #### Multiple WebViews Sample
 
@@ -31,8 +33,8 @@ Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Brow
 
 #### Comprehensive API Sample
 
-* The **WPF Sample** `WebView2WpfBrowser.csproj` can be found in the [WebView2WpfBrowser](./WebView2WpfBrowser) directory.
-* The **Windows Forms Sample** `WebView2WindowsFormsBrowser.csproj` can be found in the [WebView2WindowsFormsBrowser](./WebView2WindowsFormsBrowser) directory.
+* The **WPF Sample** can be found in the [WebView2WpfBrowser](./WebView2WpfBrowser) directory.
+* The **Windows Forms Sample** can be found in the [WebView2WindowsFormsBrowser](./WebView2WindowsFormsBrowser) directory.
 
 ## UWP/WinUI
 
