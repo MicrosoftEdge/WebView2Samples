@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)microsoft.windows.cswinrt\0.1.0-prerelease.200512.7\build\Microsoft.Windows.CsWinRT.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.windows.cswinrt\0.1.0-prerelease.200512.7\build\Microsoft.Windows.CsWinRT.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.winui\3.0.0-preview1.200515.3\build\Microsoft.WinUI.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.winui\3.0.0-preview1.200515.3\build\Microsoft.WinUI.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.vcrtforwarders.140\1.0.6\build\netcoreapp2.0\Microsoft.VCRTForwarders.140.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.vcrtforwarders.140\1.0.6\build\netcoreapp2.0\Microsoft.VCRTForwarders.140.targets')" />
+  </ImportGroup>
+</Project>
