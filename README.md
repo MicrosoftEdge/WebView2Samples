@@ -4,7 +4,7 @@ This repository contains getting started apps as well as sample apps that demons
 
 In the ``GettingStarted`` folder you will find the starter code for its respective guide listed below:
 - [Win32 Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32)
-- [WPF Getting Started](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/wpf)
+- [WPF Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/wpf)
 - WinUI Getting Started (Releasing Soon)
 
 In the ``Sample Apps`` folder you will find:
