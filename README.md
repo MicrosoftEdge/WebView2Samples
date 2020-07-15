@@ -23,7 +23,7 @@ This will require downloading the [Getting Started Guide](https://github.com/Mic
 
 #### Comprehensive API Sample
 
-The **Win32 C++ Sample** can be found in the [WebView2APISample](./WebView2APISample) directory.
+The **Win32 C++ Sample** can be found in the [WebView2APISample](./SampleApps/WebView2APISample) directory.
 
 #### Multiple WebViews Sample
 
@@ -40,8 +40,8 @@ Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Brow
 
 #### Comprehensive API Sample
 
-* The **WPF Sample** can be found in the [WebView2WpfBrowser](./WebView2WpfBrowser) directory.
-* The **Windows Forms Sample** can be found in the [WebView2WindowsFormsBrowser](./WebView2WindowsFormsBrowser) directory.
+* The **WPF Sample** can be found in the [WebView2WpfBrowser](./SampleApps/WebView2WpfBrowser) directory.
+* The **Windows Forms Sample** can be found in the [WebView2WindowsFormsBrowser](./SampleApps/WebView2WindowsFormsBrowser) directory.
 
 ## UWP/WinUI
 
