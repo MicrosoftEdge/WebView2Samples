@@ -1,8 +1,15 @@
 # WebView2 Samples
 
-This repository contains samples that demonstrate the features and usage patterns of [WebView2](https://aka.ms/webview2). As we add more features to WebView2, we will regularly update our samples.
+This repository contains getting started apps as well as sample apps that demonstrate the features and usage patterns of [WebView2](https://aka.ms/webview2). As we add more features to WebView2, we will regularly update our samples.
 
-[WebView2Samples.sln](WebView2Samples.sln) is a collective soluction that inlcudes [WebView2APISample.vcxproj](WebView2APISample/WebView2APISample.vcxproj), [WebView2WpfBrowser.csproj](WebView2WpfBrowser/WebView2WpfBrowser.csproj), and [WebView2WindowsFormsBrowser.csproj](WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj).
+In the ``GettingStarted`` folder you will find the starter code for its respective guide listed below:
+- [Win32 Getting Started](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/win32)
+- [WPF Getting Started](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/wpf)
+- [WinUI Getting Started](https://docs.microsoft.com/en-us/microsoft-edge/webview2/gettingstarted/winui) (Releasing Soon)
+
+In the ``Sample Apps`` folder you will find:
+- [WebView2Samples.sln](SampleApps/WebView2Samples.sln) - a collective soluction that inlcudes [WebView2APISample.vcxproj](SampleApps/WebView2APISample/WebView2APISample.vcxproj), [WebView2WpfBrowser.csproj](SampleApps/WebView2WpfBrowser/WebView2WpfBrowser.csproj), and [WebView2WindowsFormsBrowser.csproj](SampleApps/WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj).
+
 
 Please leave feedback in our [our feedback repo](https://aka.ms/webviewfeedback)!
 
