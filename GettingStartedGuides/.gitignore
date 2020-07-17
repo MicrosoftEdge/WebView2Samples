@@ -1,9 +1,0 @@
-Debug/
-Release/
-ARM64/
-x64/
-.vs/
-packages/
-
-obj/
-bin/
