@@ -673,59 +673,47 @@ Menu item `Script -> Host Objects` is demonstrated.
 
 #### Script Debugging
 
-##### [VSCode] Single WebView JavaScript Debugging (Old Tool: Debugger For Microsoft Edge)
+##### [VSCode] Debugging Setup
 
-Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) in VSCode
+1. Open VSCode, go to `View -> Extensions` and install the two debuggers:
+    1. [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2)
+    ![old-debugging-tool](screenshots/old-script-debugging-tool.png)
+    1. [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug)
+    ![new-debugging-tool](screenshots/new-script-debugging-tool.png)
+1. Go to `File -> Open Folder` and open `WebView2APISample/` (where `.vscode/` lives)
+1. Open files `ScenarioJavaScripDebugIndex.js` and `ScenarioTypeScripDebugIndex.ts` from the same output folder where `WebView2APISample.exe` lives (e.g. `WebView2APISample/Release/x64/`)
+1. Set breakpoints at `function OnAddClick()` in `ScenarioJavaScripDebugIndex.js` and `function OnHeaderClick()` in `ScenarioTypeScripDebugIndex.ts`
+1. Go to Debug tab via `View -> Run`
 
-1. Open VSCode, go to extension and download the old Edge Script Debugging tool
-  ![step 1](screenshots/old-script-debugging-tool.png)
-2. Go to same folder where sample app `WebView2APISample.exe` lives and open file `ScenarioJavaScripDebugIndex.js` from the same folder. Set a breakpoint on `function OnAddClick()`
-3. In VSCode, go to Debug tab. On the top drop down, select `Debugger For Microsoft Edge: Sample app (Script $(Configuration)|$(Platform))`. (eg. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)`
-4. Then click the green Button (GO) to launch the sample app.
-5. VM\* error page may launch, just ignore and click go. (Ignore VM\* file in general and click go at any stage).
-6. Go to `Scenario -> Script Debugging -> JavaScript`
-7. Expect debugger to hit and pause the page.
+##### [VSCode] Single WebView JavaScript Debugging
 
-##### [VSCode] Single WebView JavaScript Debugging (New Tool: JavaScript Debugger Nightly)
+Test Single WebView JavaScript Debugging with [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
-Test Single WebView JavaScript Debugging with new debugging tool: [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
+1. Follow [Debugging Setup](#[vscode]-debugging-setup)
+1. Go to Debug tab via `View -> Run`
+1. On the top drop down, select `$(Debugger): Sample app (Script $(Configuration)|$(Platform))`. (e.g. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)` and `JavaScript Debugger(Nightly): Sample app (Script Release|x64)`)
+  ![debugger-dropdown](screenshots/debugger-dropdown.png)
+1. Press `F5` or click the green Button (GO) to Start Debugging
+1. Expected: sample app is launched
+1. VM\* error page may launch, just ignore and click go (Ignore VM\* file in general and click go at any stage)
+1. Go to `Scenario -> Script Debugging -> JavaScript`
+1. Click `Add a new item`
+1. Expect debugger to hit the breakpoint and pause the page
 
-1. Open VSCode, go to extension and download the new JavaScript Debugger Nightly tool
-  ![step 1](screenshots/new-script-debugging-tool.png)
-2. Go to same folder where sample app `WebView2APISample.exe` lives and open file `ScenarioJavaScripDebugIndex.js` from the same folder. Set a breakpoint on `function OnAddClick()`
-3. In VSCode, go to Debug tab. On the top drop down, select `JavaScript Debugger(Nightly): Sample app (Script $(Configuration)|$(Platform))`. (eg. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)`
-4. Then click the green Button (GO) to launch the sample app.
-5. VM\* error page may launch, just ignore and click go. (Ignore VM\* file in general and click go at any stage).
-6. Go to `Scenario -> Script Debugging -> JavaScript`
-7. Expect debugger to hit and pause the page.
+##### [VSCode] Single WebView TypeScript Debugging
 
-##### [VSCode] Single WebView TypeScript Debugging (Old Tool: Debugger For Microsoft Edge)
+Test Single WebView TypeScript Debugging with [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
-Test Single WebView TypeScript Debugging with old debugging tool: [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) in VSCode
-
-1. Open VSCode, go to extension and download the old Edge Script Debugging tool
-  ![step 1](screenshots/old-script-debugging-tool.png)
-2. Go to same folder where sample app `WebView2APISample.exe` lives and open file `ScenarioTypeScripDebugIndex.ts` from the same folder. Set a breakpoint on `function onHeaderClick()`
-3. In VSCode, go to Debug tab. On the top drop down, select `Debugger For Microsoft Edge: Sample app (Script $(Configuration)|$(Platform))`. (eg. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)`
-4. Then click the green Button (GO) to launch the sample app.
-5. VM\* error page may launch, just ignore and click go. (Ignore VM\* file in general and click go at any stage).
-6. Go to `Scenario -> Script Debugging -> TypeScript`
-7. Click on `Get Current Page Header` button
-8. Expect debugger to hit and pause the page.
-
-##### [VSCode] Single WebView TypeScript Debugging (New Tool: JavaScript Debugger Nightly)
-
-Test Single WebView TypeScript Debugging with new debugging tool: [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
-
-1. Open VSCode, go to extension and download the new JavaScript Debugger Nightly tool
-  ![step 1](screenshots/new-script-debugging-tool.png)
-2. Go to same folder where sample app `WebView2APISample.exe` lives and open file `ScenarioTypeScripDebugIndex.ts` from the same folder. Set a breakpoint on `function onHeaderClick()`
-3. In VSCode, go to Debug tab. On the top drop down, select `JavaScript Debugger(Nightly): Sample app (Script $(Configuration)|$(Platform))`. (eg. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)`
-4. Then click the green Button (GO) to launch the sample app.
-5. VM\* error page may launch, just ignore and click go. (Ignore VM\* file in general and click go at any stage).
-6. Go to `Scenario -> Script Debugging -> TypeScript`
-7. Click on `Get Current Page Header` button
-8. Expect debugger to hit and pause the page.
+1. Follow [Debugging Setup](#[vscode]-debugging-setup)
+1. Go to Debug tab via `View -> Run`
+1. On the top drop down, select `$(Debugger): Sample app (Script $(Configuration)|$(Platform))`. (e.g. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)` and `JavaScript Debugger(Nightly): Sample app (Script Release|x64)`)
+  ![debugger-dropdown](screenshots/debugger-dropdown.png)
+1. Press `F5` or click the green Button (GO) to Start Debugging
+1. Expected: sample app is launched
+1. VM\* error page may launch, just ignore and click go (Ignore VM\* file in general and click go at any stage)
+1. Go to `Scenario -> Script Debugging -> TypeScript`
+1. Click `Get the Current Page Header`
+1. Expect debugger to hit the breakpoint and pause the page
 
 ##### [VSCode] Single WebView JavaScript Debugging Using Attach (Old Tool: Debugger For Microsoft Edge)
 
