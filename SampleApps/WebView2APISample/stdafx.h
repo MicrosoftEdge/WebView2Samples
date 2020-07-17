@@ -13,7 +13,9 @@
 #include <wil/com.h>
 #include <wil/resource.h>
 #include <wil/result.h>
+#include <winrt/base.h>
+#include <winrt/Windows.Foundation.h>
 #include <wrl.h>
 
 #include "webview2experimental.h"
-#include "Webview2EnvironmentOptions.h"
+#include "WebView2ExperimentalEnvironmentOptions.h"

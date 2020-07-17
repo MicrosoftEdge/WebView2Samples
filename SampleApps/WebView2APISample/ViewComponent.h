@@ -32,14 +32,11 @@ public:
         LPARAM lParam,
         LRESULT* result) override;
 
-    void ToggleVisibility();
-    void SetSizeRatio(float ratio);
-    void SetZoomFactor(float zoom);
     void SetBounds(RECT bounds);
-    void SetScale(float scale);
-    void ShowWebViewBounds();
-    void ShowWebViewZoom();
 
+    ~ViewComponent() override;
+
+private:
     enum class TransformType
     {
         kIdentity = 0,
@@ -47,23 +44,22 @@ public:
         kRotate30Deg,
         kRotate60DegDiagonally
     };
-    void SetTransform(TransformType transformType);
-
-    ~ViewComponent() override;
-
-private:
     void ResizeWebView();
-
+    void ToggleVisibility();
+    void SetSizeRatio(float ratio);
+    void SetZoomFactor(float zoom);
+    void SetScale(float scale);
+    void SetTransform(TransformType transformType);
+    void ShowWebViewBounds();
+    void ShowWebViewZoom();
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webView;
-
     bool m_isVisible = true;
     float m_webViewRatio = 1.0f;
     float m_webViewZoomFactor = 1.0f;
     RECT m_webViewBounds = {};
     float m_webViewScale = 1.0f;
-
     EventRegistrationToken m_zoomFactorChangedToken = {};
 
     bool OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam);

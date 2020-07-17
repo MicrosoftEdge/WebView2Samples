@@ -70,6 +70,7 @@ BEGIN
     POPUP "&Window"
     BEGIN
         MENUITEM "Set WebView Language",                       IDM_SET_LANGUAGE
+        MENUITEM "Toggle AAD SSO enabled",                     IDM_TOGGLE_AAD_SSO
         MENUITEM "Close WebView",                              IDM_CLOSE_WEBVIEW
         MENUITEM "Close WebView and cleanup user data folder", IDM_CLOSE_WEBVIEW_CLEANUP
         MENUITEM SEPARATOR
@@ -158,6 +159,7 @@ BEGIN
             MENUITEM "JavaScript",  IDM_SCENARIO_JAVA_SCRIPT
             MENUITEM "TypeScript",  IDM_SCENARIO_TYPE_SCRIPT
         END
+        MENUITEM "Authentication",              IDM_SCENARIO_AUTHENTICATION
     END
     POPUP "&Help"
     BEGIN

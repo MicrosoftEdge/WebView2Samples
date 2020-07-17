@@ -7,11 +7,13 @@
 #include "App.h"
 
 #include <map>
+#include <shellapi.h>
 #include <shellscalingapi.h>
 #include <shobjidl.h>
 #include <string.h>
 #include <vector>
 #include "AppWindow.h"
+#include "DpiUtil.h"
 
 HINSTANCE g_hInstance;
 int g_nCmdShow;
@@ -21,6 +23,9 @@ static std::map<DWORD, HANDLE> s_threads;
 static int RunMessagePump();
 static DWORD WINAPI ThreadProc(void* pvParam);
 static void WaitForOtherThreads();
+
+#define NEXT_PARAM_CONTAINS(command) \
+    _wcsnicmp(nextParam.c_str(), command, ARRAYSIZE(command) - 1) == 0
 
 int APIENTRY wWinMain(HINSTANCE hInstance,
                       HINSTANCE hPrevInstance,
@@ -35,130 +40,80 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
     // override this.
     DPI_AWARENESS_CONTEXT dpiAwarenessContext =
         DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
-    // Same but for older OS versions that don't support per-monitor v2
-    PROCESS_DPI_AWARENESS oldDpiAwareness = PROCESS_PER_MONITOR_DPI_AWARE;
     std::wstring appId(L"EBWebView.SampleApp");
     std::wstring initialUri(L"https://www.bing.com");
+    DWORD creationModeId = IDM_CREATION_MODE_WINDOWED;
+
     if (lpCmdLine && lpCmdLine[0])
     {
-        bool commandLineError = false;
-
-        PWSTR nextParam = lpCmdLine;
-
-        if (nextParam[0] == L'-')
+        int paramCount = 0;
+        LPWSTR* params = CommandLineToArgvW(lpCmdLine, &paramCount);
+        for (int i = 0; i < paramCount; ++i)
         {
-            ++nextParam;
-            if (nextParam[0] == L'-')
+            std::wstring nextParam;
+            if (params[i][0] == L'-')
             {
-                ++nextParam;
+                if (params[i][1] == L'-')
+                {
+                    nextParam.assign(params[i] + 2);
+                }
+                else
+                {
+                    nextParam.assign(params[i] + 1);
+                }
             }
-            if (_wcsnicmp(nextParam, L"dpiunaware", ARRAYSIZE(L"dpiunaware") - 1) ==
-                0)
+            if (NEXT_PARAM_CONTAINS(L"dpiunaware"))
             {
                 dpiAwarenessContext = DPI_AWARENESS_CONTEXT_UNAWARE;
-                oldDpiAwareness = PROCESS_DPI_UNAWARE;
             }
-            else if (_wcsnicmp(nextParam, L"dpisystemaware",
-                ARRAYSIZE(L"dpisystemaware") - 1) == 0)
+            else if (NEXT_PARAM_CONTAINS(L"dpisystemaware"))
             {
                 dpiAwarenessContext = DPI_AWARENESS_CONTEXT_SYSTEM_AWARE;
-                oldDpiAwareness = PROCESS_SYSTEM_DPI_AWARE;
             }
-            else if (_wcsnicmp(nextParam, L"dpipermonitorawarev2",
-                ARRAYSIZE(L"dpipermonitorawarev2") - 1) == 0)
+            else if (NEXT_PARAM_CONTAINS(L"dpipermonitorawarev2"))
             {
                 dpiAwarenessContext = DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
-                oldDpiAwareness = PROCESS_PER_MONITOR_DPI_AWARE;
             }
-            else if (_wcsnicmp(nextParam, L"dpipermonitoraware",
-                ARRAYSIZE(L"dpipermonitoraware") - 1) == 0)
+            else if (NEXT_PARAM_CONTAINS(L"dpipermonitoraware"))
             {
                 dpiAwarenessContext = DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE;
-                oldDpiAwareness = PROCESS_PER_MONITOR_DPI_AWARE;
             }
-            else if (_wcsnicmp(nextParam, L"noinitialnavigation",
-                ARRAYSIZE(L"noinitialnavigation") - 1) == 0)
+            else if (NEXT_PARAM_CONTAINS(L"noinitialnavigation"))
             {
                 initialUri = L"";
             }
-            else if (_wcsnicmp(nextParam, L"appid=",
-                ARRAYSIZE(L"appid=") - 1) == 0)
+            else if (NEXT_PARAM_CONTAINS(L"appid="))
             {
-                PWSTR appidStart = nextParam + ARRAYSIZE(L"appid=");
-                size_t len = 0;
-                while (appidStart[len] && (appidStart[len] != ' '))
-                    ++len;
-                appId = std::wstring(appidStart, len);
+                appId = nextParam.substr(nextParam.find(L'=') + 1);
             }
-            else if (_wcsnicmp(nextParam, L"initialUri=",
-                ARRAYSIZE(L"initialUri=") - 1) == 0)
+            else if (NEXT_PARAM_CONTAINS(L"initialUri="))
             {
-                PWSTR uriStart = nextParam + ARRAYSIZE(L"initialUri=") - 1;
-                size_t len = 0;
-                while (uriStart[len] && (uriStart[len] != ' '))
-                    ++len;
-                initialUri = std::wstring(uriStart, len);
+                initialUri = nextParam.substr(nextParam.find(L'=') + 1);
             }
-            else
+            else if (NEXT_PARAM_CONTAINS(L"creationmode="))
             {
-                // --edge-webview-switches is a supported switch to pass additional
-                // command line switches to WebView's browser process.
-                // For example, adding
-                //   --edge-webview-switches="--remote-debugging-port=9222"
-                // enables remote debugging for webview.
-                // And adding
-                //   --edge-webview-switches="--auto-open-devtools-for-tabs"
-                // causes dev tools to open automatically for the WebView.
-                commandLineError =
-                    (wcsncmp(nextParam, L"edge-webview-switches",
-                        ARRAYSIZE(L"edge-webview-switches") - 1) != 0) &&
-                        (wcsncmp(nextParam, L"restore",
-                            ARRAYSIZE(L"restore") - 1) != 0);
+                nextParam = nextParam.substr(nextParam.find(L'=') + 1);
+                if (NEXT_PARAM_CONTAINS(L"windowed"))
+                {
+                    creationModeId = IDM_CREATION_MODE_WINDOWED;
+                }
+                else if (NEXT_PARAM_CONTAINS(L"visualdcomp"))
+                {
+                    creationModeId = IDM_CREATION_MODE_VISUAL_DCOMP;
+                }
+                else if (NEXT_PARAM_CONTAINS(L"visualwincomp"))
+                {
+                    creationModeId = IDM_CREATION_MODE_VISUAL_WINCOMP;
+                }
             }
         }
-        else
-        {
-            commandLineError = true;
-        }
-
-        if (commandLineError)
-        {
-            MessageBox(nullptr,
-                       L"Valid command line "
-                       L"parameters:\n\t-DPIUnaware\n\t-DPISystemAware\n\t-"
-                       L"DPIPerMonitorAware\n\t-DPIPerMonitorAwareV2",
-                       L"Command Line Parameters", MB_OK);
-        }
+        LocalFree(params);
     }
-
     SetCurrentProcessExplicitAppUserModelID(appId.c_str());
 
-    // Call the latest DPI awareness function possible
-    HMODULE user32 = LoadLibraryA("User32.dll");
-    auto func = reinterpret_cast<decltype(&SetProcessDpiAwarenessContext)>(
-        GetProcAddress(user32, "SetProcessDpiAwarenessContext"));
-    if (func)
-    {
-        // Windows 10 1703+: SetProcessDpiAwarenessContext
-        func(dpiAwarenessContext);
-    }
-    else {
-        HMODULE shcore = LoadLibraryA("Shcore.dll");
-        auto func = reinterpret_cast<decltype(&SetProcessDpiAwareness)>(
-            GetProcAddress(shcore, "SetProcessDpiAwareness"));
-        if (func)
-        {
-            // Windows 8.1+: SetProcessDpiAwareness
-            func(oldDpiAwareness);
-        }
-        else if (dpiAwarenessContext != DPI_AWARENESS_CONTEXT_UNAWARE)
-        {
-            // Windows 7+: SetProcessDPIAware
-            SetProcessDPIAware();
-        }
-    }
+    DpiUtil::SetProcessDpiAwarenessContext(dpiAwarenessContext);
 
-    new AppWindow(IDM_CREATION_MODE_WINDOWED, initialUri);
+    new AppWindow(creationModeId, initialUri);
 
     int retVal = RunMessagePump();
 
@@ -215,6 +170,7 @@ void CreateNewThread(UINT creationModeId)
         STACK_SIZE_PARAM_IS_A_RESERVATION, &threadId);
     s_threads.insert(std::pair<DWORD, HANDLE>(threadId, thread));
 }
+
 // This function is the starting point for new threads. It will open a new app window.
 static DWORD WINAPI ThreadProc(void* pvParam)
 {

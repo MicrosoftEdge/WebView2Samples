@@ -47,7 +47,8 @@
         <h1>WebView Event Monitor</h1>
         <button id="clearButton">Clear</button>
         <button id="toggleWebResourceRequestedEventButton">WebResourceRequested off</button>
-    </div>
+        <button id="toggleWebResourceResponseReceivedEventButton">WebResourceReponseReceived off</button>
+      </div>
     <div id="eventList" class="list"></div>
     <div id="details" class="details"></div>
     <script>
@@ -60,6 +61,15 @@
             webResourceRequestedEventOn = !webResourceRequestedEventOn;
             toggleWebResourceRequestedEventButton.textContent = "webResourceRequested " + (webResourceRequestedEventOn ? "on" : "off");
             chrome.webview.postMessage("webResourceRequested," + (webResourceRequestedEventOn ? "on" : "off"));
+        });
+
+        const toggleWebResourceResponseReceivedEventButton = document.getElementById("toggleWebResourceResponseReceivedEventButton");
+        let webResourceResponseReceivedEventOn = false;
+
+        toggleWebResourceResponseReceivedEventButton.addEventListener("click", () => {
+          webResourceResponseReceivedEventOn = !webResourceResponseReceivedEventOn;
+          toggleWebResourceResponseReceivedEventButton.textContent = "webResourceResponseReceived " + (webResourceResponseReceivedEventOn ? "on" : "off");
+            chrome.webview.postMessage("webResourceResponseReceived," + (webResourceResponseReceivedEventOn ? "on" : "off"));
         });
 
         function textToHtml(text, blockElement) {

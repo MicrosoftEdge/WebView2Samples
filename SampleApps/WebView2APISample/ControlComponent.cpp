@@ -16,17 +16,16 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
     : m_appWindow(appWindow), m_controller(appWindow->GetWebViewController()),
       m_webView(appWindow->GetWebView()), m_toolbar(toolbar)
 {
-    m_toolbar->SetEnabled(true);
-    EnableWindow(m_toolbar->backWindow, false);
-    EnableWindow(m_toolbar->forwardWindow, false);
+    m_toolbar->SetItemEnabled(Toolbar::Item_AddressBar, true);
+    m_toolbar->SetItemEnabled(Toolbar::Item_GoButton, true);
 
     // Register a handler for the NavigationStarting event.
     // This handler just enables the Cancel button.
     CHECK_FAILURE(m_webView->add_NavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
-                -> HRESULT {
-                EnableWindow(m_toolbar->cancelWindow, TRUE);
+            -> HRESULT {
+                m_toolbar->SetItemEnabled(Toolbar::Item_CancelButton, true);
                 return S_OK;
             })
             .Get(),
@@ -46,7 +45,7 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                 {
                     uri = wil::make_cotaskmem_string(L"");
                 }
-                SetWindowText(m_toolbar->addressBarWindow, uri.get());
+                SetWindowText(GetAddressBar(), uri.get());
 
                 return S_OK;
             })
@@ -64,8 +63,8 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                 BOOL canGoForward;
                 sender->get_CanGoBack(&canGoBack);
                 sender->get_CanGoForward(&canGoForward);
-                EnableWindow(m_toolbar->backWindow, canGoBack);
-                EnableWindow(m_toolbar->forwardWindow, canGoForward);
+                m_toolbar->SetItemEnabled(Toolbar::Item_BackButton, canGoBack);
+                m_toolbar->SetItemEnabled(Toolbar::Item_ForwardButton, canGoForward);
 
                 return S_OK;
             })
@@ -94,7 +93,8 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                         // display its own error page automatically.
                     }
                 }
-                EnableWindow(m_toolbar->cancelWindow, FALSE);
+                m_toolbar->SetItemEnabled(Toolbar::Item_CancelButton, false);
+                m_toolbar->SetItemEnabled(Toolbar::Item_ReloadButton, true);
                 return S_OK;
             })
             .Get(),
@@ -164,9 +164,7 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
     //! [MoveFocusRequested]
 
     // Replace the window procs on some toolbar elements to customize their behavior
-    for (auto hwnd :
-         {m_toolbar->backWindow, m_toolbar->forwardWindow, m_toolbar->reloadWindow,
-          m_toolbar->cancelWindow, m_toolbar->addressBarWindow, m_toolbar->goWindow})
+    for (auto hwnd : m_toolbar->GetItems())
     {
         SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
         auto originalWndProc =
@@ -311,7 +309,7 @@ bool ControlComponent::HandleChildWindowMessage(
             }
         }
         //! [MoveFocus1]
-        else if ((wParam == VK_RETURN) && (hWnd == m_toolbar->addressBarWindow))
+        else if ((wParam == VK_RETURN) && (hWnd == GetAddressBar()))
         {
             // Handle pressing Enter in address bar
             NavigateToAddressBar();
@@ -350,10 +348,10 @@ bool ControlComponent::HandleChildWindowMessage(
 //! [Navigate]
 void ControlComponent::NavigateToAddressBar()
 {
-    int length = GetWindowTextLength(m_toolbar->addressBarWindow);
+    int length = GetWindowTextLength(GetAddressBar());
     std::wstring uri(length, 0);
     PWSTR buffer = const_cast<PWSTR>(uri.data());
-    GetWindowText(m_toolbar->addressBarWindow, buffer, length + 1);
+    GetWindowText(GetAddressBar(), buffer, length + 1);
 
     HRESULT hr = m_webView->Navigate(uri.c_str());
     if (hr == E_INVALIDARG)
@@ -429,6 +427,11 @@ ControlComponent::~ControlComponent()
         SetWindowLongPtr(pair.first, GWLP_WNDPROC, (LONG_PTR)pair.second);
     }
 
-    SetWindowText(m_toolbar->addressBarWindow, L"");
-    m_toolbar->SetEnabled(false);
+    SetWindowText(GetAddressBar(), L"");
+    m_toolbar->DisableAllItems();
+}
+
+HWND ControlComponent::GetAddressBar()
+{
+    return m_toolbar->GetItem(Toolbar::Item_AddressBar);
 }
