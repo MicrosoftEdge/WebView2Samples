@@ -1,0 +1,27 @@
+﻿<Window x:Class="WebView2WpfBrowser.TextInputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WebView2WpfBrowser"
+        mc:Ignorable="d"
+        Title="TextInputDialog"
+        Height="200"
+        Width="400">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="Description" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0"/>
+        <TextBox x:Name="Input" Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="1"/>
+        <Button Click="ok_Clicked" IsDefault="True" Grid.Column="1" Grid.Row="2" Width="60">OK</Button>
+        <Button IsCancel="True" Grid.Column="2" Grid.Row="2" Width="60">Cancel</Button>
+    </Grid>
+</Window>
