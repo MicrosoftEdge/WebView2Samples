@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,7 +26,9 @@ namespace WebView2WpfBrowser
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static RoutedCommand InjectScriptCommand = new RoutedCommand();
         bool _isNavigating = false;
+
 
         public MainWindow()
         {
@@ -82,14 +85,70 @@ namespace WebView2WpfBrowser
             webView.Stop();
         }
 
+        void CoreWebView2RequiringCmdsCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = webView != null && webView.CoreWebView2 != null;
+        }
+
+        double ZoomStep()
+        {
+            if (webView.ZoomFactor < 1)
+            {
+                return 0.25;
+            }
+            else if (webView.ZoomFactor < 2)
+            {
+                return 0.5;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        void IncreaseZoomCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = webView != null;
+        }
+
+        void IncreaseZoomCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.ZoomFactor += ZoomStep();
+        }
+
+        void DecreaseZoomCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = (webView != null) && (webView.ZoomFactor - ZoomStep() > 0.0);
+        }
+
+        void DecreaseZoomCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.ZoomFactor -= ZoomStep();
+        }
+
+        async void InjectScriptCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            var dialog = new TextInputDialog(
+                title: "Inject Script",
+                description: "Enter some JavaScript to be executed in the context of this page.",
+                defaultInput: "window.getComputedStyle(document.body).backgroundColor");
+            if (dialog.ShowDialog() == true) {
+                string scriptResult = await webView.ExecuteScriptAsync(dialog.Input.Text);
+                MessageBox.Show(this, scriptResult, "Script Result");
+            }
+        }
+
         void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = webView != null && !_isNavigating;
         }
 
-        void GoToPageCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        async void GoToPageCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            webView.Source = new Uri((string)e.Parameter);
+             // Setting webView.Source will not trigger a navigation if the Source is the same
+             // as the previous Source.  CoreWebView.Navigate() will always trigger a navigation.
+            await webView.EnsureCoreWebView2Async();
+            webView.CoreWebView2.Navigate((string)e.Parameter);
         }
 
         void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)

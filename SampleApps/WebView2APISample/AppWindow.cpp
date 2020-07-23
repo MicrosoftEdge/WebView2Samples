@@ -15,17 +15,18 @@
 #include "App.h"
 #include "CheckFailure.h"
 #include "ControlComponent.h"
+#include "DpiUtil.h"
 #include "FileComponent.h"
 #include "ProcessComponent.h"
 #include "Resource.h"
 #include "ScenarioAddHostObject.h"
+#include "ScenarioAuthentication.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
-
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -67,9 +68,17 @@ AppWindow::AppWindow(
 
     SetWindowLongPtr(m_mainWindow, GWLP_USERDATA, (LONG_PTR)this);
 
+    //! [TextScaleChanged1]
+    if (winrt::try_get_activation_factory<winrt::Windows::UI::ViewManagement::UISettings>())
+    {
+        m_uiSettings = winrt::Windows::UI::ViewManagement::UISettings();
+        m_uiSettings.TextScaleFactorChanged({ this, &AppWindow::OnTextScaleChanged });
+    }
+    //! [TextScaleChanged1]
+
     if (shouldHaveToolbar)
     {
-        m_toolbar.Initialize(m_mainWindow);
+        m_toolbar.Initialize(this);
     }
 
     UpdateCreationModeMenu();
@@ -149,6 +158,22 @@ bool AppWindow::HandleWindowMessage(
         }
     }
     break;
+    //! [DPIChanged]
+    case WM_DPICHANGED:
+    {
+        m_toolbar.UpdateDpiAndTextScale();
+        RECT* const newWindowSize = reinterpret_cast<RECT*>(lParam);
+        SetWindowPos(hWnd,
+            nullptr,
+            newWindowSize->left,
+            newWindowSize->top,
+            newWindowSize->right - newWindowSize->left,
+            newWindowSize->bottom - newWindowSize->top,
+            SWP_NOZORDER | SWP_NOACTIVATE);
+        return true;
+    }
+    break;
+    //! [DPIChanged]
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
@@ -276,12 +301,10 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         WCHAR c_scriptPath[] = L"ScenarioTypeScriptDebugIndex.html";
         std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
         CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
-        return true;
     }
     }
     return false;
 }
-
 // Handle commands not related to the WebView, which will work even if the WebView
 // is not currently initialized.
 bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
@@ -332,6 +355,9 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SET_LANGUAGE:
         ChangeLanguage();
         return true;
+    case IDM_TOGGLE_AAD_SSO:
+        ToggleAADSSO();
+        return true;
     }
     return false;
 }
@@ -347,6 +373,20 @@ void AppWindow::ChangeLanguage()
     {
         m_language = (dialog.input);
     }
+}
+
+// Toggle AAD SSO enabled
+void AppWindow::ToggleAADSSO()
+{
+    m_AADSSOEnabled = !m_AADSSOEnabled;
+    MessageBox(
+        nullptr,
+        m_AADSSOEnabled ? L"AAD single sign on will be enabled for new WebView "
+                          L"created after all webviews are closed." :
+                          L"AAD single sign on will be disabled for new WebView"
+                          L" created after all webviews are closed.",
+        L"AAD SSO change",
+        MB_OK);
 }
 
 // Message handler for about dialog.
@@ -438,8 +478,10 @@ void AppWindow::InitializeWebView()
         }
     }
     //! [CreateCoreWebView2EnvironmentWithOptions]
-    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
-    if(!m_language.empty())
+    auto options = Microsoft::WRL::Make<CoreWebView2ExperimentalEnvironmentOptions>();
+    CHECK_FAILURE(options->put_IsSingleSignOnUsingOSPrimaryAccountEnabled(
+        m_AADSSOEnabled ? TRUE : FALSE));
+    if (!m_language.empty())
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
         subFolder, nullptr, options.Get(),
@@ -798,11 +840,11 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
         // developers specify userDataFolder during WebView environment
         // creation, they would need to pass in that explicit value here.
         // For more information about userDataFolder:
-        // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-488/webview2-idl#createwebview2environmentwithoptions
+        // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-538/webview2-idl#createcorewebview2environmentwithoptions
         WCHAR userDataFolder[MAX_PATH] = L"";
         // Obtain the absolute path for relative paths that include "./" or "../"
         _wfullpath(
-            userDataFolder, GetLocalPath(L"WebView2APISample.exe.WebView2").c_str(), MAX_PATH);
+            userDataFolder, GetLocalPath(L".WebView2", true).c_str(), MAX_PATH);
         std::wstring userDataFolderPath(userDataFolder);
 
         std::wstring message = L"Are you sure you want to clean up the user data folder at\n";
@@ -900,19 +942,25 @@ RECT AppWindow::GetWindowBounds()
     return hwndBounds;
 }
 
-std::wstring AppWindow::GetLocalPath(std::wstring relativePath)
+std::wstring AppWindow::GetLocalPath(std::wstring relativePath, bool keep_exe_path)
 {
     WCHAR rawPath[MAX_PATH];
     GetModuleFileNameW(g_hInstance, rawPath, MAX_PATH);
     std::wstring path(rawPath);
-
-    std::size_t index = path.find_last_of(L"\\") + 1;
-    path.replace(index, path.length(), relativePath);
+    if (keep_exe_path)
+    {
+        path.append(relativePath);
+    }
+    else
+    {
+        std::size_t index = path.find_last_of(L"\\") + 1;
+        path.replace(index, path.length(), relativePath);
+    }
     return path;
 }
 std::wstring AppWindow::GetLocalUri(std::wstring relativePath)
 {
-    std::wstring path = GetLocalPath(relativePath);
+    std::wstring path = GetLocalPath(relativePath, false);
 
     wil::com_ptr<IUri> uri;
     CHECK_FAILURE(CreateUri(path.c_str(), Uri_CREATE_ALLOW_IMPLICIT_FILE_SCHEME, 0, &uri));
@@ -934,7 +982,7 @@ void AppWindow::EnterFullScreen()
     MONITORINFO monitor_info = {sizeof(monitor_info)};
     m_hMenu = ::GetMenu(m_mainWindow);
     ::SetMenu(m_mainWindow, nullptr);
-    if (GetWindowPlacement(m_mainWindow, &m_previousPlacement) &&
+    if (GetWindowRect(m_mainWindow, &m_previousWindowRect) &&
         GetMonitorInfo(
             MonitorFromWindow(m_mainWindow, MONITOR_DEFAULTTOPRIMARY), &monitor_info))
     {
@@ -952,10 +1000,11 @@ void AppWindow::ExitFullScreen()
     DWORD style = GetWindowLong(m_mainWindow, GWL_STYLE);
     ::SetMenu(m_mainWindow, m_hMenu);
     SetWindowLong(m_mainWindow, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
-    SetWindowPlacement(m_mainWindow, &m_previousPlacement);
     SetWindowPos(
-        m_mainWindow, NULL, 0, 0, 0, 0,
-        SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+        m_mainWindow, NULL, m_previousWindowRect.left, m_previousWindowRect.top,
+        m_previousWindowRect.right - m_previousWindowRect.left,
+        m_previousWindowRect.bottom - m_previousWindowRect.top,
+        SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 }
 
 // We have our own implementation of DCompositionCreateDevice2 that dynamically
@@ -1015,6 +1064,16 @@ HRESULT AppWindow::CreateWinCompCompositor()
     return hr;
 }
 
+//! [TextScaleChanged2]
+void AppWindow::OnTextScaleChanged(
+    winrt::Windows::UI::ViewManagement::UISettings const& settings,
+    winrt::Windows::Foundation::IInspectable const& args)
+{
+    RunAsync([this] {
+        m_toolbar.UpdateDpiAndTextScale();
+    });
+}
+//! [TextScaleChanged2]
 void AppWindow::UpdateCreationModeMenu()
 {
     HMENU hMenu = GetMenu(m_mainWindow);
@@ -1024,4 +1083,14 @@ void AppWindow::UpdateCreationModeMenu()
         IDM_CREATION_MODE_VISUAL_WINCOMP,
         m_creationModeId,
         MF_BYCOMMAND);
+}
+
+double AppWindow::GetDpiScale()
+{
+    return DpiUtil::GetDpiForWindow(m_mainWindow) * 1.0f / USER_DEFAULT_SCREEN_DPI;
+}
+
+double AppWindow::GetTextScale()
+{
+    return m_uiSettings ? m_uiSettings.TextScaleFactor() : 1.0f;
 }

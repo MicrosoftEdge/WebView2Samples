@@ -30,8 +30,6 @@
 #define IDM_POST_WEB_MESSAGE_JSON       131
 #define IDM_TOGGLE_JAVASCRIPT           132
 #define IDM_TOGGLE_WEB_MESSAGING        133
-#define IDM_SCENARIO_POST_WEB_MESSAGE   134
-#define IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR 135
 #define IDM_COMPLETE_JAVASCRIPT_DIALOG  137
 #define IDM_SUBSCRIBE_TO_CDP_EVENT      138
 #define IDM_CALL_CDP_METHOD             139
@@ -59,7 +57,6 @@
 #define IDM_GET_BROWSER_VERSION_BEFORE_CREATION 171
 #define IDM_OPEN_DEVTOOLS_WINDOW        174
 #define IDM_CLOSE_WEBVIEW_CLEANUP       175
-#define IDM_SCENARIO_ADD_HOST_OBJECT  182
 #define IDM_SCALE_50               186
 #define IDM_SCALE_100              187
 #define IDM_SCALE_125              188
@@ -72,6 +69,7 @@
 #define IDM_CREATION_MODE_VISUAL_WINCOMP 195
 #define IDM_SCENARIO_JAVA_SCRIPT   198
 #define IDM_SCENARIO_TYPE_SCRIPT   199
+#define IDM_TOGGLE_AAD_SSO         200
 #define IDE_ADDRESSBAR                  1000
 #define IDE_ADDRESSBAR_GO               1001
 #define IDE_BACK                        1002
@@ -81,6 +79,12 @@
 #define IDC_EDIT_INPUT                  1006
 #define IDC_STATIC_LABEL                1007
 #define IDC_EDIT_DESCRIPTION            1008
+
+// Scenario IDMs
+#define IDM_SCENARIO_AUTHENTICATION     2000
+#define IDM_SCENARIO_POST_WEB_MESSAGE   2001
+#define IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR 2002
+#define IDM_SCENARIO_ADD_HOST_OBJECT    2003
 #define ID_BLOCKEDSITES                 32773
 #define ID_SETTINGS_NAVIGATETOSTRING    32774
 #define ID_ADD_INITIALIZE_SCRIPT        32775
@@ -92,12 +96,13 @@
 #define ID_SETTINGS_ZOOM_ENABLED        32781
 #define ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED 32782
 #define IDC_STATIC                      -1
+
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        193
+#define _APS_NEXT_RESOURCE_VALUE        205
 #define _APS_NEXT_COMMAND_VALUE         32783
 #define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           110

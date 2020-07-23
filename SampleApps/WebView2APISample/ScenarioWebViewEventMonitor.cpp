@@ -4,13 +4,16 @@
 
 #include "stdafx.h"
 
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING 1
+
 #include "AppWindow.h"
 #include "CheckFailure.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include <WebView2.h>
 #include <regex>
 #include <string>
-#include <strstream>
+#include <codecvt>
+#include <locale>
 
 using namespace Microsoft::WRL;
 using namespace std;
@@ -28,6 +31,7 @@ ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEve
         [this]() -> void {
             InitializeEventView(m_appWindowEventView->GetWebView());
         });
+    m_webviewEventSourceExperimental = m_webviewEventSource.query<ICoreWebView2Experimental>();
 }
 
 ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
@@ -41,6 +45,7 @@ ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
     m_webviewEventSource->remove_WebMessageReceived(m_webMessageReceivedToken);
     m_webviewEventSource->remove_NewWindowRequested(m_newWindowRequestedToken);
     EnableWebResourceRequestedEvent(false);
+    EnableWebResourceResponseReceivedEvent(false);
 
     m_webviewEventView->remove_WebMessageReceived(m_eventViewWebMessageReceivedToken);
 }
@@ -84,7 +89,43 @@ std::wstring BoolToString(BOOL value)
 
 std::wstring EncodeQuote(std::wstring raw)
 {
-    return L"\"" + regex_replace(raw, wregex(L"\""), L"\\\"") + L"\"";
+    std::wstring encoded;
+    // Allocate 10 more chars to reduce memory re-allocation
+    // due to adding potential escaping chars.
+    encoded.reserve(raw.length() + 10);
+    encoded.push_back(L'"');
+    for (int i = 0; i < raw.length(); ++i)
+    {
+        // Escape chars as listed in https://tc39.es/ecma262/#sec-json.stringify.
+        switch (raw[i])
+        {
+        case '\b':
+            encoded.append(L"\\b");
+            break;
+        case '\f':
+            encoded.append(L"\\f");
+            break;
+        case '\n':
+            encoded.append(L"\\n");
+            break;
+        case '\r':
+            encoded.append(L"\\r");
+            break;
+        case '\t':
+            encoded.append(L"\\t");
+            break;
+        case '\\':
+            encoded.append(L"\\\\");
+            break;
+        case '"':
+            encoded.append(L"\\\"");
+            break;
+        default:
+            encoded.push_back(raw[i]);
+        }
+    }
+    encoded.push_back(L'"');
+    return encoded;
 }
 
 //! [HttpRequestHeaderIterator]
@@ -116,6 +157,32 @@ std::wstring RequestHeadersToJsonString(ICoreWebView2HttpRequestHeaders* request
 }
 //! [HttpRequestHeaderIterator]
 
+std::wstring ResponseHeadersToJsonString(ICoreWebView2HttpResponseHeaders* responseHeaders)
+{
+    wil::com_ptr<ICoreWebView2HttpHeadersCollectionIterator> iterator;
+    CHECK_FAILURE(responseHeaders->GetIterator(&iterator));
+    BOOL hasCurrent = FALSE;
+    std::wstring result = L"[";
+
+    while (SUCCEEDED(iterator->get_HasCurrentHeader(&hasCurrent)) && hasCurrent)
+    {
+        wil::unique_cotaskmem_string name;
+        wil::unique_cotaskmem_string value;
+
+        CHECK_FAILURE(iterator->GetCurrentHeader(&name, &value));
+        result += EncodeQuote(std::wstring(name.get()) + L": " + value.get());
+
+        BOOL hasNext = FALSE;
+        CHECK_FAILURE(iterator->MoveNext(&hasNext));
+        if (hasNext)
+        {
+            result += L", ";
+        }
+    }
+
+    return result + L"]";
+}
+
 std::wstring RequestToJsonString(ICoreWebView2WebResourceRequest* request)
 {
     wil::com_ptr<IStream> content;
@@ -142,6 +209,78 @@ std::wstring RequestToJsonString(ICoreWebView2WebResourceRequest* request)
     return result;
 }
 
+std::wstring GetPreviewOfContent(IStream* content, bool& readAll)
+{
+    char buffer[50];
+    unsigned long read;
+    content->Read(buffer, 50U, &read);
+    readAll = read < 50;
+
+    WCHAR converted[50];
+    CHECK_FAILURE(MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, buffer, 50, converted, 50));
+    return std::wstring(converted);
+}
+
+std::wstring ResponseToJsonString(ICoreWebView2WebResourceResponse* response)
+{
+    wil::com_ptr<IStream> content;
+    CHECK_FAILURE(response->get_Content(&content));
+    wil::com_ptr<ICoreWebView2HttpResponseHeaders> headers;
+    CHECK_FAILURE(response->get_Headers(&headers));
+    int statusCode;
+    CHECK_FAILURE(response->get_StatusCode(&statusCode));
+    wil::unique_cotaskmem_string reasonPhrase;
+    CHECK_FAILURE(response->get_ReasonPhrase(&reasonPhrase));
+    BOOL containsContentType = FALSE;
+    headers->Contains(L"Content-Type", &containsContentType);
+    wil::unique_cotaskmem_string contentType;
+    bool isBinaryContent = true;
+    if (containsContentType)
+    {
+        headers->GetHeader(L"Content-Type", &contentType);
+        if (wcsncmp(L"text/", contentType.get(), ARRAYSIZE(L"text/")) == 0)
+        {
+            isBinaryContent = false;
+        }
+    }
+    std::wstring result = L"{";
+
+    result += L"\"content\": ";
+    if (!content)
+    {
+        result += L"null";
+    }
+    else
+    {
+        if (isBinaryContent)
+        {
+            result += EncodeQuote(L"BINARY_DATA");
+        }
+        else
+        {
+            bool readAll = false;
+            result += EncodeQuote(GetPreviewOfContent(content.get(), readAll));
+            if (!readAll)
+            {
+              result += L"...";
+            }
+        }
+    }
+    result += L", ";
+
+    result += L"\"headers\": " + ResponseHeadersToJsonString(headers.get()) + L", ";
+    result += L"\"status\": ";
+    WCHAR statusCodeString[4];
+    _itow_s(statusCode, statusCodeString, 4, 10);
+    result += statusCodeString;
+    result += L", ";
+    result += L"\"reason\": " + EncodeQuote(reasonPhrase.get()) + L" ";
+
+    result += L"}";
+
+    return result;
+}
+
 std::wstring WebViewPropertiesToJsonString(ICoreWebView2* webview)
 {
     wil::unique_cotaskmem_string documentTitle;
@@ -155,6 +294,51 @@ std::wstring WebViewPropertiesToJsonString(ICoreWebView2* webview)
         + L"}";
 
     return result;
+}
+
+void ScenarioWebViewEventMonitor::EnableWebResourceResponseReceivedEvent(bool enable) {
+    if (!enable && m_webResourceResponseReceivedToken.value != 0)
+    {
+        m_webviewEventSourceExperimental->remove_WebResourceResponseReceived(m_webResourceResponseReceivedToken);
+        m_webResourceResponseReceivedToken.value = 0;
+    }
+    else if (enable && m_webResourceResponseReceivedToken.value == 0)
+    {
+        m_webviewEventSourceExperimental->add_WebResourceResponseReceived(
+            Callback<ICoreWebView2ExperimentalWebResourceResponseReceivedEventHandler>(
+                [this](ICoreWebView2Experimental* webview, ICoreWebView2ExperimentalWebResourceResponseReceivedEventArgs* args)
+                    -> HRESULT {
+                    wil::com_ptr<ICoreWebView2WebResourceRequest> webResourceRequest;
+                    CHECK_FAILURE(args->get_Request(&webResourceRequest));
+                    wil::com_ptr<ICoreWebView2WebResourceResponse> webResourceResponse;
+                    CHECK_FAILURE(args->get_Response(&webResourceResponse));
+                    //! [PopulateResponseContent]
+                    args->PopulateResponseContent(
+                        Callback<
+                            ICoreWebView2ExperimentalWebResourceResponseReceivedEventArgsPopulateResponseContentCompletedHandler>(
+                            [this, webResourceRequest, webResourceResponse](HRESULT result) {
+                                std::wstring message =
+                                    L"{ \"kind\": \"event\", \"name\": "
+                                    L"\"WebResourceResponseReceived\", \"args\": {"
+                                    L"\"request\": " +
+                                    RequestToJsonString(webResourceRequest.get()) +
+                                    L", "
+                                    L"\"response\": " +
+                                    ResponseToJsonString(webResourceResponse.get()) + L"}";
+
+                                message +=
+                                    WebViewPropertiesToJsonString(m_webviewEventSource.get());
+                                message += L"}";
+                                PostEventMessage(message);
+                                return S_OK;
+                            })
+                            .Get());
+                    //! [PopulateResponseContent]
+                    return S_OK;
+                })
+                .Get(),
+            &m_webResourceResponseReceivedToken);
+    }
 }
 
 void ScenarioWebViewEventMonitor::EnableWebResourceRequestedEvent(bool enable)
@@ -213,10 +397,18 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                         {
                             EnableWebResourceRequestedEvent(true);
                         }
-                        else if (
-                            wcscmp(webMessageAsString.get(), L"webResourceRequested,off") == 0)
+                        else if (wcscmp(webMessageAsString.get(), L"webResourceRequested,off") == 0)
                         {
                             EnableWebResourceRequestedEvent(false);
+                        }
+                        else if (wcscmp(webMessageAsString.get(), L"webResourceResponseReceived,on") == 0)
+                        {
+                            EnableWebResourceResponseReceivedEvent(true);
+                        }
+                        else if (
+                            wcscmp(webMessageAsString.get(), L"webResourceResponseReceived,off") == 0)
+                        {
+                            EnableWebResourceResponseReceivedEvent(false);
                         }
                     }
                 }
@@ -465,5 +657,9 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
 void ScenarioWebViewEventMonitor::PostEventMessage(std::wstring message)
 {
-    m_webviewEventView->PostWebMessageAsJson(message.c_str());
+    HRESULT hr = m_webviewEventView->PostWebMessageAsJson(message.c_str());
+    if (FAILED(hr))
+    {
+        ShowFailure(hr, L"PostWebMessageAsJson failed:\n" + message);
+    }
 }

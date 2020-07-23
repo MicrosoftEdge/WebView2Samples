@@ -35,6 +35,7 @@ public:
     ~ControlComponent() override;
 
 private:
+    HWND GetAddressBar();
     AppWindow* m_appWindow;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webView;

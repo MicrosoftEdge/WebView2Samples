@@ -20,8 +20,8 @@ ViewComponent::ViewComponent(
     IDCompositionDevice* dcompDevice,
     IWinCompHelper* wincompHelper)
     : m_appWindow(appWindow), m_controller(appWindow->GetWebViewController()),
-      m_webView(appWindow->GetWebView()), m_dcompDevice(dcompDevice),
-      m_wincompHelper(wincompHelper)
+    m_webView(appWindow->GetWebView()), m_dcompDevice(dcompDevice),
+    m_wincompHelper(wincompHelper)
 {
     //! [ZoomFactorChanged]
     // Register a handler for the ZoomFactorChanged event.
@@ -33,12 +33,12 @@ ViewComponent::ViewComponent(
                 CHECK_FAILURE(sender->get_ZoomFactor(&zoomFactor));
 
                 std::wstring message = L"WebView2APISample (Zoom: " +
-                                       std::to_wstring(int(zoomFactor * 100)) + L"%)";
+                    std::to_wstring(int(zoomFactor * 100)) + L"%)";
                 SetWindowText(m_appWindow->GetMainWindow(), message.c_str());
                 return S_OK;
             })
-            .Get(),
-        &m_zoomFactorChangedToken));
+        .Get(),
+                &m_zoomFactorChangedToken));
     //! [ZoomFactorChanged]
 
     // Set up compositor if we're running in windowless mode
@@ -70,14 +70,14 @@ ViewComponent::ViewComponent(
         CHECK_FAILURE(m_compositionController->add_CursorChanged(
             Callback<ICoreWebView2ExperimentalCursorChangedEventHandler>(
                 [this](ICoreWebView2ExperimentalCompositionController* sender,
-                       IUnknown* args) -> HRESULT {
-                    HCURSOR cursor;
-                    CHECK_FAILURE(sender->get_Cursor(&cursor));
-                    SetClassLongPtr(m_appWindow->GetMainWindow(), GCLP_HCURSOR, (LONG_PTR)cursor);
-                    return S_OK;
+                    IUnknown* args) -> HRESULT {
+                        HCURSOR cursor;
+                        CHECK_FAILURE(sender->get_Cursor(&cursor));
+                        SetClassLongPtr(m_appWindow->GetMainWindow(), GCLP_HCURSOR, (LONG_PTR)cursor);
+                        return S_OK;
                 })
-                .Get(),
-            &m_cursorChangedToken));
+            .Get(),
+                    &m_cursorChangedToken));
         //! [CursorChanged]
     }
     else if (m_dcompDevice || m_wincompHelper)
@@ -87,7 +87,6 @@ ViewComponent::ViewComponent(
 
     ResizeWebView();
 }
-
 bool ViewComponent::HandleWindowMessage(
     HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
@@ -187,7 +186,6 @@ bool ViewComponent::HandleWindowMessage(
     //! [NotifyParentWindowPositionChanged]
     return false;
 }
-
 //! [ToggleIsVisible]
 void ViewComponent::ToggleVisibility()
 {

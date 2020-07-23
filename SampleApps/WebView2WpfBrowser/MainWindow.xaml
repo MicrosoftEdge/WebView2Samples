@@ -25,12 +25,20 @@ found in the LICENSE file.
         <CommandBinding Command="NavigationCommands.Refresh" Executed="RefreshCmdExecuted" CanExecute="RefreshCmdCanExecute"/>
         <CommandBinding Command="NavigationCommands.BrowseStop" Executed="BrowseStopCmdExecuted" CanExecute="BrowseStopCmdCanExecute"/>
         <CommandBinding Command="NavigationCommands.GoToPage" Executed="GoToPageCmdExecuted" CanExecute="GoToPageCmdCanExecute"/>
+        <CommandBinding Command="NavigationCommands.IncreaseZoom" Executed="IncreaseZoomCmdExecuted" CanExecute="IncreaseZoomCmdCanExecute"/>
+        <CommandBinding Command="NavigationCommands.DecreaseZoom" Executed="DecreaseZoomCmdExecuted" CanExecute="DecreaseZoomCmdCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.InjectScriptCommand}" Executed="InjectScriptCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New Window" Command="ApplicationCommands.New"/>
                 <MenuItem Header="_Close" Command="ApplicationCommands.Close"/>
+                <MenuItem Header="_Inject Script..." Command="{x:Static local:MainWindow.InjectScriptCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Increase Zoom" Command="NavigationCommands.IncreaseZoom"/>
+                <MenuItem Header="_Decrease Zoom" Command="NavigationCommands.DecreaseZoom"/>
             </MenuItem>
         </Menu>
         <DockPanel DockPanel.Dock="Top">
@@ -39,7 +47,8 @@ found in the LICENSE file.
             <Button DockPanel.Dock="Left" Command="NavigationCommands.Refresh">Refresh</Button>
             <Button DockPanel.Dock="Left" Command="NavigationCommands.BrowseStop">Stop</Button>
             <Button DockPanel.Dock="Right" Command="NavigationCommands.GoToPage" CommandParameter="{Binding ElementName=url,Path=Text}">Go</Button>
-            <TextBox x:Name="url" Text="{Binding ElementName=webView,Path=Source}">
+            <!-- We want the address bar to update based on the WebView's Source, but we don't want the WebView to navigate just from the user typing into the address bar.   Therefore we use the OneWay binding mode. -->
+            <TextBox x:Name="url" Text="{Binding ElementName=webView,Path=Source,Mode=OneWay}">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Return" Command="NavigationCommands.GoToPage" CommandParameter="{Binding ElementName=url,Path=Text}" />
                 </TextBox.InputBindings>

@@ -17,6 +17,7 @@
 #include <vector>
 #include <winnt.h>
 #include "WebView2APISample_WinCompHelper/WebView2APISample_WinCompHelper.h"
+#include <winrt/Windows.UI.ViewManagement.h>
 
 class SettingsComponent;
 
@@ -47,6 +48,8 @@ public:
     RECT GetWindowBounds();
     std::wstring GetLocalUri(std::wstring path);
     std::function<void()> GetAcceleratorKeyFunction(UINT key);
+    double GetDpiScale();
+    double GetTextScale();
 
     void ReinitializeWebView();
 
@@ -83,7 +86,11 @@ private:
     void CloseAppWindow();
     void ChangeLanguage();
     void UpdateCreationModeMenu();
-    std::wstring GetLocalPath(std::wstring path);
+    void ToggleAADSSO();
+    void OnTextScaleChanged(
+        winrt::Windows::UI::ViewManagement::UISettings const& uiSettings,
+        winrt::Windows::Foundation::IInspectable const& args);
+    std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
 
     template <class ComponentType> std::unique_ptr<ComponentType> MoveComponent();
@@ -107,8 +114,10 @@ private:
 
     std::wstring m_language;
 
+    bool m_AADSSOEnabled = false;
+
     // Fullscreen related code
-    WINDOWPLACEMENT m_previousPlacement;
+    RECT m_previousWindowRect;
     HMENU m_hMenu;
     BOOL m_containsFullscreenElement = FALSE;
     bool m_fullScreenAllowed = true;
@@ -122,6 +131,7 @@ private:
 
     wil::com_ptr<IDCompositionDevice> m_dcompDevice;
     wil::com_ptr<IWinCompHelper> m_wincompHelper;
+    winrt::Windows::UI::ViewManagement::UISettings m_uiSettings{ nullptr };
 };
 
 template <class ComponentType, class... Args> void AppWindow::NewComponent(Args&&... args)
