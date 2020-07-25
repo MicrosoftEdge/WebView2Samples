@@ -5,6 +5,7 @@ languages:
 page_type: sample
 products: 
   - microsoft-edge
+urlFragment: webview2-wpf-getting-started
 ---
 # Getting Started with WebView2 in WPF
 
