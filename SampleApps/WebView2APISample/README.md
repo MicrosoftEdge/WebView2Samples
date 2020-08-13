@@ -1,14 +1,30 @@
+---
+description: "Demonstrate the features and usage patterns of WebView2 in Win32."
+extendedZipContent:
+  -
+    path: SharedContent
+    target: SharedContent
+  -
+    path: LICENSE
+    target: LICENSE
+languages:
+  - cpp
+page_type: sample
+products:
+  - microsoft-edge
+urlFragment: WebView2APISample
+---
 # WebView2 API Sample
 
 This is a hybrid application built with the [Microsoft Edge WebView2](https://aka.ms/webview2) control.
 
-![alt text](documentation/screenshots/sample-app-screenshot.png)
+![Sample App Snapshot](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Samples/master/SampleApps/WebView2APISample/documentation/screenshots/sample-app-screenshot.png)
 
 The WebView2APISample is an example of an application that embeds a WebView within a Win32 native application. It is built as a Win32 [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) project and makes use of both C++ and HTML/CSS/JavaScript in the WebView2 environment.
 
-The API Sample showcases a selection of WebView2’s event handlers and API methods that allow a native Win32 application to directly interact with a WebView and vice versa.
+The API Sample showcases a selection of WebView2's event handlers and API methods that allow a native Win32 application to directly interact with a WebView and vice versa.
 
-If this is your first time using WebView, we recommend first following the [Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32.md) guide, which goes over how to create a WebView2 and walks through some basic WebView2 functionality.
+If this is your first time using WebView, we recommend first following the [Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32) guide, which goes over how to create a WebView2 and walks through some basic WebView2 functionality.
 
 To learn more specifics about events and API Handlers in WebView2, you can refer to the [WebView2 Reference Documentation](https://docs.microsoft.com/microsoft-edge/webview2/webview2-api-reference).
 
@@ -25,7 +41,7 @@ Clone the repository and open the solution in Visual Studio. WebView2 is already
 - Clone this repository
 - Open the solution in Visual Studio 2019**
 - Set the target you want to build (Debug/Release, x86/x64/ARM64)
-- Build the project file: `WebView2APISample.vcxproj`
+- Build the project file: _WebView2APISample.vcxproj_
 
 That's it! Everything should be ready to just launch the app.
 
@@ -41,7 +57,7 @@ This hybrid approach allows you to create and iterate faster using web technolog
 
 Both of these parts of the Sample App are displayed in the image below:
 
-![alt text](documentation/screenshots/sample-app-layout-diagram.png)
+![alt text](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Samples/master/SampleApps/WebView2APISample/documentation/screenshots/sample-app-layout-diagram.png)
 
 1. Section One: The top part of the Sample App is a Win32 component written in C++. This part of the application takes in UI inputs from the user and uses them to control the WebView.
 
@@ -83,7 +99,7 @@ This component handles commands from the View menu, and any functionality relate
 
 This component is created when you select the Scenario/Web Messaging menu item. It implements an example application with a C++ part and an HTML+JavaScript part, which communicate with each other by asynchronously posting and receiving messages.
 
-![alt text](documentation/screenshots/sample-app-webmessaging-screenshot.png)
+![alt text](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Samples/master/SampleApps/WebView2APISample/documentation/screenshots/sample-app-webmessaging-screenshot.png)
 
 #### 9. ScenarioAddHostObject.cpp and ScenarioAddHostObject.html
 
@@ -196,7 +212,7 @@ First, navigate to the ScenarioWebMessage application within the Sample App, usi
 
 The WebView should display a simple webpage titled: "WebMessage sample page". The code for this page can be found in the `ScenarioWebMessage.html` file.
 
-![alt text](documentation/screenshots/sample-app-webmessaging-screenshot.png)
+![alt text](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Samples/master/SampleApps/WebView2APISample/documentation/screenshots/sample-app-webmessaging-screenshot.png)
 
 To better understand ScenarioWebMessage functionality, you can either follow the instructions on the page or the steps detailed below.
 
