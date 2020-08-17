@@ -15,3 +15,6 @@ ARM64/
 
 bin/
 obj/
+
+# Don't check in bootstrapper downloaded at runtime
+MicrosoftEdgeWebview2Setup.exe

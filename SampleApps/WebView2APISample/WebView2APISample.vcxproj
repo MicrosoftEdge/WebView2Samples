@@ -258,6 +258,8 @@
     <CopyFileToFolders Include="ScenarioJavaScriptDebugIndex.js" />
     <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.html" />
     <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.ts" />
+    <!-- Bootstrapper downloaded during runtime. Copy to output folder
+    <CopyFileToFolders Include="MicrosoftEdgeUpdateSetup_WebView.exe" /> -->
   </ItemGroup>
   <ItemGroup>
     <Midl Include="HostObjectSample.idl" TypeLibraryName="$(OutDir)WebView2APISample.tlb" />

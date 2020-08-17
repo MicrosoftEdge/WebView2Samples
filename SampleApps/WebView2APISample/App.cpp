@@ -14,6 +14,9 @@
 #include <vector>
 #include "AppWindow.h"
 #include "DpiUtil.h"
+#include <iostream>
+
+using namespace std;
 
 HINSTANCE g_hInstance;
 int g_nCmdShow;
@@ -32,6 +35,29 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
                       PWSTR lpCmdLine,
                       int nCmdShow)
 {
+
+    // fkwlink. Download
+    //HRESULT hr = URLDownloadToFile(NULL, L"http://ie-snap/scratchtests/xiaqu/MicrosoftEdgeWebview2Setup.exe", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
+
+    // Package and Install at Runtime
+    //SHELLEXECUTEINFO shExInfo = {0};
+    //shExInfo.cbSize = sizeof(shExInfo);
+    //shExInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+    //shExInfo.hwnd = 0;
+    //shExInfo.lpVerb = L"runas";
+    ////shExInfo.lpFile = L"MicrosoftEdgeUpdateSetup_WebView.exe";
+    //shExInfo.lpFile = L"MicrosoftEdgeWebview2Setup.exe";
+    //shExInfo.lpParameters = L" /silent /install";
+    //shExInfo.lpDirectory = 0;
+    //shExInfo.nShow = 0;
+    //shExInfo.hInstApp = 0;  
+
+    //if (ShellExecuteEx(&shExInfo))
+    //{
+    //    WaitForSingleObject(shExInfo.hProcess, INFINITE);
+    //    CloseHandle(shExInfo.hProcess);
+    //}
+
     g_hInstance = hInstance;
     UNREFERENCED_PARAMETER(hPrevInstance);
     g_nCmdShow = nCmdShow;

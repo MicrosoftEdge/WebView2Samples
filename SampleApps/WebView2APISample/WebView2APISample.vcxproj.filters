@@ -142,6 +142,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="$(MSBuildThisFileDirectory)$(EffectivePlatform)\WebView2Loader.dll" />
+    <None Include="MicrosoftEdgeUpdateSetup_WebView.exe" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="ScenarioWebMessage.html" />
