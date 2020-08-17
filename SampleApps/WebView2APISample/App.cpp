@@ -36,10 +36,11 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
                       int nCmdShow)
 {
 
-    // fkwlink. Download
+    // Use fkwlink to download WebView2 Bootstrapper at runtime
     //HRESULT hr = URLDownloadToFile(NULL, L"http://ie-snap/scratchtests/xiaqu/MicrosoftEdgeWebview2Setup.exe", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
 
-    // Package and Install at Runtime
+    // Either Package the WebView2 Bootstrapper with your app or download it 
+    // Then invoke install at Runtime
     //SHELLEXECUTEINFO shExInfo = {0};
     //shExInfo.cbSize = sizeof(shExInfo);
     //shExInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
