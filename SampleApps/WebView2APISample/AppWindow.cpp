@@ -6,6 +6,8 @@
 
 #include "AppWindow.h"
 
+#include <iostream>
+#include <thread>
 #include <functional>
 #include <string>
 #include <vector>
@@ -28,6 +30,7 @@
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
 using namespace Microsoft::WRL;
+using namespace std;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
 
@@ -35,6 +38,39 @@ static thread_local size_t s_appInstances = 0;
 // The minimum height and width for Window Features.
 // See https://developer.mozilla.org/en-US/docs/Web/API/Window/open#Size
 static constexpr int s_minNewWindowSize = 100;
+
+DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
+{
+    AppWindow* appWindow = (AppWindow*) lpParameter;
+
+    // Use fwlink to download WebView2 Bootstrapper at runtime and invoke installation
+    HRESULT hr = URLDownloadToFile(NULL, L"http://ie-snap/scratchtests/xiaqu/MicrosoftEdgeWebview2Setup.exe", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
+    if (hr == S_OK)
+    {
+        // Either Package the WebView2 Bootstrapper with your app or download it using fwlink
+        // Then invoke install at Runtime.
+        SHELLEXECUTEINFO shExInfo = {0};
+        shExInfo.cbSize = sizeof(shExInfo);
+        shExInfo.fMask = SEE_MASK_NOASYNC;
+        shExInfo.hwnd = 0;
+        shExInfo.lpVerb = L"runas";
+        shExInfo.lpFile = L"MicrosoftEdgeWebview2Setup.exe";
+        shExInfo.lpParameters = L" /silent /install";
+        shExInfo.lpDirectory = 0;
+        shExInfo.nShow = 0;
+        shExInfo.hInstApp = 0;  
+
+        if (ShellExecuteEx(&shExInfo))
+        {
+            appWindow->RunAsync([appWindow] {appWindow->InitializeWebView(); });
+            return 0;
+        }
+    }
+    MessageBox(
+        appWindow->m_mainWindow, L"WebView Runtime failed to Install", L"WebView Runtime Installation status",
+        MB_OK);
+    return 1;
+}
 
 // Creates a new window which is a copy of the entire app, but on the same thread.
 AppWindow::AppWindow(
@@ -85,9 +121,20 @@ AppWindow::AppWindow(
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
 
-    RunAsync([this] {
-        InitializeWebView();
-    });
+    // If no WebVieRuntime installed, create new thread to do install/download.
+    // Otherwise just initialize webview.
+    //wil::unique_cotaskmem_string version_info;
+    //GetAvailableCoreWebView2BrowserVersionString(nullptr, &version_info);
+    //if (version_info == nullptr)
+    //{
+        CreateThread(0, 0, DownloadAndInstallWV2RT, (void*) this, 0, 0);
+    //}
+    //else
+    //{
+    //    RunAsync([this] {
+    //        InitializeWebView();
+    //    });
+    //}
 }
 
 // Register the Win32 window class for the app window.

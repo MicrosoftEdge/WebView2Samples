@@ -60,6 +60,9 @@ public:
     void DeleteComponent(ComponentBase* scenario);
 
     void RunAsync(std::function<void(void)> callback);
+    //static void InitializeWebView();
+    void InitializeWebView();
+    HWND m_mainWindow = nullptr;
 
 private:
     static PCWSTR GetWindowClass();
@@ -75,7 +78,7 @@ private:
     bool ExecuteAppCommands(WPARAM wParam, LPARAM lParam);
 
     void ResizeEverything();
-    void InitializeWebView();
+    //void InitializeWebView();
     HRESULT OnCreateEnvironmentCompleted(HRESULT result, ICoreWebView2Environment* environment);
     HRESULT OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICoreWebView2Controller* controller);
     HRESULT DeleteFileRecursive(std::wstring path);
@@ -96,10 +99,11 @@ private:
     template <class ComponentType> std::unique_ptr<ComponentType> MoveComponent();
 
     std::wstring m_initialUri;
-    HWND m_mainWindow = nullptr;
+    /*HWND m_mainWindow = nullptr;*/
     Toolbar m_toolbar;
     std::function<void()> m_onWebViewFirstInitialized;
     DWORD m_creationModeId = 0;
+    bool m_wvrtInstalled = false;
 
     // The following is state that belongs with the webview, and should
     // be reinitialized along with it. Everything here is undefined when

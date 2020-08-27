@@ -35,28 +35,32 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
                       PWSTR lpCmdLine,
                       int nCmdShow)
 {
-
-    // Use fkwlink to download WebView2 Bootstrapper at runtime
-    //HRESULT hr = URLDownloadToFile(NULL, L"http://ie-snap/scratchtests/xiaqu/MicrosoftEdgeWebview2Setup.exe", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
-
-    // Either Package the WebView2 Bootstrapper with your app or download it 
-    // Then invoke install at Runtime
-    //SHELLEXECUTEINFO shExInfo = {0};
-    //shExInfo.cbSize = sizeof(shExInfo);
-    //shExInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
-    //shExInfo.hwnd = 0;
-    //shExInfo.lpVerb = L"runas";
-    ////shExInfo.lpFile = L"MicrosoftEdgeUpdateSetup_WebView.exe";
-    //shExInfo.lpFile = L"MicrosoftEdgeWebview2Setup.exe";
-    //shExInfo.lpParameters = L" /silent /install";
-    //shExInfo.lpDirectory = 0;
-    //shExInfo.nShow = 0;
-    //shExInfo.hInstApp = 0;  
-
-    //if (ShellExecuteEx(&shExInfo))
+    //HKEY hKey = nullptr;
+    //bool wvrtInstalled = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\ClientState\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}", 0, KEY_READ, &hKey) == ERROR_SUCCESS;
+    //if (!wvrtInstalled)
     //{
-    //    WaitForSingleObject(shExInfo.hProcess, INFINITE);
-    //    CloseHandle(shExInfo.hProcess);
+    //    // Use fkwlink to download WebView2 Bootstrapper at runtime
+    //    HRESULT hr = URLDownloadToFile(NULL, L"http://ie-snap/scratchtests/xiaqu/MicrosoftEdgeWebview2Setup.exe", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
+
+    //    // Either Package the WebView2 Bootstrapper with your app or download it 
+    //    // Then invoke install at Runtime
+    //    //SHELLEXECUTEINFO shExInfo = {0};
+    //    //shExInfo.cbSize = sizeof(shExInfo);
+    //    //shExInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+    //    //shExInfo.hwnd = 0;
+    //    //shExInfo.lpVerb = L"runas";
+    //    ////shExInfo.lpFile = L"MicrosoftEdgeUpdateSetup_WebView.exe";
+    //    //shExInfo.lpFile = L"MicrosoftEdgeWebview2Setup.exe";
+    //    //shExInfo.lpParameters = L" /silent /install";
+    //    //shExInfo.lpDirectory = 0;
+    //    //shExInfo.nShow = 0;
+    //    //shExInfo.hInstApp = 0;  
+
+    //    //if (ShellExecuteEx(&shExInfo))
+    //    //{
+    //    //    WaitForSingleObject(shExInfo.hProcess, INFINITE);
+    //    //    CloseHandle(shExInfo.hProcess);
+    //    //}
     //}
 
     g_hInstance = hInstance;
