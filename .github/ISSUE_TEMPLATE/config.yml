@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Issue with WebView2
+    url:  https://github.com/MicrosoftEdge/WebViewFeedback/issues/new/choose
+    about: Please open issues with the WebView2 control in the Feedback repo
