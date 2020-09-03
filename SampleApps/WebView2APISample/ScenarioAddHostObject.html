@@ -21,7 +21,7 @@
     <div><code><pre><span id="setPropertyAsyncOutput"></span></pre></code></div>
 
     <button id="setPropertyExplicitAsyncButton">Set property explicit async</button><input type="text" id="setPropertyExplicitAsyncInput" placeholder="String property value" />
-    <label for="setPropertyExplicitAsyncButton">Runs <code>await chrome.webview.hostObjects.sample.setRemote("property", value)</code> which waits for the property to be set.</label>
+    <label for="setPropertyExplicitAsyncButton">Runs <code>await chrome.webview.hostObjects.sample.setHostProperty("property", value)</code> which waits for the property to be set.</label>
     <div><code><pre><span id="setPropertyExplicitAsyncOutput"></span></pre></code></div>
 
     <button id="setPropertySyncButton">Set property sync</button><input type="text" id="setPropertySyncInput" placeholder="String property value" />
@@ -66,15 +66,15 @@
         document.getElementById("setPropertyAsyncButton").addEventListener("click", async () => {
         const propertyValue = document.getElementById("setPropertyAsyncInput").value;
         // The following line will work but it will return immediately before the property value has actually been set.
-        // If you need to set the property and wait for the property to change value, use the setRemote function.
+        // If you need to set the property and wait for the property to change value, use the setHostProperty function.
         chrome.webview.hostObjects.sample.property = propertyValue;
         document.getElementById("setPropertyAsyncOutput").textContent = "Set";
         });
 
         document.getElementById("setPropertyExplicitAsyncButton").addEventListener("click", async () => {
         const propertyValue = document.getElementById("setPropertyExplicitAsyncInput").value;
-        // If you care about waiting until the property has actually changed value use the setRemote function.
-        await chrome.webview.hostObjects.sample.setRemote("property", propertyValue);
+        // If you care about waiting until the property has actually changed value use the setHostProperty function.
+        await chrome.webview.hostObjects.sample.setHostProperty("property", propertyValue);
         document.getElementById("setPropertyExplicitAsyncOutput").textContent = "Set";
         });
 

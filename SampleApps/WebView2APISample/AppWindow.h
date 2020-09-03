@@ -16,8 +16,10 @@
 #include <string>
 #include <vector>
 #include <winnt.h>
-#include "WebView2APISample_WinCompHelper/WebView2APISample_WinCompHelper.h"
+#include <winrt/Windows.UI.Composition.h>
 #include <winrt/Windows.UI.ViewManagement.h>
+
+namespace winrtComp = winrt::Windows::UI::Composition;
 
 class SettingsComponent;
 
@@ -127,10 +129,10 @@ private:
 
     // Compositor creation helper methods
     HRESULT DCompositionCreateDevice2(IUnknown* renderingDevice, REFIID riid, void** ppv);
-    HRESULT CreateWinCompCompositor();
+    HRESULT TryCreateDispatcherQueue();
 
     wil::com_ptr<IDCompositionDevice> m_dcompDevice;
-    wil::com_ptr<IWinCompHelper> m_wincompHelper;
+    winrtComp::Compositor m_wincompCompositor{ nullptr };
     winrt::Windows::UI::ViewManagement::UISettings m_uiSettings{ nullptr };
 };
 

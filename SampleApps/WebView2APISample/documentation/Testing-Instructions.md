@@ -113,7 +113,7 @@ Test that gets browser version after webview creation
 
 1. Launch the sample app.
 2. Go to `File -> Get Browser Version After Creation`
-3. Expected: Message Box that contains browser version and channel name (if not stable) after WebView creation
+3. Expected: Message Box that contains browser version and channel name (if not stable and not Runtime) after WebView creation
 4. Click `OK` inside the popup dialog
 5. Expected: dialog closed
 
@@ -147,11 +147,12 @@ Test that prompts the user for some script to run in the WebView
 4. Click `Cancel`
 5. Repeat steps 2-3
 6. Type `confirm("Confirm?")` in the text input box and click `OK`
-7. Expected: Confirm Box popup that says `Confirm?`
+7. Expected: www.bing.com says popup that says `Confirm?`
 8. Click `OK` inside the Confirm Box
-9. Expected: ExecuteScript Result popup that says `true`
-10. Click `OK` inside the popup dialog
-11. Expected: dialog closed
+9. Expected: dialog closed
+10. Expected: ExecuteScript Result popup that says `true`
+11. Click OK inside the popup dialog 
+12. Expected: dialog closed
 
 #### Post Message string
 
@@ -436,7 +437,7 @@ _It is enabled by default._
 8. Expected: The Webview doesn't zoom in or out, nor ZoomView shows up
 9. Go to `Settings -> Toggle zoom control enabled`
 10. Expected: Message Box that says `Zoom control will be enabled after the next navigation.`
-11. Verify that zooming works again with ZoomView showing up
+11. Verify that zooming works again, ZoomView should not show up
 
 #### Toggle Block images
 
@@ -653,7 +654,9 @@ Test that moves focus due to Tab traversal forward
 
 1. Launch the sample app.
 1. Go to `View -> Tab In`
-1. Expected: See the focus is set to the Bing search bar (the first element) in the WebView
+1. Expected: See the focus is set to the Images button (the first element) on <bing.com> in the WebView
+1. Click Tab button on keyboard
+1. Expected: See a focus rectangle around '...' button. 
 
 #### ReverseTab In
 

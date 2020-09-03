@@ -6,12 +6,14 @@
 
 #include "AppWindow.h"
 
+#include <DispatcherQueue.h>
 #include <functional>
 #include <string>
 #include <vector>
 #include <ShObjIdl_core.h>
 #include <Shellapi.h>
 #include <ShlObj_core.h>
+#include <winrt/windows.system.h>
 #include "App.h"
 #include "CheckFailure.h"
 #include "ControlComponent.h"
@@ -48,6 +50,9 @@ AppWindow::AppWindow(
       m_initialUri(initialUri),
       m_onWebViewFirstInitialized(webviewCreatedCallback)
 {
+    // Initialize COM as STA.
+    CHECK_FAILURE(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE));
+
     ++s_appInstances;
 
     WCHAR szTitle[s_maxLoadString]; // The title bar text
@@ -328,6 +333,7 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
         return true;
     case IDM_CREATION_MODE_WINDOWED:
     case IDM_CREATION_MODE_VISUAL_DCOMP:
+    case IDM_CREATION_MODE_TARGET_DCOMP:
     case IDM_CREATION_MODE_VISUAL_WINCOMP:
         m_creationModeId = LOWORD(wParam);
         UpdateCreationModeMenu();
@@ -446,10 +452,11 @@ void AppWindow::InitializeWebView()
     // getting created which will apply the browser switches.
     CloseWebView();
     m_dcompDevice = nullptr;
-    m_wincompHelper = nullptr;
+    m_wincompCompositor = nullptr;
     LPCWSTR subFolder = nullptr;
 
-    if (m_creationModeId == IDM_CREATION_MODE_VISUAL_DCOMP)
+    if (m_creationModeId == IDM_CREATION_MODE_VISUAL_DCOMP ||
+        m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP)
     {
         HRESULT hr = DCompositionCreateDevice2(nullptr, IID_PPV_ARGS(&m_dcompDevice));
         if (!SUCCEEDED(hr))
@@ -465,7 +472,7 @@ void AppWindow::InitializeWebView()
     }
     else if (m_creationModeId == IDM_CREATION_MODE_VISUAL_WINCOMP)
     {
-        HRESULT hr = CreateWinCompCompositor();
+        HRESULT hr = TryCreateDispatcherQueue();
         if (!SUCCEEDED(hr))
         {
             MessageBox(
@@ -476,10 +483,11 @@ void AppWindow::InitializeWebView()
                 L"Create with Windowless WinComp Visual Failed", MB_OK);
             return;
         }
+        m_wincompCompositor = winrtComp::Compositor();
     }
     //! [CreateCoreWebView2EnvironmentWithOptions]
-    auto options = Microsoft::WRL::Make<CoreWebView2ExperimentalEnvironmentOptions>();
-    CHECK_FAILURE(options->put_IsSingleSignOnUsingOSPrimaryAccountEnabled(
+    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+    CHECK_FAILURE(options->put_AllowSingleSignOnUsingOSPrimaryAccount(
         m_AADSSOEnabled ? TRUE : FALSE));
     if (!m_language.empty())
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
@@ -516,7 +524,7 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
 
     auto webViewExperimentalEnvironment =
         m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment>();
-    if (webViewExperimentalEnvironment && (m_dcompDevice || m_wincompHelper))
+    if (webViewExperimentalEnvironment && (m_dcompDevice || m_wincompCompositor))
     {
         CHECK_FAILURE(webViewExperimentalEnvironment->CreateCoreWebView2CompositionController(
             m_mainWindow,
@@ -565,7 +573,9 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
         NewComponent<SettingsComponent>(
             this, m_webViewEnvironment.get(), m_oldSettingsComponent.get());
         m_oldSettingsComponent = nullptr;
-        NewComponent<ViewComponent>(this, m_dcompDevice.get(), m_wincompHelper.get());
+        NewComponent<ViewComponent>(
+            this, m_dcompDevice.get(), m_wincompCompositor,
+            m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<ControlComponent>(this, &m_toolbar);
 
         // We have a few of our own event handlers to register here as well
@@ -694,11 +704,8 @@ void AppWindow::RegisterEventHandlers()
                 CHECK_FAILURE(args->GetDeferral(&deferral));
                 AppWindow* newAppWindow;
 
-                wil::com_ptr<ICoreWebView2ExperimentalNewWindowRequestedEventArgs>
-                    experimentalArgs;
-                CHECK_FAILURE(args->QueryInterface(IID_PPV_ARGS(&experimentalArgs)));
-                wil::com_ptr<ICoreWebView2ExperimentalWindowFeatures> windowFeatures;
-                CHECK_FAILURE(experimentalArgs->get_WindowFeatures(&windowFeatures));
+                wil::com_ptr<ICoreWebView2WindowFeatures> windowFeatures;
+                CHECK_FAILURE(args->get_WindowFeatures(&windowFeatures));
 
                 RECT windowRect = {0};
                 UINT32 left = 0;
@@ -863,9 +870,6 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
 
 HRESULT AppWindow::DeleteFileRecursive(std::wstring path)
 {
-    // Initialize COM as STA.
-    CHECK_FAILURE(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE));
-
     wil::com_ptr<IFileOperation> fileOperation;
     CHECK_FAILURE(
         CoCreateInstance(CLSID_FileOperation, NULL, CLSCTX_ALL, IID_PPV_ARGS(&fileOperation)));
@@ -1030,37 +1034,49 @@ HRESULT AppWindow::DCompositionCreateDevice2(IUnknown* renderingDevice, REFIID r
     return hr;
 }
 
-// Helper function that loads WebView2APISampleWinCompHelper.dll which provides an
-// IWinCompHelper abstraction for building a WinComp visual tree. The DLL is dynamically
-// loaded to create the helper interface and create the compositor. Not having a static
-// dependency on WebView2APISampleWinCompHelper.dll enables the sample app to run on
-// versions of Windows that don't support WinComp (since the DLL has a static dependency on
-// WinComp).
-HRESULT AppWindow::CreateWinCompCompositor()
+// WinRT APIs cannot run without a DispatcherQueue. This helper function creates a
+// DispatcherQueueController (which instantiates a DispatcherQueue under the covers) that will
+// manage tasks for the WinRT APIs. The DispatcherQueue implementation lives in
+// CoreMessaging.dll Similar to dcomp.dll, we load CoreMessaging.dll dynamically so the sample
+// app can run on versions of windows that don't have CoreMessaging.
+HRESULT AppWindow::TryCreateDispatcherQueue()
 {
-    HRESULT hr = E_FAIL;
-    static decltype(::CreateWinCompHelper)* fnCreateWinCompHelper = nullptr;
-    if (fnCreateWinCompHelper == nullptr)
+    namespace winSystem = winrt::Windows::System;
+
+    HRESULT hr = S_OK;
+    thread_local winSystem::DispatcherQueueController dispatcherQueueController{ nullptr };
+
+    if (dispatcherQueueController == nullptr)
     {
-        // Use SetErrorMode to ensure an error dialog doesn't pop up if the
-        // WebView2APISampleWinCompHelper.dll fails to load for a missing dependency.
-        SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
-        HMODULE hmod = ::LoadLibraryEx(L"WebView2APISampleWinCompHelper.dll", nullptr, 0);
-        if (hmod != nullptr)
+        hr = E_FAIL;
+        static decltype(::CreateDispatcherQueueController)* fnCreateDispatcherQueueController =
+            nullptr;
+        if (fnCreateDispatcherQueueController == nullptr)
         {
-            fnCreateWinCompHelper = reinterpret_cast<decltype(::CreateWinCompHelper)*>(
-                ::GetProcAddress(hmod, "CreateWinCompHelper"));
+            HMODULE hmod = ::LoadLibraryEx(L"CoreMessaging.dll", nullptr, 0);
+            if (hmod != nullptr)
+            {
+                fnCreateDispatcherQueueController =
+                    reinterpret_cast<decltype(::CreateDispatcherQueueController)*>(
+                        ::GetProcAddress(hmod, "CreateDispatcherQueueController"));
+            }
         }
-        SetErrorMode(0);
-    }
-    if (fnCreateWinCompHelper != nullptr)
-    {
-        hr = fnCreateWinCompHelper(&m_wincompHelper);
-        if (SUCCEEDED(hr))
+        if (fnCreateDispatcherQueueController != nullptr)
         {
-            hr = m_wincompHelper->CreateCompositor();
+            winSystem::DispatcherQueueController controller{ nullptr };
+            DispatcherQueueOptions options
+            {
+                sizeof(DispatcherQueueOptions),
+                DQTYPE_THREAD_CURRENT,
+                DQTAT_COM_STA
+            };
+            hr = fnCreateDispatcherQueueController(
+                options, reinterpret_cast<ABI::Windows::System::IDispatcherQueueController**>(
+                             winrt::put_abi(controller)));
+            dispatcherQueueController = controller;
         }
     }
+
     return hr;
 }
 

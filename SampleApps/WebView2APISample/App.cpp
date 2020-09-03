@@ -12,6 +12,7 @@
 #include <shobjidl.h>
 #include <string.h>
 #include <vector>
+
 #include "AppWindow.h"
 #include "DpiUtil.h"
 
@@ -100,6 +101,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
                 else if (NEXT_PARAM_CONTAINS(L"visualdcomp"))
                 {
                     creationModeId = IDM_CREATION_MODE_VISUAL_DCOMP;
+                }
+                else if (NEXT_PARAM_CONTAINS(L"targetdcomp"))
+                {
+                    creationModeId = IDM_CREATION_MODE_TARGET_DCOMP;
                 }
                 else if (NEXT_PARAM_CONTAINS(L"visualwincomp"))
                 {
