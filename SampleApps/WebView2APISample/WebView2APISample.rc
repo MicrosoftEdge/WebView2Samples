@@ -79,7 +79,9 @@ BEGIN
             MENUITEM "Windowed",                        IDM_CREATION_MODE_WINDOWED
             MENUITEM "Visual - DComp",                  IDM_CREATION_MODE_VISUAL_DCOMP
             MENUITEM "Target - DComp",                  IDM_CREATION_MODE_TARGET_DCOMP
+#ifdef USE_WEBVIEW2_WIN10
             MENUITEM "Visual - WinComp",                IDM_CREATION_MODE_VISUAL_WINCOMP
+#endif
         END
         MENUITEM "Create WebView"                             IDM_REINIT
         MENUITEM "Create New Window",           IDM_NEW_WINDOW

@@ -42,6 +42,7 @@ static constexpr int s_minNewWindowSize = 100;
 AppWindow::AppWindow(
     UINT creationModeId,
     std::wstring initialUri,
+    bool isMainWindow,
     std::function<void()> webviewCreatedCallback,
     bool customWindowRect,
     RECT windowRect,
@@ -73,6 +74,7 @@ AppWindow::AppWindow(
 
     SetWindowLongPtr(m_mainWindow, GWLP_USERDATA, (LONG_PTR)this);
 
+#ifdef USE_WEBVIEW2_WIN10
     //! [TextScaleChanged1]
     if (winrt::try_get_activation_factory<winrt::Windows::UI::ViewManagement::UISettings>())
     {
@@ -80,6 +82,7 @@ AppWindow::AppWindow(
         m_uiSettings.TextScaleFactorChanged({ this, &AppWindow::OnTextScaleChanged });
     }
     //! [TextScaleChanged1]
+#endif
 
     if (shouldHaveToolbar)
     {
@@ -89,12 +92,10 @@ AppWindow::AppWindow(
     UpdateCreationModeMenu();
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
-
-    RunAsync([this] {
-        InitializeWebView();
-    });
+        RunAsync([this] {
+            InitializeWebView();
+        });
 }
-
 // Register the Win32 window class for the app window.
 PCWSTR AppWindow::GetWindowClass()
 {
@@ -199,7 +200,7 @@ bool AppWindow::HandleWindowMessage(
     {
         int retValue = 0;
         SetWindowLongPtr(hWnd, GWLP_USERDATA, NULL);
-        delete this;
+        NotifyClosed();
         if (--s_appInstances == 0)
         {
             PostQuitMessage(retValue);
@@ -334,7 +335,9 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_CREATION_MODE_WINDOWED:
     case IDM_CREATION_MODE_VISUAL_DCOMP:
     case IDM_CREATION_MODE_TARGET_DCOMP:
+#ifdef USE_WEBVIEW2_WIN10
     case IDM_CREATION_MODE_VISUAL_WINCOMP:
+#endif
         m_creationModeId = LOWORD(wParam);
         UpdateCreationModeMenu();
         return true;
@@ -452,7 +455,9 @@ void AppWindow::InitializeWebView()
     // getting created which will apply the browser switches.
     CloseWebView();
     m_dcompDevice = nullptr;
+#ifdef USE_WEBVIEW2_WIN10
     m_wincompCompositor = nullptr;
+#endif
     LPCWSTR subFolder = nullptr;
 
     if (m_creationModeId == IDM_CREATION_MODE_VISUAL_DCOMP ||
@@ -470,6 +475,7 @@ void AppWindow::InitializeWebView()
             return;
         }
     }
+#ifdef USE_WEBVIEW2_WIN10
     else if (m_creationModeId == IDM_CREATION_MODE_VISUAL_WINCOMP)
     {
         HRESULT hr = TryCreateDispatcherQueue();
@@ -485,6 +491,7 @@ void AppWindow::InitializeWebView()
         }
         m_wincompCompositor = winrtComp::Compositor();
     }
+#endif
     //! [CreateCoreWebView2EnvironmentWithOptions]
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
     CHECK_FAILURE(options->put_AllowSingleSignOnUsingOSPrimaryAccount(
@@ -524,7 +531,11 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
 
     auto webViewExperimentalEnvironment =
         m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment>();
+#ifdef USE_WEBVIEW2_WIN10
     if (webViewExperimentalEnvironment && (m_dcompDevice || m_wincompCompositor))
+#else
+    if (webViewExperimentalEnvironment && m_dcompDevice)
+#endif
     {
         CHECK_FAILURE(webViewExperimentalEnvironment->CreateCoreWebView2CompositionController(
             m_mainWindow,
@@ -574,7 +585,10 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             this, m_webViewEnvironment.get(), m_oldSettingsComponent.get());
         m_oldSettingsComponent = nullptr;
         NewComponent<ViewComponent>(
-            this, m_dcompDevice.get(), m_wincompCompositor,
+            this, m_dcompDevice.get(),
+#ifdef USE_WEBVIEW2_WIN10
+            m_wincompCompositor,
+#endif
             m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<ControlComponent>(this, &m_toolbar);
 
@@ -738,7 +752,7 @@ void AppWindow::RegisterEventHandlers()
 
                 if (!useDefaultWindow)
                 {
-                  newAppWindow = new AppWindow(m_creationModeId, L"", nullptr, true, windowRect, !!shouldHaveToolbar);
+                  newAppWindow = new AppWindow(m_creationModeId, L"", false, nullptr, true, windowRect, !!shouldHaveToolbar);
                 }
                 else
                 {
@@ -1080,6 +1094,7 @@ HRESULT AppWindow::TryCreateDispatcherQueue()
     return hr;
 }
 
+#ifdef USE_WEBVIEW2_WIN10
 //! [TextScaleChanged2]
 void AppWindow::OnTextScaleChanged(
     winrt::Windows::UI::ViewManagement::UISettings const& settings,
@@ -1090,13 +1105,18 @@ void AppWindow::OnTextScaleChanged(
     });
 }
 //! [TextScaleChanged2]
+#endif
 void AppWindow::UpdateCreationModeMenu()
 {
     HMENU hMenu = GetMenu(m_mainWindow);
     CheckMenuRadioItem(
         hMenu,
         IDM_CREATION_MODE_WINDOWED,
+#ifdef USE_WEBVIEW2_WIN10
         IDM_CREATION_MODE_VISUAL_WINCOMP,
+#else
+        IDM_CREATION_MODE_TARGET_DCOMP,
+#endif
         m_creationModeId,
         MF_BYCOMMAND);
 }
@@ -1106,7 +1126,28 @@ double AppWindow::GetDpiScale()
     return DpiUtil::GetDpiForWindow(m_mainWindow) * 1.0f / USER_DEFAULT_SCREEN_DPI;
 }
 
+#ifdef USE_WEBVIEW2_WIN10
 double AppWindow::GetTextScale()
 {
     return m_uiSettings ? m_uiSettings.TextScaleFactor() : 1.0f;
+}
+#endif
+
+void AppWindow::AddRef()
+{
+    InterlockedIncrement((LONG *)&m_refCount);
+}
+
+void AppWindow::Release()
+{
+    uint32_t refCount = InterlockedDecrement((LONG *)&m_refCount);
+    if (refCount == 0)
+    {
+        delete this;
+    }
+}
+
+void AppWindow::NotifyClosed()
+{
+    m_isClosed = true;
 }

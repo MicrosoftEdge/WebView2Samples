@@ -28,6 +28,7 @@ ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEve
     m_appWindowEventView = new AppWindow(
         IDM_CREATION_MODE_WINDOWED,
         m_sampleUri,
+        false,
         [this]() -> void {
             InitializeEventView(m_appWindowEventView->GetWebView());
         });

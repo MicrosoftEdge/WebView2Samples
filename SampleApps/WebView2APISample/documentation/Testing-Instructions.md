@@ -183,15 +183,16 @@ _Scripts are executed after the global object has been created and before the HT
 8. Click `OK` inside the popup dialog and click `Reload`
 9. Expected: Alert Box popup that says `Hello World!`
 10. Click `OK` inside the Alert Box
-11. Load <https://aka.ms/webview2>
-12. Repeat steps 9-10
-13. Go to `Script -> Remove Initialize Script`
-14. Expected: Text Input Dialog that prompts the user for Script ID
-15. Click `Cancel`
-16. Repeat steps 13-14
-17. Type the Script ID from step 7 (e.g. 2) and click `OK`
-18. Click `Reload`
-19. Expected: No more Alert Box popup
+11. Additional Alert Box may be generated depending on iframes, if so, click `OK` inside the Alert Box.
+12. Load <https://aka.ms/webview2>
+13. Repeat steps 9-10
+14. Go to `Script -> Remove Initialize Script`
+15. Expected: Text Input Dialog that prompts the user for Script ID
+16. Click `Cancel`
+17. Repeat steps 13-14
+18. Type the Script ID from step 7 (e.g. 2) and click `OK`
+19. Click `Reload`
+20. Expected: No more Alert Box popup
 
 #### Subscribe to CDP event & Call CDP method
 
@@ -222,7 +223,7 @@ Test that prompts the user for the CDP method name to call
 Test that open DevTools in WebView window
 
 1. Launch the sample app.
-2. Go to `View -> Open DevTools Window`
+2. Go to `Script -> Open DevTools Window`
 3. Expected: DevTools Window to pop up
 
 ### Window
@@ -570,7 +571,7 @@ Top: 32
 Right: 1006
 Bottom: 504
 
-or, height/width should be ~1.414x of [Bounds A](#bounds-A)
+or, height/width should be ~0.707x of [Bounds A](#bounds-A)
 
 ##### Bounds D
 
