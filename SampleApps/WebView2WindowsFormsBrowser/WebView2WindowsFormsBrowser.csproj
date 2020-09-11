@@ -10,6 +10,6 @@
     <Configurations>Debug;Release;Win7 Release;Win7 Debug</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="0.9.579-prerelease" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="0.9.628-prerelease" />
   </ItemGroup>
 </Project>
