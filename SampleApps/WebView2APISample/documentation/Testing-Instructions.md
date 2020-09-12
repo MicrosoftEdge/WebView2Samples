@@ -47,6 +47,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle builtin error page enabled](#Toggle-builtin-error-page-enabled)
   * [View](#View)
     * [Toggle Visibility](#Toggle-Visibility)
+    * [WebView Bounds Reference](#WebView-Bounds-Reference)
     * [WebView Area](#WebView-Area)
     * [WebView Zoom](#WebView-Zoom)
     * [WebView Scale](#WebView-Scale)
@@ -63,6 +64,7 @@ These are instructions for manually testing all the features of the WebView2 API
   * [Miscellaneous](#Miscellaneous)
     * [Accelerator Key Support](#Accelerator-Key-Support)
     * [Language](#Language)
+    * [Saving Password](#Saving-Password)
 
 ## Getting started
 
@@ -111,7 +113,7 @@ Test that gets browser version after webview creation
 
 1. Launch the sample app.
 2. Go to `File -> Get Browser Version After Creation`
-3. Expected: Message Box that contains browser version and channel name (if not stable) after WebView creation
+3. Expected: Message Box that contains browser version and channel name (if not stable and not Runtime) after WebView creation
 4. Click `OK` inside the popup dialog
 5. Expected: dialog closed
 
@@ -145,11 +147,12 @@ Test that prompts the user for some script to run in the WebView
 4. Click `Cancel`
 5. Repeat steps 2-3
 6. Type `confirm("Confirm?")` in the text input box and click `OK`
-7. Expected: Confirm Box popup that says `Confirm?`
+7. Expected: www.bing.com says popup that says `Confirm?`
 8. Click `OK` inside the Confirm Box
-9. Expected: ExecuteScript Result popup that says `true`
-10. Click `OK` inside the popup dialog
-11. Expected: dialog closed
+9. Expected: dialog closed
+10. Expected: ExecuteScript Result popup that says `true`
+11. Click OK inside the popup dialog 
+12. Expected: dialog closed
 
 #### Post Message string
 
@@ -167,7 +170,7 @@ Test that prompts the user for some JSON web message to the top level document
 
 Test that prompts the user for some script to run as the initialization script
 
-Test that prompts the user for the ID of the initialize scripts that the user would like to remove
+Test that prompts the user for the ID of the initialize scripts that the user would like to remove  
 _Scripts are executed after the global object has been created and before the HTML document has been parsed every navigation_
 
 1. Launch the sample app.
@@ -180,15 +183,16 @@ _Scripts are executed after the global object has been created and before the HT
 8. Click `OK` inside the popup dialog and click `Reload`
 9. Expected: Alert Box popup that says `Hello World!`
 10. Click `OK` inside the Alert Box
-11. Load <https://aka.ms/webview2>
-12. Repeat steps 9-10
-13. Go to `Script -> Remove Initialize Script`
-14. Expected: Text Input Dialog that prompts the user for Script ID
-15. Click `Cancel`
-16. Repeat steps 13-14
-17. Type the Script ID from step 7 (e.g. 2) and click `OK`
-18. Click `Reload`
-19. Expected: No more Alert Box popup
+11. Additional Alert Box may be generated depending on iframes, if so, click `OK` inside the Alert Box.
+12. Load <https://aka.ms/webview2>
+13. Repeat steps 9-10
+14. Go to `Script -> Remove Initialize Script`
+15. Expected: Text Input Dialog that prompts the user for Script ID
+16. Click `Cancel`
+17. Repeat steps 13-14
+18. Type the Script ID from step 7 (e.g. 2) and click `OK`
+19. Click `Reload`
+20. Expected: No more Alert Box popup
 
 #### Subscribe to CDP event & Call CDP method
 
@@ -219,7 +223,7 @@ Test that prompts the user for the CDP method name to call
 Test that open DevTools in WebView window
 
 1. Launch the sample app.
-2. Go to `View -> Open DevTools Window`
+2. Go to `Script -> Open DevTools Window`
 3. Expected: DevTools Window to pop up
 
 ### Window
@@ -291,8 +295,7 @@ Test browser process becoming unresponsive
 2. Navigate to `edge://hang`.
 3. Wait ~20-30 seconds.
 4. Expected: Error dialog popup that says `Browser renderer process stopped responding. Recreate webview?`\
-  ![step 3](screenshots/unresponsive-renderer-error.png)\
-  Note: 'This page isn't responding' dialog does not display if the hang is triggered via injecting script: `while (1) { console.log('hang') }`
+  ![step 3](screenshots/unresponsive-renderer-error.png)
 5. Click `Yes` inside the Popup dialog
 6. Expected: The app window resets to the same state as step 1.
 
@@ -300,8 +303,7 @@ Test browser process becoming unresponsive
 
 #### Blocked Domains
 
-Test that prompts user for sites to block
-
+Test that prompts user for sites to block  
 _It includes foo.com and bar.org by default_
 
 1. Launch the sample app.
@@ -318,8 +320,7 @@ _It includes foo.com and bar.org by default_
 
 #### Set User Agent
 
-Test that prompts the user for a new user agent string and sets user agent
-
+Test that prompts the user for a new user agent string and sets user agent  
 _It only modifies the header for HTTP. Change won't be reflected if checked with `navigator.userAgent`_
 
 1. Launch the sample app.
@@ -336,8 +337,7 @@ _It only modifies the header for HTTP. Change won't be reflected if checked with
 
 #### Toggle JavaScript
 
-Test that enables/disables JavaScript
-
+Test that enables/disables JavaScript  
 _It is enabled by default. `Script -> Inject Script` won't be affected if disabled._
 
 1. Launch the sample app.
@@ -353,8 +353,7 @@ _It is enabled by default. `Script -> Inject Script` won't be affected if disabl
 
 #### Toggle Web Messaging
 
-Test that enables/disables web messaging
-
+Test that enables/disables web messaging  
 _It is enabled by default._
 
 1. Launch the sample app.
@@ -370,8 +369,7 @@ _It is enabled by default._
 
 #### Toggle Fullscreen allowed
 
-Test the allows/disallows Fullscreen mode
-
+Test the allows/disallows Fullscreen mode  
 _It is allowed by default._
 
 1. Launch the sample app.
@@ -389,8 +387,7 @@ _It is allowed by default._
 
 #### Toggle Status Bar enabled
 
-Test that enables/disables Status Bar
-
+Test that enables/disables Status Bar  
 _It is enabled by default._
 
 1. Launch the sample app.
@@ -408,8 +405,7 @@ _It is enabled by default._
 
 #### Toggle DevTools enabled
 
-Test that enables/disables DevTools
-
+Test that enables/disables DevTools  
 _It is enabled by default._
 
 1. Launch the sample app.
@@ -428,8 +424,7 @@ _It is enabled by default._
 
 #### Toggle ZoomControl enabled
 
-Test that enables/disables Zoom
-
+Test that enables/disables Zoom  
 _It is enabled by default._
 
 1. Launch the sample app.
@@ -443,12 +438,11 @@ _It is enabled by default._
 8. Expected: The Webview doesn't zoom in or out, nor ZoomView shows up
 9. Go to `Settings -> Toggle zoom control enabled`
 10. Expected: Message Box that says `Zoom control will be enabled after the next navigation.`
-11. Verify that zooming works again with ZoomView showing up
+11. Verify that zooming works again, ZoomView should not show up
 
 #### Toggle Block images
 
-Test that enables/disables image blocking
-
+Test that enables/disables image blocking  
 _It is disabled by default. Data URI won't e affected if disabled._
 
 1. Launch the sample app.
@@ -495,8 +489,7 @@ Tests JavaScript Dialogs with different configurations
 
 #### Toggle context menus enabled
 
-Test that enables/disables context menu blocking
-
+Test that enables/disables context menu blocking  
 _Context menus are enabled by default._
 
 1. Launch the sample app.
@@ -513,8 +506,7 @@ _Context menus are enabled by default._
 
 #### Toggle builtin error page enabled
 
-Test that enables/disables built-in error page
-
+Test that enables/disables built-in error page  
 _Builtin error page is enabled by default._
 
 1. Launch the sample app.
@@ -541,68 +533,109 @@ _Builtin error page is enabled by default._
 Test that makes WebView visible/invisible
 
 1. Launch the sample app.
-2. Go to `View -> Toggle Visibility`
-3. Expected: The WebView becomes invisible
-4. Repeat step 2
-5. Expected: The WebView becomes visible
+1. Go to `View -> Toggle Visibility`
+1. Expected: The WebView becomes invisible
+1. Repeat step 2
+1. Expected: The WebView becomes visible
+
+#### WebView Bounds Reference
+
+Notes:
+
+* Top is always 32 (or some non-zero value) to account for sample app UI such as menu bar and address bar
+* WebView height is (Bottom - Top)
+* WebView width is equal to Right
+
+##### Bounds A
+
+Left: 0
+Top: 32
+Right: 1424
+Bottom: 700
+
+or, the default WebView bounds before any scaling/resizing
+
+##### Bounds B
+
+Left: 0
+Top: 32
+Right: 712
+Bottom: 366
+
+or, height/width should be 0.5x of [Bounds A](#bounds-A)
+
+##### Bounds C
+
+Left: 0
+Top: 32
+Right: 1006
+Bottom: 504
+
+or, height/width should be ~0.707x of [Bounds A](#bounds-A)
+
+##### Bounds D
+
+Left: 0
+Top: 32
+Right: 1509
+Bottom: 740
+
+or, height/width should be ~1.06x of [Bounds A](#bounds-A)
 
 #### WebView Area
 
-Test that resizes WebView window
-
+Test that resizes WebView window  
 _Updates the bounds of the WebView window to resize_
 
 1. Launch the sample app.
-2. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds.
-3. Go to `View -> WebView Area -> 25%`
-4. Go to `View -> WebView Area -> Get WebView Bounds`.
-5. Expected: WebView size ratio is 25% of bounds in step 2 and WebView was resized.
-6. Go to `View -> WebView Area -> 50%`
-7. Go to `View -> WebView Area -> Get WebView Bounds`.
-8. Expected: WebView size ratio to 50% of bounds in step 2 and WebView was resized.
-9. Go to `View -> WebView Area -> 100%`
-10. Go to `View -> WebView Area -> Get WebView Bounds`.
-11. Expected: WebView size matches bounds in step 2 and WebView was resized.
+1. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds. (See [Bounds A](#Bounds-A))
+1. Go to `View -> WebView Area -> 25%`
+1. Go to `View -> WebView Area -> Get WebView Bounds`.
+1. Expected: WebView size ratio is 25% of bounds in step 2 and WebView was resized. (See [Bounds B](#Bounds-B))
+1. Go to `View -> WebView Area -> 50%`
+1. Go to `View -> WebView Area -> Get WebView Bounds`.
+1. Expected: WebView size ratio to 50% of bounds in step 2 and WebView was resized. (See [Bounds C](#Bounds-C))
+1. Go to `View -> WebView Area -> 100%`
+1. Go to `View -> WebView Area -> Get WebView Bounds`.
+1. Expected: WebView size matches bounds in step 2 and WebView was resized.
 
 #### WebView Zoom
 
-Test that zooms in/out WebView
-
+Test that zooms in/out WebView  
 _WebView maintains host set zoom factor across navigations_
 
 1. Launch the sample app.
-2. Go to `View -> WebView Zoom -> 0.5x`
-3. Go to `View -> WebView Zoom -> Get WebView Zoom`
-4. Expected: WebView zoom factor is set to 0.5x
-5. Click inside the WebView, then type ctrl+ +.
-6. Go to `View -> WebView Zoom -> Get WebView Zoom`
-7. Expected: WebView zoom factor is set to .66x
-8. Load <https://www.google.com>
-9. Go to `View -> WebView Zoom -> Get WebView Zoom`
-10. Expected: WebView zoom factor is set to .5x
-11. Go to `View -> WebView Zoom -> 2x`
-12. Go to `View -> WebView Zoom -> Get WebView Zoom`
-13. Expected: WebView zoom factor is set to 2x
-14. Click `Back`
-15. Go to `View -> WebView Zoom -> Get WebView Zoom`
-16. Expected: WebView zoom factor is set to 2x
+1. Go to `View -> WebView Zoom -> 0.5x`
+1. Go to `View -> WebView Zoom -> Get WebView Zoom`
+1. Expected: WebView zoom factor is set to 0.5x
+1. Click inside the WebView, then type ctrl+ +.
+1. Go to `View -> WebView Zoom -> Get WebView Zoom`
+1. Expected: WebView zoom factor is set to .66x
+1. Load <https://www.google.com>
+1. Go to `View -> WebView Zoom -> Get WebView Zoom`
+1. Expected: WebView zoom factor is set to .5x
+1. Go to `View -> WebView Zoom -> 2x`
+1. Go to `View -> WebView Zoom -> Get WebView Zoom`
+1. Expected: WebView zoom factor is set to 2x
+1. Click `Back`
+1. Go to `View -> WebView Zoom -> Get WebView Zoom`
+1. Expected: WebView zoom factor is set to 2x
 
 #### WebView Scale
 
-Test scaling the WebView.
-
+Test scaling the WebView.  
 _Scale is a resize and zoom that happens atomically. It results in the WebView
 getting larger or smaller without the layout of the page changing._
 
 1. Launch the sample app.
-2. Go to `View -> WebView Area -> 50%`
-3. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds.
-4. Go to `View -> WebView Scale -> 1.5x`
-5. Go to `View -> WebView Area -> Get WebView Bounds`
-6. Expected: WebView size is 1.5x larger than bounds in step 2.
-7. Go to `View -> WebView Zoom -> Get WebView Zoom`
-8. Expected: WebView zoom factor is set to 1.5x
-9. Expected: WebView renders at the new size/zoom (looks larger) without the
+1. Go to `View -> WebView Area -> 50%`
+1. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds. (See [Bounds B](#Bounds-B))
+1. Go to `View -> WebView Scale -> 1.5x`
+1. Go to `View -> WebView Area -> Get WebView Bounds`
+1. Expected: WebView size is 1.5x larger than bounds in step 2. (See [Bounds D](#Bounds-D))
+1. Go to `View -> WebView Zoom -> Get WebView Zoom`
+1. Expected: WebView zoom factor is set to 1.5x
+1. Expected: WebView renders at the new size/zoom (looks larger) without the
    layout of the page changing (elements are still in the same position relative
    to other elements).
 
@@ -611,45 +644,46 @@ getting larger or smaller without the layout of the page changing._
 Test that sets focus into WebView
 
 1. Launch the sample app.
-2. Click on the Bing search bar and press `Tab` key once, which sets the focus to the audio icon
-3. Click `Cancel` in the app window, which moves the focus from the WebView to the app window
-4. Go to `View -> Set Focus`
-5. Expected: See the focus is moved back the camera icon, which was the last focus in the WebView
+1. Click on the Bing search bar and press `Tab` key once, which sets the focus to the audio icon
+1. Click on the address bar in the app window, which moves the focus from the WebView to the app window
+1. Go to `View -> Set Focus`
+1. Expected: See the focus is moved back the audio icon, which was the last focus in the WebView
 
 #### Tab In
 
 Test that moves focus due to Tab traversal forward
 
 1. Launch the sample app.
-2. Go to `View -> Tab In`
-3. Expected: See the focus is set to the Bing search bar (the first element) in the WebView
+1. Go to `View -> Tab In`
+1. Expected: See the focus is set to the Images button (the first element) on <bing.com> in the WebView
+1. Click Tab button on keyboard
+1. Expected: See a focus rectangle around '...' button. 
 
 #### ReverseTab In
 
 Test that moves focus due to Tab traversal backward
 
 1. Launch the sample app and load <https://www.google.com>
-2. Go to `View -> Reverse Tab In`
-3. Expected: See the focus is set to `How Search works` in Google (the last element).
+1. Go to `View -> Reverse Tab In`
+1. Expected: See the focus is set to `How Search works` in Google (the last element).
 
 #### Toggle Tab Handling
 
-Test that enables/disables tab handling
-
+Test that enables/disables tab handling  
 _It is disabled by default. Tabbing behavior should be identical whether this is enabled or disabled._
 
 1. Launch the sample app and load <https://www.google.com>
-2. Click address bar
-3. Press `Tab` twice (-> `Go` -> first element in WebView)
-4. Expected: See the focus is set to `About` in Google (the first element) in the WebView.
-5. Press `Shift+Tab`
-6. Expected: See the focus is set to `Go` with the dotted line.
-7. Press `Shift+Tab` 4 times (-> address bar -> `Cancel` -> `Reload` -> last element in WebView)
-8. Expected: See the focus is set to the `How Search works` in Google (the last element) with the dotted line in the WebView.
-9. Press `Tab`
-10. Expected: See the focus is set to `Reload` with the dotted line.
-11. Go to `View -> Toggle Tab Handling` (Enabling Tab Handling)
-12. Repeat steps 2-10 above.
+1. Click address bar
+1. Press `Tab` twice (-> `Go` -> first element in WebView)
+1. Expected: See the focus is set to `About` in Google (the first element) in the WebView.
+1. Press `Shift+Tab`
+1. Expected: See the focus is set to `Go` with the dotted line.
+1. Press `Shift+Tab` 4 times (-> address bar -> `Reload` -> `Back` -> last element in WebView)
+1. Expected: See the focus is set to the `How Search works` in Google (the last element) with the dotted line in the WebView.
+1. Press `Tab`
+1. Expected: See the focus is set to `Back` with the dotted line.
+1. Go to `View -> Toggle Tab Handling` (Enabling Tab Handling)
+1. Repeat steps 2-10 above.
 
 ### Scenario
 
@@ -820,3 +854,17 @@ Verify that language and conflicting configuration works
 9. After WebView recreation, right click on the page after webview recreation, expect that the context menu is shown in Spanish.
 10. Launch another instance of the sample app.
 11. Expect the new instance to show a dialog stating `Failed to create webview: 0x8007139f`.
+
+#### Saving Password
+
+Verify that we don't offer saving password.
+
+1. Launch the sample app.
+2. Load https://www.w3schools.com/Tags/tryit.asp?filename=tryhtml5_input_type_password, ignore any iframe navigation failure messages during the test.
+3. Type in some test email and password, like test@example.com and 12345678 in Email and Password field on the right part of the page.
+4. Click `Submit` button, the page should show the inputed values.
+5. Make sure that there is no browser prompt for saving password with strings like `Microsoft Edge will save and fill your password for this site next time`.
+6. Reload the page, ignore any iframe navigation failure messages during the test.
+7. Ensure that the fields are not auto filled.
+8. Set focus on Email input, verify that we can choose to auto fill with previously typed in value.
+9. Set focus on Password input, verify that there is no auto fill option showing up.

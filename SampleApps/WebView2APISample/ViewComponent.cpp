@@ -5,23 +5,34 @@
 #include "stdafx.h"
 
 #include "ViewComponent.h"
+#include "DCompTargetImpl.h"
 
 #include <d2d1helper.h>
 #include <sstream>
 #include <windowsx.h>
+#ifdef USE_WEBVIEW2_WIN10
+#include <windows.ui.composition.interop.h>
+#endif
 
 #include "CheckFailure.h"
 
 using namespace Microsoft::WRL;
+namespace numerics = winrt::Windows::Foundation::Numerics;
 static D2D1_MATRIX_4X4_F Convert3x2MatrixTo4x4Matrix(D2D1_MATRIX_3X2_F* matrix3x2);
 
 ViewComponent::ViewComponent(
     AppWindow* appWindow,
     IDCompositionDevice* dcompDevice,
-    IWinCompHelper* wincompHelper)
+#ifdef USE_WEBVIEW2_WIN10
+    winrtComp::Compositor wincompCompositor,
+#endif
+    bool isDcompTargetMode)
     : m_appWindow(appWindow), m_controller(appWindow->GetWebViewController()),
-    m_webView(appWindow->GetWebView()), m_dcompDevice(dcompDevice),
-    m_wincompHelper(wincompHelper)
+      m_webView(appWindow->GetWebView()), m_dcompDevice(dcompDevice),
+#ifdef USE_WEBVIEW2_WIN10
+      m_wincompCompositor(wincompCompositor),
+#endif
+      m_isDcompTargetMode(isDcompTargetMode)
 {
     //! [ZoomFactorChanged]
     // Register a handler for the ZoomFactorChanged event.
@@ -51,16 +62,30 @@ ViewComponent::ViewComponent(
             // Set the host app visual that the WebView will connect its visual
             // tree to.
             BuildDCompTreeUsingVisual();
-            CHECK_FAILURE(m_compositionController->put_RootVisualTarget(m_dcompWebViewVisual.get()));
+            if (m_isDcompTargetMode)
+            {
+                if (!m_dcompTarget)
+                {
+                    m_dcompTarget = Make<DCompTargetImpl>(this);
+                }
+                CHECK_FAILURE(
+                    m_compositionController->put_RootVisualTarget(m_dcompTarget.get()));
+            }
+            else
+            {
+                CHECK_FAILURE(
+                    m_compositionController->put_RootVisualTarget(m_dcompWebViewVisual.get()));
+            }
             CHECK_FAILURE(m_dcompDevice->Commit());
             //! [SetRootVisualTarget]
         }
-        else if (m_wincompHelper)
+#ifdef USE_WEBVIEW2_WIN10
+        else if (m_wincompCompositor)
         {
-            m_wincompHelper->BuildVisualTree(m_appWindow->GetMainWindow(), &m_wincompVisual);
-            CHECK_FAILURE(
-                m_compositionController->put_RootVisualTarget(m_wincompVisual.get()));
+            BuildWinCompVisualTree();
+            CHECK_FAILURE(m_compositionController->put_RootVisualTarget(m_wincompWebViewVisual.as<IUnknown>().get()));
         }
+#endif
         else
         {
             FAIL_FAST();
@@ -69,22 +94,30 @@ ViewComponent::ViewComponent(
         // Register a handler for the CursorChanged event.
         CHECK_FAILURE(m_compositionController->add_CursorChanged(
             Callback<ICoreWebView2ExperimentalCursorChangedEventHandler>(
-                [this](ICoreWebView2ExperimentalCompositionController* sender,
-                    IUnknown* args) -> HRESULT {
-                        HCURSOR cursor;
+                [this](ICoreWebView2ExperimentalCompositionController* sender, IUnknown* args)
+                    -> HRESULT {
+                    HRESULT hr = S_OK;
+                    HCURSOR cursor;
                         CHECK_FAILURE(sender->get_Cursor(&cursor));
-                        SetClassLongPtr(m_appWindow->GetMainWindow(), GCLP_HCURSOR, (LONG_PTR)cursor);
-                        return S_OK;
+                    if (SUCCEEDED(hr))
+                    {
+                        SetClassLongPtr(
+                            m_appWindow->GetMainWindow(), GCLP_HCURSOR, (LONG_PTR)cursor);
+                    }
+                    return hr;
                 })
-            .Get(),
-                    &m_cursorChangedToken));
+                .Get(),
+            &m_cursorChangedToken));
         //! [CursorChanged]
     }
-    else if (m_dcompDevice || m_wincompHelper)
+#ifdef USE_WEBVIEW2_WIN10
+    else if (m_dcompDevice || m_wincompCompositor)
+#else
+    else if (m_dcompDevice)
+#endif
     {
         FAIL_FAST();
     }
-
     ResizeWebView();
 }
 bool ViewComponent::HandleWindowMessage(
@@ -258,10 +291,24 @@ void ViewComponent::ResizeWebView()
                 {0, 0, float(webViewSize.cx), float(webViewSize.cy)}));
             CHECK_FAILURE(m_dcompDevice->Commit());
         }
-        else if (m_wincompHelper)
+#ifdef USE_WEBVIEW2_WIN10
+        else if (m_wincompCompositor)
         {
-            m_wincompHelper->UpdateSizeAndPosition(webViewOffset, webViewSize);
+            if (m_wincompRootVisual != nullptr)
+            {
+                numerics::float2 size = {static_cast<float>(webViewSize.cx),
+                                         static_cast<float>(webViewSize.cy)};
+                m_wincompRootVisual.Size(size);
+
+                numerics::float3 offset = {static_cast<float>(webViewOffset.x),
+                                           static_cast<float>(webViewOffset.y), 0.0f};
+                m_wincompRootVisual.Offset(offset);
+
+                winrtComp::IInsetClip insetClip = m_wincompCompositor.CreateInsetClip();
+                m_wincompRootVisual.Clip(insetClip.as<winrtComp::CompositionClip>());
+            }
         }
+#endif
     }
 }
 //! [ResizeWebView]
@@ -325,17 +372,27 @@ void ViewComponent::SetTransform(TransformType transformType)
         m_webViewTransformMatrix = D2D1::Matrix4x4F();
     }
 
-    if (m_dcompDevice && !m_wincompHelper)
+#ifdef USE_WEBVIEW2_WIN10
+    if (m_dcompDevice && !m_wincompCompositor)
+#else
+    if (m_dcompDevice)
+#endif
     {
         wil::com_ptr<IDCompositionVisual3> dcompWebViewVisual3;
         m_dcompWebViewVisual->QueryInterface(IID_PPV_ARGS(&dcompWebViewVisual3));
         CHECK_FAILURE(dcompWebViewVisual3->SetTransform(m_webViewTransformMatrix));
         CHECK_FAILURE(m_dcompDevice->Commit());
     }
-    else if (m_wincompHelper && !m_dcompDevice)
+#ifdef USE_WEBVIEW2_WIN10
+    else if (m_wincompCompositor && !m_dcompDevice)
     {
-        m_wincompHelper->ApplyMatrix(m_webViewTransformMatrix);
+        if (m_wincompWebViewVisual != nullptr)
+        {
+            m_wincompWebViewVisual.TransformMatrix(
+                *reinterpret_cast<numerics::float4x4*>(&m_webViewTransformMatrix));
+        }
     }
+#endif
     else
     {
         FAIL_FAST();
@@ -358,7 +415,11 @@ static D2D1_MATRIX_4X4_F Convert3x2MatrixTo4x4Matrix(D2D1_MATRIX_3X2_F* matrix3x
 bool ViewComponent::OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
     // Manually relay mouse messages to the WebView
-    if (m_dcompDevice || m_wincompHelper)
+#ifdef USE_WEBVIEW2_WIN10
+    if (m_dcompDevice || m_wincompCompositor)
+#else
+    if (m_dcompDevice)
+#endif
     {
         POINT point;
         POINTSTOPOINT(point, lParam);
@@ -459,7 +520,11 @@ bool ViewComponent::OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 bool ViewComponent::OnPointerMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
     bool handled = false;
-    if (m_dcompDevice || m_wincompHelper)
+#ifdef USE_WEBVIEW2_WIN10
+    if (m_dcompDevice || m_wincompCompositor)
+#else
+    if (m_dcompDevice)
+#endif
     {
         POINT point;
         POINTSTOPOINT(point, lParam);
@@ -545,7 +610,49 @@ void ViewComponent::DestroyDCompVisualTree()
 
         m_dcompDevice->Commit();
     }
+
+    if (m_dcompTarget)
+    {
+        m_dcompTarget->RemoveOwnerRef();
+        m_dcompTarget = nullptr;
+    }
 }
+
+#ifdef USE_WEBVIEW2_WIN10
+void ViewComponent::BuildWinCompVisualTree()
+{
+    namespace abiComp = ABI::Windows::UI::Composition;
+
+    if (m_wincompWebViewVisual == nullptr)
+    {
+        auto interop = m_wincompCompositor.as<abiComp::Desktop::ICompositorDesktopInterop>();
+        winrt::check_hresult(interop->CreateDesktopWindowTarget(
+            m_appWindow->GetMainWindow(), false,
+            reinterpret_cast<abiComp::Desktop::IDesktopWindowTarget**>(winrt::put_abi(m_wincompHwndTarget))));
+
+        m_wincompRootVisual = m_wincompCompositor.CreateContainerVisual();
+        m_wincompHwndTarget.Root(m_wincompRootVisual);
+
+        m_wincompWebViewVisual = m_wincompCompositor.CreateContainerVisual();
+        m_wincompRootVisual.Children().InsertAtTop(m_wincompWebViewVisual);
+    }
+}
+
+void ViewComponent::DestroyWinCompVisualTree()
+{
+    if (m_wincompWebViewVisual != nullptr)
+    {
+        m_wincompWebViewVisual.Children().RemoveAll();
+        m_wincompWebViewVisual = nullptr;
+
+        m_wincompRootVisual.Children().RemoveAll();
+        m_wincompRootVisual = nullptr;
+
+        m_wincompHwndTarget.Root(nullptr);
+        m_wincompHwndTarget = nullptr;
+    }
+}
+#endif
 
 ViewComponent::~ViewComponent()
 {
@@ -553,13 +660,13 @@ ViewComponent::~ViewComponent()
     if (m_compositionController)
     {
         m_compositionController->remove_CursorChanged(m_cursorChangedToken);
-        // If the webview is closed, this will fail but we don't care.
+        // If the webview closes because the AppWindow is closed (as opposed to being closed
+        // explicitly), this will no-op because in this case, the webview closes before the ViewComponent
+        // is destroyed. If the webview is closed explicitly, this will succeed.
         m_compositionController->put_RootVisualTarget(nullptr);
         DestroyDCompVisualTree();
-        if (m_wincompHelper)
-        {
-            m_wincompVisual.reset();
-            m_wincompHelper->DestroyVisualTree();
-        }
+#ifdef USE_WEBVIEW2_WIN10
+        DestroyWinCompVisualTree();
+#endif
     }
 }

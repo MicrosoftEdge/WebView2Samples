@@ -137,9 +137,14 @@ void Toolbar::UpdateFont()
     LOGFONT logFont;
     GetObject(GetStockObject(SYSTEM_FONT), sizeof(LOGFONT), &logFont);
     double dpiScale = m_appWindow->GetDpiScale();
+#ifdef USE_WEBVIEW2_WIN10
     double textScale = m_appWindow->GetTextScale();
     logFont.lfHeight *= dpiScale * textScale;
     logFont.lfWidth *= dpiScale * textScale;
+#else
+    logFont.lfHeight *= dpiScale;
+    logFont.lfWidth *= dpiScale;
+#endif
     StringCchCopy(logFont.lfFaceName, ARRAYSIZE(logFont.lfFaceName), s_fontName);
     m_font = CreateFontIndirect(&logFont);
 }

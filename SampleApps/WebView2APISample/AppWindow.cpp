@@ -6,12 +6,14 @@
 
 #include "AppWindow.h"
 
+#include <DispatcherQueue.h>
 #include <functional>
 #include <string>
 #include <vector>
 #include <ShObjIdl_core.h>
 #include <Shellapi.h>
 #include <ShlObj_core.h>
+#include <winrt/windows.system.h>
 #include "App.h"
 #include "CheckFailure.h"
 #include "ControlComponent.h"
@@ -40,6 +42,7 @@ static constexpr int s_minNewWindowSize = 100;
 AppWindow::AppWindow(
     UINT creationModeId,
     std::wstring initialUri,
+    bool isMainWindow,
     std::function<void()> webviewCreatedCallback,
     bool customWindowRect,
     RECT windowRect,
@@ -48,6 +51,9 @@ AppWindow::AppWindow(
       m_initialUri(initialUri),
       m_onWebViewFirstInitialized(webviewCreatedCallback)
 {
+    // Initialize COM as STA.
+    CHECK_FAILURE(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE));
+
     ++s_appInstances;
 
     WCHAR szTitle[s_maxLoadString]; // The title bar text
@@ -68,6 +74,7 @@ AppWindow::AppWindow(
 
     SetWindowLongPtr(m_mainWindow, GWLP_USERDATA, (LONG_PTR)this);
 
+#ifdef USE_WEBVIEW2_WIN10
     //! [TextScaleChanged1]
     if (winrt::try_get_activation_factory<winrt::Windows::UI::ViewManagement::UISettings>())
     {
@@ -75,6 +82,7 @@ AppWindow::AppWindow(
         m_uiSettings.TextScaleFactorChanged({ this, &AppWindow::OnTextScaleChanged });
     }
     //! [TextScaleChanged1]
+#endif
 
     if (shouldHaveToolbar)
     {
@@ -84,12 +92,10 @@ AppWindow::AppWindow(
     UpdateCreationModeMenu();
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
-
-    RunAsync([this] {
-        InitializeWebView();
-    });
+        RunAsync([this] {
+            InitializeWebView();
+        });
 }
-
 // Register the Win32 window class for the app window.
 PCWSTR AppWindow::GetWindowClass()
 {
@@ -194,7 +200,7 @@ bool AppWindow::HandleWindowMessage(
     {
         int retValue = 0;
         SetWindowLongPtr(hWnd, GWLP_USERDATA, NULL);
-        delete this;
+        NotifyClosed();
         if (--s_appInstances == 0)
         {
             PostQuitMessage(retValue);
@@ -328,7 +334,10 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
         return true;
     case IDM_CREATION_MODE_WINDOWED:
     case IDM_CREATION_MODE_VISUAL_DCOMP:
+    case IDM_CREATION_MODE_TARGET_DCOMP:
+#ifdef USE_WEBVIEW2_WIN10
     case IDM_CREATION_MODE_VISUAL_WINCOMP:
+#endif
         m_creationModeId = LOWORD(wParam);
         UpdateCreationModeMenu();
         return true;
@@ -446,10 +455,13 @@ void AppWindow::InitializeWebView()
     // getting created which will apply the browser switches.
     CloseWebView();
     m_dcompDevice = nullptr;
-    m_wincompHelper = nullptr;
+#ifdef USE_WEBVIEW2_WIN10
+    m_wincompCompositor = nullptr;
+#endif
     LPCWSTR subFolder = nullptr;
 
-    if (m_creationModeId == IDM_CREATION_MODE_VISUAL_DCOMP)
+    if (m_creationModeId == IDM_CREATION_MODE_VISUAL_DCOMP ||
+        m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP)
     {
         HRESULT hr = DCompositionCreateDevice2(nullptr, IID_PPV_ARGS(&m_dcompDevice));
         if (!SUCCEEDED(hr))
@@ -463,9 +475,10 @@ void AppWindow::InitializeWebView()
             return;
         }
     }
+#ifdef USE_WEBVIEW2_WIN10
     else if (m_creationModeId == IDM_CREATION_MODE_VISUAL_WINCOMP)
     {
-        HRESULT hr = CreateWinCompCompositor();
+        HRESULT hr = TryCreateDispatcherQueue();
         if (!SUCCEEDED(hr))
         {
             MessageBox(
@@ -476,10 +489,12 @@ void AppWindow::InitializeWebView()
                 L"Create with Windowless WinComp Visual Failed", MB_OK);
             return;
         }
+        m_wincompCompositor = winrtComp::Compositor();
     }
+#endif
     //! [CreateCoreWebView2EnvironmentWithOptions]
-    auto options = Microsoft::WRL::Make<CoreWebView2ExperimentalEnvironmentOptions>();
-    CHECK_FAILURE(options->put_IsSingleSignOnUsingOSPrimaryAccountEnabled(
+    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+    CHECK_FAILURE(options->put_AllowSingleSignOnUsingOSPrimaryAccount(
         m_AADSSOEnabled ? TRUE : FALSE));
     if (!m_language.empty())
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
@@ -516,7 +531,11 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
 
     auto webViewExperimentalEnvironment =
         m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment>();
-    if (webViewExperimentalEnvironment && (m_dcompDevice || m_wincompHelper))
+#ifdef USE_WEBVIEW2_WIN10
+    if (webViewExperimentalEnvironment && (m_dcompDevice || m_wincompCompositor))
+#else
+    if (webViewExperimentalEnvironment && m_dcompDevice)
+#endif
     {
         CHECK_FAILURE(webViewExperimentalEnvironment->CreateCoreWebView2CompositionController(
             m_mainWindow,
@@ -565,7 +584,12 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
         NewComponent<SettingsComponent>(
             this, m_webViewEnvironment.get(), m_oldSettingsComponent.get());
         m_oldSettingsComponent = nullptr;
-        NewComponent<ViewComponent>(this, m_dcompDevice.get(), m_wincompHelper.get());
+        NewComponent<ViewComponent>(
+            this, m_dcompDevice.get(),
+#ifdef USE_WEBVIEW2_WIN10
+            m_wincompCompositor,
+#endif
+            m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<ControlComponent>(this, &m_toolbar);
 
         // We have a few of our own event handlers to register here as well
@@ -694,11 +718,8 @@ void AppWindow::RegisterEventHandlers()
                 CHECK_FAILURE(args->GetDeferral(&deferral));
                 AppWindow* newAppWindow;
 
-                wil::com_ptr<ICoreWebView2ExperimentalNewWindowRequestedEventArgs>
-                    experimentalArgs;
-                CHECK_FAILURE(args->QueryInterface(IID_PPV_ARGS(&experimentalArgs)));
-                wil::com_ptr<ICoreWebView2ExperimentalWindowFeatures> windowFeatures;
-                CHECK_FAILURE(experimentalArgs->get_WindowFeatures(&windowFeatures));
+                wil::com_ptr<ICoreWebView2WindowFeatures> windowFeatures;
+                CHECK_FAILURE(args->get_WindowFeatures(&windowFeatures));
 
                 RECT windowRect = {0};
                 UINT32 left = 0;
@@ -731,7 +752,7 @@ void AppWindow::RegisterEventHandlers()
 
                 if (!useDefaultWindow)
                 {
-                  newAppWindow = new AppWindow(m_creationModeId, L"", nullptr, true, windowRect, !!shouldHaveToolbar);
+                  newAppWindow = new AppWindow(m_creationModeId, L"", false, nullptr, true, windowRect, !!shouldHaveToolbar);
                 }
                 else
                 {
@@ -840,7 +861,7 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
         // developers specify userDataFolder during WebView environment
         // creation, they would need to pass in that explicit value here.
         // For more information about userDataFolder:
-        // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-538/webview2-idl#createcorewebview2environmentwithoptions
+        // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-622/webview2-idl#createcorewebview2environmentwithoptions
         WCHAR userDataFolder[MAX_PATH] = L"";
         // Obtain the absolute path for relative paths that include "./" or "../"
         _wfullpath(
@@ -863,9 +884,6 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
 
 HRESULT AppWindow::DeleteFileRecursive(std::wstring path)
 {
-    // Initialize COM as STA.
-    CHECK_FAILURE(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE));
-
     wil::com_ptr<IFileOperation> fileOperation;
     CHECK_FAILURE(
         CoCreateInstance(CLSID_FileOperation, NULL, CLSCTX_ALL, IID_PPV_ARGS(&fileOperation)));
@@ -1030,40 +1048,53 @@ HRESULT AppWindow::DCompositionCreateDevice2(IUnknown* renderingDevice, REFIID r
     return hr;
 }
 
-// Helper function that loads WebView2APISampleWinCompHelper.dll which provides an
-// IWinCompHelper abstraction for building a WinComp visual tree. The DLL is dynamically
-// loaded to create the helper interface and create the compositor. Not having a static
-// dependency on WebView2APISampleWinCompHelper.dll enables the sample app to run on
-// versions of Windows that don't support WinComp (since the DLL has a static dependency on
-// WinComp).
-HRESULT AppWindow::CreateWinCompCompositor()
+// WinRT APIs cannot run without a DispatcherQueue. This helper function creates a
+// DispatcherQueueController (which instantiates a DispatcherQueue under the covers) that will
+// manage tasks for the WinRT APIs. The DispatcherQueue implementation lives in
+// CoreMessaging.dll Similar to dcomp.dll, we load CoreMessaging.dll dynamically so the sample
+// app can run on versions of windows that don't have CoreMessaging.
+HRESULT AppWindow::TryCreateDispatcherQueue()
 {
-    HRESULT hr = E_FAIL;
-    static decltype(::CreateWinCompHelper)* fnCreateWinCompHelper = nullptr;
-    if (fnCreateWinCompHelper == nullptr)
+    namespace winSystem = winrt::Windows::System;
+
+    HRESULT hr = S_OK;
+    thread_local winSystem::DispatcherQueueController dispatcherQueueController{ nullptr };
+
+    if (dispatcherQueueController == nullptr)
     {
-        // Use SetErrorMode to ensure an error dialog doesn't pop up if the
-        // WebView2APISampleWinCompHelper.dll fails to load for a missing dependency.
-        SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
-        HMODULE hmod = ::LoadLibraryEx(L"WebView2APISampleWinCompHelper.dll", nullptr, 0);
-        if (hmod != nullptr)
+        hr = E_FAIL;
+        static decltype(::CreateDispatcherQueueController)* fnCreateDispatcherQueueController =
+            nullptr;
+        if (fnCreateDispatcherQueueController == nullptr)
         {
-            fnCreateWinCompHelper = reinterpret_cast<decltype(::CreateWinCompHelper)*>(
-                ::GetProcAddress(hmod, "CreateWinCompHelper"));
+            HMODULE hmod = ::LoadLibraryEx(L"CoreMessaging.dll", nullptr, 0);
+            if (hmod != nullptr)
+            {
+                fnCreateDispatcherQueueController =
+                    reinterpret_cast<decltype(::CreateDispatcherQueueController)*>(
+                        ::GetProcAddress(hmod, "CreateDispatcherQueueController"));
+            }
         }
-        SetErrorMode(0);
-    }
-    if (fnCreateWinCompHelper != nullptr)
-    {
-        hr = fnCreateWinCompHelper(&m_wincompHelper);
-        if (SUCCEEDED(hr))
+        if (fnCreateDispatcherQueueController != nullptr)
         {
-            hr = m_wincompHelper->CreateCompositor();
+            winSystem::DispatcherQueueController controller{ nullptr };
+            DispatcherQueueOptions options
+            {
+                sizeof(DispatcherQueueOptions),
+                DQTYPE_THREAD_CURRENT,
+                DQTAT_COM_STA
+            };
+            hr = fnCreateDispatcherQueueController(
+                options, reinterpret_cast<ABI::Windows::System::IDispatcherQueueController**>(
+                             winrt::put_abi(controller)));
+            dispatcherQueueController = controller;
         }
     }
+
     return hr;
 }
 
+#ifdef USE_WEBVIEW2_WIN10
 //! [TextScaleChanged2]
 void AppWindow::OnTextScaleChanged(
     winrt::Windows::UI::ViewManagement::UISettings const& settings,
@@ -1074,13 +1105,18 @@ void AppWindow::OnTextScaleChanged(
     });
 }
 //! [TextScaleChanged2]
+#endif
 void AppWindow::UpdateCreationModeMenu()
 {
     HMENU hMenu = GetMenu(m_mainWindow);
     CheckMenuRadioItem(
         hMenu,
         IDM_CREATION_MODE_WINDOWED,
+#ifdef USE_WEBVIEW2_WIN10
         IDM_CREATION_MODE_VISUAL_WINCOMP,
+#else
+        IDM_CREATION_MODE_TARGET_DCOMP,
+#endif
         m_creationModeId,
         MF_BYCOMMAND);
 }
@@ -1090,7 +1126,28 @@ double AppWindow::GetDpiScale()
     return DpiUtil::GetDpiForWindow(m_mainWindow) * 1.0f / USER_DEFAULT_SCREEN_DPI;
 }
 
+#ifdef USE_WEBVIEW2_WIN10
 double AppWindow::GetTextScale()
 {
     return m_uiSettings ? m_uiSettings.TextScaleFactor() : 1.0f;
+}
+#endif
+
+void AppWindow::AddRef()
+{
+    InterlockedIncrement((LONG *)&m_refCount);
+}
+
+void AppWindow::Release()
+{
+    uint32_t refCount = InterlockedDecrement((LONG *)&m_refCount);
+    if (refCount == 0)
+    {
+        delete this;
+    }
+}
+
+void AppWindow::NotifyClosed()
+{
+    m_isClosed = true;
 }

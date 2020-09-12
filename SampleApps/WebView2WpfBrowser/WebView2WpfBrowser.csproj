@@ -8,8 +8,9 @@
     <Product>WebView2 WPF Sample Browser App</Product>
     <Copyright>Copyright ©2020</Copyright>
     <NoWin32Manifest>true</NoWin32Manifest>
+    <Configurations>Debug;Release;Win7 Release;Win7 Debug</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="0.9.579-prerelease" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="0.9.628-prerelease" />
   </ItemGroup>
 </Project>

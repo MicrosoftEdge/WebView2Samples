@@ -29,7 +29,6 @@ namespace WebView2WpfBrowser
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
         bool _isNavigating = false;
 
-
         public MainWindow()
         {
             InitializeComponent();

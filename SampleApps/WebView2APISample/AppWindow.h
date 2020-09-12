@@ -16,8 +16,12 @@
 #include <string>
 #include <vector>
 #include <winnt.h>
-#include "WebView2APISample_WinCompHelper/WebView2APISample_WinCompHelper.h"
+#ifdef USE_WEBVIEW2_WIN10
+#include <winrt/Windows.UI.Composition.h>
 #include <winrt/Windows.UI.ViewManagement.h>
+
+namespace winrtComp = winrt::Windows::UI::Composition;
+#endif
 
 class SettingsComponent;
 
@@ -27,6 +31,7 @@ public:
     AppWindow(
         UINT creationModeId,
         std::wstring initialUri = L"https://www.bing.com/",
+        bool isMainWindow = false,
         std::function<void()> webviewCreatedCallback = nullptr,
         bool customWindowRect = false,
         RECT windowRect = { 0 },
@@ -49,7 +54,9 @@ public:
     std::wstring GetLocalUri(std::wstring path);
     std::function<void()> GetAcceleratorKeyFunction(UINT key);
     double GetDpiScale();
+#ifdef USE_WEBVIEW2_WIN10
     double GetTextScale();
+#endif
 
     void ReinitializeWebView();
 
@@ -60,6 +67,10 @@ public:
     void DeleteComponent(ComponentBase* scenario);
 
     void RunAsync(std::function<void(void)> callback);
+
+    void AddRef();
+    void Release();
+    void NotifyClosed();
 
 private:
     static PCWSTR GetWindowClass();
@@ -87,9 +98,11 @@ private:
     void ChangeLanguage();
     void UpdateCreationModeMenu();
     void ToggleAADSSO();
+#ifdef USE_WEBVIEW2_WIN10
     void OnTextScaleChanged(
         winrt::Windows::UI::ViewManagement::UISettings const& uiSettings,
         winrt::Windows::Foundation::IInspectable const& args);
+#endif
     std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
 
@@ -100,6 +113,8 @@ private:
     Toolbar m_toolbar;
     std::function<void()> m_onWebViewFirstInitialized;
     DWORD m_creationModeId = 0;
+    int m_refCount = 1;
+    bool m_isClosed = false;
 
     // The following is state that belongs with the webview, and should
     // be reinitialized along with it. Everything here is undefined when
@@ -127,11 +142,13 @@ private:
 
     // Compositor creation helper methods
     HRESULT DCompositionCreateDevice2(IUnknown* renderingDevice, REFIID riid, void** ppv);
-    HRESULT CreateWinCompCompositor();
+    HRESULT TryCreateDispatcherQueue();
 
     wil::com_ptr<IDCompositionDevice> m_dcompDevice;
-    wil::com_ptr<IWinCompHelper> m_wincompHelper;
+#ifdef USE_WEBVIEW2_WIN10
+    winrtComp::Compositor m_wincompCompositor{ nullptr };
     winrt::Windows::UI::ViewManagement::UISettings m_uiSettings{ nullptr };
+#endif
 };
 
 template <class ComponentType, class... Args> void AppWindow::NewComponent(Args&&... args)

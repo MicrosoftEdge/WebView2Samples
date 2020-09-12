@@ -12,6 +12,7 @@
 #include <shobjidl.h>
 #include <string.h>
 #include <vector>
+
 #include "AppWindow.h"
 #include "DpiUtil.h"
 
@@ -101,10 +102,16 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
                 {
                     creationModeId = IDM_CREATION_MODE_VISUAL_DCOMP;
                 }
+                else if (NEXT_PARAM_CONTAINS(L"targetdcomp"))
+                {
+                    creationModeId = IDM_CREATION_MODE_TARGET_DCOMP;
+                }
+#ifdef USE_WEBVIEW2_WIN10
                 else if (NEXT_PARAM_CONTAINS(L"visualwincomp"))
                 {
                     creationModeId = IDM_CREATION_MODE_VISUAL_WINCOMP;
                 }
+#endif
             }
         }
         LocalFree(params);
@@ -113,7 +120,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
     DpiUtil::SetProcessDpiAwarenessContext(dpiAwarenessContext);
 
-    new AppWindow(creationModeId, initialUri);
+    new AppWindow(creationModeId, initialUri, true);
 
     int retVal = RunMessagePump();
 
