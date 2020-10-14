@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" Name="WebView2SampleApp" Language="1033" Version="1.0.0.0" Manufacturer="Microsoft Corp." UpgradeCode="3bf3b84c-e140-4276-81bd-23f461b01f71">
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perUser"/>
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+    <MediaTemplate EmbedCab="yes"/>
+
+    <!-- Precondition: Check whether WebView RunTime already installed or not -->
+    <Property Id="WVRTINSTALLED">
+      <RegistrySearch Id="WVRTInstalled" Root="HKLM" Key="SOFTWARE\Microsoft\EdgeUpdate\ClientState\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Name="EBWebView" Type="raw" Win64="no"/>
+    </Property>
+
+    <!-- Step 1: Define installation folder -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="INSTALLFOLDER" Name="WebView2SampleApp"/>
+    </Directory>
+
+    <!-- Step 2: Add files to your installer package -->
+    <DirectoryRef Id="INSTALLFOLDER">
+      <!-- Using Project References and Variables: https://wixtoolset.org/documentation/manual/v3/votive/votive_project_references.html -->
+      <!-- Include files to your project by listing it one by one. Only showing key component in one project. No need if choose to use harvest. -->
+      <!-- <Component Id="WebView2APISample.exe" Guid="2DC56D26-A5CC-40ED-81C5-441042F2C46B">
+        <File Id="WebView2APISample.exe" Source="$(var.WebView2APISample.TargetDir)\WebView2APISample.exe" KeyPath="yes" Checksum="yes"/>
+      </Component>
+      <Component Id="WebView2Loader.dll" Guid="624B4B28-4D7F-49D8-9CAD-279FC2AC8D25">
+        <File Id="WebView2Loader.dll" Source="$(var.WebView2APISample.TargetDir)\WebView2Loader.dll" KeyPath="yes"/>
+      </Component> -->
+    </DirectoryRef>
+
+    <!-- Step 3: Tell WiX to install the files -->
+    <Feature Id="MainApplication" Title="Main Application" Level="1" ConfigurableDirectory='INSTALLFOLDER'>
+      <!-- Include files to your project by listing it one by one. Only showing key component in one project. -->
+      <!--<ComponentRef Id="WebView2APISample.exe"/>
+      <ComponentRef Id="WebView2Loader.dll"/>-->
+
+      <!-- Include files to your project by using heat to auto generate the file list. No need for DirectoryRef section. -->
+      <!-- See project file for details -->
+       <ComponentGroupRef Id="AppComponent" />
+    </Feature>
+
+    <!-- [Custom UI] Let User choose install location -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER"/>
+    <UIRef Id="WixUI_InstallDir"/>
+
+    <!-- Step 4: Config Custom Action to download/install Bootstrapper -->
+    <!-- Reference: https://docs.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#understand-the-webview2-runtime-and-installer-preview -->
+    <!-- Note: PerMachine case, user can use Impersonate="no" to run MicrosoftEdgeWebview2Setup.exe elevated with /silent flag to install WebView Runtime silently-->
+
+    <!-- [Package Standalone Installer] Package Standalone Installer as binary stream to use during app install. SourceFile can be anywhere you put the Standalone Installer on. -->
+    <!-- <Binary Id="MicrosoftEdgeWebView2RuntimeInstallerX64.exe" SourceFile="..\MicrosoftEdgeWebView2RuntimeInstallerX64.exe"/>
+    <CustomAction Id='InvokeStandalone' BinaryKey='MicrosoftEdgeWebView2RuntimeInstallerX64.exe' Execute="deferred" ExeCommand=' /install' Return='check' /> -->
+
+    <!-- [Package Bootstrapper] Package bootstrapper as binary stream to use during app install. Source can be anywhere you put the boostrapper on. -->
+    <!-- <Binary Id="MicrosoftEdgeWebview2Setup.exe" SourceFile="..\MicrosoftEdgeWebview2Setup.exe"/>
+    <CustomAction Id='InvokeBootstrapper' BinaryKey='MicrosoftEdgeWebview2Setup.exe' Execute="deferred" ExeCommand=' /install' Return='check' /> -->
+
+    <!-- [Download Bootstrapper] Use fwlink to download bootstrapper to user TEMP folder then invoke it-->
+    <!-- Note: Download will be overrided if file already exist. -->
+    <!-- Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/. -->
+    <!-- Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, including any intellectual property in the Software. You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site (e.g., https://developer.microsoft.com/microsoft-edge/webview2/). -->
+    <CustomAction Id='DownloadAndInvokeBootstrapper' Directory="INSTALLFOLDER" Execute="deferred" ExeCommand='powershell.exe -windowstyle hidden Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "$env:TEMP\MicrosoftEdgeWebview2Setup.exe" ; &amp; $env:TEMP\MicrosoftEdgeWebview2Setup.exe /install' Return='check'/>
+
+    <!-- Step 5: Config execute sequence of custom action -->
+    <InstallExecuteSequence>
+      <!-- [Package Standalone Installer] Package Standalone Installer and invoke at app installation -->
+      <!-- Only run InvokeStandalone action during app install, app repair and when WVRT wasn't installed-->
+      <!-- <Custom Action='InvokeStandalone' Before='InstallFinalize'>
+        <![CDATA[NOT(REMOVE OR WVRTINSTALLED)]]>
+      </Custom> -->
+
+      <!-- [Package Bootstrapper] Package bootstrapper and invoke at app installation-->
+      <!-- Only run InvokeBootstrapper action during app install, app repair and when WVRT wasn't installed-->
+      <!-- <Custom Action='InvokeBootstrapper' Before='InstallFinalize'>
+        <![CDATA[NOT(REMOVE OR WVRTINSTALLED)]]>
+      </Custom> -->
+
+      <!-- [Download Bootstrapper] Use fwlink to download the bootstrapper to user TEMP folder and invoke-->
+      <!-- Only run DownloadAndInvokeBootstrapper action during app install, app repair and when WVRT wasn't installed-->
+      <Custom Action='DownloadAndInvokeBootstrapper' Before='InstallFinalize'>
+        <![CDATA[NOT(REMOVE OR WVRTINSTALLED)]]>
+      </Custom>
+    </InstallExecuteSequence>
+  </Product>
+</Wix>
