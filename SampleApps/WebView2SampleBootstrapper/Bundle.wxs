@@ -18,7 +18,7 @@
 			</ExePackage> -->
 
       <!-- [Package Bootstrapper] Package bootstrapper to use during app install. Source can be anywhere you put the boostrapper on. -->
-      <!-- <ExePackage Id="DownloadAndInvokeBootstrapper" Name="Install WebView2 Runtime" Cache="no" Compressed="no" PerMachine="yes" Vital="no" SourceFile="..\MicrosoftEdgeWebview2Setup.exe" InstallCommand=" /silent /install" InstallCondition="NOT (REMOVE OR WVRTInstalled)" /> -->
+      <ExePackage Id="DownloadAndInvokeBootstrapper" Name="Install WebView2 Runtime" Cache="no" Compressed="no" PerMachine="yes" Vital="no" SourceFile="..\MicrosoftEdgeWebview2Setup.exe" InstallCommand=" /silent /install" InstallCondition="NOT (REMOVE OR WVRTInstalled)" />
 
       <!-- Step 2: Chain Sample App  -->
       <!-- Make sure to comment out default Custom Action in WebView2SampleApp project -->
