@@ -98,7 +98,25 @@ ViewComponent::ViewComponent(
                     -> HRESULT {
                     HRESULT hr = S_OK;
                     HCURSOR cursor;
+                    if (!m_useCursorId)
+                    {
                         CHECK_FAILURE(sender->get_Cursor(&cursor));
+                    }
+                    else
+                    {
+                        //! [SystemCursorId]
+                        UINT32 cursorId;
+                        wil::com_ptr<ICoreWebView2ExperimentalCompositionController2> compositionController2 =
+                            m_controller.query<ICoreWebView2ExperimentalCompositionController2>();
+                        CHECK_FAILURE(compositionController2->get_SystemCursorId(&cursorId));
+                        cursor = ::LoadCursor(nullptr, MAKEINTRESOURCE(cursorId));
+                        if (cursor == nullptr)
+                        {
+                            hr = HRESULT_FROM_WIN32(GetLastError());
+                        }
+                        //! [SystemCursorId]
+                    }
+
                     if (SUCCEEDED(hr))
                     {
                         SetClassLongPtr(
@@ -118,6 +136,7 @@ ViewComponent::ViewComponent(
     {
         FAIL_FAST();
     }
+
     ResizeWebView();
 }
 bool ViewComponent::HandleWindowMessage(
@@ -177,6 +196,9 @@ bool ViewComponent::HandleWindowMessage(
             return true;
         case IDM_GET_WEBVIEW_ZOOM:
             ShowWebViewZoom();
+            return true;
+        case IDM_TOGGLE_CURSOR_HANDLING:
+            m_useCursorId = !m_useCursorId;
             return true;
         }
     }

@@ -23,6 +23,9 @@
 #include "Resource.h"
 #include "ScenarioAddHostObject.h"
 #include "ScenarioAuthentication.h"
+#include "ScenarioCookieManagement.h"
+#include "ScenarioDOMContentLoaded.h"
+#include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
@@ -308,9 +311,31 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
         CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
     }
+    case IDM_SCENARIO_AUTHENTICATION:
+    {
+        NewComponent<ScenarioAuthentication>(this);
+
+        return true;
+    }
+    case IDM_SCENARIO_COOKIE_MANAGEMENT:
+    {
+        NewComponent<ScenarioCookieManagement>(this);
+        return true;
+    }
+    case IDM_SCENARIO_DOM_CONTENT_LOADED:
+    {
+        NewComponent<ScenarioDOMContentLoaded>(this);
+        return true;
+    }
+    case IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST:
+    {
+        NewComponent<ScenarioNavigateWithWebResourceRequest>(this);
+        return true;
+    }
     }
     return false;
 }
+
 // Handle commands not related to the WebView, which will work even if the WebView
 // is not currently initialized.
 bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
@@ -730,8 +755,8 @@ void AppWindow::RegisterEventHandlers()
 
                 BOOL hasPosition = FALSE;
                 BOOL hasSize = FALSE;
-                CHECK_FAILURE(windowFeatures->HasPosition(&hasPosition));
-                CHECK_FAILURE(windowFeatures->HasSize(&hasSize));
+                CHECK_FAILURE(windowFeatures->get_HasPosition(&hasPosition));
+                CHECK_FAILURE(windowFeatures->get_HasSize(&hasSize));
 
                 bool useDefaultWindow = true;
 
@@ -743,7 +768,7 @@ void AppWindow::RegisterEventHandlers()
                     CHECK_FAILURE(windowFeatures->get_Width(&width));
                     useDefaultWindow = false;
                 }
-                CHECK_FAILURE(windowFeatures->get_Toolbar(&shouldHaveToolbar));
+                CHECK_FAILURE(windowFeatures->get_ShouldDisplayToolbar(&shouldHaveToolbar));
 
                 windowRect.left = left;
                 windowRect.right = left + (width < s_minNewWindowSize ? s_minNewWindowSize : width);
@@ -861,7 +886,7 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
         // developers specify userDataFolder during WebView environment
         // creation, they would need to pass in that explicit value here.
         // For more information about userDataFolder:
-        // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-622/webview2-idl#createcorewebview2environmentwithoptions
+        // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/webview2-idl#createcorewebview2environmentwithoptions
         WCHAR userDataFolder[MAX_PATH] = L"";
         // Obtain the absolute path for relative paths that include "./" or "../"
         _wfullpath(
@@ -978,6 +1003,12 @@ std::wstring AppWindow::GetLocalPath(std::wstring relativePath, bool keep_exe_pa
 }
 std::wstring AppWindow::GetLocalUri(std::wstring relativePath)
 {
+#if 0 // To be enabled after AddHostMappingForLocalFolder fully works.
+    //! [LocalUrlUsage]
+    const std::wstring localFileRootUrl = L"https://app-file.invalid/";
+    return localFileRootUrl + regex_replace(relativePath, std::wregex(L"\\"), L"/");
+    //! [LocalUrlUsage]
+#else
     std::wstring path = GetLocalPath(relativePath, false);
 
     wil::com_ptr<IUri> uri;
@@ -986,6 +1017,7 @@ std::wstring AppWindow::GetLocalUri(std::wstring relativePath)
     wil::unique_bstr uriBstr;
     CHECK_FAILURE(uri->GetAbsoluteUri(&uriBstr));
     return std::wstring(uriBstr.get());
+#endif
 }
 
 void AppWindow::RunAsync(std::function<void()> callback)

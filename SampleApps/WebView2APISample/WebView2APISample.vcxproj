@@ -396,6 +396,9 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScenarioAddHostObject.h" />
     <ClInclude Include="ScenarioAuthentication.h" />
+    <ClInclude Include="ScenarioCookieManagement.h" />
+    <ClInclude Include="ScenarioDOMContentLoaded.h" />
+    <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
     <ClInclude Include="ScenarioWebMessage.h" />
     <ClInclude Include="ScenarioWebViewEventMonitor.h" />
     <ClInclude Include="ScriptComponent.h" />
@@ -418,6 +421,9 @@
     <ClCompile Include="HostObjectSampleImpl.cpp" />
     <ClCompile Include="ScenarioAddHostObject.cpp" />
     <ClCompile Include="ScenarioAuthentication.cpp" />
+    <ClCompile Include="ScenarioCookieManagement.cpp" />
+    <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
+    <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
     <ClCompile Include="ScenarioWebMessage.cpp" />
     <ClCompile Include="ScenarioWebViewEventMonitor.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
@@ -456,6 +462,8 @@
     <CopyFileToFolders Include="ScenarioJavaScriptDebugIndex.js" />
     <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.html" />
     <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.ts" />
+    <CopyFileToFolders Include="ScenarioCookieManagement.html" />
+    <CopyFileToFolders Include="ScenarioDOMContentLoaded.html" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="HostObjectSample.idl" TypeLibraryName="$(OutDir)WebView2APISample.tlb" />

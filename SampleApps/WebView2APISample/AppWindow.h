@@ -45,6 +45,10 @@ public:
     {
         return m_webView.get();
     }
+    ICoreWebView2Environment* GetWebViewEnvironment()
+    {
+        return m_webViewEnvironment.get();
+    }
     HWND GetMainWindow()
     {
         return m_mainWindow;

@@ -48,6 +48,7 @@ private:
     EventRegistrationToken m_contentLoadingToken = {};
     EventRegistrationToken m_historyChangedToken = {};
     EventRegistrationToken m_navigationCompletedToken = {};
+    EventRegistrationToken m_DOMContentLoadedToken = {};
     EventRegistrationToken m_documentTitleChangedToken = {};
     EventRegistrationToken m_webMessageReceivedToken = {};
     EventRegistrationToken m_webResourceRequestedToken = {};
