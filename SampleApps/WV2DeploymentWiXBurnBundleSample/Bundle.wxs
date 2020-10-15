@@ -2,7 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:bal="http://schemas.microsoft.com/wix/BalExtension" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Bundle Name="WebView2SampleBootstrapper" Version="1.0.0.0" Manufacturer="Microsoft Corp." UpgradeCode="9a57a789-e554-4b42-b0b7-1a16345c2808">
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense"/>
-    <util:RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\EdgeUpdate\ClientState\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Value="EBWebView" Variable="WVRTInstalled" Win64="no" />
+    <util:RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Value="EBWebView" Variable="WVRTInstalled" Win64="no" />
     <Chain>
       <!-- Step 1: Chain WebView2 RunTime as Prerequisite -->
       <!-- Vital="no" indicate this install will not fail the sequence. If this sequence failed, it will just move on to next install -->
