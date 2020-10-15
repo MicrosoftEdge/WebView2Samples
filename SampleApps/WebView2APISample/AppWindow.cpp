@@ -38,6 +38,45 @@ static thread_local size_t s_appInstances = 0;
 // See https://developer.mozilla.org/en-US/docs/Web/API/Window/open#Size
 static constexpr int s_minNewWindowSize = 100;
 
+// Run Download and Install in another thread so we don't block the UI thread
+DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
+{
+    AppWindow* appWindow = (AppWindow*) lpParameter;
+
+    int returnCode = 2; // Download failed
+    // Use fwlink to download WebView2 Bootstrapper at runtime and invoke installation
+    // Broken/Invalid Https Certificate will fail to download
+    HRESULT hr = URLDownloadToFile(NULL, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
+    if (hr == S_OK)
+    {
+        // Either Package the WebView2 Bootstrapper with your app or download it using fwlink
+        // Then invoke install at Runtime.
+        SHELLEXECUTEINFO shExInfo = {0};
+        shExInfo.cbSize = sizeof(shExInfo);
+        shExInfo.fMask = SEE_MASK_NOASYNC;
+        shExInfo.hwnd = 0;
+        shExInfo.lpVerb = L"runas";
+        shExInfo.lpFile = L"MicrosoftEdgeWebview2Setup.exe";
+        shExInfo.lpParameters = L" /silent /install";
+        shExInfo.lpDirectory = 0;
+        shExInfo.nShow = 0;
+        shExInfo.hInstApp = 0;
+
+        if (ShellExecuteEx(&shExInfo))
+        {
+            returnCode = 0; // Install successfull
+        }
+        else
+        {
+            returnCode = 1; // Install failed
+        }
+    }
+
+    appWindow->InstallComplete(returnCode);
+    appWindow->Release();
+    return returnCode;
+}
+
 // Creates a new window which is a copy of the entire app, but on the same thread.
 AppWindow::AppWindow(
     UINT creationModeId,
@@ -92,10 +131,30 @@ AppWindow::AppWindow(
     UpdateCreationModeMenu();
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
+
+    // If no WebVieRuntime installed, create new thread to do install/download.
+    // Otherwise just initialize webview.
+    wil::unique_cotaskmem_string version_info;
+    HRESULT hr = GetAvailableCoreWebView2BrowserVersionString(nullptr, &version_info);
+    if (hr == S_OK && version_info != nullptr)
+    {
         RunAsync([this] {
             InitializeWebView();
         });
+    }
+    else
+    {
+        if (isMainWindow) {
+            AddRef();
+            CreateThread(0, 0, DownloadAndInstallWV2RT, (void*) this, 0, 0);
+        }
+        else
+        {
+            MessageBox(m_mainWindow, L"WebView Runtime not installed", L"WebView Runtime Installation status", MB_OK);
+        }
+    }
 }
+
 // Register the Win32 window class for the app window.
 PCWSTR AppWindow::GetWindowClass()
 {
@@ -1150,4 +1209,25 @@ void AppWindow::Release()
 void AppWindow::NotifyClosed()
 {
     m_isClosed = true;
+}
+
+void AppWindow::InstallComplete(int return_code)
+{
+    if (!m_isClosed)
+    {
+        if (return_code == 0)
+        {
+            RunAsync([this] {
+                InitializeWebView();
+                });
+        }
+        else if (return_code == 1)
+        {
+            MessageBox(m_mainWindow, L"WebView Runtime failed to Install", L"WebView Runtime Installation status", MB_OK);
+        }
+        else if (return_code == 2)
+        {
+            MessageBox(m_mainWindow, L"WebView Bootstrapper failled to download", L"WebView Bootstrapper Download status", MB_OK);
+        }
+    }
 }
