@@ -22,7 +22,7 @@
 
       <!-- Step 2: Chain Sample App  -->
       <!-- Make sure to comment out default Custom Action in WebView2SampleApp project -->
-      <MsiPackage Id="WebView2SampleAppMsi" SourceFile="$(var.WebView2SampleApp.TargetDir)\WebView2SampleApp.msi" Permanent="no" DisplayInternalUI="yes" Compressed="yes" Vital="yes"/>
+      <MsiPackage Id="WV2DeploymentWiXCustomActionSampleMsi" SourceFile="$(var.WV2DeploymentWiXCustomActionSample.TargetDir)\WV2DeploymentWiXCustomActionSample.msi" Permanent="no" DisplayInternalUI="yes" Compressed="yes" Vital="yes"/>
     </Chain>
   </Bundle>
 </Wix>

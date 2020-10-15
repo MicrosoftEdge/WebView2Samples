@@ -6,8 +6,9 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>352113bf-fb17-4fd4-a47b-7d1013bfb8ae</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>WebView2SampleBootstrapper</OutputName>
+    <OutputName>WV2DeploymentWiXBurnBundleSample</OutputName>
     <OutputType>Bundle</OutputType>
+    <Name>WV2DeploymentWiXBurnBundleSample</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -32,8 +33,8 @@
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\WebView2SampleApp\WebView2SampleApp.wixproj">
-      <Name>WebView2SampleApp</Name>
+    <ProjectReference Include="..\WV2DeploymentWiXCustomActionSample\WV2DeploymentWiXCustomActionSample.wixproj">
+      <Name>WV2DeploymentWiXCustomActionSample</Name>
       <Project>{3494e3e2-cb03-4283-b8f8-e1158cdbaf3f}</Project>
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>

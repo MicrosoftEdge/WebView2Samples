@@ -34,4 +34,4 @@ MicrosoftEdgeWebview2Setup.exe
 MicrosoftEdgeWebView2RuntimeInstallerX64.exe
 
 # Make sure don't pick up the heat generated file
-WebView2SampleApp/HeatGeneratedFileList.wxs
+WV2DeploymentWiXCustomActionSample/HeatGeneratedFileList.wxs

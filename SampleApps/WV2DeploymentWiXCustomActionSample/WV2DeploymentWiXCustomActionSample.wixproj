@@ -6,24 +6,25 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>3494e3e2-cb03-4283-b8f8-e1158cdbaf3f</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>WebView2SampleApp</OutputName>
+    <OutputName>WV2DeploymentWiXCustomActionSample</OutputName>
     <OutputType>Package</OutputType>
+    <Name>WV2DeploymentWiXCustomActionSample</Name>
+    <WixVariables>SubFolder=$(Platform)</WixVariables>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <!-- TODO: Pending more generic way -->
-    <!-- <DefineConstants>HarvestPath=..\WebView2APISample\$(Configuration)\Win32</DefineConstants> -->
     <DefineConstants>Debug</DefineConstants>
+    <WixVariables>SubFolder=Win32</WixVariables>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <!-- <DefineConstants>HarvestPath=..\WebView2APISample\$(Configuration)\Win32</DefineConstants> -->
+    <WixVariables>SubFolder=Win32</WixVariables>
   </PropertyGroup>
   <!-- Using heat to auto generate file list -->
   <PropertyGroup>
-    <DefineConstants>HarvestPath=..\WebView2APISample\$(Configuration)\Win32</DefineConstants>
+    <DefineConstants>HarvestPath=..\WebView2APISample\$(Configuration)\!(wix.SubFolder)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Product.wxs" />
@@ -35,6 +36,16 @@
       <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
       <Name>WixUIExtension</Name>
     </WixExtension>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WebView2APISample\WebView2APISample.vcxproj">
+      <Name>WebView2APISample</Name>
+      <Project>{4f0ceef3-12b3-425e-9bb0-105200411592}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" Condition=" '$(WixTargetsPath)' != '' " />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets" Condition=" '$(WixTargetsPath)' == '' AND Exists('$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets') " />

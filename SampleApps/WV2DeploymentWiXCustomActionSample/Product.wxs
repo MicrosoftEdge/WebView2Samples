@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="WebView2SampleApp" Language="1033" Version="1.0.0.0" Manufacturer="Microsoft Corp." UpgradeCode="3bf3b84c-e140-4276-81bd-23f461b01f71">
+  <Product Id="*" Name="WV2DeploymentWiXCustomActionSample" Language="1033" Version="1.0.0.0" Manufacturer="Microsoft Corp." UpgradeCode="3bf3b84c-e140-4276-81bd-23f461b01f71">
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perUser"/>
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
     <MediaTemplate EmbedCab="yes"/>
@@ -12,7 +12,7 @@
 
     <!-- Step 1: Define installation folder -->
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="INSTALLFOLDER" Name="WebView2SampleApp"/>
+      <Directory Id="INSTALLFOLDER" Name="WV2DeploymentWiXCustomActionSample"/>
     </Directory>
 
     <!-- Step 2: Add files to your installer package -->
