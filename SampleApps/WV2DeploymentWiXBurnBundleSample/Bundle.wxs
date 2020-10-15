@@ -13,12 +13,12 @@
       <!-- We are working on supporting this technology with CertificatePublicKey in the future. -->
       <!-- Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/. -->
       <!-- Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, including any intellectual property in the Software. You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site (e.g., https://developer.microsoft.com/microsoft-edge/webview2/). -->
-      <!-- <ExePackage Id="DownloadAndInvokeBootstrapper" Name="Install WebView2 Runtime" Cache="no" Compressed="no" PerMachine="yes" Vital="no" DownloadUrl="https://go.microsoft.com/fwlink/p/?LinkId=2124703" InstallCommand=" /silent /install" InstallCondition="NOT (REMOVE)">
-				<RemotePayload ProductName="MicrosoftEdgeWebview2Setup" Description="Microsoft Edge WebView2 Update Setup" CertificatePublicKey="3082010a0282010100991b6d44b6c88e4176896d071c603ffb36081588ca8ec3766a75a0b2091adf3c15b3f33304915d4e868f78a9bc7ec170a563c9ce5d06986185935a4a93930bab46444e5c4f6dbce7b8ac5df007ad7126b64da79e332faaf0bed45c5a479c468e20a58dc23f3f9ecbca88b8e0abfb1088cfcd7adf19fd42bd3563a4945a908db47fd387b92b8c8452577027bf15b3455f766f63fdbee84ce59e3ef091321893dade02d44db5dbdac6b6efe8a450f76dcd27c7530e2e2eb47babd2adb1ac749ab25c0ecb706b10ac83798f9bf7b39ce05afacac4c6fe8ad404d33c2b28aaea0146860e4624b2bbfe5941d73256961e60f77e3d956abef1e25c192f304ed4eb19eb0203010001" Hash="82B42348804E8D82C773DC3391B691712BB1B388" Size="1815832" Version="1.3.135.41"/>
+      <!-- <ExePackage Id="DownloadAndInvokeBootstrapper" Name="Install WebView2 Runtime" Cache="no" Compressed="no" PerMachine="yes" Vital="no" DownloadUrl="https://go.microsoft.com/fwlink/p/?LinkId=2124703" InstallCommand=" /silent /install" InstallCondition="NOT (REMOVE OR WVRTInstalled)">
+				<RemotePayload ProductName="MicrosoftEdgeWebview2Setup" Description="Microsoft Edge WebView2 Update Setup" CertificatePublicKey="1392A8505C3B192F62311EA9005E49C1B5358F6B" Hash="82B42348804E8D82C773DC3391B691712BB1B388" Size="1815832" Version="1.3.135.41"/>
 			</ExePackage> -->
 
       <!-- [Package Bootstrapper] Package bootstrapper to use during app install. Source can be anywhere you put the boostrapper on. -->
-      <ExePackage Id="DownloadAndInvokeBootstrapper" Name="Install WebView2 Runtime" Cache="no" Compressed="no" PerMachine="yes" Vital="no" SourceFile="..\MicrosoftEdgeWebview2Setup.exe" InstallCommand=" /silent /install" InstallCondition="NOT (REMOVE OR WVRTInstalled)" />
+      <!-- <ExePackage Id="DownloadAndInvokeBootstrapper" Name="Install WebView2 Runtime" Cache="no" Compressed="no" PerMachine="yes" Vital="no" SourceFile="..\MicrosoftEdgeWebview2Setup.exe" InstallCommand=" /silent /install" InstallCondition="NOT (REMOVE OR WVRTInstalled)" /> -->
 
       <!-- Step 2: Chain Sample App  -->
       <!-- Make sure to comment out default Custom Action in WebView2SampleApp project -->
