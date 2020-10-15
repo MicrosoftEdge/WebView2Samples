@@ -54,6 +54,7 @@
   </Target>
   <!-- Using heat to auto generate file list -->
   <Target Name="BeforeBuild">
+    <!-- Directory subfolder need to change to x64 if packaging x64 bits -->
     <HeatDirectory Directory="..\WebView2APISample\$(Configuration)\Win32" PreprocessorVariable="var.HarvestPath" OutputFile="HeatGeneratedFileList.wxs" Transforms="RemoveNotUsedFiles.xslt" ComponentGroupName="AppComponent" DirectoryRefId="INSTALLFOLDER" GenerateGuidsNow="true" ToolPath="$(WixToolPath)" SuppressFragments="true" SuppressRegistry="true" SuppressRootDirectory="true" />
   </Target>
   <!--
