@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+***********************************************************************
+ 
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+ 
+ THIS CODE AND INFORMATION ARE PROVIDED AS IS WITHOUT WARRANTY OF ANY
+ KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+ PARTICULAR PURPOSE.
+***********************************************************************
+-->
+
+<Product 
+  xmlns="http://schemas.microsoft.com/developer/2004/01/bootstrapper" 
+  ProductCode="Microsoft.Web.WebView2.WebView2Runtime">
+
+  <!-- Defines the list of files to be copied on build. -->
+  <PackageFiles CopyAllPackageFiles="false">
+    <!-- Download the MicrosoftEdgeWebview2Setup.exe and then invoke -->
+    <!-- Note that CertificatePublicKey, Hash, Size and Version are subject to change, and installer workflows requiring knowing these attributes ahead of time, such as WiX Bundle, may be broken. -->
+    <!-- We are working on supporting this technology with PublicKey Hash in the future. -->
+    <!-- <PackageFile Name="MicrosoftEdgeWebview2Setup.exe" HomeSite="WebViewRuntime" PublicKey="3082010a0282010100b39e84f35ccc2cc84dffe6b401629a4a6097a9d0c155c0a9df5d498ffbd546517ee82618e9170499f4ab4210fd8e8d57bfe0951228d73f551e0923bb80d684a8b7417ec20159e3cab8a7e3a50b4064996b0f6c9bf16452c778680a9b58ce7edea035b5b043ff0029993ea8a644accd2b514de27e98e3491eec5e59b653bbe71a5eddfbccf9c819304f82c08faca567fa5f39ecbceb67526fcfedcfeea273edb510259dda84e6cc6d5f8c49dc17bfa49459cbcf5d2259c0f7ee414a8ec197347229e94719285c8f997d5bd109903c5fb822e1c436f77ab1ac0c652ce4fe86edf50e8b1813d918f489b00714ceafa98a5393a117fba5b4636d3c3241cd3d2f6cf90203010001"/> -->
+    
+    <!-- Package the MicrosoftEdgeWebview2Setup.exe and then invoke -->
+    <PackageFile Name="MicrosoftEdgeWebview2Setup.exe" />
+
+    <!-- Package the WebView Standalone Installer -->
+    <!-- <PackageFile Name="MicrosoftEdgeWebView2RuntimeInstallerX64.exe" /> -->
+  </PackageFiles>
+
+  <!-- Check for RegKey to make sure only install if WebView Run time are not installed -->
+  <InstallChecks>
+    <RegistryCheck Property="EdgeRuntimeVersionInstalled" Key="HKLM\SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Value="pv"/>
+  </InstallChecks>
+
+  <!-- Defines how to run the Setup package. -->
+  <!-- /silent flag Arguments is not supported in this technology for now -->
+  <Commands Reboot="Defer">
+    <Command 
+      PackageFile="MicrosoftEdgeWebview2Setup.exe" 
+      Arguments=" /install"
+      EstimatedInstalledBytes="2600000" 
+      EstimatedTempBytes="4500000"
+      EstimatedInstallSeconds="60">
+      <InstallConditions>
+        <BypassIf Property="EdgeRuntimeVersionInstalled" Compare="VersionGreaterThanOrEqualTo" Value="86.0.622.12"/>
+      </InstallConditions>
+      <ExitCodes>
+        <ExitCode Value="0" Result="Success"/>
+        <DefaultExitCode Result="Fail" FormatMessageFromSystem="true" String="GeneralFailure" />
+      </ExitCodes>
+    </Command>
+  </Commands>
+</Product>
