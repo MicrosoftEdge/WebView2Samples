@@ -57,7 +57,8 @@
     <!-- [Download Bootstrapper] Use fwlink to download bootstrapper to user TEMP folder then invoke it-->
     <!-- Note: Download will be overrided if file already exist. -->
     <!-- Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/. -->
-    <!-- Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, including any intellectual property in the Software. You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site (e.g., https://developer.microsoft.com/microsoft-edge/webview2/). -->
+    <!-- Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, including any intellectual property in the Software. 
+    You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site (e.g., https://developer.microsoft.com/microsoft-edge/webview2/). -->
     <CustomAction Id='DownloadAndInvokeBootstrapper' Directory="INSTALLFOLDER" Execute="deferred" ExeCommand='powershell.exe -windowstyle hidden Invoke-WebRequest -Uri "https://go.microsoft.com/fwlink/p/?LinkId=2124703" -OutFile "$env:TEMP\MicrosoftEdgeWebview2Setup.exe" ; &amp; $env:TEMP\MicrosoftEdgeWebview2Setup.exe /install' Return='check'/>
 
     <!-- Step 5: Config execute sequence of custom action -->

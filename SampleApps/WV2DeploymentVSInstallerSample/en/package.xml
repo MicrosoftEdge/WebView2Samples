@@ -27,7 +27,8 @@
     <String Name="AdminRequired">Administrator permissions are required to install the Microsoft Edge WebView2 runtime.</String>
     <String Name="GeneralFailure">A failure occurred attempting to install the Microsoft Edge WebView2 runtime.</String>
     <!-- Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/. -->
-    <!-- Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, including any intellectual property in the Software. You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site (e.g., https://developer.microsoft.com/microsoft-edge/webview2/). -->
+    <!-- Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, including any intellectual property in the Software. 
+    You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site (e.g., https://developer.microsoft.com/microsoft-edge/webview2/). -->
     <String Name="WebViewRuntime">https://go.microsoft.com/fwlink/p/?LinkId=2124703</String>
   </Strings>
 </Package>

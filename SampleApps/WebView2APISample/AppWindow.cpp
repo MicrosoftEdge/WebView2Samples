@@ -49,7 +49,8 @@ DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
     // Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/.
     // Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, 
     // including any intellectual property in the Software. 
-    // You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site (e.g., https://developer.microsoft.com/microsoft-edge/webview2/).
+    // You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site
+    // (e.g., https://developer.microsoft.com/microsoft-edge/webview2/).
     HRESULT hr = URLDownloadToFile(NULL, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
     if (hr == S_OK)
     {
