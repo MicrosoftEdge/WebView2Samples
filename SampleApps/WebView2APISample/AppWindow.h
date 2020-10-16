@@ -68,6 +68,8 @@ public:
 
     void RunAsync(std::function<void(void)> callback);
 
+    void InstallComplete(int return_code);
+
     void AddRef();
     void Release();
     void NotifyClosed();

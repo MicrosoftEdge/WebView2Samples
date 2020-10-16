@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+***********************************************************************
+ 
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+ 
+ THIS CODE AND INFORMATION ARE PROVIDED AS IS WITHOUT WARRANTY OF ANY
+ KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+ PARTICULAR PURPOSE.
+***********************************************************************
+-->
+
+<Package 
+  xmlns="http://schemas.microsoft.com/developer/2004/01/bootstrapper"
+  Name="DisplayName"
+  Culture="Culture"
+  LicenseAgreement="eula.rtf">
+  <PackageFiles>
+    <PackageFile Name="eula.rtf"/>
+  </PackageFiles>
+
+  <!-- Defines a localizable string table for messages. -->
+  <Strings>
+    <String Name="DisplayName">Edge WebView2 runtime</String>
+    <String Name="Culture">en</String>
+    <String Name="AdminRequired">Administrator permissions are required to install the Microsoft Edge WebView2 runtime.</String>
+    <String Name="GeneralFailure">A failure occurred attempting to install the Microsoft Edge WebView2 runtime.</String>
+    <!-- Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/. -->
+    <!-- Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, including any intellectual property in the Software. 
+    You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site (e.g., https://developer.microsoft.com/microsoft-edge/webview2/). -->
+    <String Name="WebViewRuntime">https://go.microsoft.com/fwlink/p/?LinkId=2124703</String>
+  </Strings>
+</Package>
