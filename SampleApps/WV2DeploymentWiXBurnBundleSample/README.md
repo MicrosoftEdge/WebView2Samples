@@ -35,6 +35,7 @@ Packaging the Evergreen WebView2 Runtime Standalone Installer is very similar to
 
 To create a WiX installer that chain-installs the Evergreen WebView2 Runtime through Burn Bundle,
 
+1. Clone the repo.
 1. Open `../WebView2Samples.sln` with Visual Studio. 
 1. This sample is an extension to the [WV2DeploymentWiXCustomActionSample](../WV2DeploymentWiXCustomActionSample/README.md) sample. Let's open `Product.wxs` under the `WV2DeploymentWiXCustomActionSample` project, and comment out all the `<Binary>`, `<CustomAction>`, and `<Custom>` elements under `<!-- Step 4: Config Custom Action to download/install Bootstrapper -->` and `<!-- Step 5: Config execute sequence of custom action -->` so that Custom Action is not used.
 1. Open `Bundle.wxs` under the `WV2DeploymentWiXBurnBundleSample` project. Edit `Bundle.wxs` depending on the workflow you wish to use.

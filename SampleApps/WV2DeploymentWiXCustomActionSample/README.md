@@ -34,6 +34,7 @@ This sample showcases [deployment workflows](https://docs.microsoft.com/microsof
 
 To create a WiX installer that chain-installs the Evergreen WebView2 Runtime through Custom Action,
 
+1. Clone the repo.
 1. Open `../WebView2Samples.sln` with Visual Studio, then open `Product.wxs` under the `WV2DeploymentWiXCustomActionSample` project. Edit `Product.wxs` depending on the workflow you wish to use.
     * For "Download the Evergreen WebView2 Runtime Bootstrapper through link",
         * Under `<!-- Step 4: Config Custom Action to download/install Bootstrapper -->`, uncomment the `<CustomAction Id='DownloadAndInvokeBootstrapper' ...>` element below `<!-- [Download Bootstrapper] ... -->`. Comment out other `<Binary>` and `<CustomAction>` elements.

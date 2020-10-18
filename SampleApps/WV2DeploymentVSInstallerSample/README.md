@@ -33,6 +33,7 @@ This sample showcases [deployment workflows](https://docs.microsoft.com/microsof
 
 To create a VS installer that chain-install the Evergreen WebView2 Runtime,
 
+1. Clone the repo.
 1. Edit the `product.xml` file depending on the workflow you wish to use. 
     * For "Package the Evergreen WebView2 Runtime Bootstrapper",
         * Within the `<PackageFiles CopyAllPackageFiles="false">` and `</PackageFiles>` section, un-comment the line `<PackageFile Name="MicrosoftEdgeWebview2Setup.exe" />`, and comment out other lines.
