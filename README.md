@@ -8,8 +8,7 @@ In the ``GettingStarted`` folder you will find the starter code for its respecti
 - WinUI Getting Started (Releasing Soon)
 
 In the ``Sample Apps`` folder you will find:
-- [WebView2Samples.sln](SampleApps/WebView2Samples.sln) - a collective soluction that inlcudes [WebView2APISample.vcxproj](SampleApps/WebView2APISample/WebView2APISample.vcxproj), [WebView2WpfBrowser.csproj](SampleApps/WebView2WpfBrowser/WebView2WpfBrowser.csproj), and [WebView2WindowsFormsBrowser.csproj](SampleApps/WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj).
-
+- [WebView2Samples.sln](SampleApps/WebView2Samples.sln) - a collective solution that includes [WebView2APISample.vcxproj](SampleApps/WebView2APISample/WebView2APISample.vcxproj), [WebView2WpfBrowser.csproj](SampleApps/WebView2WpfBrowser/WebView2WpfBrowser.csproj), [WebView2WindowsFormsBrowser.csproj](SampleApps/WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj), [WV2DeploymentWiXCustomActionSample](/SampleApps/WV2DeploymentWiXCustomActionSample/README.md), and [WV2DeploymentWiXBurnBundleSample](/SampleApps/WV2DeploymentWiXBurnBundleSample/README.md).
 
 Please leave feedback in our [our feedback repo](https://aka.ms/webviewfeedback)!
 
@@ -30,6 +29,14 @@ The **Win32 C++ Sample** can be found in the [WebView2APISample](./SampleApps/We
 The [WebView2Browser](https://github.com/MicrosoftEdge/WebView2Browser) is an additional Win32 WebView2 sample project that uses multiple WebViews in a single application. Clone this project by running `git clone https://github.com/MicrosoftEdge/WebView2Browser.git`.
 
 Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Browser) to learn how to build an application that utilizes multiple WebViews.
+
+## WebView2 Deployment Samples
+
+To help developers understand how to [deploy Evergreen WebView2 Runtime](https://docs.microsoft.com/microsoft-edge/webview2/concepts/distribution#deploying-the-evergreen-webview2-runtime) with your applications, we have following samples:
+
+* [WV2DeploymentWiXCustomActionSample](/SampleApps/WV2DeploymentWiXCustomActionSample/README.md) creates a [WiX](https://wixtoolset.org/) installer for [WebView2APISample](./SampleApps/WebView2APISample/README.md) and uses [WiX Custom Action](https://wixtoolset.org/documentation/manual/v3/wixdev/extensions/authoring_custom_actions.html) to chain-install the Evergreen WebView2 Runtime.
+* [WV2DeploymentWiXBurnBundleSample](/SampleApps/WV2DeploymentWiXBurnBundleSample/README.md) creates a [WiX](https://wixtoolset.org/) installer for [WebView2APISample](./SampleApps/WebView2APISample/README.md) and uses [WiX Burn Bundle](https://wixtoolset.org/documentation/manual/v3/bundle/) to chain-install the Evergreen WebView2 Runtime.
+* [WV2DeploymentVSInstallerSample](/SampleApps/WV2DeploymentVSInstallerSample/README.md) uses the [Microsoft Visual Studio Installer Projects](https://marketplace.visualstudio.com/items?itemName=visualstudioclient.MicrosoftVisualStudio2017InstallerProjects) to create an installer for [WebView2APISample](./SampleApps/WebView2APISample/README.md) and chain-install the Evergreen WebView2 Runtime.
 
 ## .NET (WPF and Windows Forms)
 
