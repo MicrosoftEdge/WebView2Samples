@@ -26,30 +26,30 @@
     <h2>Creating Cookie Manager</h2>
     <p>
         One can start off by getting the cookie manager associated with the WebView2 by using
-        <code>ICoreWebView2Staging::get_CookieManager</code>.
+        <code>ICoreWebView2Experimental::get_CookieManager</code>.
     </p>
 
     <h2>Getting Cookies</h2>
     <p>
-        One can use the cookie manager to get an <code>ICoreWebView2StagingCookieList</code>
-        that contains the <code>ICoreWebView2StagingCookie</code>s that are associated with the specified URI.
+        One can use the cookie manager to get an <code>ICoreWebView2ExperimentalCookieList</code>
+        that contains the <code>ICoreWebView2ExperimentalCookie</code>s that are associated with the specified URI.
         Try clicking the Get cookies button below. If calling <code>GetCookies</code> with an empty URI, all cookies under the same profile are
         returned.
     </p>
 
     <input type="text" id="getCookiesParam1" placeholder="URI" />
     <button id="getCookiesButton" onclick="GetCookies()">Get cookies</button>
-    <label for="getCookiesButton">Runs <code>ICoreWebView2StagingCookieManager::GetCookies</code>. </label>
+    <label for="getCookiesButton">Runs <code>ICoreWebView2ExperimentalCookieManager::GetCookies</code>. </label>
 
     <br>
 
     <h2>Adding or Updating Cookie</h2>
-    <p>One can set a cookie by first creating a cookie object calling <code>ICoreWebView2StagingCookieManager::CreateCookie</code>. </p>
+    <p>One can set a cookie by first creating a cookie object calling <code>ICoreWebView2ExperimentalCookieManager::CreateCookie</code>. </p>
 
     <button id="addOrUpdateCookieButton" onclick="AddOrUpdateCookie()">Add or update cookie</button>
     <label for="addOrUpdateCookieButton">
-        This creates an <code>ICoreWebView2StagingCookie</code> with <code>CookieName</code> and <code>CookieValue</code>, and then runs
-        <code>ICoreWebView2StagingCookieManager::AddOrUpdateCookie</code> with such <code>ICoreWebView2StagingCookie</code>.
+        This creates an <code>ICoreWebView2ExperimentalCookie</code> with <code>CookieName</code> and <code>CookieValue</code>, and then runs
+        <code>ICoreWebView2ExperimentalCookieManager::AddOrUpdateCookie</code> with such <code>ICoreWebView2ExperimentalCookie</code>.
     </label>
 
     <br>
@@ -57,6 +57,6 @@
     <h2>Clearing Cookies</h2>
 
     <button id="clearCookiesButton" onclick="DeleteAllCookies()">Clear cookies</button>
-    <label for="clearCookiesButton">Runs <code>ICoreWebView2StagingCookieManager::DeleteAllCookies</code>. </label>
+    <label for="clearCookiesButton">Runs <code>ICoreWebView2ExperimentalCookieManager::DeleteAllCookies</code>. </label>
 </body>
 </html>

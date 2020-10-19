@@ -25,7 +25,7 @@ ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow)
     CHECK_FAILURE(settings->put_IsWebMessageEnabled(TRUE));
 
     //! [CookieManager]
-    m_webViewExperimental = m_webView.query<ICoreWebView2Experimental>();
+    m_webViewExperimental = m_webView.try_query<ICoreWebView2Experimental>();
     CHECK_FAILURE(m_webViewExperimental->get_CookieManager(&m_cookieManager));
     //! [CookieManager]
 

@@ -6,7 +6,7 @@ These are instructions for manually testing all the features of the WebView2 API
 
 * [Getting started](#Getting-started)
   * [Install a NuGet package Locally in VS](#Install-a-NuGet-package-Locally-in-VS)
-* [UI Entries](#UI_Entries)
+* [UI Entries](#ui-entries)
   * [File](#File)
     * [Save Screenshot](#Save-Screenshot)
     * [Get Document Title](#Get-Document-Title)
@@ -17,11 +17,9 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Inject Script](#Inject-Script)
     * [Post Message String](#Post-Message-String)
     * [Post Message JSON](#Post-Message-JSON)
-    * [Add Initialize Script](#Add/Remove-Initialize-Script)
-    * [Remove Initialize Script](#Add/Remove-Initialize-Script)
-    * [Subscribe to CDP event](#Subscribe-to-CDP-event-&-Call-CDP-method)
-    * [Call CDP method](#Subscribe-to-CDP-event-&-Call-CDP-method)
-    * [Add COM Object](#Add-COM-Object)
+    * [Add Initialize Script](#addremove-initialize-script)
+    * [Remove Initialize Script](#addremove-initialize-script)
+    * [Subscribe to CDP event & Call CDP method](#subscribe-to-cdp-event--call-cdp-method)
     * [Open DevTools Window](#Open-DevTools-Window)
   * [Window](#Window)
     * [Close WebView](#Close-WebView)
@@ -60,7 +58,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Host Objects](#Host-Objects)
     * [Script Debugging](#Script-Debugging)
   * [Help](#Help)
-    * [About ...](#About-...)
+    * [About ...](#about-)
   * [Miscellaneous](#Miscellaneous)
     * [Accelerator Key Support](#Accelerator-Key-Support)
     * [Language](#Language)
@@ -723,7 +721,7 @@ Menu item `Script -> Host Objects` is demonstrated.
 
 Test Single WebView JavaScript Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
-1. Follow [Debugging Setup](#[vscode]-debugging-setup)
+1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
 1. On the top drop down, select `$(Debugger): Sample app (Script $(Configuration)|$(Platform))`. (e.g. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)` and `JavaScript Debugger(Nightly): Sample app (Script Release|x64)`)
   ![debugger-dropdown](screenshots/debugger-dropdown.png)
@@ -738,7 +736,7 @@ Test Single WebView JavaScript Debugging with **both** [Debugger For Microsoft E
 
 Test Single WebView TypeScript Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
-1. Follow [Debugging Setup](#[vscode]-debugging-setup)
+1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
 1. On the top drop down, select `$(Debugger): Sample app (Script $(Configuration)|$(Platform))`. (e.g. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)` and `JavaScript Debugger(Nightly): Sample app (Script Release|x64)`)
   ![debugger-dropdown](screenshots/debugger-dropdown.png)
@@ -755,7 +753,7 @@ Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge]
 
 1. Add a new REGKEY `additionalBrowserArguments=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\EmbeddedBrowserWebView\LoaderOverride\*`
   ![step 1](screenshots/script-debugging-reg-key.png)
-1. Follow [Debugging Setup](#[vscode]-debugging-setup)
+1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
 1. On the top drop down, select `$(Debugger): Attach to Edge`. (e.g. `Debugger For Microsoft Edge: Attach to Edge` and `JavaScript Debugger(Nightly): Attach to Edge`)
 1. Press `F5` or click the green Button (GO) to Start Debugging
@@ -772,7 +770,7 @@ Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge]
 
 1. Add a new REGKEY `additionalBrowserArguments=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\EmbeddedBrowserWebView\LoaderOverride\*`
   ![step 1](screenshots/script-debugging-reg-key.png)
-1. Follow [Debugging Setup](#[vscode]-debugging-setup)
+1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
 1. On the top drop down, select `$(Debugger): Attach to Edge`. (e.g. `Debugger For Microsoft Edge: Attach to Edge` and `JavaScript Debugger(Nightly): Attach to Edge`)
 1. Press `F5` or click the green Button (GO) to Start Debugging

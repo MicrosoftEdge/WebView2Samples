@@ -165,7 +165,7 @@ BEGIN
         END
         MENUITEM "Authentication",              IDM_SCENARIO_AUTHENTICATION
         MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
-        MENUITEM "DOM Content Loaded",           IDM_SCENARIO_DOM_CONTENT_LOADED
+        MENUITEM "DOM Content Loaded",          IDM_SCENARIO_DOM_CONTENT_LOADED
         MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
     END
     POPUP "&Help"

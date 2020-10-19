@@ -81,6 +81,9 @@
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AppStartPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -158,6 +161,9 @@
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AppStartPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc">
@@ -168,6 +174,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <CopyFileToFolders Include="AppStartPage.html" />
+    <CopyFileToFolders Include="AppStartPage.js" />
     <CopyFileToFolders Include="ScenarioWebMessage.html" />
     <CopyFileToFolders Include="ScenarioAddHostObject.html" />
     <CopyFileToFolders Include="ScenarioCookieManagement.html" />
@@ -177,6 +185,9 @@
     <CopyFileToFolders Include="ScenarioJavaScriptDebugIndex.js" />
     <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.html" />
     <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.ts" />
+    <CopyFileToFolders Include="AppStartPageBackground.png">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">

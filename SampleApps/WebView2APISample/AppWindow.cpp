@@ -15,6 +15,7 @@
 #include <ShlObj_core.h>
 #include <winrt/windows.system.h>
 #include "App.h"
+#include "AppStartPage.h"
 #include "CheckFailure.h"
 #include "ControlComponent.h"
 #include "DpiUtil.h"
@@ -52,7 +53,7 @@ DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
     // Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/.
     // Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, 
     // including any intellectual property in the Software. 
-    // You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site
+    // You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site 
     // (e.g., https://developer.microsoft.com/microsoft-edge/webview2/).
     HRESULT hr = URLDownloadToFile(NULL, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
     if (hr == S_OK)
@@ -693,9 +694,17 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_onWebViewFirstInitialized = nullptr;
         }
 
-        if (!m_initialUri.empty())
+        if (m_initialUri.empty())
         {
-            m_webView->Navigate(m_initialUri.c_str());
+            // StartPage uses initialized values of the WebView and Environment
+            // so we wait to call StartPage::GetUri until after the WebView is
+            // created.
+            m_initialUri = AppStartPage::GetUri(this);
+        }
+
+        if (m_initialUri != L"none")
+        {
+            CHECK_FAILURE(m_webView->Navigate(m_initialUri.c_str()));
         }
     }
     else
