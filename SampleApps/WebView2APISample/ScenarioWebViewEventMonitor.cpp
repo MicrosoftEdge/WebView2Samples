@@ -38,6 +38,7 @@ ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEve
 ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
 {
     m_webviewEventSource->remove_NavigationStarting(m_navigationStartingToken);
+    m_webviewEventSource->remove_FrameNavigationStarting(m_frameNavigationStartingToken);
     m_webviewEventSource->remove_SourceChanged(m_sourceChangedToken);
     m_webviewEventSource->remove_ContentLoading(m_contentLoadingToken);
     m_webviewEventSource->remove_HistoryChanged(m_historyChangedToken);
@@ -45,6 +46,7 @@ ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
     m_webviewEventSource->remove_DocumentTitleChanged(m_documentTitleChangedToken);
     m_webviewEventSource->remove_WebMessageReceived(m_webMessageReceivedToken);
     m_webviewEventSource->remove_NewWindowRequested(m_newWindowRequestedToken);
+    m_webviewEventSourceExperimental->remove_DOMContentLoaded(m_DOMContentLoadedToken);
     EnableWebResourceRequestedEvent(false);
     EnableWebResourceResponseReceivedEvent(false);
 
@@ -222,10 +224,9 @@ std::wstring GetPreviewOfContent(IStream* content, bool& readAll)
     return std::wstring(converted);
 }
 
-std::wstring ResponseToJsonString(ICoreWebView2WebResourceResponse* response)
+std::wstring ResponseToJsonString(
+    ICoreWebView2ExperimentalWebResourceResponseView* response, IStream* content)
 {
-    wil::com_ptr<IStream> content;
-    CHECK_FAILURE(response->get_Content(&content));
     wil::com_ptr<ICoreWebView2HttpResponseHeaders> headers;
     CHECK_FAILURE(response->get_Headers(&headers));
     int statusCode;
@@ -260,7 +261,7 @@ std::wstring ResponseToJsonString(ICoreWebView2WebResourceResponse* response)
         else
         {
             bool readAll = false;
-            result += EncodeQuote(GetPreviewOfContent(content.get(), readAll));
+            result += EncodeQuote(GetPreviewOfContent(content, readAll));
             if (!readAll)
             {
               result += L"...";
@@ -311,13 +312,15 @@ void ScenarioWebViewEventMonitor::EnableWebResourceResponseReceivedEvent(bool en
                     -> HRESULT {
                     wil::com_ptr<ICoreWebView2WebResourceRequest> webResourceRequest;
                     CHECK_FAILURE(args->get_Request(&webResourceRequest));
-                    wil::com_ptr<ICoreWebView2WebResourceResponse> webResourceResponse;
+                    wil::com_ptr<ICoreWebView2ExperimentalWebResourceResponseView>
+                        webResourceResponse;
                     CHECK_FAILURE(args->get_Response(&webResourceResponse));
-                    //! [PopulateResponseContent]
-                    args->PopulateResponseContent(
+                    //! [GetContent]
+                    webResourceResponse->GetContent(
                         Callback<
-                            ICoreWebView2ExperimentalWebResourceResponseReceivedEventArgsPopulateResponseContentCompletedHandler>(
-                            [this, webResourceRequest, webResourceResponse](HRESULT result) {
+                            ICoreWebView2ExperimentalWebResourceResponseViewGetContentCompletedHandler>(
+                            [this, webResourceRequest,
+                             webResourceResponse](HRESULT result, IStream* content) {
                                 std::wstring message =
                                     L"{ \"kind\": \"event\", \"name\": "
                                     L"\"WebResourceResponseReceived\", \"args\": {"
@@ -325,7 +328,8 @@ void ScenarioWebViewEventMonitor::EnableWebResourceResponseReceivedEvent(bool en
                                     RequestToJsonString(webResourceRequest.get()) +
                                     L", "
                                     L"\"response\": " +
-                                    ResponseToJsonString(webResourceResponse.get()) + L"}";
+                                    ResponseToJsonString(webResourceResponse.get(), content) +
+                                    L"}";
 
                                 message +=
                                     WebViewPropertiesToJsonString(m_webviewEventSource.get());
@@ -334,7 +338,7 @@ void ScenarioWebViewEventMonitor::EnableWebResourceResponseReceivedEvent(bool en
                                 return S_OK;
                             })
                             .Get());
-                    //! [PopulateResponseContent]
+                    //! [GetContent]
                     return S_OK;
                 })
                 .Get(),
@@ -571,7 +575,7 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 return S_OK;
             })
             .Get(),
-        &m_navigationStartingToken);
+        &m_sourceChangedToken);
 
     m_webviewEventSource->add_ContentLoading(
         Callback<ICoreWebView2ContentLoadingEventHandler>(
@@ -595,7 +599,7 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 return S_OK;
             })
             .Get(),
-        &m_navigationStartingToken);
+        &m_contentLoadingToken);
 
     m_webviewEventSource->add_HistoryChanged(
         Callback<ICoreWebView2HistoryChangedEventHandler>(
@@ -609,7 +613,7 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 return S_OK;
             })
             .Get(),
-        &m_navigationStartingToken);
+        &m_historyChangedToken);
 
     m_webviewEventSource->add_NavigationCompleted(
         Callback<ICoreWebView2NavigationCompletedEventHandler>(
@@ -638,7 +642,28 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 return S_OK;
             })
             .Get(),
-        &m_navigationStartingToken);
+        &m_navigationCompletedToken);
+
+    m_webviewEventSourceExperimental->add_DOMContentLoaded(
+        Callback<ICoreWebView2ExperimentalDOMContentLoadedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2ExperimentalDOMContentLoadedEventArgs* args)
+                -> HRESULT {
+                UINT64 navigationId = 0;
+                CHECK_FAILURE(args->get_NavigationId(&navigationId));
+
+                std::wstring message =
+                    L"{ \"kind\": \"event\", \"name\": \"DOMContentLoaded\", \"args\": {";
+
+                message += L"\"navigationId\": " + std::to_wstring(navigationId) + L", ";
+
+                message +=
+                    L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                PostEventMessage(message);
+
+                return S_OK;
+            })
+            .Get(),
+        &m_DOMContentLoadedToken);
 
     m_webviewEventSource->add_DocumentTitleChanged(
         Callback<ICoreWebView2DocumentTitleChangedEventHandler>(
@@ -653,7 +678,7 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 return S_OK;
             })
             .Get(),
-        &m_navigationStartingToken);
+        &m_documentTitleChangedToken);
 }
 
 void ScenarioWebViewEventMonitor::PostEventMessage(std::wstring message)

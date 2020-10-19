@@ -384,6 +384,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
+    <ClInclude Include="AppStartPage.h" />
     <ClInclude Include="AppWindow.h" />
     <ClInclude Include="CheckFailure.h" />
     <ClInclude Include="ComponentBase.h" />
@@ -396,6 +397,9 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScenarioAddHostObject.h" />
     <ClInclude Include="ScenarioAuthentication.h" />
+    <ClInclude Include="ScenarioCookieManagement.h" />
+    <ClInclude Include="ScenarioDOMContentLoaded.h" />
+    <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
     <ClInclude Include="ScenarioWebMessage.h" />
     <ClInclude Include="ScenarioWebViewEventMonitor.h" />
     <ClInclude Include="ScriptComponent.h" />
@@ -408,6 +412,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="AppStartPage.cpp" />
     <ClCompile Include="AppWindow.cpp" />
     <ClCompile Include="CheckFailure.cpp" />
     <ClCompile Include="ControlComponent.cpp" />
@@ -418,6 +423,9 @@
     <ClCompile Include="HostObjectSampleImpl.cpp" />
     <ClCompile Include="ScenarioAddHostObject.cpp" />
     <ClCompile Include="ScenarioAuthentication.cpp" />
+    <ClCompile Include="ScenarioCookieManagement.cpp" />
+    <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
+    <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
     <ClCompile Include="ScenarioWebMessage.cpp" />
     <ClCompile Include="ScenarioWebViewEventMonitor.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
@@ -449,6 +457,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <CopyFileToFolders Include="AppStartPage.html" />
+    <CopyFileToFolders Include="AppStartPage.js" />
+    <CopyFileToFolders Include="AppStartPageBackground.png" />
     <CopyFileToFolders Include="ScenarioAddHostObject.html" />
     <CopyFileToFolders Include="ScenarioWebMessage.html" />
     <CopyFileToFolders Include="ScenarioWebViewEventMonitor.html" />
@@ -456,6 +467,8 @@
     <CopyFileToFolders Include="ScenarioJavaScriptDebugIndex.js" />
     <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.html" />
     <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.ts" />
+    <CopyFileToFolders Include="ScenarioCookieManagement.html" />
+    <CopyFileToFolders Include="ScenarioDOMContentLoaded.html" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="HostObjectSample.idl" TypeLibraryName="$(OutDir)WebView2APISample.tlb" />
@@ -463,13 +476,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
-    <Import Project="..\packages\Microsoft.Web.WebView2.0.9.628-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.0.9.628-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.674-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.674-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.0.9.628-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.0.9.628-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.674-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.674-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
   </Target>
 </Project>

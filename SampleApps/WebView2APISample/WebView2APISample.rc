@@ -147,6 +147,7 @@ BEGIN
           MENUITEM "Rotate 30Deg"               IDM_TRANSFORM_ROTATE_30DEG
           MENUITEM "Rotate 60Deg Diagonally"    IDM_TRANSFORM_ROTATE_60DEG_DIAG
         END
+        MENUITEM "Toggle Cursor Handling"       IDM_TOGGLE_CURSOR_HANDLING
         MENUITEM "Set Focus",                   IDM_FOCUS_SET
         MENUITEM "Tab In",                      IDM_FOCUS_TAB_IN
         MENUITEM "Reverse Tab In",              IDM_FOCUS_REVERSE_TAB_IN
@@ -163,6 +164,9 @@ BEGIN
             MENUITEM "TypeScript",  IDM_SCENARIO_TYPE_SCRIPT
         END
         MENUITEM "Authentication",              IDM_SCENARIO_AUTHENTICATION
+        MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
+        MENUITEM "DOM Content Loaded",          IDM_SCENARIO_DOM_CONTENT_LOADED
+        MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
     END
     POPUP "&Help"
     BEGIN

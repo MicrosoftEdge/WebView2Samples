@@ -15,6 +15,7 @@
 #include <ShlObj_core.h>
 #include <winrt/windows.system.h>
 #include "App.h"
+#include "AppStartPage.h"
 #include "CheckFailure.h"
 #include "ControlComponent.h"
 #include "DpiUtil.h"
@@ -23,6 +24,9 @@
 #include "Resource.h"
 #include "ScenarioAddHostObject.h"
 #include "ScenarioAuthentication.h"
+#include "ScenarioCookieManagement.h"
+#include "ScenarioDOMContentLoaded.h"
+#include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
@@ -49,7 +53,7 @@ DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
     // Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/.
     // Microsoft owns all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper ("Software") and related documentation, 
     // including any intellectual property in the Software. 
-    // You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site
+    // You must acquire all code, including any code obtained from a Microsoft URL, under a separate license directly from Microsoft, including a Microsoft download site 
     // (e.g., https://developer.microsoft.com/microsoft-edge/webview2/).
     HRESULT hr = URLDownloadToFile(NULL, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
     if (hr == S_OK)
@@ -372,9 +376,31 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
         CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
     }
+    case IDM_SCENARIO_AUTHENTICATION:
+    {
+        NewComponent<ScenarioAuthentication>(this);
+
+        return true;
+    }
+    case IDM_SCENARIO_COOKIE_MANAGEMENT:
+    {
+        NewComponent<ScenarioCookieManagement>(this);
+        return true;
+    }
+    case IDM_SCENARIO_DOM_CONTENT_LOADED:
+    {
+        NewComponent<ScenarioDOMContentLoaded>(this);
+        return true;
+    }
+    case IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST:
+    {
+        NewComponent<ScenarioNavigateWithWebResourceRequest>(this);
+        return true;
+    }
     }
     return false;
 }
+
 // Handle commands not related to the WebView, which will work even if the WebView
 // is not currently initialized.
 bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
@@ -668,9 +694,17 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_onWebViewFirstInitialized = nullptr;
         }
 
-        if (!m_initialUri.empty())
+        if (m_initialUri.empty())
         {
-            m_webView->Navigate(m_initialUri.c_str());
+            // StartPage uses initialized values of the WebView and Environment
+            // so we wait to call StartPage::GetUri until after the WebView is
+            // created.
+            m_initialUri = AppStartPage::GetUri(this);
+        }
+
+        if (m_initialUri != L"none")
+        {
+            CHECK_FAILURE(m_webView->Navigate(m_initialUri.c_str()));
         }
     }
     else
@@ -794,8 +828,8 @@ void AppWindow::RegisterEventHandlers()
 
                 BOOL hasPosition = FALSE;
                 BOOL hasSize = FALSE;
-                CHECK_FAILURE(windowFeatures->HasPosition(&hasPosition));
-                CHECK_FAILURE(windowFeatures->HasSize(&hasSize));
+                CHECK_FAILURE(windowFeatures->get_HasPosition(&hasPosition));
+                CHECK_FAILURE(windowFeatures->get_HasSize(&hasSize));
 
                 bool useDefaultWindow = true;
 
@@ -807,7 +841,7 @@ void AppWindow::RegisterEventHandlers()
                     CHECK_FAILURE(windowFeatures->get_Width(&width));
                     useDefaultWindow = false;
                 }
-                CHECK_FAILURE(windowFeatures->get_Toolbar(&shouldHaveToolbar));
+                CHECK_FAILURE(windowFeatures->get_ShouldDisplayToolbar(&shouldHaveToolbar));
 
                 windowRect.left = left;
                 windowRect.right = left + (width < s_minNewWindowSize ? s_minNewWindowSize : width);
@@ -1042,6 +1076,12 @@ std::wstring AppWindow::GetLocalPath(std::wstring relativePath, bool keep_exe_pa
 }
 std::wstring AppWindow::GetLocalUri(std::wstring relativePath)
 {
+#if 0 // To be enabled after AddHostMappingForLocalFolder fully works.
+    //! [LocalUrlUsage]
+    const std::wstring localFileRootUrl = L"https://app-file.invalid/";
+    return localFileRootUrl + regex_replace(relativePath, std::wregex(L"\\"), L"/");
+    //! [LocalUrlUsage]
+#else
     std::wstring path = GetLocalPath(relativePath, false);
 
     wil::com_ptr<IUri> uri;
@@ -1050,6 +1090,7 @@ std::wstring AppWindow::GetLocalUri(std::wstring relativePath)
     wil::unique_bstr uriBstr;
     CHECK_FAILURE(uri->GetAbsoluteUri(&uriBstr));
     return std::wstring(uriBstr.get());
+#endif
 }
 
 void AppWindow::RunAsync(std::function<void()> callback)

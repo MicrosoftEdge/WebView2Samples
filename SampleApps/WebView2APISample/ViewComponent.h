@@ -70,6 +70,7 @@ private:
     float m_webViewZoomFactor = 1.0f;
     RECT m_webViewBounds = {};
     float m_webViewScale = 1.0f;
+    bool m_useCursorId = false;
     EventRegistrationToken m_zoomFactorChangedToken = {};
 
     bool OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam);
