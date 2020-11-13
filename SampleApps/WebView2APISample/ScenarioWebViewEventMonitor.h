@@ -40,7 +40,6 @@ private:
     AppWindow* m_appWindowEventSource;
     wil::com_ptr<ICoreWebView2> m_webviewEventSource;
     wil::com_ptr<ICoreWebView2Experimental> m_webviewEventSourceExperimental;
-
     // The events we register on the event source
     EventRegistrationToken m_frameNavigationStartingToken = {};
     EventRegistrationToken m_navigationStartingToken = {};
@@ -48,13 +47,11 @@ private:
     EventRegistrationToken m_contentLoadingToken = {};
     EventRegistrationToken m_historyChangedToken = {};
     EventRegistrationToken m_navigationCompletedToken = {};
-    EventRegistrationToken m_DOMContentLoadedToken = {};
     EventRegistrationToken m_documentTitleChangedToken = {};
     EventRegistrationToken m_webMessageReceivedToken = {};
     EventRegistrationToken m_webResourceRequestedToken = {};
     EventRegistrationToken m_newWindowRequestedToken = {};
     EventRegistrationToken m_webResourceResponseReceivedToken = {};
-
     // This event is registered with the event viewer so they
     // can communicate back to us for toggling the WebResourceRequested
     // event.

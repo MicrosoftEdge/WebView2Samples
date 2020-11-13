@@ -6,7 +6,7 @@ These are instructions for manually testing all the features of the WebView2 API
 
 * [Getting started](#Getting-started)
   * [Install a NuGet package Locally in VS](#Install-a-NuGet-package-Locally-in-VS)
-* [UI Entries](#ui-entries)
+* [UI Entries](#UI_Entries)
   * [File](#File)
     * [Save Screenshot](#Save-Screenshot)
     * [Get Document Title](#Get-Document-Title)
@@ -17,9 +17,11 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Inject Script](#Inject-Script)
     * [Post Message String](#Post-Message-String)
     * [Post Message JSON](#Post-Message-JSON)
-    * [Add Initialize Script](#addremove-initialize-script)
-    * [Remove Initialize Script](#addremove-initialize-script)
-    * [Subscribe to CDP event & Call CDP method](#subscribe-to-cdp-event--call-cdp-method)
+    * [Add Initialize Script](#Add/Remove-Initialize-Script)
+    * [Remove Initialize Script](#Add/Remove-Initialize-Script)
+    * [Subscribe to CDP event](#Subscribe-to-CDP-event-&-Call-CDP-method)
+    * [Call CDP method](#Subscribe-to-CDP-event-&-Call-CDP-method)
+    * [Add COM Object](#Add-COM-Object)
     * [Open DevTools Window](#Open-DevTools-Window)
   * [Window](#Window)
     * [Close WebView](#Close-WebView)
@@ -58,12 +60,11 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Host Objects](#Host-Objects)
     * [Script Debugging](#Script-Debugging)
   * [Help](#Help)
-    * [About ...](#about-)
+    * [About ...](#About-...)
   * [Miscellaneous](#Miscellaneous)
     * [Accelerator Key Support](#Accelerator-Key-Support)
     * [Language](#Language)
     * [Saving Password](#Saving-Password)
-    * [Open Link in New Window From PDF](#Open-Link-in-New-Window-from-PDF)
 
 ## Getting started
 
@@ -150,7 +151,7 @@ Test that prompts the user for some script to run in the WebView
 8. Click `OK` inside the Confirm Box
 9. Expected: dialog closed
 10. Expected: ExecuteScript Result popup that says `true`
-11. Click OK inside the popup dialog
+11. Click OK inside the popup dialog 
 12. Expected: dialog closed
 
 #### Post Message string
@@ -169,7 +170,7 @@ Test that prompts the user for some JSON web message to the top level document
 
 Test that prompts the user for some script to run as the initialization script
 
-Test that prompts the user for the ID of the initialize scripts that the user would like to remove
+Test that prompts the user for the ID of the initialize scripts that the user would like to remove  
 _Scripts are executed after the global object has been created and before the HTML document has been parsed every navigation_
 
 1. Launch the sample app.
@@ -302,7 +303,7 @@ Test browser process becoming unresponsive
 
 #### Blocked Domains
 
-Test that prompts user for sites to block
+Test that prompts user for sites to block  
 _It includes foo.com and bar.org by default_
 
 1. Launch the sample app.
@@ -319,7 +320,7 @@ _It includes foo.com and bar.org by default_
 
 #### Set User Agent
 
-Test that prompts the user for a new user agent string and sets user agent
+Test that prompts the user for a new user agent string and sets user agent  
 _It only modifies the header for HTTP. Change won't be reflected if checked with `navigator.userAgent`_
 
 1. Launch the sample app.
@@ -336,7 +337,7 @@ _It only modifies the header for HTTP. Change won't be reflected if checked with
 
 #### Toggle JavaScript
 
-Test that enables/disables JavaScript
+Test that enables/disables JavaScript  
 _It is enabled by default. `Script -> Inject Script` won't be affected if disabled._
 
 1. Launch the sample app.
@@ -352,7 +353,7 @@ _It is enabled by default. `Script -> Inject Script` won't be affected if disabl
 
 #### Toggle Web Messaging
 
-Test that enables/disables web messaging
+Test that enables/disables web messaging  
 _It is enabled by default._
 
 1. Launch the sample app.
@@ -368,7 +369,7 @@ _It is enabled by default._
 
 #### Toggle Fullscreen allowed
 
-Test the allows/disallows Fullscreen mode
+Test the allows/disallows Fullscreen mode  
 _It is allowed by default._
 
 1. Launch the sample app.
@@ -386,7 +387,7 @@ _It is allowed by default._
 
 #### Toggle Status Bar enabled
 
-Test that enables/disables Status Bar
+Test that enables/disables Status Bar  
 _It is enabled by default._
 
 1. Launch the sample app.
@@ -404,7 +405,7 @@ _It is enabled by default._
 
 #### Toggle DevTools enabled
 
-Test that enables/disables DevTools
+Test that enables/disables DevTools  
 _It is enabled by default._
 
 1. Launch the sample app.
@@ -423,7 +424,7 @@ _It is enabled by default._
 
 #### Toggle ZoomControl enabled
 
-Test that enables/disables Zoom
+Test that enables/disables Zoom  
 _It is enabled by default._
 
 1. Launch the sample app.
@@ -441,7 +442,7 @@ _It is enabled by default._
 
 #### Toggle Block images
 
-Test that enables/disables image blocking
+Test that enables/disables image blocking  
 _It is disabled by default. Data URI won't e affected if disabled._
 
 1. Launch the sample app.
@@ -488,7 +489,7 @@ Tests JavaScript Dialogs with different configurations
 
 #### Toggle context menus enabled
 
-Test that enables/disables context menu blocking
+Test that enables/disables context menu blocking  
 _Context menus are enabled by default._
 
 1. Launch the sample app.
@@ -505,7 +506,7 @@ _Context menus are enabled by default._
 
 #### Toggle builtin error page enabled
 
-Test that enables/disables built-in error page
+Test that enables/disables built-in error page  
 _Builtin error page is enabled by default._
 
 1. Launch the sample app.
@@ -583,7 +584,7 @@ or, height/width should be ~1.06x of [Bounds A](#bounds-A)
 
 #### WebView Area
 
-Test that resizes WebView window
+Test that resizes WebView window  
 _Updates the bounds of the WebView window to resize_
 
 1. Launch the sample app.
@@ -600,7 +601,7 @@ _Updates the bounds of the WebView window to resize_
 
 #### WebView Zoom
 
-Test that zooms in/out WebView
+Test that zooms in/out WebView  
 _WebView maintains host set zoom factor across navigations_
 
 1. Launch the sample app.
@@ -622,7 +623,7 @@ _WebView maintains host set zoom factor across navigations_
 
 #### WebView Scale
 
-Test scaling the WebView.
+Test scaling the WebView.  
 _Scale is a resize and zoom that happens atomically. It results in the WebView
 getting larger or smaller without the layout of the page changing._
 
@@ -656,7 +657,7 @@ Test that moves focus due to Tab traversal forward
 1. Go to `View -> Tab In`
 1. Expected: See the focus is set to the Images button (the first element) on <bing.com> in the WebView
 1. Click Tab button on keyboard
-1. Expected: See a focus rectangle around '...' button.
+1. Expected: See a focus rectangle around '...' button. 
 
 #### ReverseTab In
 
@@ -668,7 +669,7 @@ Test that moves focus due to Tab traversal backward
 
 #### Toggle Tab Handling
 
-Test that enables/disables tab handling
+Test that enables/disables tab handling  
 _It is disabled by default. Tabbing behavior should be identical whether this is enabled or disabled._
 
 1. Launch the sample app and load <https://www.google.com>
@@ -688,7 +689,7 @@ _It is disabled by default. Tabbing behavior should be identical whether this is
 
 #### Web Messaging
 
-Test that demonstrates basic interaction between the host app and the WebView by means of Web Messages
+Test that demonstrates basic interaction between the host app and the WebView by means of Web Messages  
 Menu items `Script -> Post Message String` & `Script -> Post Message JSON` are demonstrated.
 
 1. Launch the sample app.
@@ -697,7 +698,7 @@ Menu items `Script -> Post Message String` & `Script -> Post Message JSON` are d
 
 #### Host Objects
 
-Test that demonstrates basic interaction between the host app and the WebView by means of Web Messages
+Test that demonstrates basic interaction between the host app and the WebView by means of Web Messages  
 Menu item `Script -> Host Objects` is demonstrated.
 
 1. Launch the sample app.
@@ -722,7 +723,7 @@ Menu item `Script -> Host Objects` is demonstrated.
 
 Test Single WebView JavaScript Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
-1. Follow [Debugging Setup](#vscode-debugging-setup)
+1. Follow [Debugging Setup](#[vscode]-debugging-setup)
 1. Go to Debug tab via `View -> Run`
 1. On the top drop down, select `$(Debugger): Sample app (Script $(Configuration)|$(Platform))`. (e.g. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)` and `JavaScript Debugger(Nightly): Sample app (Script Release|x64)`)
   ![debugger-dropdown](screenshots/debugger-dropdown.png)
@@ -737,7 +738,7 @@ Test Single WebView JavaScript Debugging with **both** [Debugger For Microsoft E
 
 Test Single WebView TypeScript Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
-1. Follow [Debugging Setup](#vscode-debugging-setup)
+1. Follow [Debugging Setup](#[vscode]-debugging-setup)
 1. Go to Debug tab via `View -> Run`
 1. On the top drop down, select `$(Debugger): Sample app (Script $(Configuration)|$(Platform))`. (e.g. `Debugger For Microsoft Edge: Sample app (Script Debug|x64)` and `JavaScript Debugger(Nightly): Sample app (Script Release|x64)`)
   ![debugger-dropdown](screenshots/debugger-dropdown.png)
@@ -754,7 +755,7 @@ Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge]
 
 1. Add a new REGKEY `additionalBrowserArguments=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\EmbeddedBrowserWebView\LoaderOverride\*`
   ![step 1](screenshots/script-debugging-reg-key.png)
-1. Follow [Debugging Setup](#vscode-debugging-setup)
+1. Follow [Debugging Setup](#[vscode]-debugging-setup)
 1. Go to Debug tab via `View -> Run`
 1. On the top drop down, select `$(Debugger): Attach to Edge`. (e.g. `Debugger For Microsoft Edge: Attach to Edge` and `JavaScript Debugger(Nightly): Attach to Edge`)
 1. Press `F5` or click the green Button (GO) to Start Debugging
@@ -771,7 +772,7 @@ Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge]
 
 1. Add a new REGKEY `additionalBrowserArguments=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\EmbeddedBrowserWebView\LoaderOverride\*`
   ![step 1](screenshots/script-debugging-reg-key.png)
-1. Follow [Debugging Setup](#vscode-debugging-setup)
+1. Follow [Debugging Setup](#[vscode]-debugging-setup)
 1. Go to Debug tab via `View -> Run`
 1. On the top drop down, select `$(Debugger): Attach to Edge`. (e.g. `Debugger For Microsoft Edge: Attach to Edge` and `JavaScript Debugger(Nightly): Attach to Edge`)
 1. Press `F5` or click the green Button (GO) to Start Debugging
@@ -867,14 +868,3 @@ Verify that we don't offer saving password.
 7. Ensure that the fields are not auto filled.
 8. Set focus on Email input, verify that we can choose to auto fill with previously typed in value.
 9. Set focus on Password input, verify that there is no auto fill option showing up.
-
-#### Open Link in New Window from PDF
-
-Verify that the `NewWindowRequested` event is fired when opening a link in new window from PDF.
-
-1. Launch the sample app.
-2. Load https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf.
-3. Go to `Scenario -> Event Monitor` to begin tracking events.
-4. Scroll to the second page of the PDF and right click on the first link to open the context menu.
-5. Click on 'Open link in new window'.
-6. Expected: Even Monitor displays `NewWindowRequested`.

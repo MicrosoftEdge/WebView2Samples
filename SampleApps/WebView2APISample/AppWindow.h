@@ -30,7 +30,7 @@ class AppWindow
 public:
     AppWindow(
         UINT creationModeId,
-        std::wstring initialUri = L"",
+        std::wstring initialUri = L"https://www.bing.com/",
         bool isMainWindow = false,
         std::function<void()> webviewCreatedCallback = nullptr,
         bool customWindowRect = false,
@@ -72,8 +72,6 @@ public:
 
     void RunAsync(std::function<void(void)> callback);
 
-    void InstallComplete(int return_code);
-
     void AddRef();
     void Release();
     void NotifyClosed();
@@ -114,10 +112,6 @@ private:
 
     template <class ComponentType> std::unique_ptr<ComponentType> MoveComponent();
 
-    // The initial URI to which to navigate the WebView2's top level document.
-    // This is either empty string in which case we will use StartPage::GetUri,
-    //  or "none" to mean don't perform an initial navigate,
-    //  or a valid absolute URI to which we will navigate.
     std::wstring m_initialUri;
     HWND m_mainWindow = nullptr;
     Toolbar m_toolbar;

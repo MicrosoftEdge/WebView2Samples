@@ -533,11 +533,7 @@ void SettingsComponent::SetBlockImages(bool blockImages)
                         // Override the response with an empty one to block the image.
                         // If put_Response is not called, the request will continue as normal.
                         wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-                        wil::com_ptr<ICoreWebView2Experimental> m_webViewExperimental =
-                            m_webView.try_query<ICoreWebView2Experimental>();
-                        wil::com_ptr<ICoreWebView2Environment> environment;
-                        CHECK_FAILURE(m_webViewExperimental->get_Environment(&environment));
-                        CHECK_FAILURE(environment->CreateWebResourceResponse(
+                        CHECK_FAILURE(m_webViewEnvironment->CreateWebResourceResponse(
                             nullptr, 403 /*NoContent*/, L"Blocked", L"", &response));
                         CHECK_FAILURE(args->put_Response(response.get()));
                         return S_OK;

@@ -113,7 +113,7 @@ The section below briefly explains some of the key functions in the Sample App.
 
 #### InitializeWebView()
 
-In the AppWindow file, we use the InitializeWebView() function to create the WebView2 environment by using [CreateCoreWebView2EnvironmentWithOptions](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/webview2-idl#createcorewebview2environmentwithoptions).
+In the AppWindow file, we use the InitializeWebView() function to create the WebView2 environment by using [CreateCoreWebView2EnvironmentWithOptions](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-538/webview2-idl#createcorewebview2environmentwithoptions).
 
 Once we've created the environment, we create the WebView by using `CreateCoreWebView2Controller`.
 
@@ -171,7 +171,7 @@ This callback function is passed to `CreateCoreWebView2Controller` in `Initializ
 
 This function is called within `CreateCoreWebView2Controller`. It sets up some of the event handlers used by the application, and adds them to the WebView.
 
-To read more about event handlers in WebView2, you can refer to this [documentation](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2).
+To read more about event handlers in WebView2, you can refer to this [documentation](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-538/icorewebview2).
 
 Below is a code snippet from `RegisterEventHandlers()`, where we set up an event handler for the `NewWindowRequested` event. This event is fired when JavaScript in the webpage calls `window.open()`, and our handler makes a new `AppWindow` and passes the new window's WebView back to the browser so it can return it from the `window.open()` call. Unlike our calls to `CreateCoreWebView2EnvironmentWithOptions` and `CreateCoreWebView2Controller`, instead of providing a method for the callback, we just provide a C++ lambda right then and there.
 
@@ -231,7 +231,7 @@ The text under Posting Messages should now be blue.
 
 Here's how it works:
 
-1. In `ScriptComponent.cpp`, we use [PostWebMessageAsJson](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2#postwebmessageasjson) to post user input to the `ScenarioMessage.html` web application.
+1. In `ScriptComponent.cpp`, we use [PostWebMessageAsJson](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-538/icorewebview2#postwebmessageasjson) to post user input to the `ScenarioMessage.html` web application.
 
 ```cpp
 // Prompt the user for some JSON and then post it as a web message.
@@ -281,7 +281,7 @@ function SetTitleText() {
 }
 ```
 
-2. Within `ScenarioWebMessage.cpp`, we use [add_WebMessageReceived](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2#add_webmessagereceived) to register the event handler. When we receive the event, after validating the input, we change the title of the App Window.
+2. Within `ScenarioWebMessage.cpp`, we use [add_WebMessageReceived](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-538/icorewebview2#add_webmessagereceived) to register the event handler. When we receive the event, after validating the input, we change the title of the App Window.
 
 ```cpp
 // Setup the web message received event handler before navigating to
@@ -328,7 +328,7 @@ function GetWindowBounds() {
  }
 ```
 
-2. Within `ScenarioWebMessage.cpp`, we use [add_WebMessageReceived](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2#add_webmessagereceived) to register the received event handler. After validating the input, the event handler gets window bounds from the App Window. [PostWebMessageAsJson](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/icorewebview2#postwebmessageasjson) sends the bounds to the web application.
+2. Within `ScenarioWebMessage.cpp`, we use [add_WebMessageReceived](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-538/icorewebview2#add_webmessagereceived) to register the received event handler. After validating the input, the event handler gets window bounds from the App Window. [PostWebMessageAsJson](https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-538/icorewebview2#postwebmessageasjson) sends the bounds to the web application.
 
 ```cpp
 if (message.compare(L"GetWindowBounds") == 0)
