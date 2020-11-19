@@ -492,7 +492,11 @@ void ViewComponent::SetRasterizationScale(float additionalScale)
     CHECK_FAILURE(m_controllerExperimental->put_ShouldDetectMonitorScaleChanges(FALSE));
     m_webviewAdditionalRasterizationScale = additionalScale;
     double rasterizationScale =
+#ifdef USE_WEBVIEW2_WIN10
         additionalScale * m_appWindow->GetDpiScale() * m_appWindow->GetTextScale();
+#else
+        additionalScale;
+#endif
     CHECK_FAILURE(m_controllerExperimental->put_RasterizationScale(rasterizationScale));
 }
 //! [RasterizationScale]
