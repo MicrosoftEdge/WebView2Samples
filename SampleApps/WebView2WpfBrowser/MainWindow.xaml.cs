@@ -31,6 +31,12 @@ namespace WebView2WpfBrowser
     public partial class MainWindow : Window
     {
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
+        public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
+        public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
+        public static RoutedCommand GetCookiesCommand = new RoutedCommand();
+        public static RoutedCommand AddOrUpdateCookieCommand = new RoutedCommand();
+        public static RoutedCommand DeleteCookiesCommand = new RoutedCommand();
+        public static RoutedCommand DeleteAllCookiesCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         public MainWindow()
@@ -142,6 +148,80 @@ namespace WebView2WpfBrowser
             }
         }
 
+        async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            List<CoreWebView2Cookie> cookieList = await webView.CoreWebView2.CookieManager.GetCookiesAsync("https://www.bing.com");
+            StringBuilder cookieResult = new StringBuilder(cookieList.Count + " cookie(s) received from https://www.bing.com\n");
+            for (int i = 0; i < cookieList.Count; ++i)
+            {
+                CoreWebView2Cookie cookie = webView.CoreWebView2.CookieManager.CreateCookieWithSystemNetCookie(cookieList[i].ToSystemNetCookie());
+                cookieResult.Append($"\n{cookie.Name} {cookie.Value} {(cookie.IsSession ? "[session cookie]" : cookie.Expires.ToString("G"))}");
+            }
+            MessageBox.Show(this, cookieResult.ToString(), "GetCookiesAsync");
+        }
+
+        void AddOrUpdateCookieCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            CoreWebView2Cookie cookie = webView.CoreWebView2.CookieManager.CreateCookie("CookieName", "CookieValue", ".bing.com", "/");
+            webView.CoreWebView2.CookieManager.AddOrUpdateCookie(cookie);
+        }
+
+        void DeleteAllCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.CookieManager.DeleteAllCookies();
+        }
+
+        void DeleteCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.CookieManager.DeleteCookiesWithDomainAndPath("CookieName", ".bing.com", "/");
+        }
+
+        void DOMContentLoadedCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.DOMContentLoaded += (object sender, CoreWebView2DOMContentLoadedEventArgs arg) =>
+            {
+                _ = webView.ExecuteScriptAsync("let " +
+                                          "content=document.createElement(\"h2\");content.style.color=" +
+                                          "'blue';content.textContent= \"This text was added by the " +
+                                          "host app\";document.body.appendChild(content);");
+            };
+            webView.NavigateToString(@"<!DOCTYPE html><h1>DOMContentLoaded sample page</h1><h2>The content below will be added after DOM content is loaded </h2>");
+        }
+
+        private CoreWebView2Environment _coreWebView2Environment;
+
+        async void NavigateWithWebResourceRequestCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            // Need CoreWebView2Environment
+            if (_coreWebView2Environment == null)
+            {
+                _coreWebView2Environment = webView.CoreWebView2.Environment;
+            }
+
+            // Prepare post data as UTF-8 byte array and convert it to stream
+            // as required by the application/x-www-form-urlencoded Content-Type
+            var dialog = new TextInputDialog(
+                title: "NavigateWithWebResourceRequest",
+                description: "Specify post data to submit to https://www.w3schools.com/action_page.php.");
+            if (dialog.ShowDialog() == true)
+            {
+                string postDataString = "input=" + dialog.Input.Text;
+                UTF8Encoding utfEncoding = new UTF8Encoding();
+                byte[] postData = utfEncoding.GetBytes(
+                    postDataString);
+                MemoryStream postDataStream = new MemoryStream(postDataString.Length);
+                postDataStream.Write(postData, 0, postData.Length);
+                postDataStream.Seek(0, SeekOrigin.Begin);
+                CoreWebView2WebResourceRequest webResourceRequest =
+                  _coreWebView2Environment.CreateWebResourceRequest(
+                    "https://www.w3schools.com/action_page.php",
+                    "POST",
+                    postDataStream,
+                    "Content-Type: application/x-www-form-urlencoded\r\n");
+                webView.CoreWebView2.NavigateWithWebResourceRequest(webResourceRequest);
+            }
+        }
+
         void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = webView != null && !_isNavigating;
@@ -164,6 +244,78 @@ namespace WebView2WpfBrowser
         {
             _isNavigating = false;
             RequeryCommands();
+        }
+
+        private static void OnShowNextWebResponseChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            MainWindow window = (MainWindow)d;
+            if ((bool)e.NewValue)
+            {
+                window.webView.CoreWebView2.WebResourceResponseReceived += window.CoreWebView2_WebResourceResponseReceived;
+            }
+            else
+            {
+                window.webView.CoreWebView2.WebResourceResponseReceived -= window.CoreWebView2_WebResourceResponseReceived;
+            }
+        }
+
+        public static readonly DependencyProperty ShowNextWebResponseProperty = DependencyProperty.Register(
+            nameof(ShowNextWebResponse),
+            typeof(Boolean),
+            typeof(MainWindow),
+            new PropertyMetadata(false, OnShowNextWebResponseChanged));
+
+        public bool ShowNextWebResponse
+        {
+            get => (bool)this.GetValue(ShowNextWebResponseProperty);
+            set => this.SetValue(ShowNextWebResponseProperty, value);
+        }
+
+        async void CoreWebView2_WebResourceResponseReceived(object sender, CoreWebView2WebResourceResponseReceivedEventArgs e)
+        {
+            ShowNextWebResponse = false;
+
+            CoreWebView2WebResourceRequest request = e.Request;
+            CoreWebView2WebResourceResponseView response = e.Response;
+
+            string caption = "Web Resource Response Received";
+            // Start with capacity 64 for minimum message size
+            StringBuilder messageBuilder = new StringBuilder(64);
+            string HttpMessageContentToString(System.IO.Stream content) => content == null ? "[null]" : "[data]";
+            void AppendHeaders(IEnumerable headers)
+            {
+                foreach (var header in headers)
+                {
+                    messageBuilder.AppendLine($"  {header}");
+                }
+            }
+
+            // Request
+            messageBuilder.AppendLine("Request");
+            messageBuilder.AppendLine($"URI: {request.Uri}");
+            messageBuilder.AppendLine($"Method: {request.Method}");
+            messageBuilder.AppendLine("Headers:");
+            AppendHeaders(request.Headers);
+            messageBuilder.AppendLine($"Content: {HttpMessageContentToString(request.Content)}");
+            messageBuilder.AppendLine();
+
+            // Response
+            messageBuilder.AppendLine("Response");
+            messageBuilder.AppendLine($"Status: {response.StatusCode}");
+            messageBuilder.AppendLine($"Reason: {response.ReasonPhrase}");
+            messageBuilder.AppendLine("Headers:");
+            AppendHeaders(response.Headers);
+            try
+            {
+                Stream content = await response.GetContentAsync();
+                messageBuilder.AppendLine($"Content: {HttpMessageContentToString(content)}");
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                messageBuilder.AppendLine($"Content: [failed to load]");
+            }
+
+            MessageBox.Show(messageBuilder.ToString(), caption);
         }
 
         void RequeryCommands()

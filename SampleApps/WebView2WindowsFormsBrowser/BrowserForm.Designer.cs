@@ -42,15 +42,17 @@ namespace WebView2WindowsFormsBrowser
             this.btnGo = new System.Windows.Forms.Button();
             this.txtUrl = new System.Windows.Forms.TextBox();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.controlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.acceleratorKeysEnabledToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.zoomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.xToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.xToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.xToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.xToolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuStrip1.SuspendLayout();
             this.webView2Control = new Microsoft.Web.WebView2.WinForms.WebView2();
+            this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.webView2Control)).BeginInit();
             this.SuspendLayout();
             // 
             // btnEvents
@@ -133,7 +135,7 @@ namespace WebView2WindowsFormsBrowser
             // 
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileToolStripMenuItem,
+            this.controlToolStripMenuItem,
             this.viewToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -141,11 +143,21 @@ namespace WebView2WindowsFormsBrowser
             this.menuStrip1.TabIndex = 7;
             this.menuStrip1.Text = "menuStrip1";
             // 
-            // fileToolStripMenuItem
+            // controlToolStripMenuItem
             // 
-            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
-            this.fileToolStripMenuItem.Text = "File";
+            this.controlToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.acceleratorKeysEnabledToolStripMenuItem});
+            this.controlToolStripMenuItem.Name = "controlToolStripMenuItem";
+            this.controlToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
+            this.controlToolStripMenuItem.Text = "Control";
+            // 
+            // zoomToolStripMenuItem
+            // 
+            this.acceleratorKeysEnabledToolStripMenuItem.Name = "acceleratorKeysEnabledToolStripMenuItem";
+            this.acceleratorKeysEnabledToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.acceleratorKeysEnabledToolStripMenuItem.Text = "AcceleratorKeys Enabled";
+            this.acceleratorKeysEnabledToolStripMenuItem.Checked = true;
+            this.acceleratorKeysEnabledToolStripMenuItem.CheckOnClick = true;
             // 
             // viewToolStripMenuItem
             // 
@@ -201,13 +213,13 @@ namespace WebView2WindowsFormsBrowser
             this.webView2Control.Size = new System.Drawing.Size(788, 410);
             this.webView2Control.Source = new Uri("https://www.bing.com/");
             this.webView2Control.TabIndex = 7;
-            this.webView2Control.Text = "webView2Control";
-            this.webView2Control.CoreWebView2Ready += WebView2Control_CoreWebView2Ready;
+            this.webView2Control.CoreWebView2InitializationCompleted += WebView2Control_CoreWebView2InitializationCompleted; ;
             this.webView2Control.NavigationStarting += WebView2Control_NavigationStarting;
             this.webView2Control.NavigationCompleted += WebView2Control_NavigationCompleted;
             this.webView2Control.SourceChanged += WebView2Control_SourceChanged;
             this.webView2Control.KeyDown += WebView2Control_KeyDown;
             this.webView2Control.KeyUp += WebView2Control_KeyUp;
+            this.webView2Control.AcceleratorKeyPressed += WebView2Control_AcceleratorKeyPressed;
             // 
             // BrowserForm
             // 
@@ -230,11 +242,11 @@ namespace WebView2WindowsFormsBrowser
             this.Resize += new System.EventHandler(this.Form_Resize);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.webView2Control)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
         }
         #endregion
-
         private System.Windows.Forms.Button btnEvents;
         private System.Windows.Forms.Button btnBack;
         private System.Windows.Forms.Button btnForward;
@@ -244,7 +256,8 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.TextBox txtUrl;
         private Microsoft.Web.WebView2.WinForms.WebView2 webView2Control;
         private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem controlToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem acceleratorKeysEnabledToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem zoomToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem xToolStripMenuItem;

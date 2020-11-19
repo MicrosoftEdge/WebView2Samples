@@ -38,13 +38,20 @@ namespace WebView2WindowsFormsBrowser
             txtUrl.Text = webView2Control.Source.AbsoluteUri;
         }
 
-        private void WebView2Control_CoreWebView2Ready(object sender, EventArgs e)
+        private void WebView2Control_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
+            if (!e.IsSuccess)
+            {
+                MessageBox.Show($"WebView2 creation failed with exception = {e.InitializationException}");
+                UpdateTitleWithEvent("CoreWebView2InitializationCompleted failed");
+                return;
+            }
+
             this.webView2Control.CoreWebView2.SourceChanged += CoreWebView2_SourceChanged;
             this.webView2Control.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
             this.webView2Control.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
             this.webView2Control.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Image);
-            UpdateTitleWithEvent("CoreWebView2Ready");
+            UpdateTitleWithEvent("CoreWebView2InitializationCompleted succeeded");
         }
 
         private void WebView2Control_KeyUp(object sender, KeyEventArgs e)
@@ -55,6 +62,12 @@ namespace WebView2WindowsFormsBrowser
         private void WebView2Control_KeyDown(object sender, KeyEventArgs e)
         {
             UpdateTitleWithEvent($"AcceleratorKeyDown key={e.KeyCode}");
+        }
+
+        private void WebView2Control_AcceleratorKeyPressed(object sender, Microsoft.Web.WebView2.Core.CoreWebView2AcceleratorKeyPressedEventArgs e)
+        {
+            if (!this.acceleratorKeysEnabledToolStripMenuItem.Checked)
+                e.Handled = true;
         }
 
         private void CoreWebView2_HistoryChanged(object sender, object e)
