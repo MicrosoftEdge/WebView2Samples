@@ -13,16 +13,17 @@ using namespace Microsoft::WRL;
 ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) : m_appWindow(appWindow)
 {
     MessageBox(
-        nullptr, L"Authentication scenario:\n Click HTML/NTLM Auth to get Authentication headers",
+        nullptr,
+        L"Authentication scenario:\n Click HTML/NTLM Auth to get Authentication headers",
         nullptr, MB_OK);
     //! [WebResourceResponseReceived]
-    wil::com_ptr<ICoreWebView2Experimental> webviewExperimental;
-    CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&webviewExperimental)));
-    CHECK_FAILURE(webviewExperimental->add_WebResourceResponseReceived(
-        Callback<ICoreWebView2ExperimentalWebResourceResponseReceivedEventHandler>(
+    wil::com_ptr<ICoreWebView2_2> webview2;
+    CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&webview2)));
+    CHECK_FAILURE(webview2->add_WebResourceResponseReceived(
+        Callback<ICoreWebView2WebResourceResponseReceivedEventHandler>(
             [this](
-                ICoreWebView2Experimental* sender,
-                ICoreWebView2ExperimentalWebResourceResponseReceivedEventArgs* args) {           
+                ICoreWebView2* sender,
+                ICoreWebView2WebResourceResponseReceivedEventArgs* args) {
                 wil::com_ptr<ICoreWebView2WebResourceRequest> request;
                 CHECK_FAILURE(args->get_Request(&request));
                 wil::unique_cotaskmem_string uri;
@@ -41,7 +42,7 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) : m_appWind
                         m_appWindow->DeleteComponent(this);
                     }
                 }
-                
+
                 return S_OK;
             })
             .Get(),
@@ -51,7 +52,8 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) : m_appWind
 }
 
 ScenarioAuthentication::~ScenarioAuthentication() {
-    wil::com_ptr<ICoreWebView2Experimental> webviewExperimental;
-    CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&webviewExperimental)));
-    CHECK_FAILURE(webviewExperimental->remove_WebResourceResponseReceived(m_webResourceResponseReceivedToken));
+    wil::com_ptr<ICoreWebView2_2> webview2;
+    CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&webview2)));
+    CHECK_FAILURE(
+        webview2->remove_WebResourceResponseReceived(m_webResourceResponseReceivedToken));
 }

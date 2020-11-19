@@ -8,6 +8,7 @@
 
 #include <DispatcherQueue.h>
 #include <functional>
+#include <regex>
 #include <string>
 #include <vector>
 #include <ShObjIdl_core.h>
@@ -15,6 +16,7 @@
 #include <ShlObj_core.h>
 #include <winrt/windows.system.h>
 #include "App.h"
+#include "AppStartPage.h"
 #include "CheckFailure.h"
 #include "ControlComponent.h"
 #include "DpiUtil.h"
@@ -23,20 +25,70 @@
 #include "Resource.h"
 #include "ScenarioAddHostObject.h"
 #include "ScenarioAuthentication.h"
+#include "ScenarioCookieManagement.h"
+#include "ScenarioDOMContentLoaded.h"
+#include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
+
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
 
 static thread_local size_t s_appInstances = 0;
 // The minimum height and width for Window Features.
-// See https://developer.mozilla.org/en-US/docs/Web/API/Window/open#Size
+// See https://developer.mozilla.org/docs/Web/API/Window/open#Size
 static constexpr int s_minNewWindowSize = 100;
+
+// Run Download and Install in another thread so we don't block the UI thread
+DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
+{
+    AppWindow* appWindow = (AppWindow*) lpParameter;
+
+    int returnCode = 2; // Download failed
+    // Use fwlink to download WebView2 Bootstrapper at runtime and invoke installation
+    // Broken/Invalid Https Certificate will fail to download
+    // Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/.
+    // Microsoft owns all legal right, title, and interest in and to the
+    // WebView2 Runtime Bootstrapper ("Software") and related documentation,
+    // including any intellectual property in the Software. You must acquire all
+    // code, including any code obtained from a Microsoft URL, under a separate
+    // license directly from Microsoft, including a Microsoft download site
+    // (e.g., https://developer.microsoft.com/microsoft-edge/webview2/).
+    HRESULT hr = URLDownloadToFile(NULL, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
+    if (hr == S_OK)
+    {
+        // Either Package the WebView2 Bootstrapper with your app or download it using fwlink
+        // Then invoke install at Runtime.
+        SHELLEXECUTEINFO shExInfo = {0};
+        shExInfo.cbSize = sizeof(shExInfo);
+        shExInfo.fMask = SEE_MASK_NOASYNC;
+        shExInfo.hwnd = 0;
+        shExInfo.lpVerb = L"runas";
+        shExInfo.lpFile = L"MicrosoftEdgeWebview2Setup.exe";
+        shExInfo.lpParameters = L" /silent /install";
+        shExInfo.lpDirectory = 0;
+        shExInfo.nShow = 0;
+        shExInfo.hInstApp = 0;
+
+        if (ShellExecuteEx(&shExInfo))
+        {
+            returnCode = 0; // Install successfull
+        }
+        else
+        {
+            returnCode = 1; // Install failed
+        }
+    }
+
+    appWindow->InstallComplete(returnCode);
+    appWindow->Release();
+    return returnCode;
+}
 
 // Creates a new window which is a copy of the entire app, but on the same thread.
 AppWindow::AppWindow(
@@ -52,7 +104,7 @@ AppWindow::AppWindow(
       m_onWebViewFirstInitialized(webviewCreatedCallback)
 {
     // Initialize COM as STA.
-    CHECK_FAILURE(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE));
+    CHECK_FAILURE(OleInitialize(NULL));
 
     ++s_appInstances;
 
@@ -92,10 +144,30 @@ AppWindow::AppWindow(
     UpdateCreationModeMenu();
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
+
+    // If no WebVieRuntime installed, create new thread to do install/download.
+    // Otherwise just initialize webview.
+    wil::unique_cotaskmem_string version_info;
+    HRESULT hr = GetAvailableCoreWebView2BrowserVersionString(nullptr, &version_info);
+    if (hr == S_OK && version_info != nullptr)
+    {
         RunAsync([this] {
             InitializeWebView();
         });
+    }
+    else
+    {
+        if (isMainWindow) {
+            AddRef();
+            CreateThread(0, 0, DownloadAndInstallWV2RT, (void*) this, 0, 0);
+        }
+        else
+        {
+            MessageBox(m_mainWindow, L"WebView Runtime not installed", L"WebView Runtime Installation status", MB_OK);
+        }
+    }
 }
+
 // Register the Win32 window class for the app window.
 PCWSTR AppWindow::GetWindowClass()
 {
@@ -168,6 +240,11 @@ bool AppWindow::HandleWindowMessage(
     case WM_DPICHANGED:
     {
         m_toolbar.UpdateDpiAndTextScale();
+        if (auto view = GetComponent<ViewComponent>())
+        {
+            view->UpdateDpiAndTextScale();
+        }
+
         RECT* const newWindowSize = reinterpret_cast<RECT*>(lParam);
         SetWindowPos(hWnd,
             nullptr,
@@ -308,9 +385,31 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
         CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
     }
+    case IDM_SCENARIO_AUTHENTICATION:
+    {
+        NewComponent<ScenarioAuthentication>(this);
+
+        return true;
+    }
+    case IDM_SCENARIO_COOKIE_MANAGEMENT:
+    {
+        NewComponent<ScenarioCookieManagement>(this);
+        return true;
+    }
+    case IDM_SCENARIO_DOM_CONTENT_LOADED:
+    {
+        NewComponent<ScenarioDOMContentLoaded>(this);
+        return true;
+    }
+    case IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST:
+    {
+        NewComponent<ScenarioNavigateWithWebResourceRequest>(this);
+        return true;
+    }
     }
     return false;
 }
+
 // Handle commands not related to the WebView, which will work even if the WebView
 // is not currently initialized.
 bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
@@ -323,7 +422,9 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_GET_BROWSER_VERSION_BEFORE_CREATION:
     {
         wil::unique_cotaskmem_string version_info;
-        GetAvailableCoreWebView2BrowserVersionString(nullptr, &version_info);
+        GetAvailableCoreWebView2BrowserVersionString(
+            nullptr,
+            &version_info);
         MessageBox(
             m_mainWindow, version_info.get(), L"Browser Version Info Before WebView Creation",
             MB_OK);
@@ -592,6 +693,14 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<ControlComponent>(this, &m_toolbar);
 
+        wil::com_ptr<ICoreWebView2Experimental2> webview2;
+        webview2 = coreWebView2.query<ICoreWebView2Experimental2>();
+        //! [AddVirtualHostNameToFolderMapping]
+        // Setup host resource mapping for local files.
+        webview2->SetVirtualHostNameToFolderMapping(
+            L"appassets.example", L"assets", COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY_CORS);
+        //! [AddVirtualHostNameToFolderMapping]
+
         // We have a few of our own event handlers to register here as well
         RegisterEventHandlers();
 
@@ -604,9 +713,17 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_onWebViewFirstInitialized = nullptr;
         }
 
-        if (!m_initialUri.empty())
+        if (m_initialUri.empty())
         {
-            m_webView->Navigate(m_initialUri.c_str());
+            // StartPage uses initialized values of the WebView and Environment
+            // so we wait to call StartPage::GetUri until after the WebView is
+            // created.
+            m_initialUri = AppStartPage::GetUri(this);
+        }
+
+        if (m_initialUri != L"none")
+        {
+            CHECK_FAILURE(m_webView->Navigate(m_initialUri.c_str()));
         }
     }
     else
@@ -749,14 +866,15 @@ void AppWindow::RegisterEventHandlers()
                 windowRect.right = left + (width < s_minNewWindowSize ? s_minNewWindowSize : width);
                 windowRect.top = top;
                 windowRect.bottom = top + (height < s_minNewWindowSize ? s_minNewWindowSize : height);
-
+                
+                // passing "none" as uri as its a noinitialnavigation
                 if (!useDefaultWindow)
                 {
-                  newAppWindow = new AppWindow(m_creationModeId, L"", false, nullptr, true, windowRect, !!shouldHaveToolbar);
+                  newAppWindow = new AppWindow(m_creationModeId, L"none", false, nullptr, true, windowRect, !!shouldHaveToolbar);
                 }
                 else
                 {
-                  newAppWindow = new AppWindow(m_creationModeId, L"");
+                  newAppWindow = new AppWindow(m_creationModeId, L"none");
                 }
                 newAppWindow->m_isPopupWindow = true;
                 newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]() {
@@ -861,7 +979,7 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
         // developers specify userDataFolder during WebView environment
         // creation, they would need to pass in that explicit value here.
         // For more information about userDataFolder:
-        // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/0-9-538/webview2-idl#createcorewebview2environmentwithoptions
+        // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/webview2-idl#createcorewebview2environmentwithoptions
         WCHAR userDataFolder[MAX_PATH] = L"";
         // Obtain the absolute path for relative paths that include "./" or "../"
         _wfullpath(
@@ -903,7 +1021,7 @@ HRESULT AppWindow::DeleteFileRecursive(std::wstring path)
     CHECK_FAILURE(fileOperation->PerformOperations());
 
     CHECK_FAILURE(fileOperation->Release());
-    CoUninitialize();
+    OleUninitialize();
     return S_OK;
 }
 
@@ -978,21 +1096,10 @@ std::wstring AppWindow::GetLocalPath(std::wstring relativePath, bool keep_exe_pa
 }
 std::wstring AppWindow::GetLocalUri(std::wstring relativePath)
 {
-#if 0 // To be enabled after AddHostMappingForLocalFolder fully works.
     //! [LocalUrlUsage]
-    const std::wstring localFileRootUrl = L"https://app-file.invalid/";
-    return localFileRootUrl + regex_replace(relativePath, std::wregex(L"\\"), L"/");
+    const std::wstring localFileRootUrl = L"https://appassets.example/";
+    return localFileRootUrl + regex_replace(relativePath, std::wregex(L"\\\\"), L"/");
     //! [LocalUrlUsage]
-#else
-    std::wstring path = GetLocalPath(relativePath, false);
-
-    wil::com_ptr<IUri> uri;
-    CHECK_FAILURE(CreateUri(path.c_str(), Uri_CREATE_ALLOW_IMPLICIT_FILE_SCHEME, 0, &uri));
-
-    wil::unique_bstr uriBstr;
-    CHECK_FAILURE(uri->GetAbsoluteUri(&uriBstr));
-    return std::wstring(uriBstr.get());
-#endif
 }
 
 void AppWindow::RunAsync(std::function<void()> callback)
@@ -1109,10 +1216,15 @@ void AppWindow::OnTextScaleChanged(
 {
     RunAsync([this] {
         m_toolbar.UpdateDpiAndTextScale();
+        if (auto view = GetComponent<ViewComponent>())
+        {
+            view->UpdateDpiAndTextScale();
+        }
     });
 }
 //! [TextScaleChanged2]
 #endif
+
 void AppWindow::UpdateCreationModeMenu()
 {
     HMENU hMenu = GetMenu(m_mainWindow);
@@ -1157,4 +1269,25 @@ void AppWindow::Release()
 void AppWindow::NotifyClosed()
 {
     m_isClosed = true;
+}
+
+void AppWindow::InstallComplete(int return_code)
+{
+    if (!m_isClosed)
+    {
+        if (return_code == 0)
+        {
+            RunAsync([this] {
+                InitializeWebView();
+                });
+        }
+        else if (return_code == 1)
+        {
+            MessageBox(m_mainWindow, L"WebView Runtime failed to Install", L"WebView Runtime Installation status", MB_OK);
+        }
+        else if (return_code == 2)
+        {
+            MessageBox(m_mainWindow, L"WebView Bootstrapper failled to download", L"WebView Bootstrapper Download status", MB_OK);
+        }
+    }
 }

@@ -42,7 +42,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
     DPI_AWARENESS_CONTEXT dpiAwarenessContext =
         DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
     std::wstring appId(L"EBWebView.SampleApp");
-    std::wstring initialUri(L"https://www.bing.com");
+    std::wstring initialUri;
     DWORD creationModeId = IDM_CREATION_MODE_WINDOWED;
 
     if (lpCmdLine && lpCmdLine[0])
@@ -81,7 +81,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
             }
             else if (NEXT_PARAM_CONTAINS(L"noinitialnavigation"))
             {
-                initialUri = L"";
+                initialUri = L"none";
             }
             else if (NEXT_PARAM_CONTAINS(L"appid="))
             {
