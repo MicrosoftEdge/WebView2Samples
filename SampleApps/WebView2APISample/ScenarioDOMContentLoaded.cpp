@@ -19,16 +19,18 @@ ScenarioDOMContentLoaded::ScenarioDOMContentLoaded(AppWindow* appWindow)
     //! [DOMContentLoaded]
     // Register a handler for the DOMContentLoaded event.
     // Check whether the DOM content loaded
-    m_webViewExperimental = m_webView.query<ICoreWebView2Experimental>();
-    CHECK_FAILURE(m_webViewExperimental->add_DOMContentLoaded(
-        Callback<ICoreWebView2ExperimentalDOMContentLoadedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2ExperimentalDOMContentLoadedEventArgs* args)
+    CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&m_webView2)));
+    CHECK_FAILURE(m_webView2->add_DOMContentLoaded(
+        Callback<ICoreWebView2DOMContentLoadedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2DOMContentLoadedEventArgs* args)
                 -> HRESULT {
                 m_webView->ExecuteScript(
-                    L"let "
-                    L"content=document.createElement(\"h2\");content.style.color='blue';"
-                    L"content.textContent=\"This text was added by the host "
-                    L"app\";document.body.appendChild(content);",
+                    LR"~(
+                    let content = document.createElement("h2");
+                    content.style.color = 'blue';
+                    content.textContent = "This text was added by the host app";
+                    document.body.appendChild(content);
+                    )~",
                     Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
                         [](HRESULT error, PCWSTR result) -> HRESULT { return S_OK; })
                         .Get());
@@ -59,6 +61,6 @@ ScenarioDOMContentLoaded::ScenarioDOMContentLoaded(AppWindow* appWindow)
 
 ScenarioDOMContentLoaded::~ScenarioDOMContentLoaded()
 {
-    m_webViewExperimental->remove_DOMContentLoaded(m_DOMContentLoadedToken);
+    m_webView2->remove_DOMContentLoaded(m_DOMContentLoadedToken);
     m_webView->remove_ContentLoading(m_contentLoadingToken);
 }

@@ -37,14 +37,11 @@ SettingsComponent::SettingsComponent(
         CHECK_FAILURE(old->m_settings->get_AreDevToolsEnabled(&setting));
         CHECK_FAILURE(m_settings->put_AreDevToolsEnabled(setting));
         SetBlockImages(old->m_blockImages);
-        SetUserAgent(old->m_overridingUserAgent);
         m_deferScriptDialogs = old->m_deferScriptDialogs;
         m_isScriptEnabled = old->m_isScriptEnabled;
         m_blockedSitesSet = old->m_blockedSitesSet;
         m_blockedSites = std::move(old->m_blockedSites);
-        m_overridingUserAgent = std::move(old->m_overridingUserAgent);
     }
-
     //! [NavigationStarting]
     // Register a handler for the NavigationStarting event.
     // This handler will check the domain being navigated to, and if the domain
@@ -90,7 +87,6 @@ SettingsComponent::SettingsComponent(
         return S_OK;
     }).Get(), &m_navigationStartingToken));
     //! [NavigationStarting]
-
     //! [FrameNavigationStarting]
     // Register a handler for the FrameNavigationStarting event.
     // This handler will prevent a frame from navigating to a blocked domain.
@@ -437,7 +433,6 @@ bool SettingsComponent::HandleWindowMessage(
     }
     return false;
 }
-
 // Prompt the user for a list of blocked domains
 void SettingsComponent::ChangeBlockedSites()
 {
@@ -533,10 +528,10 @@ void SettingsComponent::SetBlockImages(bool blockImages)
                         // Override the response with an empty one to block the image.
                         // If put_Response is not called, the request will continue as normal.
                         wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-                        wil::com_ptr<ICoreWebView2Experimental> m_webViewExperimental =
-                            m_webView.try_query<ICoreWebView2Experimental>();
                         wil::com_ptr<ICoreWebView2Environment> environment;
-                        CHECK_FAILURE(m_webViewExperimental->get_Environment(&environment));
+                        wil::com_ptr<ICoreWebView2_2> webview2;
+                        CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webview2)));
+                        CHECK_FAILURE(webview2->get_Environment(&environment));
                         CHECK_FAILURE(environment->CreateWebResourceResponse(
                             nullptr, 403 /*NoContent*/, L"Blocked", L"", &response));
                         CHECK_FAILURE(args->put_Response(response.get()));
@@ -556,20 +551,7 @@ void SettingsComponent::SetBlockImages(bool blockImages)
 
 // Prompt the user for a new User Agent string
 void SettingsComponent::ChangeUserAgent() {
-    TextInputDialog dialog(
-        m_appWindow->GetMainWindow(),
-        L"User Agent",
-        L"User agent:",
-        L"Enter user agent, or leave blank to restore default.",
-        m_changeUserAgent
-            ? m_overridingUserAgent.c_str()
-            : L"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3818.0 Safari/537.36 Edg/77.0.188.0");
-    if (dialog.confirmed)
-    {
-        SetUserAgent(dialog.input);
-    }
 }
-
 // Register a WebResourceRequested handler which adds a custom User-Agent
 // HTTP header to all requests.
 void SettingsComponent::SetUserAgent(const std::wstring& userAgent)
@@ -587,26 +569,8 @@ void SettingsComponent::SetUserAgent(const std::wstring& userAgent)
     else
     {
         m_changeUserAgent = true;
-        // Register a handler for the WebResourceRequested event.
-        // This handler adds a User-Agent HTTP header to the request,
-        // then lets the request continue normally.
-        m_webView->AddWebResourceRequestedFilter(L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
-        m_webView->add_WebResourceRequested(
-            Callback<ICoreWebView2WebResourceRequestedEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args) {
-                    wil::com_ptr<ICoreWebView2WebResourceRequest> request;
-                    CHECK_FAILURE(args->get_Request(&request));
-                    wil::com_ptr<ICoreWebView2HttpRequestHeaders> requestHeaders;
-                    CHECK_FAILURE(request->get_Headers(&requestHeaders));
-                    requestHeaders->SetHeader(L"User-Agent", m_overridingUserAgent.c_str());
-
-                    return S_OK;
-                })
-                .Get(),
-            &m_webResourceRequestedTokenForUserAgent);
     }
 }
-
 void SettingsComponent::CompleteScriptDialogDeferral()
 {
     if (m_completeDeferredDialog)

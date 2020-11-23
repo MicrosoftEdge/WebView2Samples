@@ -391,6 +391,7 @@
     <ClInclude Include="ControlComponent.h" />
     <ClInclude Include="DCompTargetImpl.h" />
     <ClInclude Include="DpiUtil.h" />
+    <ClInclude Include="DropTarget.h" />
     <ClInclude Include="FileComponent.h" />
     <ClInclude Include="ProcessComponent.h" />
     <ClInclude Include="HostObjectSampleImpl.h" />
@@ -418,6 +419,7 @@
     <ClCompile Include="ControlComponent.cpp" />
     <ClCompile Include="DCompTargetImpl.cpp" />
     <ClCompile Include="DpiUtil.cpp" />
+    <ClCompile Include="DropTarget.cpp" />
     <ClCompile Include="FileComponent.cpp" />
     <ClCompile Include="ProcessComponent.cpp" />
     <ClCompile Include="HostObjectSampleImpl.cpp" />
@@ -457,18 +459,42 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <CopyFileToFolders Include="AppStartPage.html" />
-    <CopyFileToFolders Include="AppStartPage.js" />
-    <CopyFileToFolders Include="AppStartPageBackground.png" />
-    <CopyFileToFolders Include="ScenarioAddHostObject.html" />
-    <CopyFileToFolders Include="ScenarioWebMessage.html" />
-    <CopyFileToFolders Include="ScenarioWebViewEventMonitor.html" />
-    <CopyFileToFolders Include="ScenarioJavaScriptDebugIndex.html" />
-    <CopyFileToFolders Include="ScenarioJavaScriptDebugIndex.js" />
-    <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.html" />
-    <CopyFileToFolders Include="ScenarioTypeScriptDebugIndex.ts" />
-    <CopyFileToFolders Include="ScenarioCookieManagement.html" />
-    <CopyFileToFolders Include="ScenarioDOMContentLoaded.html" />
+    <CopyFileToFolders Include="assets\ScenarioJavaScriptDebugIndex.js">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioAddHostObject.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioCookieManagement.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioDOMContentLoaded.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioJavaScriptDebugIndex.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioTypeScriptDebugIndex.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioTypeScriptDebugIndex.ts">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioWebMessage.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioWebViewEventMonitor.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\AppStartPage.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\AppStartPage.js">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\AppStartPageBackground.png">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="HostObjectSample.idl" TypeLibraryName="$(OutDir)WebView2APISample.tlb" />
@@ -476,13 +502,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
-    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.674-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.674-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.707-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.707-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.674-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.674-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.707-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.707-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
   </Target>
 </Project>

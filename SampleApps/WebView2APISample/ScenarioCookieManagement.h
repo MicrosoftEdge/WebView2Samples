@@ -22,8 +22,7 @@ private:
     AppWindow* m_appWindow;
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2Experimental> m_webViewExperimental;
-    wil::com_ptr<ICoreWebView2ExperimentalCookieManager> m_cookieManager;
+    wil::com_ptr<ICoreWebView2CookieManager> m_cookieManager;
     std::wstring m_sampleUri;
     EventRegistrationToken m_webMessageReceivedToken = {};
     EventRegistrationToken m_contentLoadingToken = {};

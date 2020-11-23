@@ -13,6 +13,7 @@
 #ifdef USE_WEBVIEW2_WIN10
 #include <windows.ui.composition.interop.h>
 #endif
+#include "DropTarget.h"
 
 #include "CheckFailure.h"
 
@@ -51,6 +52,23 @@ ViewComponent::ViewComponent(
         .Get(),
                 &m_zoomFactorChangedToken));
     //! [ZoomFactorChanged]
+
+    m_controllerExperimental = m_controller.query<ICoreWebView2ExperimentalController>();
+
+    //! [RasterizationScaleChanged]
+    CHECK_FAILURE(m_controllerExperimental->add_RasterizationScaleChanged(
+        Callback<ICoreWebView2ExperimentalRasterizationScaleChangedEventHandler>(
+            [this](ICoreWebView2ExperimentalController* sender, IUnknown* args) -> HRESULT {
+                double rasterizationScale;
+                CHECK_FAILURE(m_controllerExperimental->get_RasterizationScale(&rasterizationScale));
+
+                std::wstring message = L"WebView2APISample (RasterizationScale: " +
+                    std::to_wstring(int(rasterizationScale * 100)) + L"%)";
+                SetWindowText(m_appWindow->GetMainWindow(), message.c_str());
+                return S_OK;
+            })
+        .Get(), &m_rasterizationScaleChangedToken));
+    //! [RasterizationScaleChanged]
 
     // Set up compositor if we're running in windowless mode
     m_compositionController = m_controller.try_query<ICoreWebView2ExperimentalCompositionController>();
@@ -127,6 +145,12 @@ ViewComponent::ViewComponent(
                 .Get(),
             &m_cursorChangedToken));
         //! [CursorChanged]
+
+        wil::com_ptr<ICoreWebView2ExperimentalCompositionController3> compositionController3 =
+            m_controller.query<ICoreWebView2ExperimentalCompositionController3>();
+        m_dropTarget = Make<DropTarget>();
+        m_dropTarget->Init(
+            m_appWindow->GetMainWindow(), this, compositionController3.get());
     }
 #ifdef USE_WEBVIEW2_WIN10
     else if (m_dcompDevice || m_wincompCompositor)
@@ -138,7 +162,9 @@ ViewComponent::ViewComponent(
     }
 
     ResizeWebView();
+    UpdateDpiAndTextScale();
 }
+
 bool ViewComponent::HandleWindowMessage(
     HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
@@ -178,6 +204,27 @@ bool ViewComponent::HandleWindowMessage(
             return true;
         case IDM_TRANSFORM_ROTATE_60DEG_DIAG:
             SetTransform(TransformType::kRotate60DegDiagonally);
+            return true;
+        case IDM_RASTERIZATION_SCALE_DEFAULT:
+            CHECK_FAILURE(m_controllerExperimental->put_ShouldDetectMonitorScaleChanges(TRUE));
+            return true;
+        case IDM_RASTERIZATION_SCALE_50:
+            SetRasterizationScale(0.5f);
+            return true;
+        case IDM_RASTERIZATION_SCALE_100:
+            SetRasterizationScale(1.0f);
+            return true;
+        case IDM_RASTERIZATION_SCALE_125:
+            SetRasterizationScale(1.25f);
+            return true;
+        case IDM_RASTERIZATION_SCALE_150:
+            SetRasterizationScale(1.5f);
+            return true;
+        case IDM_BOUNDS_MODE_RAW_PIXELS:
+            SetBoundsMode(COREWEBVIEW2_USE_RAW_PIXELS);
+            return true;
+        case IDM_BOUNDS_MODE_VIEW_PIXELS:
+            SetBoundsMode(COREWEBVIEW2_USE_RASTERIZATION_SCALE);
             return true;
         case IDM_SCALE_50:
             SetScale(0.5f);
@@ -241,6 +288,17 @@ bool ViewComponent::HandleWindowMessage(
     //! [NotifyParentWindowPositionChanged]
     return false;
 }
+void ViewComponent::UpdateDpiAndTextScale()
+{
+    BOOL isWebViewDetectingScaleChanges;
+    CHECK_FAILURE(m_controllerExperimental->get_ShouldDetectMonitorScaleChanges(
+        &isWebViewDetectingScaleChanges));
+    if (!isWebViewDetectingScaleChanges)
+    {
+        SetRasterizationScale(m_webviewAdditionalRasterizationScale);
+    }
+}
+
 //! [ToggleIsVisible]
 void ViewComponent::ToggleVisibility()
 {
@@ -267,6 +325,13 @@ void ViewComponent::SetBounds(RECT bounds)
 {
     m_webViewBounds = bounds;
     ResizeWebView();
+}
+
+void ViewComponent::OffsetPointToWebView(LPPOINT point)
+{
+    ::ScreenToClient(m_appWindow->GetMainWindow(), point);
+    point->x -= m_webViewBounds.left;
+    point->y -= m_webViewBounds.top;
 }
 
 //! [SetBoundsAndZoomFactor]
@@ -381,8 +446,8 @@ void ViewComponent::SetTransform(TransformType transformType)
         D2D1_POINT_2F center = D2D1::Point2F(
             (m_webViewBounds.right - m_webViewBounds.left) / 2.f,
             (m_webViewBounds.bottom - m_webViewBounds.top) / 2.f);
-        m_webViewTransformMatrix =
-            Convert3x2MatrixTo4x4Matrix(&D2D1::Matrix3x2F::Rotation(30.0f, center));
+        D2D1::Matrix3x2F rotated = D2D1::Matrix3x2F::Rotation(30.0f, center);
+        m_webViewTransformMatrix = Convert3x2MatrixTo4x4Matrix(&rotated);
     }
     else if (transformType == TransformType::kRotate60DegDiagonally)
     {
@@ -420,6 +485,30 @@ void ViewComponent::SetTransform(TransformType transformType)
         FAIL_FAST();
     }
 }
+
+//! [RasterizationScale]
+void ViewComponent::SetRasterizationScale(float additionalScale)
+{
+    CHECK_FAILURE(m_controllerExperimental->put_ShouldDetectMonitorScaleChanges(FALSE));
+    m_webviewAdditionalRasterizationScale = additionalScale;
+    double rasterizationScale =
+#ifdef USE_WEBVIEW2_WIN10
+        additionalScale * m_appWindow->GetDpiScale() * m_appWindow->GetTextScale();
+#else
+        additionalScale;
+#endif
+    CHECK_FAILURE(m_controllerExperimental->put_RasterizationScale(rasterizationScale));
+}
+//! [RasterizationScale]
+
+//! [BoundsMode]
+void ViewComponent::SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE boundsMode)
+{
+    m_boundsMode = boundsMode;
+    CHECK_FAILURE(m_controllerExperimental->put_BoundsMode(boundsMode));
+    ResizeWebView();
+}
+//! [BoundsMode]
 
 static D2D1_MATRIX_4X4_F Convert3x2MatrixTo4x4Matrix(D2D1_MATRIX_3X2_F* matrix3x2)
 {
@@ -573,9 +662,13 @@ bool ViewComponent::OnPointerMessage(UINT message, WPARAM wParam, LPARAM lParam)
             }
 
             handled = true;
+            // Add the current offset before creating the CoreWebView2PointerInfo
+            D2D1_MATRIX_4X4_F m_webViewInputTransformMatrix = m_webViewTransformMatrix;
+            m_webViewInputTransformMatrix._41 += m_webViewBounds.left;
+            m_webViewInputTransformMatrix._42 += m_webViewBounds.top;
             wil::com_ptr<ICoreWebView2ExperimentalPointerInfo> pointer_info;
             COREWEBVIEW2_MATRIX_4X4* webviewMatrix =
-                reinterpret_cast<COREWEBVIEW2_MATRIX_4X4*>(&m_webViewTransformMatrix);
+                reinterpret_cast<COREWEBVIEW2_MATRIX_4X4*>(&m_webViewInputTransformMatrix);
             CHECK_FAILURE(m_compositionController->CreateCoreWebView2PointerInfoFromPointerId(
                 pointerId, m_appWindow->GetMainWindow(), *webviewMatrix, &pointer_info));
             CHECK_FAILURE(m_compositionController->SendPointerInput(
@@ -679,6 +772,12 @@ void ViewComponent::DestroyWinCompVisualTree()
 ViewComponent::~ViewComponent()
 {
     m_controller->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
+    m_controllerExperimental->remove_RasterizationScaleChanged(m_rasterizationScaleChangedToken);
+    if (m_dropTarget)
+    {
+        RevokeDragDrop(m_appWindow->GetMainWindow());
+        m_dropTarget = nullptr;
+    }
     if (m_compositionController)
     {
         m_compositionController->remove_CursorChanged(m_cursorChangedToken);

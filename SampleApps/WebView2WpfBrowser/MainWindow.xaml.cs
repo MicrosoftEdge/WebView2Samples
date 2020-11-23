@@ -33,6 +33,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
         public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
         public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
+        public static RoutedCommand GetCookiesCommand = new RoutedCommand();
         public static RoutedCommand AddOrUpdateCookieCommand = new RoutedCommand();
         public static RoutedCommand DeleteCookiesCommand = new RoutedCommand();
         public static RoutedCommand DeleteAllCookiesCommand = new RoutedCommand();
@@ -147,6 +148,18 @@ namespace WebView2WpfBrowser
             }
         }
 
+        async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            List<CoreWebView2Cookie> cookieList = await webView.CoreWebView2.CookieManager.GetCookiesAsync("https://www.bing.com");
+            StringBuilder cookieResult = new StringBuilder(cookieList.Count + " cookie(s) received from https://www.bing.com\n");
+            for (int i = 0; i < cookieList.Count; ++i)
+            {
+                CoreWebView2Cookie cookie = webView.CoreWebView2.CookieManager.CreateCookieWithSystemNetCookie(cookieList[i].ToSystemNetCookie());
+                cookieResult.Append($"\n{cookie.Name} {cookie.Value} {(cookie.IsSession ? "[session cookie]" : cookie.Expires.ToString("G"))}");
+            }
+            MessageBox.Show(this, cookieResult.ToString(), "GetCookiesAsync");
+        }
+
         void AddOrUpdateCookieCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             CoreWebView2Cookie cookie = webView.CoreWebView2.CookieManager.CreateCookie("CookieName", "CookieValue", ".bing.com", "/");
@@ -167,7 +180,7 @@ namespace WebView2WpfBrowser
         {
             webView.CoreWebView2.DOMContentLoaded += (object sender, CoreWebView2DOMContentLoadedEventArgs arg) =>
             {
-                webView.ExecuteScriptAsync("let " +
+                _ = webView.ExecuteScriptAsync("let " +
                                           "content=document.createElement(\"h2\");content.style.color=" +
                                           "'blue';content.textContent= \"This text was added by the " +
                                           "host app\";document.body.appendChild(content);");

@@ -25,8 +25,9 @@ ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow)
     CHECK_FAILURE(settings->put_IsWebMessageEnabled(TRUE));
 
     //! [CookieManager]
-    m_webViewExperimental = m_webView.try_query<ICoreWebView2Experimental>();
-    CHECK_FAILURE(m_webViewExperimental->get_CookieManager(&m_cookieManager));
+    wil::com_ptr<ICoreWebView2_2> m_webview2;
+    CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&m_webview2)));
+    CHECK_FAILURE(m_webview2->get_CookieManager(&m_cookieManager));
     //! [CookieManager]
 
     // Setup the web message received event handler before navigating to
@@ -59,7 +60,7 @@ ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow)
                 else if (message.compare(0, 17, L"AddOrUpdateCookie") == 0)
                 {
                     //! [AddOrUpdateCookie]
-                    wil::com_ptr<ICoreWebView2ExperimentalCookie> cookie;
+                    wil::com_ptr<ICoreWebView2Cookie> cookie;
                     CHECK_FAILURE(m_cookieManager->CreateCookie(
                         L"CookieName", L"CookieValue", L".bing.com", L"/", &cookie));
                     CHECK_FAILURE(m_cookieManager->AddOrUpdateCookie(cookie.get()));
@@ -121,7 +122,7 @@ static std::wstring SecondsToString(UINT32 time)
     return result;
 }
 
-static std::wstring CookieToString(ICoreWebView2ExperimentalCookie* cookie)
+static std::wstring CookieToString(ICoreWebView2Cookie* cookie)
 {
     //! [CookieObject]
     wil::unique_cotaskmem_string name;
@@ -182,8 +183,8 @@ void ScenarioCookieManagement::GetCookiesHelper(std::wstring uri)
     {
         CHECK_FAILURE(m_cookieManager->GetCookies(
             uri.c_str(),
-            Callback<ICoreWebView2ExperimentalGetCookiesCompletedHandler>(
-                [this, uri](HRESULT error_code, ICoreWebView2ExperimentalCookieList* list) -> HRESULT {
+            Callback<ICoreWebView2GetCookiesCompletedHandler>(
+                [this, uri](HRESULT error_code, ICoreWebView2CookieList* list) -> HRESULT {
                     CHECK_FAILURE(error_code);
 
                     std::wstring result;
@@ -204,7 +205,7 @@ void ScenarioCookieManagement::GetCookiesHelper(std::wstring uri)
                         result += L"\n\n[";
                         for (int i = 0; i < cookie_list_size; ++i)
                         {
-                            wil::com_ptr<ICoreWebView2ExperimentalCookie> cookie;
+                            wil::com_ptr<ICoreWebView2Cookie> cookie;
                             CHECK_FAILURE(list->GetValueAtIndex(i, &cookie));
 
                             if (cookie.get())

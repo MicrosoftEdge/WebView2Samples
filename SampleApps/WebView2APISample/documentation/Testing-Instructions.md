@@ -447,13 +447,12 @@ _It is disabled by default. Data URI won't e affected if disabled._
 1. Launch the sample app.
 2. Go to `Settings -> Toggle Block images`
 3. Expected: Message Box that says `Image blocking has been enabled.`
-4. Click `OK` inside the popup dialog
-5. Scroll down to load more content
-6. Expected: Images are blocked except for those that are already cached
-7. Repeat step 2
-8. Expected: Message Box that says `Image blocking has been disabled.`
-9. Click `OK` inside the popup dialog and click `Reload`
-10. Expected: No images are blocked
+4. Click `OK` inside the popup dialog and click `Reload`
+5. Expected: Images are blocked
+6. Repeat step 2
+7. Expected: Message Box that says `Image blocking has been disabled.`
+8. Click `OK` inside the popup dialog and click `Reload`
+9. Expected: No images are blocked
 
 #### JavaScript Dialogs
 
@@ -628,10 +627,10 @@ getting larger or smaller without the layout of the page changing._
 
 1. Launch the sample app.
 1. Go to `View -> WebView Area -> 50%`
-1. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds. (See [Bounds B](#Bounds-B))
+1. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds. (See [Bounds C](#Bounds-C))
 1. Go to `View -> WebView Scale -> 1.5x`
 1. Go to `View -> WebView Area -> Get WebView Bounds`
-1. Expected: WebView size is 1.5x larger than bounds in step 2. (See [Bounds D](#Bounds-D))
+1. Expected: WebView size is 1.5x larger than bounds in step 2 - current WebView height is 1.5x larger than height in step 2 and current WebView width is 1.5x larger than width in step 2.  (See [Bounds D](#Bounds-D))
 1. Go to `View -> WebView Zoom -> Get WebView Zoom`
 1. Expected: WebView zoom factor is set to 1.5x
 1. Expected: WebView renders at the new size/zoom (looks larger) without the
@@ -704,6 +703,16 @@ Menu item `Script -> Host Objects` is demonstrated.
 2. Go to `Scenario -> Host Objects`
 3. Follow the instructions on the page
 
+#### DOM Content Loaded
+
+Test that verifies `DOMContentLoaded` event is raised after the DOM is loaded when WebView navigates to a page.
+
+1. Launch the sample app.
+2. Go to `Scenario -> DOM Content Loaded`
+3. Expected: See DOMContentLoaded sample page.
+4. Navigate away from DOM Content Loaded scenario by loading <https://www.bing.com> using address bar.
+5. Expected: Navigation to <https://www.bing.com> completes.
+
 #### Script Debugging
 
 ##### [VSCode] Debugging Setup
@@ -730,7 +739,6 @@ Test Single WebView JavaScript Debugging with **both** [Debugger For Microsoft E
 1. Expected: sample app is launched
 1. VM\* error page may launch, just ignore and click go (Ignore VM\* file in general and click go at any stage)
 1. Go to `Scenario -> Script Debugging -> JavaScript`
-1. Click `Add a new item`
 1. Expect debugger to hit the breakpoint and pause the page
 
 ##### [VSCode] Single WebView TypeScript Debugging
@@ -752,7 +760,7 @@ Test Single WebView TypeScript Debugging with **both** [Debugger For Microsoft E
 
 Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
-1. Add a new REGKEY `additionalBrowserArguments=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\EmbeddedBrowserWebView\LoaderOverride\*`
+1. Add a new REGKEY `*=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments`
   ![step 1](screenshots/script-debugging-reg-key.png)
 1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
@@ -769,7 +777,7 @@ Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge]
 
 Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
-1. Add a new REGKEY `additionalBrowserArguments=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\EmbeddedBrowserWebView\LoaderOverride\*`
+1. Add a new REGKEY `*=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments`
   ![step 1](screenshots/script-debugging-reg-key.png)
 1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
@@ -807,7 +815,7 @@ Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For 
 3. Go to same folder where sample app `WebView2APISample.exe` lives and open file `ScenarioTypeScripDebugIndex.ts` from the same folder. Set a breakpoint on `function onHeaderClick()`
 4. Then launch the sample app.
 5. VM\* error page may launch, just ignore and click go. (Ignore VM\* file in general and click go at any stage).
-6. Go to `Scenario -> Script Debugging -> JavaScript`
+6. Go to `Scenario -> Script Debugging -> TypeScript`
 7. Click on `Get Current Page Header` button
 8. Expect debugger to hit the breakpoint and pause the page
 

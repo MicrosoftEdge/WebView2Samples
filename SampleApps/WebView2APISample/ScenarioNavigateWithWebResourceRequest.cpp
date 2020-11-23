@@ -15,6 +15,7 @@ using namespace Microsoft::WRL;
 
 ScenarioNavigateWithWebResourceRequest::ScenarioNavigateWithWebResourceRequest(
     AppWindow* appWindow)
+    : m_appWindow(appWindow)
 {
     // Prepare post data as UTF-8 byte array and convert it to stream
     // as required by the application/x-www-form-urlencoded Content-Type
@@ -36,20 +37,20 @@ ScenarioNavigateWithWebResourceRequest::ScenarioNavigateWithWebResourceRequest(
             sizeNeededForMultiByte, nullptr, nullptr);
 
         //! [NavigateWithWebResourceRequest]
-        wil::com_ptr<ICoreWebView2Experimental> webviewExperimental;
-        CHECK_FAILURE(appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&webviewExperimental)));
-        wil::com_ptr<ICoreWebView2ExperimentalEnvironment> webviewEnvironmentExperimental;
+        wil::com_ptr<ICoreWebView2Environment2> webviewEnvironment2;
         CHECK_FAILURE(appWindow->GetWebViewEnvironment()->QueryInterface(
-            IID_PPV_ARGS(&webviewEnvironmentExperimental)));
+            IID_PPV_ARGS(&webviewEnvironment2)));
         wil::com_ptr<ICoreWebView2WebResourceRequest> webResourceRequest;
         wil::com_ptr<IStream> postDataStream = SHCreateMemStream(
             reinterpret_cast<const BYTE*>(postDataBytes.get()), sizeNeededForMultiByte);
 
         // This is acts as a form submit to https://www.w3schools.com/action_page.php
-        CHECK_FAILURE(webviewEnvironmentExperimental->CreateWebResourceRequest(
+        CHECK_FAILURE(webviewEnvironment2->CreateWebResourceRequest(
             L"https://www.w3schools.com/action_page.php", L"POST", postDataStream.get(),
             L"Content-Type: application/x-www-form-urlencoded", &webResourceRequest));
-        CHECK_FAILURE(webviewExperimental->NavigateWithWebResourceRequest(webResourceRequest.get()));
+        wil::com_ptr<ICoreWebView2_2> webview2;
+        CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&webview2)));
+        CHECK_FAILURE(webview2->NavigateWithWebResourceRequest(webResourceRequest.get()));
         //! [NavigateWithWebResourceRequest]
     }
 }

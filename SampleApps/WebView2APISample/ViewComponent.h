@@ -19,6 +19,7 @@
 // It also manages interaction with the compositor if running in windowless mode.
 
 class DCompTargetImpl;
+class DropTarget;
 
 class ViewComponent : public ComponentBase
 {
@@ -43,6 +44,12 @@ public:
 
     void SetBounds(RECT bounds);
 
+    // Converts a screen point to a WebView client point while taking into
+    // account WebView's offset.
+    void OffsetPointToWebView(LPPOINT point);
+
+    void UpdateDpiAndTextScale();
+
     ~ViewComponent() override;
 
 private:
@@ -59,11 +66,15 @@ private:
     void SetZoomFactor(float zoom);
     void SetScale(float scale);
     void SetTransform(TransformType transformType);
+    void SetRasterizationScale(float additionalScale);
+    void SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE boundsMode);
     void ShowWebViewBounds();
     void ShowWebViewZoom();
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webView;
+    wil::com_ptr<ICoreWebView2ExperimentalController> m_controllerExperimental;
+
     bool m_isDcompTargetMode;
     bool m_isVisible = true;
     float m_webViewRatio = 1.0f;
@@ -71,7 +82,12 @@ private:
     RECT m_webViewBounds = {};
     float m_webViewScale = 1.0f;
     bool m_useCursorId = false;
+    wil::com_ptr<DropTarget> m_dropTarget;
+    float m_webviewAdditionalRasterizationScale = 1.0f;
+    COREWEBVIEW2_BOUNDS_MODE m_boundsMode = COREWEBVIEW2_USE_RAW_PIXELS;
+
     EventRegistrationToken m_zoomFactorChangedToken = {};
+    EventRegistrationToken m_rasterizationScaleChangedToken = {};
 
     bool OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam);
     bool OnPointerMessage(UINT message, WPARAM wParam, LPARAM lParam);

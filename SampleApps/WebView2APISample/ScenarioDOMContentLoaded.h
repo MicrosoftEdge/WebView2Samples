@@ -19,7 +19,7 @@ public:
 private:
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2Experimental> m_webViewExperimental;
+    wil::com_ptr<ICoreWebView2_2> m_webView2;
     std::wstring m_sampleUri;
     EventRegistrationToken m_DOMContentLoadedToken = {};
     EventRegistrationToken m_contentLoadingToken = {};
