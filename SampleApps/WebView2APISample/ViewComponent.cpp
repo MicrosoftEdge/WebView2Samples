@@ -221,10 +221,10 @@ bool ViewComponent::HandleWindowMessage(
             SetRasterizationScale(1.5f);
             return true;
         case IDM_BOUNDS_MODE_RAW_PIXELS:
-            SetBoundsMode(COREWEBVIEW2_USE_RAW_PIXELS);
+            SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE_USE_RAW_PIXELS);
             return true;
         case IDM_BOUNDS_MODE_VIEW_PIXELS:
-            SetBoundsMode(COREWEBVIEW2_USE_RASTERIZATION_SCALE);
+            SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE_USE_RASTERIZATION_SCALE);
             return true;
         case IDM_SCALE_50:
             SetScale(0.5f);

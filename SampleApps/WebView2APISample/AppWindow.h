@@ -58,9 +58,7 @@ public:
     std::wstring GetLocalUri(std::wstring path);
     std::function<void()> GetAcceleratorKeyFunction(UINT key);
     double GetDpiScale();
-#ifdef USE_WEBVIEW2_WIN10
     double GetTextScale();
-#endif
 
     void ReinitializeWebView();
 
