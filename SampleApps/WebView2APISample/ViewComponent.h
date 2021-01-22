@@ -84,7 +84,7 @@ private:
     bool m_useCursorId = false;
     wil::com_ptr<DropTarget> m_dropTarget;
     float m_webviewAdditionalRasterizationScale = 1.0f;
-    COREWEBVIEW2_BOUNDS_MODE m_boundsMode = COREWEBVIEW2_BOUNDS_MODE_USE_RAW_PIXELS;
+    COREWEBVIEW2_BOUNDS_MODE m_boundsMode = COREWEBVIEW2_USE_RAW_PIXELS;
 
     EventRegistrationToken m_zoomFactorChangedToken = {};
     EventRegistrationToken m_rasterizationScaleChangedToken = {};

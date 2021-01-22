@@ -33,7 +33,6 @@ namespace WebView2WpfBrowser
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
         public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
         public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
-        public static RoutedCommand GetCookiesCommand = new RoutedCommand();
         public static RoutedCommand AddOrUpdateCookieCommand = new RoutedCommand();
         public static RoutedCommand DeleteCookiesCommand = new RoutedCommand();
         public static RoutedCommand DeleteAllCookiesCommand = new RoutedCommand();
@@ -335,5 +334,12 @@ namespace WebView2WpfBrowser
             // signal the property value changes.
             CommandManager.InvalidateRequerySuggested();
         }
+
+        //private void WebView_AcceleratorKeyPressed(object sender, CoreWebView2AcceleratorKeyPressedEventArgs e)
+        //{
+        //    // If accelerator keys are disabled mark the event as handled
+        //    if (!AcceleratorKeysEnabled)
+        //        e.Handled = true;
+        //}
     }
 }

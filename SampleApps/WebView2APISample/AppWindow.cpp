@@ -1245,14 +1245,12 @@ double AppWindow::GetDpiScale()
     return DpiUtil::GetDpiForWindow(m_mainWindow) * 1.0f / USER_DEFAULT_SCREEN_DPI;
 }
 
+#ifdef USE_WEBVIEW2_WIN10
 double AppWindow::GetTextScale()
 {
-#ifdef USE_WEBVIEW2_WIN10
     return m_uiSettings ? m_uiSettings.TextScaleFactor() : 1.0f;
-#else
-    return 1.0f;
-#endif
 }
+#endif
 
 void AppWindow::AddRef()
 {

@@ -28,7 +28,6 @@ found in the LICENSE file.
         <CommandBinding Command="NavigationCommands.IncreaseZoom" Executed="IncreaseZoomCmdExecuted" CanExecute="IncreaseZoomCmdCanExecute"/>
         <CommandBinding Command="NavigationCommands.DecreaseZoom" Executed="DecreaseZoomCmdExecuted" CanExecute="DecreaseZoomCmdCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.InjectScriptCommand}" Executed="InjectScriptCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
-        <CommandBinding Command="{x:Static local:MainWindow.GetCookiesCommand}" Executed="GetCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DOMContentLoadedCommand}" Executed="DOMContentLoadedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}" Executed="NavigateWithWebResourceRequestCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}" Executed="AddOrUpdateCookieCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -50,10 +49,9 @@ found in the LICENSE file.
                 <MenuItem Header="_DOM Content Loaded" Command="{x:Static local:MainWindow.DOMContentLoadedCommand}"/>
                 <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem Header="_Cookie Management">
-                    <MenuItem Header="Get Cookies" Command="{x:Static local:MainWindow.GetCookiesCommand}"/>
-                    <MenuItem Header="Add Or Update Cookie" Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}"/>
-                    <MenuItem Header="Delete Cookie" Command="{x:Static local:MainWindow.DeleteCookiesCommand}"/>
-                    <MenuItem Header="Delete All Cookies" Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}"/>
+                <MenuItem Header="Add Or Update Cookie" Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}"/>
+                <MenuItem Header="Delete Cookie" Command="{x:Static local:MainWindow.DeleteCookiesCommand}"/>
+                <MenuItem Header="Delete All Cookies" Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}"/>
                 </MenuItem>
                 <MenuItem Header="Intercept _Response" IsCheckable="True" IsChecked="{Binding ElementName=MyWindow, Path=ShowNextWebResponse, Mode=TwoWay}"/>
             </MenuItem>
