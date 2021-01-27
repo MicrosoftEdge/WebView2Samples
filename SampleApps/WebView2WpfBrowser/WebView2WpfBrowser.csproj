@@ -11,6 +11,11 @@
     <Configurations>Debug;Release;Win7 Release;Win7 Debug</Configurations>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="assets\EdgeWebView2-80.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.721-prerelease" />
   </ItemGroup>
 </Project>

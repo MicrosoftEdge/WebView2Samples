@@ -25,14 +25,18 @@ found in the LICENSE file.
         <CommandBinding Command="NavigationCommands.Refresh" Executed="RefreshCmdExecuted" CanExecute="RefreshCmdCanExecute"/>
         <CommandBinding Command="NavigationCommands.BrowseStop" Executed="BrowseStopCmdExecuted" CanExecute="BrowseStopCmdCanExecute"/>
         <CommandBinding Command="NavigationCommands.GoToPage" Executed="GoToPageCmdExecuted" CanExecute="GoToPageCmdCanExecute"/>
-        <CommandBinding Command="NavigationCommands.IncreaseZoom" Executed="IncreaseZoomCmdExecuted" CanExecute="IncreaseZoomCmdCanExecute"/>
+        <CommandBinding Command="NavigationCommands.IncreaseZoom" Executed="IncreaseZoomCmdExecuted" CanExecute="WebViewRequiringCmdsCanExecute"/>
         <CommandBinding Command="NavigationCommands.DecreaseZoom" Executed="DecreaseZoomCmdExecuted" CanExecute="DecreaseZoomCmdCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.InjectScriptCommand}" Executed="InjectScriptCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.SetUserAgentCommand}" Executed="SetUserAgentCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GetCookiesCommand}" Executed="GetCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DOMContentLoadedCommand}" Executed="DOMContentLoadedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}" Executed="NavigateWithWebResourceRequestCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}" Executed="AddOrUpdateCookieCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteCookiesCommand}" Executed="DeleteCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}" Executed="DeleteAllCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.SuspendCommand}" Executed="SuspendCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ResumeCommand}" Executed="ResumeCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -44,14 +48,22 @@ found in the LICENSE file.
             <MenuItem Header="_View">
                 <MenuItem Header="_Increase Zoom" Command="NavigationCommands.IncreaseZoom"/>
                 <MenuItem Header="_Decrease Zoom" Command="NavigationCommands.DecreaseZoom"/>
+                <MenuItem Header="_BackgroundColor">
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="S_ettings">
+                <MenuItem Header="WebView _userAgent" Command="{x:Static local:MainWindow.SetUserAgentCommand}"/>
             </MenuItem>
             <MenuItem Header="S_cenario">
+                <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>
+                <MenuItem Header="Resume" Command="{x:Static local:MainWindow.ResumeCommand}"/>
                 <MenuItem Header="_DOM Content Loaded" Command="{x:Static local:MainWindow.DOMContentLoadedCommand}"/>
                 <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem Header="_Cookie Management">
-                <MenuItem Header="Add Or Update Cookie" Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}"/>
-                <MenuItem Header="Delete Cookie" Command="{x:Static local:MainWindow.DeleteCookiesCommand}"/>
-                <MenuItem Header="Delete All Cookies" Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}"/>
+                    <MenuItem Header="Get Cookies" Command="{x:Static local:MainWindow.GetCookiesCommand}"/>
+                    <MenuItem Header="Add Or Update Cookie" Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}"/>
+                    <MenuItem Header="Delete Cookie" Command="{x:Static local:MainWindow.DeleteCookiesCommand}"/>
+                    <MenuItem Header="Delete All Cookies" Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}"/>
                 </MenuItem>
                 <MenuItem Header="Intercept _Response" IsCheckable="True" IsChecked="{Binding ElementName=MyWindow, Path=ShowNextWebResponse, Mode=TwoWay}"/>
             </MenuItem>
@@ -69,12 +81,18 @@ found in the LICENSE file.
                 </TextBox.InputBindings>
             </TextBox>
         </DockPanel>
-        <wv2:WebView2
-            x:Name="webView"
-            CreationProperties="{StaticResource EvergreenWebView2CreationProperties}"
-            Source="https://www.bing.com/"
-            NavigationStarting="WebView_NavigationStarting"
-            NavigationCompleted="WebView_NavigationCompleted"
-        />
+        <Grid x:Name="Layout">
+            <Grid.Background>
+                <ImageBrush ImageSource="/assets/EdgeWebView2-80.jpg"></ImageBrush>
+            </Grid.Background>
+
+            <wv2:WebView2
+                x:Name="webView"
+                CreationProperties="{StaticResource EvergreenWebView2CreationProperties}"
+                Source="https://www.bing.com/"
+                NavigationStarting="WebView_NavigationStarting"
+                NavigationCompleted="WebView_NavigationCompleted"
+            />
+        </Grid>
     </DockPanel>
 </Window>

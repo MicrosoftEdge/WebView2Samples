@@ -23,3 +23,10 @@ void CheckFailure(HRESULT hr, const std::wstring& message)
         FAIL_FAST();
     }
 }
+
+void ExperimentalFeatureNotAvailable()
+{
+    MessageBox(nullptr,
+        L"This experimental feature is not available in the browser version currently being used.",
+        L"Feature Not Available", MB_OK);
+}
