@@ -16,10 +16,10 @@
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='AnyCPU'">
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.721-prerelease" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.781-prerelease" />
   </ItemGroup>
   <ItemGroup>
     <None Update="assets\EdgeWebView2-80.jpg">
