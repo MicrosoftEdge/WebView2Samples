@@ -34,9 +34,12 @@ namespace WebView2WpfBrowser
         public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
         public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
         public static RoutedCommand GetCookiesCommand = new RoutedCommand();
+        public static RoutedCommand SuspendCommand = new RoutedCommand();
+        public static RoutedCommand ResumeCommand = new RoutedCommand();
         public static RoutedCommand AddOrUpdateCookieCommand = new RoutedCommand();
         public static RoutedCommand DeleteCookiesCommand = new RoutedCommand();
         public static RoutedCommand DeleteAllCookiesCommand = new RoutedCommand();
+        public static RoutedCommand SetUserAgentCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         public MainWindow()
@@ -94,6 +97,11 @@ namespace WebView2WpfBrowser
             webView.Stop();
         }
 
+        void WebViewRequiringCmdsCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = webView != null;
+        }
+
         void CoreWebView2RequiringCmdsCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = webView != null && webView.CoreWebView2 != null;
@@ -115,11 +123,6 @@ namespace WebView2WpfBrowser
             }
         }
 
-        void IncreaseZoomCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = webView != null;
-        }
-
         void IncreaseZoomCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             webView.ZoomFactor += ZoomStep();
@@ -133,6 +136,12 @@ namespace WebView2WpfBrowser
         void DecreaseZoomCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             webView.ZoomFactor -= ZoomStep();
+        }
+
+        void BackgroundColorCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            System.Drawing.Color backgroundColor = System.Drawing.Color.FromName(e.Parameter.ToString());
+            webView.DefaultBackgroundColor = backgroundColor;
         }
 
         async void InjectScriptCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -174,6 +183,22 @@ namespace WebView2WpfBrowser
         void DeleteCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             webView.CoreWebView2.CookieManager.DeleteCookiesWithDomainAndPath("CookieName", ".bing.com", "/");
+        }
+
+        private CoreWebView2Settings _coreWebView2Settings;
+        void SetUserAgentCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            if (_coreWebView2Settings == null)
+            {
+                _coreWebView2Settings = webView.CoreWebView2.Settings;
+            }
+            var dialog = new TextInputDialog(
+                title: "SetUserAgent",
+                description: "Enter UserAgent");
+            if (dialog.ShowDialog() == true)
+            {
+                _coreWebView2Settings.UserAgent = dialog.Input.Text;
+            }
         }
 
         void DOMContentLoadedCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -234,6 +259,34 @@ namespace WebView2WpfBrowser
             await webView.EnsureCoreWebView2Async();
             webView.CoreWebView2.Navigate((string)e.Parameter);
         }
+
+        async void SuspendCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                bool isSuccessful = await webView.CoreWebView2.TrySuspendAsync();
+                MessageBox.Show(this,
+                    (isSuccessful) ? "TrySuspendAsync succeeded" : "TrySuspendAsync failed",
+                    "TrySuspendAsync");
+            }
+            catch (System.Runtime.InteropServices.COMException exception)
+            {
+                MessageBox.Show(this, "TrySuspendAsync failed:" + exception.Message, "TrySuspendAsync");
+            }
+        }
+        void ResumeCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                webView.CoreWebView2.Resume();
+                MessageBox.Show(this, "Resume Succeeded", "Resume");
+            }
+            catch (System.Runtime.InteropServices.COMException exception)
+            {
+                MessageBox.Show(this, "Resume failed:" + exception.Message, "Resume");
+            }
+        }
+
         void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
             _isNavigating = true;

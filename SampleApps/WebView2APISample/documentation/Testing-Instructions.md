@@ -57,6 +57,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Web Messaging](#Web-Messaging)
     * [Host Objects](#Host-Objects)
     * [Script Debugging](#Script-Debugging)
+    * [Cookie Management](#Cookie-Management)
   * [Help](#Help)
     * [About ...](#about-)
   * [Miscellaneous](#Miscellaneous)
@@ -818,6 +819,14 @@ Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For 
 6. Go to `Scenario -> Script Debugging -> TypeScript`
 7. Click on `Get Current Page Header` button
 8. Expect debugger to hit the breakpoint and pause the page
+
+#### Cookie Management
+
+Test that demonstrates cookie management related APIs usage such as `GetCookies`, `CreateCookie` and `AddOrUpdateCookie`, and `DeleteAllCookies`.
+
+1. Launch the sample app
+1. Go to **Scenario** > **Cookie Management**
+1. Follow the instructions on the page
 
 ### Help
 

@@ -104,6 +104,7 @@ BEGIN
         MENUITEM "Toggle Status Bar enabled",   ID_SETTINGS_STATUS_BAR_ENABLED
         MENUITEM "Toggle DevTools enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
         MENUITEM "Toggle Block images",         ID_SETTINGS_BLOCKALLIMAGES
+        MENUITEM "Toggle Replace images",       ID_SETTINGS_REPLACEALLIMAGES
         POPUP "JavaScript Dialogs"
         BEGIN
             MENUITEM "Use Default Script Dialogs",  IDM_USE_DEFAULT_SCRIPT_DIALOGS
@@ -119,6 +120,8 @@ BEGIN
     POPUP "&View"
     BEGIN
         MENUITEM "Toggle Visibility",           IDM_TOGGLE_VISIBILITY
+        MENUITEM "Suspend",                     IDM_SUSPEND
+        MENUITEM "Resume",                      IDM_RESUME
         POPUP "WebView Area"
         BEGIN
             MENUITEM "Get WebView Bounds",      IDM_GET_WEBVIEW_BOUNDS
@@ -165,6 +168,13 @@ BEGIN
         MENUITEM "Tab In",                      IDM_FOCUS_TAB_IN
         MENUITEM "Reverse Tab In",              IDM_FOCUS_REVERSE_TAB_IN
         MENUITEM "Toggle Tab Handling",         IDM_TOGGLE_TAB_HANDLING
+        POPUP "WebView Background Color"
+        BEGIN
+            MENUITEM "White"                   IDM_BACKGROUNDCOLOR_WHITE
+            MENUITEM "Red"                     IDM_BACKGROUNDCOLOR_RED
+            MENUITEM "Blue"                    IDM_BACKGROUNDCOLOR_BLUE
+            MENUITEM "Transparent"             IDM_BACKGROUNDCOLOR_TRANSPARENT
+        END
     END
     POPUP "S&cenario"
     BEGIN

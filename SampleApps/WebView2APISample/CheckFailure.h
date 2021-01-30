@@ -11,7 +11,6 @@ void ShowFailure(HRESULT hr, const std::wstring& message = L"Error");
 // If something failed, show the error code and fail fast.
 void CheckFailure(HRESULT hr, const std::wstring& message = L"Error");
 
-
 // Needs to be a separate macro because the preprocessor is weird
 #define CHECK_FAILURE_STRINGIFY(arg) #arg
 
@@ -26,3 +25,10 @@ void CheckFailure(HRESULT hr, const std::wstring& message = L"Error");
 #define CHECK_FAILURE_FILE_LINE(file, line) ([](HRESULT hr){ CheckFailure(hr, L"Failure at " CHECK_FAILURE_STRINGIFY(file) L"(" CHECK_FAILURE_STRINGIFY(line) L")"); })
 #define CHECK_FAILURE CHECK_FAILURE_FILE_LINE(__FILE__, __LINE__)
 #define CHECK_FAILURE_BOOL(value) CHECK_FAILURE((value) ? S_OK : E_UNEXPECTED)
+
+// Show a message box indicating that an experimental interface isn't available in this browser version.
+// Only call this in direct response to a specific user action.
+void ExperimentalFeatureNotAvailable();
+
+// Wraps the above in a conditional.
+#define CHECK_FEATURE_RETURN(feature, ret) { if (!feature) { ExperimentalFeatureNotAvailable(); return (ret); } }

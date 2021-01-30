@@ -43,6 +43,7 @@ public:
         LRESULT* result) override;
 
     void SetBounds(RECT bounds);
+    RECT GetBounds();
 
     // Converts a screen point to a WebView client point while taking into
     // account WebView's offset.
@@ -62,6 +63,9 @@ private:
     };
     void ResizeWebView();
     void ToggleVisibility();
+    void Suspend();
+    void Resume();
+    void SetBackgroundColor(COLORREF color, bool transparent);
     void SetSizeRatio(float ratio);
     void SetZoomFactor(float zoom);
     void SetScale(float scale);
@@ -70,6 +74,7 @@ private:
     void SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE boundsMode);
     void ShowWebViewBounds();
     void ShowWebViewZoom();
+
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webView;
@@ -93,7 +98,7 @@ private:
     bool OnPointerMessage(UINT message, WPARAM wParam, LPARAM lParam);
     void TrackMouseEvents(DWORD mouseTrackingFlags);
 
-    wil::com_ptr<ICoreWebView2ExperimentalCompositionController> m_compositionController;
+    wil::com_ptr<ICoreWebView2CompositionController> m_compositionController;
     bool m_isTrackingMouse = false;
     bool m_isCapturingMouse = false;
     std::unordered_set<UINT> m_pointerIdsStartingInWebView;

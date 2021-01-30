@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 
@@ -57,15 +58,13 @@ namespace WebView2WindowsFormsBrowser
         private void WebView2Control_KeyUp(object sender, KeyEventArgs e)
         {
             UpdateTitleWithEvent($"AcceleratorKeyUp key={e.KeyCode}");
+            if (!this.acceleratorKeysEnabledToolStripMenuItem.Checked)
+                e.Handled = true;
         }
 
         private void WebView2Control_KeyDown(object sender, KeyEventArgs e)
         {
             UpdateTitleWithEvent($"AcceleratorKeyDown key={e.KeyCode}");
-        }
-
-        private void WebView2Control_AcceleratorKeyPressed(object sender, Microsoft.Web.WebView2.Core.CoreWebView2AcceleratorKeyPressedEventArgs e)
-        {
             if (!this.acceleratorKeysEnabledToolStripMenuItem.Checked)
                 e.Handled = true;
         }
@@ -141,6 +140,13 @@ namespace WebView2WindowsFormsBrowser
         private void xToolStripMenuItem3_Click(object sender, EventArgs e)
         {
             MessageBox.Show($"Zoom factor: {this.webView2Control.ZoomFactor}", "WebView Zoom factor");
+        }
+
+        private void backgroundColorMenuItem_Click(object sender, EventArgs e)
+        {
+            var menuItem = (ToolStripMenuItem)sender;
+            Color backgroundColor = Color.FromName(menuItem.Text);
+            this.webView2Control.DefaultBackgroundColor = backgroundColor;
         }
         #endregion
 

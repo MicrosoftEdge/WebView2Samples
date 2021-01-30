@@ -124,6 +124,12 @@ AppWindow::AppWindow(
             0, CW_USEDEFAULT, 0, nullptr, nullptr, g_hInstance, nullptr);
     }
 
+    m_appBackgroundImageHandle = (HBITMAP)LoadImage(
+        NULL, L"AppBackground.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    GetObject(m_appBackgroundImageHandle, sizeof(m_appBackgroundImage), &m_appBackgroundImage);
+    m_memHdc = CreateCompatibleDC(GetDC(m_mainWindow));
+    SelectObject(m_memHdc, m_appBackgroundImageHandle);
+
     SetWindowLongPtr(m_mainWindow, GWLP_USERDATA, (LONG_PTR)this);
 
 #ifdef USE_WEBVIEW2_WIN10
@@ -260,7 +266,22 @@ bool AppWindow::HandleWindowMessage(
     case WM_PAINT:
     {
         PAINTSTRUCT ps;
+        HDC hdc;
+        RECT mainWindowBounds;
+        RECT webViewBounds = {0};
         BeginPaint(hWnd, &ps);
+
+        hdc = GetDC(hWnd);
+        GetClientRect(hWnd, &mainWindowBounds);
+
+        if (auto viewComponent = GetComponent<ViewComponent>())
+        {
+            webViewBounds = viewComponent->GetBounds();
+        }
+
+        StretchBlt(hdc, webViewBounds.left, webViewBounds.top, webViewBounds.right, webViewBounds.bottom,
+            m_memHdc, 0, 0, m_appBackgroundImage.bmWidth, m_appBackgroundImage.bmHeight, SRCCOPY);
+
         EndPaint(hWnd, &ps);
         return true;
     }
@@ -282,6 +303,8 @@ bool AppWindow::HandleWindowMessage(
         {
             PostQuitMessage(retValue);
         }
+        DeleteObject(m_appBackgroundImageHandle);
+        DeleteDC(m_memHdc);
     }
     break;
     //! [RestartManager]
@@ -630,23 +653,23 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
     CHECK_FAILURE(result);
     m_webViewEnvironment = environment;
 
-    auto webViewExperimentalEnvironment =
-        m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment>();
+    auto webViewEnvironment3 =
+        m_webViewEnvironment.try_query<ICoreWebView2Environment3>();
 #ifdef USE_WEBVIEW2_WIN10
-    if (webViewExperimentalEnvironment && (m_dcompDevice || m_wincompCompositor))
+    if (webViewEnvironment3 && (m_dcompDevice || m_wincompCompositor))
 #else
-    if (webViewExperimentalEnvironment && m_dcompDevice)
+    if (webViewEnvironment3 && m_dcompDevice)
 #endif
     {
-        CHECK_FAILURE(webViewExperimentalEnvironment->CreateCoreWebView2CompositionController(
+        CHECK_FAILURE(webViewEnvironment3->CreateCoreWebView2CompositionController(
             m_mainWindow,
             Callback<
-                ICoreWebView2ExperimentalCreateCoreWebView2CompositionControllerCompletedHandler>(
+                ICoreWebView2CreateCoreWebView2CompositionControllerCompletedHandler>(
                 [this](
                     HRESULT result,
-                    ICoreWebView2ExperimentalCompositionController* compositionController) -> HRESULT {
+                    ICoreWebView2CompositionController* compositionController) -> HRESULT {
                     auto controller =
-                        wil::com_ptr<ICoreWebView2ExperimentalCompositionController>(compositionController)
+                        wil::com_ptr<ICoreWebView2CompositionController>(compositionController)
                             .query<ICoreWebView2Controller>();
                     return OnCreateCoreWebView2ControllerCompleted(result, controller.get());
                 })
@@ -693,13 +716,16 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<ControlComponent>(this, &m_toolbar);
 
-        wil::com_ptr<ICoreWebView2Experimental2> webview2;
-        webview2 = coreWebView2.query<ICoreWebView2Experimental2>();
-        //! [AddVirtualHostNameToFolderMapping]
-        // Setup host resource mapping for local files.
-        webview2->SetVirtualHostNameToFolderMapping(
-            L"appassets.example", L"assets", COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY_CORS);
-        //! [AddVirtualHostNameToFolderMapping]
+        m_webView3 = coreWebView2.query<ICoreWebView2_3>();
+        if (m_webView3)
+        {
+            //! [AddVirtualHostNameToFolderMapping]
+            // Setup host resource mapping for local files.
+            m_webView3->SetVirtualHostNameToFolderMapping(
+                L"appassets.example", L"assets",
+                COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY_CORS);
+            //! [AddVirtualHostNameToFolderMapping]
+        }
 
         // We have a few of our own event handlers to register here as well
         RegisterEventHandlers();
@@ -1096,10 +1122,24 @@ std::wstring AppWindow::GetLocalPath(std::wstring relativePath, bool keep_exe_pa
 }
 std::wstring AppWindow::GetLocalUri(std::wstring relativePath)
 {
-    //! [LocalUrlUsage]
-    const std::wstring localFileRootUrl = L"https://appassets.example/";
-    return localFileRootUrl + regex_replace(relativePath, std::wregex(L"\\\\"), L"/");
-    //! [LocalUrlUsage]
+    if (m_webView3)
+    {
+        //! [LocalUrlUsage]
+        const std::wstring localFileRootUrl = L"https://appassets.example/";
+        return localFileRootUrl + regex_replace(relativePath, std::wregex(L"\\\\"), L"/");
+        //! [LocalUrlUsage]
+    }
+    else
+    {
+        std::wstring path = GetLocalPath(L"assets\\" + relativePath, false);
+
+        wil::com_ptr<IUri> uri;
+        CHECK_FAILURE(CreateUri(path.c_str(), Uri_CREATE_ALLOW_IMPLICIT_FILE_SCHEME, 0, &uri));
+
+        wil::unique_bstr uriBstr;
+        CHECK_FAILURE(uri->GetAbsoluteUri(&uriBstr));
+        return std::wstring(uriBstr.get());
+    }
 }
 
 void AppWindow::RunAsync(std::function<void()> callback)

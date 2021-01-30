@@ -38,7 +38,7 @@ std::wstring ResolvePathAndTrimFile(std::wstring path)
     PathCchCanonicalize(resultPath, ARRAYSIZE(resultPath), path.c_str());
     PathCchRemoveFileSpec(resultPath, ARRAYSIZE(resultPath));
 #else
-    // Surpress compiler warning for PathCanonicalize. It is only used on Win7
+    // Supress compiler warning for PathCanonicalize. It is only used on Win7
     // where PathCchCanonicalize doesn't exist.
     #pragma warning(suppress : 4995)
     PathCanonicalize(resultPath, path.c_str());
