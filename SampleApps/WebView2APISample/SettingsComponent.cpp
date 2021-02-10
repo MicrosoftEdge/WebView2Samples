@@ -42,9 +42,12 @@ SettingsComponent::SettingsComponent(
             old->m_settings.try_query<ICoreWebView2ExperimentalSettings>();
         wil::com_ptr<ICoreWebView2ExperimentalSettings> experimental_settings_new;
         experimental_settings_new = m_settings.try_query<ICoreWebView2ExperimentalSettings>();
-        LPWSTR user_agent;
-        CHECK_FAILURE(experimental_settings_old->get_UserAgent(&user_agent));
-        CHECK_FAILURE(experimental_settings_new->put_UserAgent(user_agent));
+        if (experimental_settings_old && experimental_settings_new)
+        {
+            LPWSTR user_agent;
+            CHECK_FAILURE(experimental_settings_old->get_UserAgent(&user_agent));
+            CHECK_FAILURE(experimental_settings_new->put_UserAgent(user_agent));
+        }
         SetBlockImages(old->m_blockImages);
         SetReplaceImages(old->m_replaceImages);
         m_deferScriptDialogs = old->m_deferScriptDialogs;
