@@ -77,8 +77,8 @@ private:
 
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
+    wil::com_ptr<ICoreWebView2Controller3> m_controller3;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2ExperimentalController> m_controllerExperimental;
 
     bool m_isDcompTargetMode;
     bool m_isVisible = true;

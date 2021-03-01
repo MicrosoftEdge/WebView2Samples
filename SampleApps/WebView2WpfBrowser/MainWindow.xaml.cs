@@ -36,6 +36,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand GetCookiesCommand = new RoutedCommand();
         public static RoutedCommand SuspendCommand = new RoutedCommand();
         public static RoutedCommand ResumeCommand = new RoutedCommand();
+        public static RoutedCommand BackgroundColorCommand = new RoutedCommand();
         public static RoutedCommand AddOrUpdateCookieCommand = new RoutedCommand();
         public static RoutedCommand DeleteCookiesCommand = new RoutedCommand();
         public static RoutedCommand DeleteAllCookiesCommand = new RoutedCommand();

@@ -35,6 +35,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}" Executed="AddOrUpdateCookieCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteCookiesCommand}" Executed="DeleteCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}" Executed="DeleteAllCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.BackgroundColorCommand}" Executed="BackgroundColorCmdExecuted" CanExecute="WebViewRequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SuspendCommand}" Executed="SuspendCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ResumeCommand}" Executed="ResumeCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
@@ -49,6 +50,10 @@ found in the LICENSE file.
                 <MenuItem Header="_Increase Zoom" Command="NavigationCommands.IncreaseZoom"/>
                 <MenuItem Header="_Decrease Zoom" Command="NavigationCommands.DecreaseZoom"/>
                 <MenuItem Header="_BackgroundColor">
+                    <MenuItem Header="White" Command="{x:Static local:MainWindow.BackgroundColorCommand}" CommandParameter="White"/>
+                    <MenuItem Header="Red" Command="{x:Static local:MainWindow.BackgroundColorCommand}" CommandParameter="Red"/>
+                    <MenuItem Header="Blue" Command="{x:Static local:MainWindow.BackgroundColorCommand}" CommandParameter="Blue"/>
+                    <MenuItem Header="Transparent" Command="{x:Static local:MainWindow.BackgroundColorCommand}" CommandParameter="Transparent"/>
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="S_ettings">

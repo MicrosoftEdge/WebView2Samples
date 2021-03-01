@@ -53,15 +53,15 @@ ViewComponent::ViewComponent(
                 &m_zoomFactorChangedToken));
     //! [ZoomFactorChanged]
 
-    m_controllerExperimental = m_controller.try_query<ICoreWebView2ExperimentalController>();
-    if (m_controllerExperimental)
+    m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
+    if (m_controller3)
     {
         //! [RasterizationScaleChanged]
-        CHECK_FAILURE(m_controllerExperimental->add_RasterizationScaleChanged(
-            Callback<ICoreWebView2ExperimentalRasterizationScaleChangedEventHandler>(
-                [this](ICoreWebView2ExperimentalController* sender, IUnknown* args) -> HRESULT {
+        CHECK_FAILURE(m_controller3->add_RasterizationScaleChanged(
+            Callback<ICoreWebView2RasterizationScaleChangedEventHandler>(
+                [this](ICoreWebView2Controller* sender, IUnknown* args) -> HRESULT {
                     double rasterizationScale;
-                    CHECK_FAILURE(m_controllerExperimental->get_RasterizationScale(&rasterizationScale));
+                    CHECK_FAILURE(m_controller3->get_RasterizationScale(&rasterizationScale));
 
                     std::wstring message = L"WebView2APISample (RasterizationScale: " +
                         std::to_wstring(int(rasterizationScale * 100)) + L"%)";
@@ -224,29 +224,31 @@ bool ViewComponent::HandleWindowMessage(
             SetTransform(TransformType::kRotate60DegDiagonally);
             return true;
         case IDM_RASTERIZATION_SCALE_DEFAULT:
-            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
-            CHECK_FAILURE(m_controllerExperimental->put_ShouldDetectMonitorScaleChanges(TRUE));
+            CHECK_FEATURE_RETURN(m_controller3);
+            CHECK_FAILURE(m_controller3->put_ShouldDetectMonitorScaleChanges(TRUE));
             return true;
         case IDM_RASTERIZATION_SCALE_50:
-            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
+            CHECK_FEATURE_RETURN(m_controller3);
             SetRasterizationScale(0.5f);
             return true;
         case IDM_RASTERIZATION_SCALE_100:
-            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
+            CHECK_FEATURE_RETURN(m_controller3,);
             SetRasterizationScale(1.0f);
             return true;
         case IDM_RASTERIZATION_SCALE_125:
-            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
+            CHECK_FEATURE_RETURN(m_controller3);
             SetRasterizationScale(1.25f);
             return true;
         case IDM_RASTERIZATION_SCALE_150:
-            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
+            CHECK_FEATURE_RETURN(m_controller3);
             SetRasterizationScale(1.5f);
             return true;
         case IDM_BOUNDS_MODE_RAW_PIXELS:
+            CHECK_FEATURE_RETURN(m_controller3);
             SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE_USE_RAW_PIXELS);
             return true;
         case IDM_BOUNDS_MODE_VIEW_PIXELS:
+            CHECK_FEATURE_RETURN(m_controller3);
             SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE_USE_RASTERIZATION_SCALE);
             return true;
         case IDM_SCALE_50:
@@ -316,10 +318,10 @@ bool ViewComponent::HandleWindowMessage(
 
 void ViewComponent::UpdateDpiAndTextScale()
 {
-    if (m_controllerExperimental)
+    if (m_controller3)
     {
         BOOL isWebViewDetectingScaleChanges;
-        CHECK_FAILURE(m_controllerExperimental->get_ShouldDetectMonitorScaleChanges(
+        CHECK_FAILURE(m_controller3->get_ShouldDetectMonitorScaleChanges(
             &isWebViewDetectingScaleChanges));
         if (!isWebViewDetectingScaleChanges)
         {
@@ -579,17 +581,13 @@ void ViewComponent::SetTransform(TransformType transformType)
 //! [RasterizationScale]
 void ViewComponent::SetRasterizationScale(float additionalScale)
 {
-    if (m_controllerExperimental)
+    if (m_controller3)
     {
-        CHECK_FAILURE(m_controllerExperimental->put_ShouldDetectMonitorScaleChanges(FALSE));
+        CHECK_FAILURE(m_controller3->put_ShouldDetectMonitorScaleChanges(FALSE));
         m_webviewAdditionalRasterizationScale = additionalScale;
         double rasterizationScale =
-#ifdef USE_WEBVIEW2_WIN10
             additionalScale * m_appWindow->GetDpiScale() * m_appWindow->GetTextScale();
-#else
-            additionalScale;
-#endif
-        CHECK_FAILURE(m_controllerExperimental->put_RasterizationScale(rasterizationScale));
+        CHECK_FAILURE(m_controller3->put_RasterizationScale(rasterizationScale));
     }
 }
 //! [RasterizationScale]
@@ -597,10 +595,12 @@ void ViewComponent::SetRasterizationScale(float additionalScale)
 //! [BoundsMode]
 void ViewComponent::SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE boundsMode)
 {
-    CHECK_FEATURE_RETURN(m_controllerExperimental, (void)0);
-    m_boundsMode = boundsMode;
-    CHECK_FAILURE(m_controllerExperimental->put_BoundsMode(boundsMode));
-    ResizeWebView();
+    if (m_controller3)
+    {
+        m_boundsMode = boundsMode;
+        CHECK_FAILURE(m_controller3->put_BoundsMode(boundsMode));
+        ResizeWebView();
+    }
 }
 //! [BoundsMode]
 
@@ -868,9 +868,9 @@ void ViewComponent::DestroyWinCompVisualTree()
 ViewComponent::~ViewComponent()
 {
     m_controller->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
-    if (m_controllerExperimental)
+    if (m_controller3)
     {
-        m_controllerExperimental->remove_RasterizationScaleChanged(m_rasterizationScaleChangedToken);
+        m_controller3->remove_RasterizationScaleChanged(m_rasterizationScaleChangedToken);
     }
     if (m_dropTarget)
     {

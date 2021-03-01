@@ -24,9 +24,9 @@ void CheckFailure(HRESULT hr, const std::wstring& message)
     }
 }
 
-void ExperimentalFeatureNotAvailable()
+void FeatureNotAvailable()
 {
     MessageBox(nullptr,
-        L"This experimental feature is not available in the browser version currently being used.",
+        L"This feature is not available in the browser version currently being used.",
         L"Feature Not Available", MB_OK);
 }
