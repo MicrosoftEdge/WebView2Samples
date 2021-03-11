@@ -183,13 +183,16 @@ BEGIN
         MENUITEM "Event Monitor",               IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
         POPUP "Script Debugging"
         BEGIN
-            MENUITEM "JavaScript",  IDM_SCENARIO_JAVA_SCRIPT
-            MENUITEM "TypeScript",  IDM_SCENARIO_TYPE_SCRIPT
-        END
+            MENUITEM "JavaScript Local File",  IDM_SCENARIO_JAVA_SCRIPT
+            MENUITEM "TypeScript Local File",  IDM_SCENARIO_TYPE_SCRIPT
+            MENUITEM "JavaScript Virtual File", IDM_SCENARIO_JAVA_SCRIPT_VIRTUAL
+            MENUITEM "TypeScript Virtual File", IDM_SCENARIO_TYPE_SCRIPT_VIRTUAL
+            END
         MENUITEM "Authentication",              IDM_SCENARIO_AUTHENTICATION
         MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
         MENUITEM "DOM Content Loaded",          IDM_SCENARIO_DOM_CONTENT_LOADED
         MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
+        MENUITEM "Testing Focus",               IDM_SCENARIO_TESTING_FOCUS
     END
     POPUP "&Help"
     BEGIN

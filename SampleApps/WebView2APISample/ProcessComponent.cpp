@@ -6,6 +6,8 @@
 
 #include "ProcessComponent.h"
 
+#include <sstream>
+
 #include "CheckFailure.h"
 
 using namespace Microsoft::WRL;
@@ -15,54 +17,56 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
 {
     //! [ProcessFailed]
     // Register a handler for the ProcessFailed event.
-    // This handler checks if the browser process failed, and asks the user if
-    // they want to recreate the webview.
+    // This handler checks the failure kind and tries to:
+    //   * Recreate the webview for browser failure and render unresponsive.
+    //   * Reload the webview for render failure.
     CHECK_FAILURE(m_webView->add_ProcessFailed(
         Callback<ICoreWebView2ProcessFailedEventHandler>(
-            [this](ICoreWebView2* sender,
-                ICoreWebView2ProcessFailedEventArgs* args) -> HRESULT
-    {
-        COREWEBVIEW2_PROCESS_FAILED_KIND failureType;
-        CHECK_FAILURE(args->get_ProcessFailedKind(&failureType));
-        if (failureType == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED)
-        {
-            int button = MessageBox(
-                m_appWindow->GetMainWindow(),
-                L"Browser process exited unexpectedly.  Recreate webview?",
-                L"Browser process exited",
-                MB_YESNO);
-            if (button == IDYES)
-            {
-                m_appWindow->ReinitializeWebView();
-            }
-        }
-        else if (failureType == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE)
-        {
-            int button = MessageBox(
-                m_appWindow->GetMainWindow(),
-                L"Browser render process has stopped responding.  Recreate webview?",
-                L"Web page unresponsive", MB_YESNO);
-            if (button == IDYES)
-            {
-                m_appWindow->ReinitializeWebView();
-            }
-        }
-        else if (failureType == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED)
-        {
-            int button = MessageBox(
-                m_appWindow->GetMainWindow(),
-                L"Browser render process exited unexpectedly. Reload page?",
-                L"Web page unresponsive", MB_YESNO);
-            if (button == IDYES)
-            {
-                CHECK_FAILURE(m_webView->Reload());
-            }
-        }
-        return S_OK;
-    }).Get(), &m_processFailedToken));
+            [this](ICoreWebView2* sender, ICoreWebView2ProcessFailedEventArgs* argsRaw)
+                -> HRESULT {
+                wil::com_ptr<ICoreWebView2ProcessFailedEventArgs> args = argsRaw;
+                COREWEBVIEW2_PROCESS_FAILED_KIND failureKind;
+                CHECK_FAILURE(args->get_ProcessFailedKind(&failureKind));
+                if (failureKind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED)
+                {
+                    int button = MessageBox(
+                        m_appWindow->GetMainWindow(),
+                        L"Browser process exited unexpectedly.  Recreate webview?",
+                        L"Browser process exited", MB_YESNO);
+                    if (button == IDYES)
+                    {
+                        m_appWindow->ReinitializeWebView();
+                    }
+                }
+                else if (
+                    failureKind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE)
+                {
+                    int button = MessageBox(
+                        m_appWindow->GetMainWindow(),
+                        L"Browser render process has stopped responding.  Recreate webview?",
+                        L"Web page unresponsive", MB_YESNO);
+                    if (button == IDYES)
+                    {
+                        m_appWindow->ReinitializeWebView();
+                    }
+                }
+                else if (failureKind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED)
+                {
+                    int button = MessageBox(
+                        m_appWindow->GetMainWindow(),
+                        L"Browser render process exited unexpectedly. Reload page?",
+                        L"Web page unresponsive", MB_YESNO);
+                    if (button == IDYES)
+                    {
+                        CHECK_FAILURE(m_webView->Reload());
+                    }
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_processFailedToken));
     //! [ProcessFailed]
 }
-
 bool ProcessComponent::HandleWindowMessage(
     HWND hWnd,
     UINT message,
@@ -97,7 +101,6 @@ void ProcessComponent::ShowBrowserProcessInfo() {
     StringCchPrintf(buffer, ARRAYSIZE(buffer), L"Process ID: %u\n", processId);
     MessageBox(m_appWindow->GetMainWindow(), buffer, L"Process Info", MB_OK);
 }
-
 // Crash the browser's process on command, to test crash handlers.
 void ProcessComponent::CrashBrowserProcess()
 {

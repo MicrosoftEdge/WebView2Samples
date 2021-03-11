@@ -91,12 +91,16 @@ found in the LICENSE file.
                 <ImageBrush ImageSource="/assets/EdgeWebView2-80.jpg"></ImageBrush>
             </Grid.Background>
 
+            <!-- If you want to use a specific version of WebView2 Runtime change EvergreenWebView2CreationProperties
+            to BYOWebView2CreationProperties and follow the steps in MainWindow.xaml
+            -->
             <wv2:WebView2
                 x:Name="webView"
                 CreationProperties="{StaticResource EvergreenWebView2CreationProperties}"
                 Source="https://www.bing.com/"
                 NavigationStarting="WebView_NavigationStarting"
                 NavigationCompleted="WebView_NavigationCompleted"
+                CoreWebView2InitializationCompleted="WebView_CoreWebView2InitializationCompleted"
             />
         </Grid>
     </DockPanel>

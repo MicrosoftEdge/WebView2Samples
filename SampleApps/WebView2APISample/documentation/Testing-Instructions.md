@@ -43,6 +43,8 @@ These are instructions for manually testing all the features of the WebView2 API
     * [JavaScript Dialogs](#JavaScript-Dialogs)
     * [Toggle context menus enabled](#Toggle-context-menus-enabled)
     * [Toggle builtin error page enabled](#Toggle-builtin-error-page-enabled)
+    * [Toggle general autofill enabled](#Toggle-general-autofill-enabled)
+    * [Toggle password autofill enabled](#Toggle-password-autofill-enabled)
   * [View](#View)
     * [Toggle Visibility](#Toggle-Visibility)
     * [WebView Bounds Reference](#WebView-Bounds-Reference)
@@ -58,6 +60,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Host Objects](#Host-Objects)
     * [Script Debugging](#Script-Debugging)
     * [Cookie Management](#Cookie-Management)
+    * [NavigateWithWebResourceRequest](#NavigateWithWebResourceRequest)
   * [Help](#Help)
     * [About ...](#about-)
   * [Miscellaneous](#Miscellaneous)
@@ -510,7 +513,7 @@ _Builtin error page is enabled by default._
 
 1. Launch the sample app.
 2. Go to `Settings -> Toggle built-in error page enabled`
-3. Expected: Message Box that says `Built-in error page will be disabled for future navigation.`
+3. Expected: Message Box that says `Built-in error page will be disabled for after the next navigation.`
 4. Click `OK` inside the popup dialog
 5. Try navigate to <https://www.bingaaa.com/>
 6. Expected: blank page is shown
@@ -518,12 +521,75 @@ _Builtin error page is enabled by default._
 8. Expected: WebView shows blank page and a dialog that says `Browser render process exited unexpectedly. Reload page?`
 9. Click `Yes` in the popup dialog, expect webview to reload and stay as blank
 10. Go to `Settings -> Toggle built-in error page enabled`
-11. Expected: Message Box that says `Built-in error page will be enabled for future navigation.`
+11. Expected: Message Box that says `Built-in error page will be enabled for after the next navigation.`
 12. Click `OK` inside the popup dialog and click `Reload` button
 13. Expected: error page is shown with `Hmmm… can't reach this page`
 14. Go to `Process -> Crash Render Process`
 15. Expected: error page is shown with `This page is having a problem` and a dialog that says `Browser render process exited unexpectedly. Reload page?`
 16. Click `No` in the popup dialog, expect webview to stay at the error page
+
+### Toggle general autofill enabled
+
+Test that enables/disables general autofill 
+_General autofill is enabled by default._
+
+1. Launch the sample app.
+2. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+3. Enter in any test information into the Profile Autofill section and click submit. 
+4. Navigate to <https://rsolomakhin.github.io/autofill/>.  
+5. Click on the Name field. 
+6. Expected: A drop down box with the saved profile information is shown. 
+7. Click on the box. 
+8. Expected: The profile information is autofilled.  
+9. Go to `Settings -> Toggle General Autofill`
+10. Expected: Message Box that says `General autofill will be disabled after the next navigation.`
+11. Click `OK` inside the popup dialog and click `Reload`. 
+12. Repeat step 5. 
+13. Expected: No drop down box appears. 
+14. Repeat steps 3-5. 
+15. Expected: No drop down box appears.
+14. Go to `Settings -> Toggle General Autofill`
+15. Expected: Message Box that says `General autofill will be enabled after the next navigation.`
+16. Click `OK` inside the popup dialog and click `Reload`.
+17. Repeat step 5. 
+18. Expected: A drop down box with the original saved profile information is shown.  
+19. Click on the box. 
+20. Expected: The profile information is autofilled.  
+
+### Toggle password autofill enabled
+
+Test that enables/disables password autofill 
+ _Password autofill is enabled by default._
+
+1. Launch the sample app.
+2. Go to `Settings -> Toggle Password Autofill`
+3. Expected: Message Box that says `Password autofill will be disabled after the next navigation.`
+4. Click `OK` inside the popup dialog and click `Reload`. 
+5. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+6. Enter in any test information into the Username/Password section and press submit. 
+7. Expected: The app navigates to <https://example.com/> and no save password prompt is shown. 
+8. Navigate to <https://rsolomakhin.github.io/autofill/>.  
+9. Click on the Username field. 
+10. Expected: No drop down box appears. (note: if password information has previously been saved when the password autofill has been enabled, a drop down box will appear.)
+11. Go to `Settings -> Toggle Password Autofill`
+12. Expected: Message Box that says `Password autofill will be enabled after the next navigation.`
+13. Click `OK` inside the popup dialog and click `Reload`. 
+14. Repeat step 6.  
+15. Expected: The app navigates to <https://example.com> and a save password prompt will popup. 
+16. Click Save. 
+17. Repeat step 8. 
+18. Expected: See the username and password information is autofilled. 
+19. Click on the username field. 
+20. Expected: A drop down box with the saved password information is shown. 
+18. Go to `Settings -> Toggle Password Autofill`
+19. Expected: Message Box that says `Password autofill will be disabled after the next navigation.`
+16. Click `OK` inside the popup dialog and click `Reload`.
+17. Delete the information from the username and password fields and enter in new test information and click submit. 
+18. Expected: No save password prompt is shown. 
+19. Repeat step 8. 
+20. Expected: Only the information entered from step 13 is autofilled. 
+21. Repeat step 9. 
+20. Expected: Only one drop down box is shown with the saved password information entered from step 14. 
 
 ### View
 
@@ -643,42 +709,44 @@ getting larger or smaller without the layout of the page changing._
 Test that sets focus into WebView
 
 1. Launch the sample app.
-1. Click on the Bing search bar and press `Tab` key once, which sets the focus to the audio icon
+1. Go to `Scenario -> Testing Focus`
+1. Click on the Text input field and press `Tab` key once, which sets the focus to the Enter button
 1. Click on the address bar in the app window, which moves the focus from the WebView to the app window
 1. Go to `View -> Set Focus`
-1. Expected: See the focus is moved back the audio icon, which was the last focus in the WebView
+1. Expected: See the focus is moved back the Enter button, which was the last focus in the WebView
 
 #### Tab In
 
 Test that moves focus due to Tab traversal forward
 
 1. Launch the sample app.
+1. Go to `Scenario -> Testing Focus`
 1. Go to `View -> Tab In`
-1. Expected: See the focus is set to the Images button (the first element) on <bing.com> in the WebView
+1. Expected: See the focus is set to the First Active Element button in the WebView
 1. Click Tab button on keyboard
-1. Expected: See a focus rectangle around '...' button.
+1. Expected: See a focus rectangle around Text input field.
 
 #### ReverseTab In
 
 Test that moves focus due to Tab traversal backward
 
-1. Launch the sample app and load <https://www.google.com>
+1. Launch the sample app and go to `Scenario -> Testing Focus`
 1. Go to `View -> Reverse Tab In`
-1. Expected: See the focus is set to `How Search works` in Google (the last element).
+1. Expected: See the focus is set to the Last Active Element button.
 
 #### Toggle Tab Handling
 
 Test that enables/disables tab handling
 _It is disabled by default. Tabbing behavior should be identical whether this is enabled or disabled._
 
-1. Launch the sample app and load <https://www.google.com>
+1. Launch the sample app and go to `Scenario -> Testing Focus`
 1. Click address bar
-1. Press `Tab` twice (-> `Go` -> first element in WebView)
-1. Expected: See the focus is set to `About` in Google (the first element) in the WebView.
+1. Press `Tab` twice (-> `Go` -> fiirst element in WebView)
+1. Expected: See the focus is set to First Active Element button in the WebView.
 1. Press `Shift+Tab`
 1. Expected: See the focus is set to `Go` with the dotted line.
 1. Press `Shift+Tab` 4 times (-> address bar -> `Reload` -> `Back` -> last element in WebView)
-1. Expected: See the focus is set to the `How Search works` in Google (the last element) with the dotted line in the WebView.
+1. Expected: See the focus is set to the Last Active Element button in the WebView.
 1. Press `Tab`
 1. Expected: See the focus is set to `Back` with the dotted line.
 1. Go to `View -> Toggle Tab Handling` (Enabling Tab Handling)
@@ -724,7 +792,7 @@ Test that verifies `DOMContentLoaded` event is raised after the DOM is loaded wh
     1. [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug)
     ![new-debugging-tool](screenshots/new-script-debugging-tool.png)
 1. Go to `File -> Open Folder` and open `WebView2APISample/` (where `.vscode/` lives)
-1. Open files `ScenarioJavaScripDebugIndex.js` and `ScenarioTypeScripDebugIndex.ts` from the same output folder where `WebView2APISample.exe` lives (e.g. `WebView2APISample/Release/x64/`)
+1. Open files `ScenarioJavaScripDebugIndex.js` and `ScenarioTypeScripDebugIndex.ts` from the assets folder (e.g. `WebView2APISample/assets/ScenarioJavaScripDebugIndex.js`)
 1. Set breakpoints at `function OnAddClick()` in `ScenarioJavaScripDebugIndex.js` and `function OnHeaderClick()` in `ScenarioTypeScripDebugIndex.ts`
 1. Go to Debug tab via `View -> Run`
 
@@ -825,8 +893,15 @@ Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For 
 Test that demonstrates cookie management related APIs usage such as `GetCookies`, `CreateCookie` and `AddOrUpdateCookie`, and `DeleteAllCookies`.
 
 1. Launch the sample app
-1. Go to **Scenario** > **Cookie Management**
-1. Follow the instructions on the page
+2. Go to **Scenario** > **Cookie Management**
+3. Follow the instructions on the page
+
+#### NavigateWithWebResourceRequest
+1. Launch sample app.
+2. Go to **Scenario** > **NavigateWithWebResourceRequest**
+3. On the opened dialog box enter `test` as post data and click OK.
+4. Verify WebView2 navigated to `https://www.w3schools.com/action_page.php` and
+   `input=test` is displayed in the text box under `Your input was received as:`.
 
 ### Help
 
