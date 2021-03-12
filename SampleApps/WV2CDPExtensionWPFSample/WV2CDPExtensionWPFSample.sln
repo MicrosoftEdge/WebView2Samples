@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31005.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WV2CDPExtensionWPFSample", "WV2CDPExtensionWPFSample.csproj", "{86E127C0-CDC3-495F-871A-E7A2CF6F6D4D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{86E127C0-CDC3-495F-871A-E7A2CF6F6D4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86E127C0-CDC3-495F-871A-E7A2CF6F6D4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86E127C0-CDC3-495F-871A-E7A2CF6F6D4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86E127C0-CDC3-495F-871A-E7A2CF6F6D4D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5F64ADA8-609E-41F6-9CFB-30E57EEF1E63}
+	EndGlobalSection
+EndGlobal
