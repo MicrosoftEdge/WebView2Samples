@@ -58,9 +58,7 @@ public:
     std::wstring GetLocalUri(std::wstring path);
     std::function<void()> GetAcceleratorKeyFunction(UINT key);
     double GetDpiScale();
-#ifdef USE_WEBVIEW2_WIN10
     double GetTextScale();
-#endif
 
     void ReinitializeWebView();
 
@@ -132,6 +130,7 @@ private:
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webView;
+    wil::com_ptr<ICoreWebView2_3> m_webView3;
 
     // All components are deleted when the WebView is closed.
     std::vector<std::unique_ptr<ComponentBase>> m_components;
@@ -159,6 +158,11 @@ private:
     winrtComp::Compositor m_wincompCompositor{ nullptr };
     winrt::Windows::UI::ViewManagement::UISettings m_uiSettings{ nullptr };
 #endif
+
+    // Background Image members
+    HBITMAP m_appBackgroundImageHandle;
+    BITMAP m_appBackgroundImage;
+    HDC m_memHdc;
 };
 
 template <class ComponentType, class... Args> void AppWindow::NewComponent(Args&&... args)

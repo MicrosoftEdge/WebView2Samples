@@ -53,25 +53,27 @@ ViewComponent::ViewComponent(
                 &m_zoomFactorChangedToken));
     //! [ZoomFactorChanged]
 
-    m_controllerExperimental = m_controller.query<ICoreWebView2ExperimentalController>();
+    m_controllerExperimental = m_controller.try_query<ICoreWebView2ExperimentalController>();
+    if (m_controllerExperimental)
+    {
+        //! [RasterizationScaleChanged]
+        CHECK_FAILURE(m_controllerExperimental->add_RasterizationScaleChanged(
+            Callback<ICoreWebView2ExperimentalRasterizationScaleChangedEventHandler>(
+                [this](ICoreWebView2ExperimentalController* sender, IUnknown* args) -> HRESULT {
+                    double rasterizationScale;
+                    CHECK_FAILURE(m_controllerExperimental->get_RasterizationScale(&rasterizationScale));
 
-    //! [RasterizationScaleChanged]
-    CHECK_FAILURE(m_controllerExperimental->add_RasterizationScaleChanged(
-        Callback<ICoreWebView2ExperimentalRasterizationScaleChangedEventHandler>(
-            [this](ICoreWebView2ExperimentalController* sender, IUnknown* args) -> HRESULT {
-                double rasterizationScale;
-                CHECK_FAILURE(m_controllerExperimental->get_RasterizationScale(&rasterizationScale));
-
-                std::wstring message = L"WebView2APISample (RasterizationScale: " +
-                    std::to_wstring(int(rasterizationScale * 100)) + L"%)";
-                SetWindowText(m_appWindow->GetMainWindow(), message.c_str());
-                return S_OK;
-            })
-        .Get(), &m_rasterizationScaleChangedToken));
-    //! [RasterizationScaleChanged]
+                    std::wstring message = L"WebView2APISample (RasterizationScale: " +
+                        std::to_wstring(int(rasterizationScale * 100)) + L"%)";
+                    SetWindowText(m_appWindow->GetMainWindow(), message.c_str());
+                    return S_OK;
+                })
+            .Get(), &m_rasterizationScaleChangedToken));
+        //! [RasterizationScaleChanged]
+    }
 
     // Set up compositor if we're running in windowless mode
-    m_compositionController = m_controller.try_query<ICoreWebView2ExperimentalCompositionController>();
+    m_compositionController = m_controller.try_query<ICoreWebView2CompositionController>();
     if (m_compositionController)
     {
         if (m_dcompDevice)
@@ -111,8 +113,8 @@ ViewComponent::ViewComponent(
         //! [CursorChanged]
         // Register a handler for the CursorChanged event.
         CHECK_FAILURE(m_compositionController->add_CursorChanged(
-            Callback<ICoreWebView2ExperimentalCursorChangedEventHandler>(
-                [this](ICoreWebView2ExperimentalCompositionController* sender, IUnknown* args)
+            Callback<ICoreWebView2CursorChangedEventHandler>(
+                [this](ICoreWebView2CompositionController* sender, IUnknown* args)
                     -> HRESULT {
                     HRESULT hr = S_OK;
                     HCURSOR cursor;
@@ -124,9 +126,7 @@ ViewComponent::ViewComponent(
                     {
                         //! [SystemCursorId]
                         UINT32 cursorId;
-                        wil::com_ptr<ICoreWebView2ExperimentalCompositionController2> compositionController2 =
-                            m_controller.query<ICoreWebView2ExperimentalCompositionController2>();
-                        CHECK_FAILURE(compositionController2->get_SystemCursorId(&cursorId));
+                        CHECK_FAILURE(m_compositionController->get_SystemCursorId(&cursorId));
                         cursor = ::LoadCursor(nullptr, MAKEINTRESOURCE(cursorId));
                         if (cursor == nullptr)
                         {
@@ -175,6 +175,24 @@ bool ViewComponent::HandleWindowMessage(
         case IDM_TOGGLE_VISIBILITY:
             ToggleVisibility();
             return true;
+        case IDM_SUSPEND:
+            Suspend();
+            return true;
+        case IDM_RESUME:
+            Resume();
+            return true;
+        case IDM_BACKGROUNDCOLOR_WHITE:
+            SetBackgroundColor(RGB(255, 255, 255), false);
+            return true;
+        case IDM_BACKGROUNDCOLOR_RED:
+            SetBackgroundColor(RGB(255, 0, 0), false);
+            return true;
+        case IDM_BACKGROUNDCOLOR_BLUE:
+            SetBackgroundColor(RGB(0, 0, 255), false);
+            return true;
+        case IDM_BACKGROUNDCOLOR_TRANSPARENT:
+            SetBackgroundColor(RGB(255, 255, 255), true);
+            return true;
         case IDM_ZOOM_05:
             SetZoomFactor(0.5f);
             return true;
@@ -206,25 +224,30 @@ bool ViewComponent::HandleWindowMessage(
             SetTransform(TransformType::kRotate60DegDiagonally);
             return true;
         case IDM_RASTERIZATION_SCALE_DEFAULT:
+            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
             CHECK_FAILURE(m_controllerExperimental->put_ShouldDetectMonitorScaleChanges(TRUE));
             return true;
         case IDM_RASTERIZATION_SCALE_50:
+            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
             SetRasterizationScale(0.5f);
             return true;
         case IDM_RASTERIZATION_SCALE_100:
+            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
             SetRasterizationScale(1.0f);
             return true;
         case IDM_RASTERIZATION_SCALE_125:
+            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
             SetRasterizationScale(1.25f);
             return true;
         case IDM_RASTERIZATION_SCALE_150:
+            CHECK_FEATURE_RETURN(m_controllerExperimental, true);
             SetRasterizationScale(1.5f);
             return true;
         case IDM_BOUNDS_MODE_RAW_PIXELS:
-            SetBoundsMode(COREWEBVIEW2_USE_RAW_PIXELS);
+            SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE_USE_RAW_PIXELS);
             return true;
         case IDM_BOUNDS_MODE_VIEW_PIXELS:
-            SetBoundsMode(COREWEBVIEW2_USE_RASTERIZATION_SCALE);
+            SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE_USE_RASTERIZATION_SCALE);
             return true;
         case IDM_SCALE_50:
             SetScale(0.5f);
@@ -256,6 +279,7 @@ bool ViewComponent::HandleWindowMessage(
         {
             // Hide the webview when the app window is minimized.
             m_controller->put_IsVisible(FALSE);
+            Suspend();
         }
         else if (wParam == SC_RESTORE)
         {
@@ -263,6 +287,7 @@ bool ViewComponent::HandleWindowMessage(
             // (unless the user has toggle visibility off).
             if (m_isVisible)
             {
+                Resume();
                 m_controller->put_IsVisible(TRUE);
             }
         }
@@ -288,14 +313,18 @@ bool ViewComponent::HandleWindowMessage(
     //! [NotifyParentWindowPositionChanged]
     return false;
 }
+
 void ViewComponent::UpdateDpiAndTextScale()
 {
-    BOOL isWebViewDetectingScaleChanges;
-    CHECK_FAILURE(m_controllerExperimental->get_ShouldDetectMonitorScaleChanges(
-        &isWebViewDetectingScaleChanges));
-    if (!isWebViewDetectingScaleChanges)
+    if (m_controllerExperimental)
     {
-        SetRasterizationScale(m_webviewAdditionalRasterizationScale);
+        BOOL isWebViewDetectingScaleChanges;
+        CHECK_FAILURE(m_controllerExperimental->get_ShouldDetectMonitorScaleChanges(
+            &isWebViewDetectingScaleChanges));
+        if (!isWebViewDetectingScaleChanges)
+        {
+            SetRasterizationScale(m_webviewAdditionalRasterizationScale);
+        }
     }
 }
 
@@ -308,6 +337,62 @@ void ViewComponent::ToggleVisibility()
     m_controller->put_IsVisible(m_isVisible);
 }
 //! [ToggleIsVisible]
+
+//! [Suspend]
+void ViewComponent::Suspend()
+{
+    wil::com_ptr<ICoreWebView2_3> webView;
+    webView = m_webView.query<ICoreWebView2_3>();
+    if (!webView)
+    {
+        ShowFailure(E_NOINTERFACE, L"TrySuspend API not available");
+        return;
+    }
+    HRESULT hr = webView->TrySuspend(
+        Callback<ICoreWebView2TrySuspendCompletedHandler>(
+            [](HRESULT errorCode, BOOL isSuccessful) -> HRESULT {
+                if ((errorCode != S_OK) || !isSuccessful)
+                {
+                    std::wstringstream formattedMessage;
+                    formattedMessage << "TrySuspend result (0x" << std::hex << errorCode
+                                     << ") " << (isSuccessful ? "succeeded" : "failed");
+                    MessageBox(nullptr, formattedMessage.str().c_str(), nullptr, MB_OK);
+                }
+                return S_OK;
+            })
+            .Get());
+    if (FAILED(hr))
+        ShowFailure(hr, L"Call to TryFreeze failed");
+}
+//! [Suspend]
+
+//! [Resume]
+void ViewComponent::Resume()
+{
+    wil::com_ptr<ICoreWebView2_3> webView;
+    webView = m_webView.query<ICoreWebView2_3>();
+    if (!webView)
+    {
+        ShowFailure(E_NOINTERFACE, L"Resume API not available");
+        return;
+    }
+    webView->Resume();
+}
+//! [Resume]
+
+//! [DefaultBackgroundColor]
+void ViewComponent::SetBackgroundColor(COLORREF color, bool transparent)
+{
+    COREWEBVIEW2_COLOR wvColor;
+    wvColor.R = GetRValue(color);
+    wvColor.G = GetGValue(color);
+    wvColor.B = GetBValue(color);
+    wvColor.A = transparent ? 0 : 255;
+    wil::com_ptr<ICoreWebView2Controller2> controller2 =
+        m_controller.query<ICoreWebView2Controller2>();
+    controller2->put_DefaultBackgroundColor(wvColor);
+}
+//! [DefaultBackgroundColor]
 
 void ViewComponent::SetSizeRatio(float ratio)
 {
@@ -325,6 +410,11 @@ void ViewComponent::SetBounds(RECT bounds)
 {
     m_webViewBounds = bounds;
     ResizeWebView();
+}
+
+RECT ViewComponent::GetBounds()
+{
+    return m_webViewBounds;
 }
 
 void ViewComponent::OffsetPointToWebView(LPPOINT point)
@@ -489,21 +579,25 @@ void ViewComponent::SetTransform(TransformType transformType)
 //! [RasterizationScale]
 void ViewComponent::SetRasterizationScale(float additionalScale)
 {
-    CHECK_FAILURE(m_controllerExperimental->put_ShouldDetectMonitorScaleChanges(FALSE));
-    m_webviewAdditionalRasterizationScale = additionalScale;
-    double rasterizationScale =
+    if (m_controllerExperimental)
+    {
+        CHECK_FAILURE(m_controllerExperimental->put_ShouldDetectMonitorScaleChanges(FALSE));
+        m_webviewAdditionalRasterizationScale = additionalScale;
+        double rasterizationScale =
 #ifdef USE_WEBVIEW2_WIN10
-        additionalScale * m_appWindow->GetDpiScale() * m_appWindow->GetTextScale();
+            additionalScale * m_appWindow->GetDpiScale() * m_appWindow->GetTextScale();
 #else
-        additionalScale;
+            additionalScale;
 #endif
-    CHECK_FAILURE(m_controllerExperimental->put_RasterizationScale(rasterizationScale));
+        CHECK_FAILURE(m_controllerExperimental->put_RasterizationScale(rasterizationScale));
+    }
 }
 //! [RasterizationScale]
 
 //! [BoundsMode]
 void ViewComponent::SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE boundsMode)
 {
+    CHECK_FEATURE_RETURN(m_controllerExperimental, (void)0);
     m_boundsMode = boundsMode;
     CHECK_FAILURE(m_controllerExperimental->put_BoundsMode(boundsMode));
     ResizeWebView();
@@ -666,10 +760,12 @@ bool ViewComponent::OnPointerMessage(UINT message, WPARAM wParam, LPARAM lParam)
             D2D1_MATRIX_4X4_F m_webViewInputTransformMatrix = m_webViewTransformMatrix;
             m_webViewInputTransformMatrix._41 += m_webViewBounds.left;
             m_webViewInputTransformMatrix._42 += m_webViewBounds.top;
-            wil::com_ptr<ICoreWebView2ExperimentalPointerInfo> pointer_info;
+            wil::com_ptr<ICoreWebView2PointerInfo> pointer_info;
+            wil::com_ptr<ICoreWebView2ExperimentalCompositionController4>
+                compositionControllerExperimental4 = m_compositionController.try_query<ICoreWebView2ExperimentalCompositionController4>();
             COREWEBVIEW2_MATRIX_4X4* webviewMatrix =
                 reinterpret_cast<COREWEBVIEW2_MATRIX_4X4*>(&m_webViewInputTransformMatrix);
-            CHECK_FAILURE(m_compositionController->CreateCoreWebView2PointerInfoFromPointerId(
+            CHECK_FAILURE(compositionControllerExperimental4->CreateCoreWebView2PointerInfoFromPointerId(
                 pointerId, m_appWindow->GetMainWindow(), *webviewMatrix, &pointer_info));
             CHECK_FAILURE(m_compositionController->SendPointerInput(
                 static_cast<COREWEBVIEW2_POINTER_EVENT_KIND>(message), pointer_info.get()));
@@ -772,7 +868,10 @@ void ViewComponent::DestroyWinCompVisualTree()
 ViewComponent::~ViewComponent()
 {
     m_controller->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
-    m_controllerExperimental->remove_RasterizationScaleChanged(m_rasterizationScaleChangedToken);
+    if (m_controllerExperimental)
+    {
+        m_controllerExperimental->remove_RasterizationScaleChanged(m_rasterizationScaleChangedToken);
+    }
     if (m_dropTarget)
     {
         RevokeDragDrop(m_appWindow->GetMainWindow());

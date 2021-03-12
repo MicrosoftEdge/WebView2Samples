@@ -34,6 +34,7 @@ public:
     bool ShouldBlockUri(PWSTR uri);
     bool ShouldBlockScriptForUri(PWSTR uri);
     void SetBlockImages(bool blockImages);
+    void SetReplaceImages(bool replaceImages);
     void ChangeUserAgent();
     void SetUserAgent(const std::wstring& userAgent);
     void CompleteScriptDialogDeferral();
@@ -47,6 +48,7 @@ private:
     wil::com_ptr<ICoreWebView2Settings> m_settings;
 
     bool m_blockImages = false;
+    bool m_replaceImages = false;
     bool m_deferScriptDialogs = false;
     bool m_changeUserAgent = false;
     bool m_isScriptEnabled = true;
@@ -58,6 +60,7 @@ private:
     EventRegistrationToken m_navigationStartingToken = {};
     EventRegistrationToken m_frameNavigationStartingToken = {};
     EventRegistrationToken m_webResourceRequestedTokenForImageBlocking = {};
+    EventRegistrationToken m_webResourceRequestedTokenForImageReplacing = {};
     EventRegistrationToken m_webResourceRequestedTokenForUserAgent = {};
     EventRegistrationToken m_scriptDialogOpeningToken = {};
     EventRegistrationToken m_permissionRequestedToken = {};

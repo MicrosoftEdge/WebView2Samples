@@ -81,6 +81,12 @@
 #define IDM_BOUNDS_MODE_VIEW_PIXELS     207
 #define IDM_TOGGLE_CURSOR_HANDLING      208
 #define IDM_RASTERIZATION_SCALE_DEFAULT 210
+#define IDM_SUSPEND                     211
+#define IDM_RESUME                      212
+#define IDM_BACKGROUNDCOLOR_WHITE       213
+#define IDM_BACKGROUNDCOLOR_RED         214
+#define IDM_BACKGROUNDCOLOR_BLUE        215
+#define IDM_BACKGROUNDCOLOR_TRANSPARENT 216
 
 #define IDE_ADDRESSBAR                  1000
 #define IDE_ADDRESSBAR_GO               1001
@@ -110,14 +116,17 @@
 #define ID_SETTINGS_CONTEXT_MENUS_ENABLED 32780
 #define ID_SETTINGS_ZOOM_ENABLED        32781
 #define ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED 32782
+#define ID_SETTINGS_USER_AGENT_STRING 32783
+#define ID_SETTINGS_REPLACEALLIMAGES     32784
 #define IDC_STATIC                      -1
+
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        210
-#define _APS_NEXT_COMMAND_VALUE         32783
+#define _APS_NEXT_COMMAND_VALUE         32785
 #define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
