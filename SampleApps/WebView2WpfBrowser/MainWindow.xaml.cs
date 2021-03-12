@@ -30,6 +30,7 @@ namespace WebView2WpfBrowser
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static RoutedCommand BackgroundColorCommand = new RoutedCommand();
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
         public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
         public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
@@ -297,6 +298,14 @@ namespace WebView2WpfBrowser
         {
             _isNavigating = false;
             RequeryCommands();
+        }
+
+        void WebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
+        {
+            if (e.IsSuccess)
+                return;
+
+            MessageBox.Show($"WebView2 creation failed with exception = {e.InitializationException}");
         }
 
         private static void OnShowNextWebResponseChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
