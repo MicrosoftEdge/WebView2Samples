@@ -55,7 +55,7 @@ public:
     }
     void SetTitleText(PCWSTR titleText);
     RECT GetWindowBounds();
-    std::wstring GetLocalUri(std::wstring path);
+    std::wstring GetLocalUri(std::wstring path, bool useVirtualHostName = true);
     std::function<void()> GetAcceleratorKeyFunction(UINT key);
     double GetDpiScale();
     double GetTextScale();

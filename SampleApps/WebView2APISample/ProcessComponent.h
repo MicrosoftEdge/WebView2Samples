@@ -26,7 +26,6 @@ public:
     void ShowBrowserProcessInfo();
     void CrashBrowserProcess();
     void CrashRenderProcess();
-
     ~ProcessComponent() override;
 
     // Wait for process to exit for timeoutMs, then force quit it if it hasn't.
@@ -39,4 +38,3 @@ private:
     UINT m_browserProcessId = 0;
     EventRegistrationToken m_processFailedToken = {};
 };
-

@@ -495,6 +495,9 @@
     <CopyFileToFolders Include="assets\AppStartPageBackground.png">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioTestingFocus.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="HostObjectSample.idl" TypeLibraryName="$(OutDir)WebView2APISample.tlb" />

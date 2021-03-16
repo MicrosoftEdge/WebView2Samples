@@ -28,3 +28,6 @@ packages/
 
 # Make sure script debug config is checked in for vendor testing
 !.vscode
+
+# Nuget.exe is downloaded by UseNuget.ps1
+nuget.exe

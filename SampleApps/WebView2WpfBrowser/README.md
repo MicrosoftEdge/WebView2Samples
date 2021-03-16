@@ -49,6 +49,10 @@ That's it! Everything should be ready to just launch the app.
 
 **You can also use Visual Studio 2017 by changing the project's Platform Toolset in Project Properties/Configuration properties/General/Platform Toolset. You might also need to change the Windows SDK to the latest version available to you.
 
+## Using Fixed version
+
+If you want to use [fixed version](https://docs.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#fixed-version-distribution-mode), i.e. Bring-Your-Own (BYO), follow the instructions in MainWindow.xaml and App.xaml.
+
 ## Code of Conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact opencode@microsoft.com with any additional questions or comments.

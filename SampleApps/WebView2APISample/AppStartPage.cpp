@@ -100,7 +100,7 @@ std::wstring GetRuntimePath(AppWindow* appWindow)
 
 std::wstring GetUri(AppWindow* appWindow)
 {
-    std::wstring uri = appWindow->GetLocalUri(L"AppStartPage.html");
+    std::wstring uri = appWindow->GetLocalUri(L"AppStartPage.html", true);
 
     uri += L"?sdkBuild=";
     uri += GetSdkBuild();

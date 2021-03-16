@@ -23,6 +23,7 @@ SettingsComponent::SettingsComponent(
 {
     CHECK_FAILURE(m_webView->get_Settings(&m_settings));
 
+    m_settings2 = m_settings.try_query<ICoreWebView2Settings2>();
     // Copy old settings if desired
     if (old)
     {
@@ -37,16 +38,11 @@ SettingsComponent::SettingsComponent(
         CHECK_FAILURE(m_settings->put_IsStatusBarEnabled(setting));
         CHECK_FAILURE(old->m_settings->get_AreDevToolsEnabled(&setting));
         CHECK_FAILURE(m_settings->put_AreDevToolsEnabled(setting));
-        wil::com_ptr<ICoreWebView2ExperimentalSettings> experimental_settings_old;
-        experimental_settings_old =
-            old->m_settings.try_query<ICoreWebView2ExperimentalSettings>();
-        wil::com_ptr<ICoreWebView2ExperimentalSettings> experimental_settings_new;
-        experimental_settings_new = m_settings.try_query<ICoreWebView2ExperimentalSettings>();
-        if (experimental_settings_old && experimental_settings_new)
+        if (old->m_settings2 && m_settings2)
         {
             LPWSTR user_agent;
-            CHECK_FAILURE(experimental_settings_old->get_UserAgent(&user_agent));
-            CHECK_FAILURE(experimental_settings_new->put_UserAgent(user_agent));
+            CHECK_FAILURE(old->m_settings2->get_UserAgent(&user_agent));
+            CHECK_FAILURE(m_settings2->put_UserAgent(user_agent));
         }
         SetBlockImages(old->m_blockImages);
         SetReplaceImages(old->m_replaceImages);
@@ -55,7 +51,6 @@ SettingsComponent::SettingsComponent(
         m_blockedSitesSet = old->m_blockedSitesSet;
         m_blockedSites = std::move(old->m_blockedSites);
     }
-
     //! [NavigationStarting]
     // Register a handler for the NavigationStarting event.
     // This handler will check the domain being navigated to, and if the domain
@@ -98,16 +93,18 @@ SettingsComponent::SettingsComponent(
                 }
                 //! [IsScriptEnabled]
                 //! [UserAgent]
-                static const PCWSTR url_compare_example = L"fourthcoffee.com";
-                wil::unique_bstr domain = GetDomainOfUri(uri.get());
-                const wchar_t* domains = domain.get();
-
-                if (wcscmp(url_compare_example, domains) == 0)
+                if (m_settings2)
                 {
-                    SetUserAgent(L"example_navigation_ua");
+                    static const PCWSTR url_compare_example = L"fourthcoffee.com";
+                    wil::unique_bstr domain = GetDomainOfUri(uri.get());
+                    const wchar_t* domains = domain.get();
+
+                    if (wcscmp(url_compare_example, domains) == 0)
+                    {
+                        SetUserAgent(L"example_navigation_ua");
+                    }
                 }
                 //! [UserAgent]
-
                 return S_OK;
             })
             .Get(),
@@ -244,6 +241,7 @@ bool SettingsComponent::HandleWindowMessage(
         }
         case ID_SETTINGS_SETUSERAGENT:
         {
+            CHECK_FEATURE_RETURN(m_settings2);
             ChangeUserAgent();
             return true;
         }
@@ -478,20 +476,10 @@ bool SettingsComponent::HandleWindowMessage(
             //! [BuiltInErrorPageEnabled]
             return true;
         }
-        case ID_SETTINGS_USER_AGENT_STRING:
-        {
-            LPWSTR user_agent;
-            wil::com_ptr<ICoreWebView2ExperimentalSettings> settings;
-            settings = m_settings.try_query<ICoreWebView2ExperimentalSettings>();
-            CHECK_FAILURE(settings->get_UserAgent(&user_agent));
-            CHECK_FAILURE(settings->put_UserAgent(L"example_string"));
-            return true;
-        }
         }
     }
     return false;
 }
-
 // Prompt the user for a list of blocked domains
 void SettingsComponent::ChangeBlockedSites()
 {
@@ -661,17 +649,18 @@ void SettingsComponent::SetReplaceImages(bool replaceImages)
 // Prompt the user for a new User Agent string
 void SettingsComponent::ChangeUserAgent()
 {
-    wil::com_ptr<ICoreWebView2ExperimentalSettings> experimental_settings;
-    experimental_settings = m_settings.try_query<ICoreWebView2ExperimentalSettings>();
-    LPWSTR user_agent;
-    CHECK_FAILURE(experimental_settings->get_UserAgent(&user_agent));
-    TextInputDialog dialog(
-        m_appWindow->GetMainWindow(), L"User Agent", L"User agent:",
-        L"Enter user agent, or leave blank to restore default.",
-        m_changeUserAgent ? m_overridingUserAgent.c_str() : user_agent);
-    if (dialog.confirmed)
+    if (m_settings2)
     {
-        SetUserAgent(dialog.input);
+        LPWSTR user_agent;
+        CHECK_FAILURE(m_settings2->get_UserAgent(&user_agent));
+        TextInputDialog dialog(
+            m_appWindow->GetMainWindow(), L"User Agent", L"User agent:",
+            L"Enter user agent, or leave blank to restore default.",
+            m_changeUserAgent ? m_overridingUserAgent.c_str() : user_agent);
+        if (dialog.confirmed)
+        {
+            SetUserAgent(dialog.input);
+        }
     }
 }
 
@@ -679,18 +668,19 @@ void SettingsComponent::ChangeUserAgent()
 // HTTP header to all requests.
 void SettingsComponent::SetUserAgent(const std::wstring& userAgent)
 {
-    m_overridingUserAgent = userAgent;
-    if (m_overridingUserAgent.empty())
+    if (m_settings2)
     {
-        m_changeUserAgent = false;
-    }
-    else
-    {
-        m_changeUserAgent = true;
-        wil::com_ptr<ICoreWebView2ExperimentalSettings> experimental_settings;
-        experimental_settings = m_settings.try_query<ICoreWebView2ExperimentalSettings>();
-        experimental_settings->put_UserAgent(m_overridingUserAgent.c_str());
-    }
+        m_overridingUserAgent = userAgent;
+        if (m_overridingUserAgent.empty())
+        {
+            m_changeUserAgent = false;
+        }
+        else
+        {
+            m_changeUserAgent = true;
+            CHECK_FAILURE(m_settings2->put_UserAgent(m_overridingUserAgent.c_str()));
+        }
+    }   
 }
 
 void SettingsComponent::CompleteScriptDialogDeferral()

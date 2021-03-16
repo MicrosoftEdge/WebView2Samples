@@ -398,15 +398,30 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_JAVA_SCRIPT:
     {
         WCHAR c_scriptPath[] = L"ScenarioJavaScriptDebugIndex.html";
-        std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
+        std::wstring m_scriptUri = GetLocalUri(c_scriptPath, false);
         CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
         return true;
     }
     case IDM_SCENARIO_TYPE_SCRIPT:
     {
         WCHAR c_scriptPath[] = L"ScenarioTypeScriptDebugIndex.html";
-        std::wstring m_scriptUri = GetLocalUri(c_scriptPath);
+        std::wstring m_scriptUri = GetLocalUri(c_scriptPath, false);
         CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
+        return true;
+    }
+    case IDM_SCENARIO_JAVA_SCRIPT_VIRTUAL:
+    {
+        WCHAR c_scriptPath[] = L"ScenarioJavaScriptDebugIndex.html";
+        std::wstring m_scriptUri = GetLocalUri(c_scriptPath, true);
+        CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
+        return true;
+    }
+    case IDM_SCENARIO_TYPE_SCRIPT_VIRTUAL:
+    {
+        WCHAR c_scriptPath[] = L"ScenarioTypeScriptDebugIndex.html";
+        std::wstring m_scriptUri = GetLocalUri(c_scriptPath, true);
+        CHECK_FAILURE(m_webView->Navigate(m_scriptUri.c_str()));
+        return true;
     }
     case IDM_SCENARIO_AUTHENTICATION:
     {
@@ -427,6 +442,13 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST:
     {
         NewComponent<ScenarioNavigateWithWebResourceRequest>(this);
+        return true;
+    }
+    case IDM_SCENARIO_TESTING_FOCUS:
+    {
+        WCHAR testingFocusPath[] = L"ScenarioTestingFocus.html";
+        std::wstring testingFocusUri = GetLocalUri(testingFocusPath, false);
+        CHECK_FAILURE(m_webView->Navigate(testingFocusUri.c_str()));
         return true;
     }
     }
@@ -996,6 +1018,7 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
         m_controller->Close();
         m_controller = nullptr;
         m_webView = nullptr;
+        m_webView3 = nullptr;
     }
     m_webViewEnvironment = nullptr;
     if (cleanupUserDataFolder)
@@ -1120,9 +1143,11 @@ std::wstring AppWindow::GetLocalPath(std::wstring relativePath, bool keep_exe_pa
     }
     return path;
 }
-std::wstring AppWindow::GetLocalUri(std::wstring relativePath)
+
+std::wstring AppWindow::GetLocalUri(
+    std::wstring relativePath, bool useVirtualHostName /*= true*/)
 {
-    if (m_webView3)
+    if (useVirtualHostName && m_webView3)
     {
         //! [LocalUrlUsage]
         const std::wstring localFileRootUrl = L"https://appassets.example/";
