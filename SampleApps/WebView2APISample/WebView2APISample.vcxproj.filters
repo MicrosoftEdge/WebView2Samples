@@ -197,6 +197,7 @@
     <CopyFileToFolders Include="assets\AppStartPageBackground.png">
       <Filter>Resource Files</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioTestingFocus.html" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
