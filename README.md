@@ -5,7 +5,8 @@ This repository contains getting started apps as well as sample apps that demons
 In the ``GettingStarted`` folder you will find the starter code for its respective guide listed below:
 - [Win32 Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32)
 - [WPF Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/wpf)
-- WinUI Getting Started (Releasing Soon)
+- [WinForms Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/winforms)
+- [WinUI Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/winui)
 
 In the ``Sample Apps`` folder you will find:
 - [WebView2Samples.sln](SampleApps/WebView2Samples.sln) - a collective solution that includes [WebView2APISample.vcxproj](SampleApps/WebView2APISample/WebView2APISample.vcxproj), [WebView2WpfBrowser.csproj](SampleApps/WebView2WpfBrowser/WebView2WpfBrowser.csproj), [WebView2WindowsFormsBrowser.csproj](SampleApps/WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj), [WV2DeploymentWiXCustomActionSample](/SampleApps/WV2DeploymentWiXCustomActionSample/README.md), and [WV2DeploymentWiXBurnBundleSample](/SampleApps/WV2DeploymentWiXBurnBundleSample/README.md).
