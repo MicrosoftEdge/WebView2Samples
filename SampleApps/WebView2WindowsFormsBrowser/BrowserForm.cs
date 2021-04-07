@@ -1,4 +1,4 @@
-﻿// Copyright (C) Microsoft Corporation. All rights reserved.
+// Copyright (C) Microsoft Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -15,6 +15,7 @@ namespace WebView2WindowsFormsBrowser
         {
             InitializeComponent();
             HandleResize();
+            CreateView();
         }
 
         private void UpdateTitleWithEvent(string message)
@@ -53,6 +54,10 @@ namespace WebView2WindowsFormsBrowser
             this.webView2Control.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
             this.webView2Control.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Image);
             UpdateTitleWithEvent("CoreWebView2InitializationCompleted succeeded");
+
+            this.webView2Control.CoreWebView2.Navigate("https://www.microsoft.com");
+            System.Threading.Thread.Sleep(4000);
+            this.webView2Control.CoreWebView2.Navigate("https://www.bing.com");
         }
 
         private void WebView2Control_KeyUp(object sender, KeyEventArgs e)
@@ -162,6 +167,15 @@ namespace WebView2WindowsFormsBrowser
 
             // Resize the URL textbox
             txtUrl.Width = btnGo.Left - txtUrl.Left;
+        }
+
+        private async void CreateView()
+        {
+            CoreWebView2EnvironmentOptions coreViewOptions = new CoreWebView2EnvironmentOptions();
+
+            await this.webView2Control.EnsureCoreWebView2Async(
+                await CoreWebView2Environment.CreateAsync(
+                    options: coreViewOptions));
         }
     }
 }
