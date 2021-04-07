@@ -6,10 +6,10 @@
           "type": "edge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Debug/x64/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Debug/x64"
+                  "Path": "%path%;${workspaceFolder}/x64/Debug"
           },
           "useWebView": true
         },
@@ -18,10 +18,10 @@
           "type": "edge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Debug/Win32/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x86/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Debug/Win32"
+                  "Path": "%path%;${workspaceFolder}/x86/Debug"
           },
           "useWebView": true
         },
@@ -30,10 +30,10 @@
           "type": "edge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Debug/arm64/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_arm64/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Debug/arm64"
+                  "Path": "%path%;${workspaceFolder}/arm64/Debug"
           },
           "useWebView": true
         },
@@ -42,10 +42,10 @@
           "type": "edge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Release/x64/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_x64/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Release/x64"
+                  "Path": "%path%;${workspaceFolder}/x64/Release"
           },
           "useWebView": true
         },
@@ -54,10 +54,10 @@
           "type": "edge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Release/Win32/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_x86/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Release/Win32"
+                  "Path": "%path%;${workspaceFolder}/x86/Release"
           },
           "useWebView": true
         },
@@ -66,10 +66,10 @@
           "type": "edge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Release/arm64/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_arm64/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Release/arm64"
+                  "Path": "%path%;${workspaceFolder}/arm64/Release"
           },
           "useWebView": true
         },
@@ -78,72 +78,84 @@
           "type": "pwa-msedge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Debug/x64/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Debug/x64"
+                  "Path": "%path%;${workspaceFolder}/x64/Debug"
           },
-          "useWebView": "true"
+          "useWebView": true,
+          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+          "webRoot": "${workspaceFolder}/assets"
         },
         {
           "name": "JavaScript Debugger(Nightly): Sample app (Script Debug|x86)", 
           "type": "pwa-msedge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Debug/Win32/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x86/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Debug/Win32"
+                  "Path": "%path%;${workspaceFolder}/x86/Debug"
           },
-          "useWebView": "true"
+          "useWebView": true,
+          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+          "webRoot": "${workspaceFolder}/assets"
         },
         {
           "name": "JavaScript Debugger(Nightly): Sample app (Script Debug|ARM64)", 
           "type": "pwa-msedge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Debug/arm64/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_arm64/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Debug/arm64"
+                  "Path": "%path%;${workspaceFolder}/arm64/Debug"
           },
-          "useWebView": "true"
+          "useWebView": true,
+          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+          "webRoot": "${workspaceFolder}/assets"
         },
         {
           "name": "JavaScript Debugger(Nightly): Sample app (Script Release|x64)", 
           "type": "pwa-msedge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Release/x64/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_x64/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Release/x64"
+                  "Path": "%path%;${workspaceFolder}/x64/Release"
           },
-          "useWebView": "true"
+          "useWebView": true,
+          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+          "webRoot": "${workspaceFolder}/assets"
         },
         {
           "name": "JavaScript Debugger(Nightly): Sample app (Script Release|x86)", 
           "type": "pwa-msedge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Release/Win32/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_x86/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Release/Win32"
+                  "Path": "%path%;${workspaceFolder}/x86/Release"
           },
-          "useWebView": "true"
+          "useWebView": true,
+          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+          "webRoot": "${workspaceFolder}/assets"
         },
         {
           "name": "JavaScript Debugger(Nightly): Sample app (Script Release|ARM64)", 
           "type": "pwa-msedge",
           "request": "launch",
           "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/Release/arm64/WebView2APISample.exe",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_arm64/WebView2APISample.exe",
           "env": {
                   // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/Release/arm64"
+                  "Path": "%path%;${workspaceFolder}/arm64/Release"
           },
-          "useWebView": "true"
+          "useWebView": true,
+          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+          "webRoot": "${workspaceFolder}/assets"
         },
         {
           "name": "Debugger For Microsoft Edge: Attach to Edge",
@@ -160,10 +172,91 @@
           "webRoot": "${workspaceFolder}"
         },
         {
+          "name": "Debugger For Microsoft Edge: Sample app-Targeted (Script Release|x64)",
+          "type": "edge",
+          "request": "launch",
+          "cwd": "${workspaceFolder}",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
+          "env": {
+                  // customize for your build location
+                "Path": "%path%;${workspaceFolder}/x64/Debug;"
+          },
+          "urlFilter": "*debugCase*",
+          "useWebView": "advanced"
+        },
+        {
+          "name": "Debugger For Microsoft Edge: Sample app-Targeted (Script Release|x86)",
+          "type": "edge",
+          "request": "launch",
+          "cwd": "${workspaceFolder}",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x86/WebView2APISample.exe",
+          "env": {
+                  // customize for your build location
+                "Path": "%path%;${workspaceFolder}/x86/Debug;"
+          },
+          "urlFilter": "*debugCase*",
+          "useWebView": "advanced"
+        },
+        {
+          "name": "Debugger For Microsoft Edge: Sample app-Targeted (Script Release|ARM64)",
+          "type": "edge",
+          "request": "launch",
+          "cwd": "${workspaceFolder}",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_arm64/WebView2APISample.exe",
+          "env": {
+                  // customize for your build location
+                "Path": "%path%;${workspaceFolder}/arm64/Debug;"
+          },
+          "urlFilter": "*debugCase*",
+          "useWebView": "advanced"
+        },
+        // TODO: Bug 27536687
+        {
+          "name": "JavaScript Debugger(Nightly): Sample app-Targeted (Script Release|x64)",
+          "type": "pwa-msedge",
+          "request": "launch",
+          "cwd": "${workspaceFolder}",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
+          "env": {
+                  // customize for your build location
+                "Path": "%path%;${workspaceFolder}/x64/Debug;"
+          },
+          "urlFilter": "*debugCase*",
+          "useWebView": "advanced"
+        },
+        // TODO: Bug 27536687
+        {
+          "name": "JavaScript Debugger(Nightly): Sample app-Targeted (Script Release|x86)",
+          "type": "pwa-msedge",
+          "request": "launch",
+          "cwd": "${workspaceFolder}",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x86/WebView2APISample.exe",
+          "env": {
+                  // customize for your build location
+                "Path": "%path%;${workspaceFolder}/x86/Debug;"
+          },
+          "urlFilter": "*debugCase*",
+          "useWebView": "advanced"
+        },
+        // TODO: Bug 27536687
+        {
+          "name": "JavaScript Debugger(Nightly): Sample app-Targeted (Script Release|ARM64)",
+          "type": "pwa-msedge",
+          "request": "launch",
+          "cwd": "${workspaceFolder}",
+          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_arm64/WebView2APISample.exe",
+          "env": {
+                  // customize for your build location
+                "Path": "%path%;${workspaceFolder}/arm64/Debug;"
+          },
+          "urlFilter": "*debugCase*",
+          "useWebView": "advanced"
+        },
+        {
             "name": "Sample app (debug app)",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/Debug/x64/WebView2APISample.exe",
+            "program": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
             "args": [],
             "preLaunchTask": "",
             "stopAtEntry": false,
