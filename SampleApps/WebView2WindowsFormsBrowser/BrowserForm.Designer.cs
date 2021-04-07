@@ -1,4 +1,4 @@
-﻿// Copyright (C) Microsoft Corporation. All rights reserved.
+// Copyright (C) Microsoft Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -255,9 +255,9 @@ namespace WebView2WindowsFormsBrowser
             this.webView2Control.Location = new System.Drawing.Point(0, 96);
             this.webView2Control.Name = "webView2Control";
             this.webView2Control.Size = new System.Drawing.Size(788, 410);
-            this.webView2Control.Source = new Uri("https://www.bing.com/");
+            //this.webView2Control.Source = new Uri("https://www.bing.com/");
             this.webView2Control.TabIndex = 7;
-            this.webView2Control.CoreWebView2InitializationCompleted += WebView2Control_CoreWebView2InitializationCompleted; ;
+            this.webView2Control.CoreWebView2InitializationCompleted += WebView2Control_CoreWebView2InitializationCompleted;
             this.webView2Control.NavigationStarting += WebView2Control_NavigationStarting;
             this.webView2Control.NavigationCompleted += WebView2Control_NavigationCompleted;
             this.webView2Control.SourceChanged += WebView2Control_SourceChanged;
