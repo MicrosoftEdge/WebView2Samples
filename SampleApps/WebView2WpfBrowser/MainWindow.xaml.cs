@@ -37,6 +37,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand GetCookiesCommand = new RoutedCommand();
         public static RoutedCommand SuspendCommand = new RoutedCommand();
         public static RoutedCommand ResumeCommand = new RoutedCommand();
+        public static RoutedCommand CheckUpdateCommand = new RoutedCommand();
         public static RoutedCommand AddOrUpdateCookieCommand = new RoutedCommand();
         public static RoutedCommand DeleteCookiesCommand = new RoutedCommand();
         public static RoutedCommand DeleteAllCookiesCommand = new RoutedCommand();
@@ -187,21 +188,6 @@ namespace WebView2WpfBrowser
         }
 
         private CoreWebView2Settings _coreWebView2Settings;
-        void SetUserAgentCmdExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-            if (_coreWebView2Settings == null)
-            {
-                _coreWebView2Settings = webView.CoreWebView2.Settings;
-            }
-            var dialog = new TextInputDialog(
-                title: "SetUserAgent",
-                description: "Enter UserAgent");
-            if (dialog.ShowDialog() == true)
-            {
-                _coreWebView2Settings.UserAgent = dialog.Input.Text;
-            }
-        }
-
         void DOMContentLoadedCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             webView.CoreWebView2.DOMContentLoaded += (object sender, CoreWebView2DOMContentLoadedEventArgs arg) =>
@@ -288,12 +274,25 @@ namespace WebView2WpfBrowser
             }
         }
 
+
+        //async void CheckUpdateCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        CoreWebView2UpdateRuntimeResult result = await webView.CoreWebView2.Environment.UpdateRuntimeAsync();
+        //        string update_result = "status: " + result.Status + ", extended error:" + result.ExtendedError;
+        //        MessageBox.Show(this, update_result, "UpdateRuntimeAsync result");
+        //    }
+        //    catch (System.Runtime.InteropServices.COMException exception)
+        //    {
+        //        MessageBox.Show(this, "UpdateRuntimeAsync failed:" + exception.Message, "UpdateRuntimeAsync");
+        //    }
+        //}
         void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
             _isNavigating = true;
             RequeryCommands();
         }
-
         void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             _isNavigating = false;

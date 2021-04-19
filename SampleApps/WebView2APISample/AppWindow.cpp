@@ -11,6 +11,8 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <sstream>
 #include <ShObjIdl_core.h>
 #include <Shellapi.h>
 #include <ShlObj_core.h>
@@ -475,6 +477,44 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
             MB_OK);
         return true;
     }
+    case IDM_UPDATE_RUNTIME:
+    {
+        if (!m_webViewEnvironment)
+        {
+            MessageBox(
+                m_mainWindow, L"Need WebView2 environment object to update WebView2 Runtime",
+                nullptr, MB_OK);
+            return true;
+        }
+        //! [UpdateRuntime]
+        auto experimentalEnvironment3 =
+            m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment3>();
+        CHECK_FEATURE_RETURN(experimentalEnvironment3);
+        HRESULT hr = experimentalEnvironment3->UpdateRuntime(
+            Callback<ICoreWebView2ExperimentalUpdateRuntimeCompletedHandler>(
+                [](HRESULT errorCode,
+                   ICoreWebView2ExperimentalUpdateRuntimeResult* result) -> HRESULT {
+                    HRESULT updateError = E_FAIL;
+                    COREWEBVIEW2_UPDATE_RUNTIME_STATUS status =
+                        COREWEBVIEW2_UPDATE_RUNTIME_STATUS_FAILED;
+                    if ((errorCode == S_OK) && result)
+                    {
+                        CHECK_FAILURE(result->get_Status(&status));
+                        CHECK_FAILURE(result->get_ExtendedError(&updateError));
+                    }
+                    std::wstringstream formattedMessage;
+                    formattedMessage << "UpdateRuntime result (0x" << std::hex << errorCode
+                                     << "), status(" << status << "), extendedError("
+                                     << updateError << ")";
+                    MessageBox(nullptr, formattedMessage.str().c_str(), nullptr, MB_OK);
+                    return S_OK;
+                })
+                .Get());
+        if (FAILED(hr))
+            ShowFailure(hr, L"Call to TryUpdateRuntime failed");
+        //! [UpdateRuntime]
+        return true;
+    }
     case IDM_EXIT:
         CloseAppWindow();
         return true;
@@ -790,6 +830,11 @@ void AppWindow::ReinitializeWebView()
 
 void AppWindow::ReinitializeWebViewWithNewBrowser()
 {
+    if (!m_webView)
+    {
+        ReinitializeWebView();
+        return;
+    }
     // Save the settings component from being deleted when the WebView is closed, so we can
     // copy its properties to the next settings component.
     m_oldSettingsComponent = MoveComponent<SettingsComponent>();

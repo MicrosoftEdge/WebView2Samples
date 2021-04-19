@@ -46,7 +46,6 @@ private:
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2> m_webView;
     wil::com_ptr<ICoreWebView2Settings> m_settings;
-    wil::com_ptr<ICoreWebView2Settings2> m_settings2;
 
     bool m_blockImages = false;
     bool m_replaceImages = false;

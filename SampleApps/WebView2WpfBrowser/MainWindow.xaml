@@ -28,7 +28,6 @@ found in the LICENSE file.
         <CommandBinding Command="NavigationCommands.IncreaseZoom" Executed="IncreaseZoomCmdExecuted" CanExecute="WebViewRequiringCmdsCanExecute"/>
         <CommandBinding Command="NavigationCommands.DecreaseZoom" Executed="DecreaseZoomCmdExecuted" CanExecute="DecreaseZoomCmdCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.InjectScriptCommand}" Executed="InjectScriptCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
-        <CommandBinding Command="{x:Static local:MainWindow.SetUserAgentCommand}" Executed="SetUserAgentCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GetCookiesCommand}" Executed="GetCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DOMContentLoadedCommand}" Executed="DOMContentLoadedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}" Executed="NavigateWithWebResourceRequestCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -62,6 +61,7 @@ found in the LICENSE file.
             <MenuItem Header="S_cenario">
                 <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>
                 <MenuItem Header="Resume" Command="{x:Static local:MainWindow.ResumeCommand}"/>
+                <MenuItem Header="Check Update" Command="{x:Static local:MainWindow.CheckUpdateCommand}"/>
                 <MenuItem Header="_DOM Content Loaded" Command="{x:Static local:MainWindow.DOMContentLoadedCommand}"/>
                 <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem Header="_Cookie Management">

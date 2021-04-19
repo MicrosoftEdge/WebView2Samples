@@ -49,6 +49,7 @@ BEGIN
         MENUITEM "Get Document Title",                          IDM_GET_DOCUMENT_TITLE
         MENUITEM "Get Browser Version After Creation",          IDM_GET_BROWSER_VERSION_AFTER_CREATION
         MENUITEM "Get Browser Version Before Creation",         IDM_GET_BROWSER_VERSION_BEFORE_CREATION
+        MENUITEM "Update WebView2 Runtime",                     IDM_UPDATE_RUNTIME
         MENUITEM "E&xit",                                       IDM_EXIT
     END
     POPUP "&Script"
