@@ -399,6 +399,7 @@
     <ClInclude Include="ScenarioAddHostObject.h" />
     <ClInclude Include="ScenarioAuthentication.h" />
     <ClInclude Include="ScenarioCookieManagement.h" />
+    <ClInclude Include="ScenarioCustomDownloadExperience.h" />
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
     <ClInclude Include="ScenarioWebMessage.h" />
@@ -426,6 +427,7 @@
     <ClCompile Include="ScenarioAddHostObject.cpp" />
     <ClCompile Include="ScenarioAuthentication.cpp" />
     <ClCompile Include="ScenarioCookieManagement.cpp" />
+    <ClCompile Include="ScenarioCustomDownloadExperience.cpp" />
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
     <ClCompile Include="ScenarioWebMessage.cpp" />

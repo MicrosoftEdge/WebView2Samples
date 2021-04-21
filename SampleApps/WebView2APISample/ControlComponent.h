@@ -23,8 +23,8 @@ public:
 
     void NavigateToAddressBar();
 
-    void TabForwards(int currentIndex);
-    void TabBackwards(int currentIndex);
+    void TabForwards(size_t currentIndex);
+    void TabBackwards(size_t currentIndex);
 
     static LRESULT CALLBACK
     ChildWndProcStatic(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);

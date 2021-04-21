@@ -30,7 +30,8 @@ class AppWindow
 public:
     AppWindow(
         UINT creationModeId,
-        std::wstring initialUri = L"",
+        std::wstring initialUri = L"", 
+        std::wstring userDataFolderParam = L"",
         bool isMainWindow = false,
         std::function<void()> webviewCreatedCallback = nullptr,
         bool customWindowRect = false,
@@ -76,6 +77,11 @@ public:
     void Release();
     void NotifyClosed();
 
+    std::wstring GetUserDataFolder()
+    {
+        return m_userDataFolder;
+    }
+
 private:
     static PCWSTR GetWindowClass();
 
@@ -117,6 +123,7 @@ private:
     //  or "none" to mean don't perform an initial navigate,
     //  or a valid absolute URI to which we will navigate.
     std::wstring m_initialUri;
+    std::wstring m_userDataFolder;
     HWND m_mainWindow = nullptr;
     Toolbar m_toolbar;
     std::function<void()> m_onWebViewFirstInitialized;

@@ -27,13 +27,13 @@ ScenarioNavigateWithWebResourceRequest::ScenarioNavigateWithWebResourceRequest(
     {
         std::wstring postData = std::wstring(L"input=") + dialog.input;
         int sizeNeededForMultiByte = WideCharToMultiByte(
-            CP_UTF8, 0, postData.c_str(), postData.size(), nullptr,
+            CP_UTF8, 0, postData.c_str(), int(postData.size()), nullptr,
             0,
             nullptr, nullptr);
 
         std::unique_ptr<char[]> postDataBytes = std::make_unique<char[]>(sizeNeededForMultiByte);
         WideCharToMultiByte(
-            CP_UTF8, 0, postData.c_str(), postData.size(), postDataBytes.get(),
+            CP_UTF8, 0, postData.c_str(), int(postData.size()), postDataBytes.get(),
             sizeNeededForMultiByte, nullptr, nullptr);
 
         //! [NavigateWithWebResourceRequest]

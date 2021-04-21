@@ -28,6 +28,7 @@
 #include "ScenarioAddHostObject.h"
 #include "ScenarioAuthentication.h"
 #include "ScenarioCookieManagement.h"
+#include "ScenarioCustomDownloadExperience.h"
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioWebMessage.h"
@@ -95,12 +96,14 @@ DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
 // Creates a new window which is a copy of the entire app, but on the same thread.
 AppWindow::AppWindow(
     UINT creationModeId,
-    std::wstring initialUri,
+    std::wstring initialUri, 
+    std::wstring userDataFolderParam, 
     bool isMainWindow,
-    std::function<void()> webviewCreatedCallback,
-    bool customWindowRect,
+    std::function<void()> webviewCreatedCallback, 
+    bool customWindowRect, 
     RECT windowRect,
-    bool shouldHaveToolbar)
+    bool shouldHaveToolbar
+    )
     : m_creationModeId(creationModeId),
       m_initialUri(initialUri),
       m_onWebViewFirstInitialized(webviewCreatedCallback)
@@ -112,6 +115,11 @@ AppWindow::AppWindow(
 
     WCHAR szTitle[s_maxLoadString]; // The title bar text
     LoadStringW(g_hInstance, IDS_APP_TITLE, szTitle, s_maxLoadString);
+
+    if (userDataFolderParam.length() > 0)
+    {
+        m_userDataFolder = userDataFolderParam;
+    }
 
     if (customWindowRect)
     {
@@ -453,6 +461,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         CHECK_FAILURE(m_webView->Navigate(testingFocusUri.c_str()));
         return true;
     }
+    case IDM_SCENARIO_USE_DEFERRED_DOWNLOAD:
+    {
+        NewComponent<ScenarioCustomDownloadExperience>(this);
+        return true;
+    }
     }
     return false;
 }
@@ -684,26 +697,50 @@ void AppWindow::InitializeWebView()
         m_AADSSOEnabled ? TRUE : FALSE));
     if (!m_language.empty())
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
+
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
-        subFolder, nullptr, options.Get(),
+        subFolder, m_userDataFolder.c_str(), options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             this, &AppWindow::OnCreateEnvironmentCompleted)
             .Get());
     //! [CreateCoreWebView2EnvironmentWithOptions]
     if (!SUCCEEDED(hr))
     {
-        if (hr == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND))
+        switch (hr)
         {
-            MessageBox(
-                m_mainWindow,
-                L"Couldn't find Edge installation. "
-                "Do you have a version installed that's compatible with this "
-                "WebView2 SDK version?",
-                nullptr, MB_OK);
-        }
-        else
-        {
-            ShowFailure(hr, L"Failed to create webview environment");
+            case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND):
+            {
+                MessageBox(
+                    m_mainWindow,
+                    L"Couldn't find Edge installation. "
+                    "Do you have a version installed that's compatible with this "
+                    "WebView2 SDK version?",
+                    nullptr, MB_OK);
+            }
+            break;
+            case HRESULT_FROM_WIN32(ERROR_FILE_EXISTS):
+            {
+                MessageBox(
+                    m_mainWindow, L"User data folder cannot be created because a file with the same name already exists.", nullptr, MB_OK);
+            }
+            break;
+            case E_ACCESSDENIED:
+            {
+                MessageBox(
+                    m_mainWindow, L"Unable to create user data folder, Access Denied.", nullptr, MB_OK);
+            }
+            break;
+            case E_FAIL:
+            {
+                MessageBox(
+                    m_mainWindow, L"Edge runtime unable to start", nullptr, MB_OK);
+            }
+            break;
+            default:
+            {
+                ShowFailure(
+                    hr, L"Failed to create WebView2 environment");
+            }
         }
     }
 }
@@ -959,11 +996,13 @@ void AppWindow::RegisterEventHandlers()
                 windowRect.right = left + (width < s_minNewWindowSize ? s_minNewWindowSize : width);
                 windowRect.top = top;
                 windowRect.bottom = top + (height < s_minNewWindowSize ? s_minNewWindowSize : height);
-                
+
                 // passing "none" as uri as its a noinitialnavigation
                 if (!useDefaultWindow)
                 {
-                  newAppWindow = new AppWindow(m_creationModeId, L"none", false, nullptr, true, windowRect, !!shouldHaveToolbar);
+                    newAppWindow = new AppWindow(
+                        m_creationModeId, L"none", m_userDataFolder, false, nullptr, true, windowRect,
+                        !!shouldHaveToolbar);
                 }
                 else
                 {
@@ -1214,7 +1253,7 @@ std::wstring AppWindow::GetLocalUri(
 
 void AppWindow::RunAsync(std::function<void()> callback)
 {
-    auto* task = new std::function<void()>(callback);
+    auto* task = new std::function<void()>(std::move(callback));
     PostMessage(m_mainWindow, s_runAsyncWindowMessage, reinterpret_cast<WPARAM>(task), 0);
 }
 

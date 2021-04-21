@@ -16,6 +16,8 @@ class ProcessComponent : public ComponentBase
 public:
     ProcessComponent(AppWindow* appWindow);
 
+    static bool IsAppContentUri(const std::wstring& source);
+
     bool HandleWindowMessage(
         HWND hWnd,
         UINT message,
@@ -24,14 +26,22 @@ public:
         LRESULT* result) override;
 
     void ShowBrowserProcessInfo();
+    std::wstring ProcessFailedKindToString(const COREWEBVIEW2_PROCESS_FAILED_KIND kind);
+    std::wstring ProcessFailedReasonToString(const COREWEBVIEW2_PROCESS_FAILED_REASON reason);
     void CrashBrowserProcess();
     void CrashRenderProcess();
+
     ~ProcessComponent() override;
 
     // Wait for process to exit for timeoutMs, then force quit it if it hasn't.
     static void EnsureProcessIsClosed(UINT processId, int timeoutMs);
 
 private:
+    void ScheduleReinitIfSelectedByUser(
+        const std::wstring& message, const std::wstring& caption);
+    void ScheduleReloadIfSelectedByUser(
+        const std::wstring& message, const std::wstring& caption);
+
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
 

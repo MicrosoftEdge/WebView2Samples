@@ -78,15 +78,15 @@ RECT Toolbar::Resize(RECT availableBounds)
 {
     const int clientWidth = availableBounds.right - availableBounds.left;
     const int clientHeight = availableBounds.bottom - availableBounds.top;
-    const float dpiScale = m_appWindow->GetDpiScale();
-    const int clientLogicalWidth = clientWidth / dpiScale;
-    const int itemHeight = 32 * dpiScale;
+    const float dpiScale = float(m_appWindow->GetDpiScale());
+    const int clientLogicalWidth = int(float(clientWidth) / dpiScale);
+    const int itemHeight = int(32 * dpiScale);
 
     int nextOffsetX = 0;
 
     for (Item item = Item_BackButton; item < Item_LAST; item = Item(item + 1))
     {
-        int itemWidth = GetItemLogicalWidth(item, clientLogicalWidth) * dpiScale;
+        int itemWidth = int(GetItemLogicalWidth(item, clientLogicalWidth) * dpiScale);
         SetWindowPos(m_items[item], nullptr, nextOffsetX, 0, itemWidth, itemHeight,
             SWP_NOZORDER | SWP_NOACTIVATE);
         nextOffsetX += itemWidth;
@@ -138,8 +138,8 @@ void Toolbar::UpdateFont()
     GetObject(GetStockObject(SYSTEM_FONT), sizeof(LOGFONT), &logFont);
     double dpiScale = m_appWindow->GetDpiScale();
     double textScale = m_appWindow->GetTextScale();
-    logFont.lfHeight *= dpiScale * textScale;
-    logFont.lfWidth *= dpiScale * textScale;
+    logFont.lfHeight *= LONG(dpiScale * textScale);
+    logFont.lfWidth *= LONG(dpiScale * textScale);
     StringCchCopy(logFont.lfFaceName, ARRAYSIZE(logFont.lfFaceName), s_fontName);
     m_font = CreateFontIndirect(&logFont);
 }
