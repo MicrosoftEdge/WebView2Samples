@@ -239,6 +239,8 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;shlwapi.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>onecoreuap.lib %(AdditionalOptions)</AdditionalOptions>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Win7 Debug|Win32'">
@@ -270,8 +272,8 @@
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;shlwapi.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>onecoreuap.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
