@@ -30,7 +30,6 @@ public:
     std::wstring ProcessFailedReasonToString(const COREWEBVIEW2_PROCESS_FAILED_REASON reason);
     void CrashBrowserProcess();
     void CrashRenderProcess();
-
     ~ProcessComponent() override;
 
     // Wait for process to exit for timeoutMs, then force quit it if it hasn't.

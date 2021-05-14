@@ -72,7 +72,6 @@ SettingsComponent::SettingsComponent(
         m_blockedSitesSet = old->m_blockedSitesSet;
         m_blockedSites = std::move(old->m_blockedSites);
     }
-
     //! [NavigationStarting]
     // Register a handler for the NavigationStarting event.
     // This handler will check the domain being navigated to, and if the domain
@@ -603,7 +602,6 @@ bool SettingsComponent::HandleWindowMessage(
     }
     return false;
 }
-
 // Prompt the user for a list of blocked domains
 void SettingsComponent::ChangeBlockedSites()
 {

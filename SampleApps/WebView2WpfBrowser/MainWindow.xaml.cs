@@ -30,6 +30,7 @@ namespace WebView2WpfBrowser
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static RoutedCommand BackgroundColorCommand = new RoutedCommand();
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
         public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
         public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
