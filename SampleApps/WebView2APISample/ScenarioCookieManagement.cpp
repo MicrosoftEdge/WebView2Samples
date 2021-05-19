@@ -203,7 +203,7 @@ void ScenarioCookieManagement::GetCookiesHelper(std::wstring uri)
                             result += L" on " + uri;
                         }
                         result += L"\n\n[";
-                        for (int i = 0; i < cookie_list_size; ++i)
+                        for (UINT i = 0; i < cookie_list_size; ++i)
                         {
                             wil::com_ptr<ICoreWebView2Cookie> cookie;
                             CHECK_FAILURE(list->GetValueAtIndex(i, &cookie));

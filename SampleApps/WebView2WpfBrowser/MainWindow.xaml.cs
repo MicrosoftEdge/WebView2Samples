@@ -30,22 +30,72 @@ namespace WebView2WpfBrowser
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static RoutedCommand BackgroundColorCommand = new RoutedCommand();
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
         public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
         public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
         public static RoutedCommand GetCookiesCommand = new RoutedCommand();
         public static RoutedCommand SuspendCommand = new RoutedCommand();
         public static RoutedCommand ResumeCommand = new RoutedCommand();
+        public static RoutedCommand CheckUpdateCommand = new RoutedCommand();
+        public static RoutedCommand BackgroundColorCommand = new RoutedCommand();
+        public static RoutedCommand DownloadStartingCommand = new RoutedCommand();
         public static RoutedCommand AddOrUpdateCookieCommand = new RoutedCommand();
         public static RoutedCommand DeleteCookiesCommand = new RoutedCommand();
         public static RoutedCommand DeleteAllCookiesCommand = new RoutedCommand();
         public static RoutedCommand SetUserAgentCommand = new RoutedCommand();
+        public static RoutedCommand PasswordAutofillCommand = new RoutedCommand();
+        public static RoutedCommand GeneralAutofillCommand = new RoutedCommand();
+        public static RoutedCommand PinchZoomCommand = new RoutedCommand();
         bool _isNavigating = false;
+
+        CoreWebView2Settings _webViewSettings;
+        CoreWebView2Settings WebViewSettings
+        {
+            get
+            {
+                if (_webViewSettings == null && webView?.CoreWebView2 != null)
+                {
+                    _webViewSettings = webView.CoreWebView2.Settings;
+                }
+                return _webViewSettings;
+            }
+        }
+        CoreWebView2Environment _webViewEnvironment;
+        CoreWebView2Environment WebViewEnvironment
+        {
+            get
+            {
+                if (_webViewEnvironment == null && webView?.CoreWebView2 != null)
+                {
+                    _webViewEnvironment = webView.CoreWebView2.Environment;
+                }
+                return _webViewEnvironment;
+            }
+        }
 
         public MainWindow()
         {
             InitializeComponent();
+            AttachControlEventHandlers(webView);
+        }
+
+        void AttachControlEventHandlers(WebView2 control) {
+            control.NavigationStarting += WebView_NavigationStarting;
+            control.NavigationCompleted += WebView_NavigationCompleted;
+            control.CoreWebView2InitializationCompleted += WebView_CoreWebView2InitializationCompleted;
+            control.KeyDown += WebView_KeyDown;
+        }
+
+        bool IsWebViewValid()
+        {
+            try
+            {
+                return webView != null && webView.CoreWebView2 != null;
+            }
+            catch (Exception ex) when (ex is ObjectDisposedException || ex is InvalidOperationException)
+            {
+                return false;
+            }
         }
 
         void NewCmdExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -80,7 +130,7 @@ namespace WebView2WpfBrowser
 
         void RefreshCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = webView != null && webView.CoreWebView2 != null && !_isNavigating;
+            e.CanExecute = IsWebViewValid() && !_isNavigating;
         }
 
         void RefreshCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -90,7 +140,7 @@ namespace WebView2WpfBrowser
 
         void BrowseStopCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = webView != null && webView.CoreWebView2 != null && _isNavigating;
+            e.CanExecute = IsWebViewValid() && _isNavigating;
         }
 
         void BrowseStopCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -105,7 +155,157 @@ namespace WebView2WpfBrowser
 
         void CoreWebView2RequiringCmdsCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = webView != null && webView.CoreWebView2 != null;
+            e.CanExecute = IsWebViewValid();
+        }
+
+        private bool _isControlInVisualTree = true;
+
+        void RemoveControlFromVisualTree(WebView2 control)
+        {
+            Layout.Children.Remove(control);
+            _isControlInVisualTree = false;
+        }
+
+        void AttachControlToVisualTree(WebView2 control)
+        {
+            Layout.Children.Add(control);
+            _isControlInVisualTree = true;
+        }
+
+        WebView2 GetReplacementControl()
+        {
+            WebView2 replacementControl = new WebView2();
+            ((System.ComponentModel.ISupportInitialize)(replacementControl)).BeginInit();
+            // Setup properties and bindings
+            replacementControl.CreationProperties = webView.CreationProperties;
+            Binding urlBinding = new Binding()
+            {
+                Source = replacementControl,
+                Path = new PropertyPath("Source"),
+                Mode = BindingMode.OneWay
+            };
+            url.SetBinding(TextBox.TextProperty, urlBinding);
+
+            AttachControlEventHandlers(replacementControl);
+            replacementControl.Source = webView.Source ?? new Uri("https://www.bing.com");
+            ((System.ComponentModel.ISupportInitialize)(replacementControl)).EndInit();
+
+            return replacementControl;
+        }
+
+        void WebView_ProcessFailed(object sender, CoreWebView2ProcessFailedEventArgs e)
+        {
+            void ReinitIfSelectedByUser(CoreWebView2ProcessFailedKind kind)
+            {
+                string caption;
+                string message;
+                if (kind == CoreWebView2ProcessFailedKind.BrowserProcessExited)
+                {
+                    caption = "Browser process exited";
+                    message = "WebView2 Runtime's browser process exited unexpectedly. Recreate WebView?";
+                }
+                else
+                {
+                    caption = "Web page unresponsive";
+                    message = "WebView2 Runtime's render process stopped responding. Recreate WebView?";
+                }
+
+                var selection = MessageBox.Show(message, caption, MessageBoxButton.YesNo);
+                if (selection == MessageBoxResult.Yes)
+                {
+                    // The control cannot be re-initialized so we setup a new instance to replace it.
+                    // Note the previous instance of the control has been disposed of and removed from
+                    // the visual tree before attaching the new one.
+                    WebView2 replacementControl = GetReplacementControl();
+                    if (_isControlInVisualTree)
+                    {
+                        RemoveControlFromVisualTree(webView);
+                    }
+                    // Dispose of the control so additional resources are released. We do this only
+                    // after creating the replacement control as properties for the replacement
+                    // control are taken from the existing instance.
+                    webView.Dispose();
+                    webView = replacementControl;
+                    AttachControlToVisualTree(webView);
+                }
+            }
+
+            void ReloadIfSelectedByUser(CoreWebView2ProcessFailedKind kind)
+            {
+                string caption;
+                string message;
+                if (kind == CoreWebView2ProcessFailedKind.RenderProcessExited)
+                {
+                    caption = "Web page unresponsive";
+                    message = "WebView2 Runtime's render process exited unexpectedly. Reload page?";
+                }
+                else
+                {
+                    caption = "App content frame unresponsive";
+                    message = "WebView2 Runtime's render process for app frame exited unexpectedly. Reload page?";
+                }
+
+                var selection = MessageBox.Show(message, caption, MessageBoxButton.YesNo);
+                if (selection == MessageBoxResult.Yes)
+                {
+                    webView.Reload();
+                }
+            }
+
+            bool IsAppContentUri(Uri source)
+            {
+                // Sample virtual host name for the app's content.
+                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://docs.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
+                return source.Host == "appassets.example";
+            }
+
+            switch (e.ProcessFailedKind)
+            {
+                case CoreWebView2ProcessFailedKind.BrowserProcessExited:
+                    // Once the WebView2 Runtime's browser process has crashed,
+                    // the control becomes virtually unusable as the process exit
+                    // moves the CoreWebView2 to its Closed state. Most calls will
+                    // become invalid as they require a backing browser process.
+                    // Remove the control from the visual tree so the framework does
+                    // not atempt to redraw it, which would call the invalid methods.
+                    RemoveControlFromVisualTree(webView);
+                    goto case CoreWebView2ProcessFailedKind.RenderProcessUnresponsive;
+                case CoreWebView2ProcessFailedKind.RenderProcessUnresponsive:
+                    System.Threading.SynchronizationContext.Current.Post((_) =>
+                    {
+                        ReinitIfSelectedByUser(e.ProcessFailedKind);
+                    }, null);
+                    break;
+                case CoreWebView2ProcessFailedKind.RenderProcessExited:
+                    System.Threading.SynchronizationContext.Current.Post((_) =>
+                    {
+                        ReloadIfSelectedByUser(e.ProcessFailedKind);
+                    }, null);
+                    break;
+                case CoreWebView2ProcessFailedKind.FrameRenderProcessExited:
+                    // A frame-only renderer has exited unexpectedly. Check if reload is needed.
+                    // In this sample we only reload if the app's content has been impacted.
+                    foreach (CoreWebView2FrameInfo frameInfo in e.FrameInfosForFailedProcess)
+                    {
+                        if (IsAppContentUri(new System.Uri(frameInfo.Source)))
+                        {
+                            goto case CoreWebView2ProcessFailedKind.RenderProcessExited;
+                        }
+                    }
+                    break;
+                default:
+                    // Show the process failure details. Apps can collect info for their logging purposes.
+                    StringBuilder messageBuilder = new StringBuilder();
+                    messageBuilder.AppendLine($"Process kind: {e.ProcessFailedKind}");
+                    messageBuilder.AppendLine($"Reason: {e.Reason}");
+                    messageBuilder.AppendLine($"Exit code: {e.ExitCode}");
+                    messageBuilder.AppendLine($"Process description: {e.ProcessDescription}");
+                    System.Threading.SynchronizationContext.Current.Post((_) =>
+                    {
+                        MessageBox.Show(messageBuilder.ToString(), "Child process failed", MessageBoxButton.OK);
+                    }, null);
+                    break;
+            }
         }
 
         double ZoomStep()
@@ -186,19 +386,14 @@ namespace WebView2WpfBrowser
             webView.CoreWebView2.CookieManager.DeleteCookiesWithDomainAndPath("CookieName", ".bing.com", "/");
         }
 
-        private CoreWebView2Settings _coreWebView2Settings;
         void SetUserAgentCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            if (_coreWebView2Settings == null)
-            {
-                _coreWebView2Settings = webView.CoreWebView2.Settings;
-            }
             var dialog = new TextInputDialog(
                 title: "SetUserAgent",
                 description: "Enter UserAgent");
             if (dialog.ShowDialog() == true)
             {
-                _coreWebView2Settings.UserAgent = dialog.Input.Text;
+                WebViewSettings.UserAgent = dialog.Input.Text;
             }
         }
 
@@ -214,16 +409,17 @@ namespace WebView2WpfBrowser
             webView.NavigateToString(@"<!DOCTYPE html><h1>DOMContentLoaded sample page</h1><h2>The content below will be added after DOM content is loaded </h2>");
         }
 
-        private CoreWebView2Environment _coreWebView2Environment;
-
-        async void NavigateWithWebResourceRequestCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        void PasswordAutofillCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            // Need CoreWebView2Environment
-            if (_coreWebView2Environment == null)
-            {
-                _coreWebView2Environment = webView.CoreWebView2.Environment;
-            }
+            WebViewSettings.IsPasswordAutofillEnabled = !WebViewSettings.IsPasswordAutofillEnabled;
+        }
+        void GeneralAutofillCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            WebViewSettings.IsGeneralAutofillEnabled = !WebViewSettings.IsGeneralAutofillEnabled;
+        }
 
+        void NavigateWithWebResourceRequestCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
             // Prepare post data as UTF-8 byte array and convert it to stream
             // as required by the application/x-www-form-urlencoded Content-Type
             var dialog = new TextInputDialog(
@@ -239,7 +435,7 @@ namespace WebView2WpfBrowser
                 postDataStream.Write(postData, 0, postData.Length);
                 postDataStream.Seek(0, SeekOrigin.Begin);
                 CoreWebView2WebResourceRequest webResourceRequest =
-                  _coreWebView2Environment.CreateWebResourceRequest(
+                  WebViewEnvironment.CreateWebResourceRequest(
                     "https://www.w3schools.com/action_page.php",
                     "POST",
                     postDataStream,
@@ -248,7 +444,84 @@ namespace WebView2WpfBrowser
             }
         }
 
-        void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
+
+        void PinchZoomCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            WebViewSettings.IsPinchZoomEnabled = !WebViewSettings.IsPinchZoomEnabled;
+            MessageBox.Show("Pinch Zoom is" + (WebViewSettings.IsPinchZoomEnabled ? " enabled " : " disabled ") + "after the next navigation.");
+        }
+
+        void DownloadStartingCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                webView.CoreWebView2.DownloadStarting += delegate (
+                  object sender, CoreWebView2DownloadStartingEventArgs args)
+                {
+                    // Developer can obtain a deferral for the event so that the CoreWebView2
+                    // doesn't examine the properties we set on the event args until
+                    // after the deferral completes asynchronously.
+                    CoreWebView2Deferral deferral = args.GetDeferral();
+
+                    // We avoid potential reentrancy from running a message loop in the download
+                    // starting event handler by showing our download dialog later when we
+                    // complete the deferral asynchronously.
+                    System.Threading.SynchronizationContext.Current.Post((_) =>
+                    {
+                        using (deferral)
+                        {
+                            // Hide the default download dialog.
+                            args.Handled = true;
+                            var dialog = new TextInputDialog(
+                                title: "Download Starting",
+                                description: "Enter new result file path or select OK to keep default path. Select cancel to cancel the download.",
+                                defaultInput: args.ResultFilePath);
+                            if (dialog.ShowDialog() == true)
+                            {
+                              args.ResultFilePath = dialog.Input.Text;
+                              UpdateProgress(args.DownloadOperation);
+                            }
+                            else
+                            {
+                              args.Cancel = true;
+                            }
+                        }
+                    }, null);
+                };
+                webView.CoreWebView2.Navigate("https://demo.smartscreen.msft.net/");
+            }
+            catch (NotImplementedException exception)
+            {
+              MessageBox.Show(this, "DownloadStarting Failed: " + exception.Message, "Download Starting");
+            }
+        }
+
+        // Update download progress
+        void UpdateProgress(CoreWebView2DownloadOperation download)
+        {
+            download.BytesReceivedChanged += delegate (object sender, Object e)
+            {
+              // Here developer can update download dialog to show progress of a
+              // download using `download.BytesReceived` and `download.TotalBytesToReceive`
+            };
+
+            download.StateChanged += delegate (object sender, Object e)
+            {
+                switch (download.State)
+                {
+                  case CoreWebView2DownloadState.InProgress:
+                    break;
+                  case CoreWebView2DownloadState.Interrupted:
+                    // Here developer can take different actions based on `download.InterruptReason`.
+                    // For example, show an error message to the end user.
+                    break;
+                  case CoreWebView2DownloadState.Completed:
+                    break;
+                }
+            };
+        }
+
+    void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = webView != null && !_isNavigating;
         }
@@ -288,6 +561,64 @@ namespace WebView2WpfBrowser
             }
         }
 
+        async void CheckUpdateCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                CoreWebView2UpdateRuntimeResult result = await webView.CoreWebView2.Environment.UpdateRuntimeAsync();
+                string update_result = "status: " + result.Status + ", extended error:" + result.ExtendedError;
+                MessageBox.Show(this, update_result, "UpdateRuntimeAsync result");
+            }
+            catch (System.Runtime.InteropServices.COMException exception)
+            {
+                MessageBox.Show(this, "UpdateRuntimeAsync failed:" + exception.Message, "UpdateRuntimeAsync");
+            }
+        }
+
+        bool _allowWebViewShortcutKeys = true;
+        bool _allowShortcutsEventRegistered = false;
+        public bool AllowWebViewShortcutKeys
+        {
+            get => _allowWebViewShortcutKeys;
+            set
+            {
+                _allowWebViewShortcutKeys = value;
+                if (webView.CoreWebView2 != null)
+                {
+                    WebViewSettings.AreBrowserAcceleratorKeysEnabled = value;
+                }
+                else if (!_allowShortcutsEventRegistered)
+                {
+                    _allowShortcutsEventRegistered = true;
+                    webView.CoreWebView2InitializationCompleted += (sender, e) =>
+                    {
+                        if (e.IsSuccess)
+                        {
+                            WebViewSettings.AreBrowserAcceleratorKeysEnabled = _allowWebViewShortcutKeys;
+                        }
+                    };
+                }
+            }
+        }
+
+        void WebView_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.IsRepeat) return;
+            bool ctrl = e.KeyboardDevice.IsKeyDown(Key.LeftCtrl) || e.KeyboardDevice.IsKeyDown(Key.RightCtrl);
+            bool alt = e.KeyboardDevice.IsKeyDown(Key.LeftAlt) || e.KeyboardDevice.IsKeyDown(Key.RightAlt);
+            bool shift = e.KeyboardDevice.IsKeyDown(Key.LeftShift) || e.KeyboardDevice.IsKeyDown(Key.RightShift);
+            if (e.Key == Key.N && ctrl && !alt && !shift)
+            {
+                new MainWindow().Show();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.W && ctrl && !alt && !shift)
+            {
+                Close();
+                e.Handled = true;
+            }
+        }
+
         void WebView_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
             _isNavigating = true;
@@ -303,7 +634,10 @@ namespace WebView2WpfBrowser
         void WebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             if (e.IsSuccess)
+            {
+                webView.CoreWebView2.ProcessFailed += WebView_ProcessFailed;
                 return;
+            }
 
             MessageBox.Show($"WebView2 creation failed with exception = {e.InitializationException}");
         }

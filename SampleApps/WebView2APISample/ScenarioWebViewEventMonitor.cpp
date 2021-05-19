@@ -27,7 +27,7 @@ ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEve
     m_sampleUri = m_appWindowEventSource->GetLocalUri(c_samplePath);
     m_appWindowEventView = new AppWindow(
         IDM_CREATION_MODE_WINDOWED,
-        m_sampleUri,
+        m_sampleUri, appWindowEventSource->GetUserDataFolder(),
         false,
         [this]() -> void {
             InitializeEventView(m_appWindowEventView->GetWebView());
@@ -47,6 +47,7 @@ ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
     m_webviewEventSource->remove_WebMessageReceived(m_webMessageReceivedToken);
     m_webviewEventSource->remove_NewWindowRequested(m_newWindowRequestedToken);
     m_webviewEventSource2->remove_DOMContentLoaded(m_DOMContentLoadedToken);
+    m_webviewEventSourceExperimental2->remove_DownloadStarting(m_downloadStartingToken);
     EnableWebResourceRequestedEvent(false);
     EnableWebResourceResponseReceivedEvent(false);
 
@@ -97,7 +98,7 @@ std::wstring EncodeQuote(std::wstring raw)
     // due to adding potential escaping chars.
     encoded.reserve(raw.length() + 10);
     encoded.push_back(L'"');
-    for (int i = 0; i < raw.length(); ++i)
+    for (size_t i = 0; i < raw.length(); ++i)
     {
         // Escape chars as listed in https://tc39.es/ecma262/#sec-json.stringify.
         switch (raw[i])
@@ -549,8 +550,7 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                     L"\"requestHeaders\": " + RequestHeadersToJsonString(requestHeaders.get()) + L", "
                     L"\"uri\": " + EncodeQuote(uri.get()) + L" "
                     L"}" +
-                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) +
-                    L"}";
+                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
 
                 PostEventMessage(message);
 
@@ -679,6 +679,160 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
             })
             .Get(),
         &m_documentTitleChangedToken);
+
+    m_webviewEventSourceExperimental2 = m_webviewEventSource.try_query<ICoreWebView2Experimental2>();
+    if (m_webviewEventSourceExperimental2) {
+        m_webviewEventSourceExperimental2->add_DownloadStarting(
+            Callback<ICoreWebView2ExperimentalDownloadStartingEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2ExperimentalDownloadStartingEventArgs* args)
+                    -> HRESULT {
+                    wil::com_ptr<ICoreWebView2ExperimentalDownloadOperation> download;
+                    CHECK_FAILURE(args->get_DownloadOperation(&download));
+
+                    BOOL cancel = FALSE;
+                    CHECK_FAILURE(args->get_Cancel(&cancel));
+
+                    INT64 totalBytesToReceive = 0;
+                    CHECK_FAILURE(
+                        download->get_TotalBytesToReceive(&totalBytesToReceive));
+
+                    wil::unique_cotaskmem_string uri;
+                    CHECK_FAILURE(download->get_Uri(&uri));
+
+                    wil::unique_cotaskmem_string mimeType;
+                    CHECK_FAILURE(download->get_MimeType(&mimeType));
+
+                    wil::unique_cotaskmem_string contentDisposition;
+                    CHECK_FAILURE(download->get_ContentDisposition(&contentDisposition));
+
+                    wil::unique_cotaskmem_string resultFilePath;
+                    CHECK_FAILURE(args->get_ResultFilePath(&resultFilePath));
+
+                    COREWEBVIEW2_DOWNLOAD_STATE state;
+                    CHECK_FAILURE(download->get_State(&state));
+
+                    BOOL handled = FALSE;
+                    CHECK_FAILURE(args->get_Handled(&handled));
+
+                    download->add_StateChanged(
+                        Callback<ICoreWebView2ExperimentalStateChangedEventHandler>(
+                            [this, download](
+                                ICoreWebView2ExperimentalDownloadOperation* sender,
+                                IUnknown* args)
+                                -> HRESULT {
+                                COREWEBVIEW2_DOWNLOAD_STATE state;
+                                CHECK_FAILURE(download->get_State(&state));
+
+                                std::wstring state_string = L"";
+                                switch (state)
+                                {
+                                case COREWEBVIEW2_DOWNLOAD_STATE_IN_PROGRESS:
+                                    state_string = L"In progress";
+                                    break;
+                                case COREWEBVIEW2_DOWNLOAD_STATE_COMPLETED:
+                                    state_string = L"Complete";
+                                    download->remove_StateChanged(
+                                        m_stateChangedToken);
+                                    download->remove_BytesReceivedChanged(
+                                        m_bytesReceivedChangedToken);
+                                    download->remove_EstimatedEndTimeChanged(
+                                        m_estimatedEndTimeChanged);
+                                    break;
+                                case COREWEBVIEW2_DOWNLOAD_STATE_INTERRUPTED:
+                                    state_string = L"Interrupted";
+                                    break;
+                                }
+
+                                COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON interrupt_reason;
+                                CHECK_FAILURE(download->get_InterruptReason(&interrupt_reason));
+                                std::wstring interrupt_reason_string =
+                                    InterruptReasonToString(interrupt_reason);
+
+                                std::wstring message = L"{ \"kind\": \"event\", \"name\": "
+                                                      L"\"DownloadStateChanged\", \"args\": {";
+                                message += L"\"state\": " + EncodeQuote(state_string) + L", " +
+                                          L"\"interruptReason\": " +
+                                          EncodeQuote(interrupt_reason_string) + L" ";
+
+                                message +=
+                                    L"}" +
+                                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) +
+                                    L"}";
+                                PostEventMessage(message);
+                                return S_OK;
+                            })
+                            .Get(),
+                        &m_stateChangedToken);
+
+                    download->add_BytesReceivedChanged(
+                        Callback<
+                            ICoreWebView2ExperimentalBytesReceivedChangedEventHandler>(
+                            [this, download](
+                                ICoreWebView2ExperimentalDownloadOperation* sender, IUnknown* args) -> HRESULT {
+                                INT64 bytesReceived = 0;
+                                CHECK_FAILURE(download->get_BytesReceived(
+                                    &bytesReceived));
+
+                                std::wstring message =
+                                    L"{ \"kind\": \"event\", \"name\": "
+                                    L"\"DownloadBytesReceivedChanged\", \"args\": {";
+                                message += L"\"bytesReceived\": " +
+                                          std::to_wstring(bytesReceived) + L" ";
+
+                                message +=
+                                    L"}" +
+                                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) +
+                                    L"}";
+                                PostEventMessage(message);
+                                return S_OK;
+                            })
+                            .Get(),
+                        &m_bytesReceivedChangedToken);
+
+                    download->add_EstimatedEndTimeChanged(
+                        Callback<ICoreWebView2ExperimentalEstimatedEndTimeChangedEventHandler>(
+                            [this, download](
+                                ICoreWebView2ExperimentalDownloadOperation* sender, IUnknown* args) -> HRESULT {
+                                wil::unique_cotaskmem_string estimatedEndTime;
+                                CHECK_FAILURE(download->get_EstimatedEndTime(&estimatedEndTime));
+
+                                std::wstring message =
+                                    L"{ \"kind\": \"event\", \"name\": "
+                                    L"\"DownloadEstimatedEndTimeChanged\", \"args\": {";
+                                message += L"\"estimatedEndTime\": " +
+                                          EncodeQuote(estimatedEndTime.get()) + L" ";
+
+                                message +=
+                                    L"}" +
+                                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) +
+                                    L"}";
+                                PostEventMessage(message);
+                                return S_OK;
+                            })
+                            .Get(),
+                        &m_estimatedEndTimeChanged);
+
+                    std::wstring message =
+                        L"{ \"kind\": \"event\", \"name\": \"DownloadStarting\", \"args\": {";
+
+                    message += L"\"cancel\": " + BoolToString(cancel) + L", " +
+                              L"\"resultFilePath\": " + EncodeQuote(resultFilePath.get()) + L", " +
+                              L"\"handled\": " + BoolToString(handled) + L", " +
+                              L"\"uri\": " + EncodeQuote(uri.get()) + L", " + L"\"mimeType\": " +
+                              EncodeQuote(mimeType.get()) + L", " + L"\"contentDisposition\": " +
+                              EncodeQuote(contentDisposition.get()) + L", " +
+                              L"\"totalBytesToReceive\": " +
+                              std::to_wstring(totalBytesToReceive) + L" ";
+
+                    message +=
+                        L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                    PostEventMessage(message);
+
+                    return S_OK;
+                })
+                .Get(),
+            &m_downloadStartingToken);
+    }
 }
 
 void ScenarioWebViewEventMonitor::PostEventMessage(std::wstring message)
@@ -688,4 +842,104 @@ void ScenarioWebViewEventMonitor::PostEventMessage(std::wstring message)
     {
         ShowFailure(hr, L"PostWebMessageAsJson failed:\n" + message);
     }
+}
+
+std::wstring ScenarioWebViewEventMonitor::InterruptReasonToString(
+    const COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON interrupt_reason)
+{
+    std::wstring interrupt_reason_string = L"";
+    switch (interrupt_reason)
+    {
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_NONE:
+        interrupt_reason_string = L"None";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_FAILED:
+        interrupt_reason_string = L"File failed";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_ACCESS_DENIED:
+        interrupt_reason_string = L"File access denied";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_NO_SPACE:
+        interrupt_reason_string = L"File no space";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_NAME_TOO_LONG:
+        interrupt_reason_string = L"File name too long";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_TOO_LARGE:
+        interrupt_reason_string = L"File too large";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_MALICIOUS:
+        interrupt_reason_string = L"File malicious";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_TRANSIENT_ERROR:
+        interrupt_reason_string = L"File transient error";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_BLOCKED_BY_POLICY:
+        interrupt_reason_string = L"File blocked by policy";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_SECURITY_CHECK_FAILED:
+        interrupt_reason_string = L"File security check failed";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_TOO_SHORT:
+        interrupt_reason_string = L"File too short";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_FILE_HASH_MISMATCH:
+        interrupt_reason_string = L"File hash mismatch";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_NETWORK_FAILED:
+        interrupt_reason_string = L"Network failed";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_NETWORK_TIMEOUT:
+        interrupt_reason_string = L"Network timeout";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_NETWORK_DISCONNECTED:
+        interrupt_reason_string = L"Network disconnected";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_NETWORK_SERVER_DOWN:
+        interrupt_reason_string = L"Network server down";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_NETWORK_INVALID_REQUEST:
+        interrupt_reason_string = L"Network invalid request";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_SERVER_FAILED:
+        interrupt_reason_string = L"Server failed";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_SERVER_NO_RANGE:
+        interrupt_reason_string = L"Server no range";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_SERVER_BAD_CONTENT:
+        interrupt_reason_string = L"Server bad content";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_SERVER_UNAUTHORIZED:
+        interrupt_reason_string = L"Server unauthorized";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_SERVER_CERTIFICATE_PROBLEM:
+        interrupt_reason_string = L"Server certificate problem";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_SERVER_FORBIDDEN:
+        interrupt_reason_string = L"Server forbidden";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_SERVER_UNEXPECTED_RESPONSE:
+        interrupt_reason_string = L"Server unexpected response";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_SERVER_CONTENT_LENGTH_MISMATCH:
+        interrupt_reason_string = L"Server content length mismatch";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_SERVER_CROSS_ORIGIN_REDIRECT:
+        interrupt_reason_string = L"Server cross origin redirect";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_USER_CANCELED:
+        interrupt_reason_string = L"User canceled";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_USER_SHUTDOWN:
+        interrupt_reason_string = L"User shutdown";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_USER_PAUSED:
+        interrupt_reason_string = L"User paused";
+        break;
+    case COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON_DOWNLOAD_PROCESS_CRASHED:
+        interrupt_reason_string = L"Download process crashed";
+        break;
+    }
+    return interrupt_reason_string;
 }

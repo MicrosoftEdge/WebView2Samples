@@ -114,16 +114,13 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                 {
                     COREWEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
                     CHECK_FAILURE(args->get_WebErrorStatus(&webErrorStatus));
-                    std::wstring error_msg = WebErrorStatusToString(webErrorStatus);
-                    MessageBox(nullptr,
-                       (std::wstring(L"IFrame navigation failed with the ") +
-                         L"give in error " + error_msg).c_str(),
-                       L"Navigation Failure", MB_OK);
-                    if (webErrorStatus == COREWEBVIEW2_WEB_ERROR_STATUS_DISCONNECTED)
+                    // The web page can cancel its own iframe loads, so we'll ignore that.
+                    if (webErrorStatus != COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED)
                     {
-                        // Do something here if you want to handle a specific error case.
-                        // In most cases this isn't necessary, because the WebView will
-                        // display its own error page automatically.
+                        std::wstring error_msg = WebErrorStatusToString(webErrorStatus);
+                        MessageBox(nullptr,
+                           (std::wstring(L"IFrame navigation failed: ") + error_msg).c_str(),
+                           L"Navigation Failure", MB_OK);
                     }
                 }
                 return S_OK;
@@ -153,7 +150,7 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                     }
                     else if (reason == COREWEBVIEW2_MOVE_FOCUS_REASON_PREVIOUS)
                     {
-                        TabBackwards(int(m_tabbableWindows.size()));
+                        TabBackwards(m_tabbableWindows.size());
                     }
                     CHECK_FAILURE(args->put_Handled(TRUE));
                 }
@@ -377,7 +374,7 @@ void ControlComponent::NavigateToAddressBar()
 //! [Navigate]
 
 //! [MoveFocus2]
-void ControlComponent::TabForwards(int currentIndex)
+void ControlComponent::TabForwards(size_t currentIndex)
 {
     // Find first enabled window after the active one
     for (size_t i = currentIndex + 1; i < m_tabbableWindows.size(); i++)
@@ -393,10 +390,10 @@ void ControlComponent::TabForwards(int currentIndex)
     m_controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_NEXT);
 }
 
-void ControlComponent::TabBackwards(int currentIndex)
+void ControlComponent::TabBackwards(size_t currentIndex)
 {
     // Find first enabled window before the active one
-    for (int i = currentIndex - 1; i >= 0; i--)
+    for (size_t i = currentIndex - 1; i >= 0; i--)
     {
         HWND hwnd = m_tabbableWindows.at(i).first;
         if (IsWindowEnabled(hwnd))

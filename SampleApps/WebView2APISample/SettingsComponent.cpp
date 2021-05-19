@@ -24,6 +24,7 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->get_Settings(&m_settings));
 
     m_settings2 = m_settings.try_query<ICoreWebView2Settings2>();
+    m_settings3 = m_settings.try_query<ICoreWebView2Settings3>();
     // Copy old settings if desired
     if (old)
     {
@@ -43,6 +44,26 @@ SettingsComponent::SettingsComponent(
             LPWSTR user_agent;
             CHECK_FAILURE(old->m_settings2->get_UserAgent(&user_agent));
             CHECK_FAILURE(m_settings2->put_UserAgent(user_agent));
+        }
+        if (old->m_settings3 && m_settings3)
+        {
+            CHECK_FAILURE(old->m_settings3->get_AreBrowserAcceleratorKeysEnabled(&setting));
+            CHECK_FAILURE(m_settings3->put_AreBrowserAcceleratorKeysEnabled(setting));
+        }
+        wil::com_ptr<ICoreWebView2ExperimentalSettings3> experimental_settings_old;
+        experimental_settings_old = old->m_settings.try_query<ICoreWebView2ExperimentalSettings3>();
+        if (experimental_settings_old != nullptr) {
+            wil::com_ptr<ICoreWebView2ExperimentalSettings3> experimental_settings;
+            experimental_settings = m_settings.try_query<ICoreWebView2ExperimentalSettings3>();
+            if (experimental_settings != nullptr)
+            {
+                CHECK_FAILURE(
+                    experimental_settings_old->get_IsPasswordAutofillEnabled(&setting));
+                CHECK_FAILURE(experimental_settings->put_IsPasswordAutofillEnabled(setting));
+                CHECK_FAILURE(
+                    experimental_settings_old->get_IsGeneralAutofillEnabled(&setting));
+                CHECK_FAILURE(experimental_settings->put_IsGeneralAutofillEnabled(setting));
+            }
         }
         SetBlockImages(old->m_blockImages);
         SetReplaceImages(old->m_replaceImages);
@@ -454,6 +475,30 @@ bool SettingsComponent::HandleWindowMessage(
             //! [DisableZoomControl]
             return true;
         }
+        case ID_SETTINGS_PINCH_ZOOM_ENABLED:
+        {
+            //! [DisablePinchZoom]
+            BOOL pinchZoomEnabled;
+            wil::com_ptr<ICoreWebView2ExperimentalSettings4> experimentalSettings4;
+            experimentalSettings4 = m_settings.try_query<ICoreWebView2ExperimentalSettings4>();
+            CHECK_FAILURE(experimentalSettings4->get_IsPinchZoomEnabled(&pinchZoomEnabled));
+            if (pinchZoomEnabled)
+            {
+                CHECK_FAILURE(experimentalSettings4->put_IsPinchZoomEnabled(FALSE));
+                MessageBox(
+                    nullptr, L"Pinch Zoom is disabled after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(experimentalSettings4->put_IsPinchZoomEnabled(TRUE));
+                MessageBox(
+                    nullptr, L"Pinch Zoom is enabled after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            //! [DisablePinchZoom]
+            return true;
+        }
         case ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED:
         {
             //! [BuiltInErrorPageEnabled]
@@ -474,6 +519,83 @@ bool SettingsComponent::HandleWindowMessage(
                     L"Settings change", MB_OK);
             }
             //! [BuiltInErrorPageEnabled]
+            return true;
+        }
+        case ID_SETTINGS_PASSWORD_AUTOFILL_ENABLED:
+        {
+            //! [PasswordAutofillEnabled]
+            wil::com_ptr<ICoreWebView2ExperimentalSettings3> experimental_settings3;
+            experimental_settings3 = m_settings.try_query<ICoreWebView2ExperimentalSettings3>();
+            CHECK_FEATURE_RETURN(experimental_settings3);
+            BOOL enabled;
+            CHECK_FAILURE(experimental_settings3->get_IsPasswordAutofillEnabled(&enabled));
+            if (enabled)
+            {
+                CHECK_FAILURE(experimental_settings3->put_IsPasswordAutofillEnabled(FALSE));
+                MessageBox(
+                    nullptr,
+                    L"Password autofill will be disabled after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(experimental_settings3->put_IsPasswordAutofillEnabled(TRUE));
+                MessageBox(
+                    nullptr,
+                    L"Password autofill will be enabled after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            //! [PasswordAutofillEnabled]
+            return true;
+        }
+        case ID_SETTINGS_GENERAL_AUTOFILL_ENABLED:
+        {
+            //! [GeneralAutofillEnabled]
+            wil::com_ptr<ICoreWebView2ExperimentalSettings3> experimental_settings3;
+            experimental_settings3 = m_settings.try_query<ICoreWebView2ExperimentalSettings3>();
+            CHECK_FEATURE_RETURN(experimental_settings3);
+
+                BOOL enabled;
+                CHECK_FAILURE(experimental_settings3->get_IsGeneralAutofillEnabled(&enabled));
+                if (enabled)
+                {
+                    CHECK_FAILURE(experimental_settings3->put_IsGeneralAutofillEnabled(FALSE));
+                    MessageBox(
+                        nullptr, L"General autofill will be disabled after the next navigation.",
+                        L"Settings change", MB_OK);
+                }
+                else
+                {
+                    CHECK_FAILURE(experimental_settings3->put_IsGeneralAutofillEnabled(TRUE));
+                    MessageBox(
+                        nullptr, L"General autofill will be enabled after the next navigation.",
+                        L"Settings change", MB_OK);
+                }
+            //! [GeneralAutofillEnabled]
+            return true;
+        }
+        case ID_SETTINGS_BROWSER_ACCELERATOR_KEYS_ENABLED:
+        {
+            //! [AreBrowserAcceleratorKeysEnabled]
+            CHECK_FEATURE_RETURN(m_settings3);
+
+            BOOL enabled;
+            CHECK_FAILURE(m_settings3->get_AreBrowserAcceleratorKeysEnabled(&enabled));
+            if (enabled)
+            {
+                CHECK_FAILURE(m_settings3->put_AreBrowserAcceleratorKeysEnabled(FALSE));
+                MessageBox(
+                    nullptr, L"Browser-specific accelerator keys will be disabled after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(m_settings3->put_AreBrowserAcceleratorKeysEnabled(TRUE));
+                MessageBox(
+                    nullptr, L"Browser-specific accelerator keys will be enabled after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            //! [AreBrowserAcceleratorKeysEnabled]
             return true;
         }
         }
@@ -680,7 +802,7 @@ void SettingsComponent::SetUserAgent(const std::wstring& userAgent)
             m_changeUserAgent = true;
             CHECK_FAILURE(m_settings2->put_UserAgent(m_overridingUserAgent.c_str()));
         }
-    }   
+    }
 }
 
 void SettingsComponent::CompleteScriptDialogDeferral()

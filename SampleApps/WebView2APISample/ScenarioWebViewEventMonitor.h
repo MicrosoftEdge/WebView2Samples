@@ -30,6 +30,8 @@ private:
     // Send information about an event to the event view.
     void PostEventMessage(std::wstring messageAsJson);
 
+    std::wstring InterruptReasonToString(const COREWEBVIEW2_DOWNLOAD_INTERRUPT_REASON interrupt_reason);
+
     // The event view displays the events and their details.
     AppWindow* m_appWindowEventView;
     wil::com_ptr<ICoreWebView2> m_webviewEventView;
@@ -40,6 +42,7 @@ private:
     AppWindow* m_appWindowEventSource;
     wil::com_ptr<ICoreWebView2> m_webviewEventSource;
     wil::com_ptr<ICoreWebView2_2> m_webviewEventSource2;
+    wil::com_ptr<ICoreWebView2Experimental2> m_webviewEventSourceExperimental2;
 
     // The events we register on the event source
     EventRegistrationToken m_frameNavigationStartingToken = {};
@@ -54,6 +57,10 @@ private:
     EventRegistrationToken m_webResourceRequestedToken = {};
     EventRegistrationToken m_newWindowRequestedToken = {};
     EventRegistrationToken m_webResourceResponseReceivedToken = {};
+    EventRegistrationToken m_downloadStartingToken = {};
+    EventRegistrationToken m_stateChangedToken = {};
+    EventRegistrationToken m_bytesReceivedChangedToken = {};
+    EventRegistrationToken m_estimatedEndTimeChanged = {};
 
     // This event is registered with the event viewer so they
     // can communicate back to us for toggling the WebResourceRequested

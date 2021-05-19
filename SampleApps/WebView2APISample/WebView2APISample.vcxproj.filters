@@ -90,6 +90,9 @@
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScenarioCustomDownloadExperience.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -171,6 +174,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioCustomDownloadExperience.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -31,3 +31,6 @@ packages/
 
 # Nuget.exe is downloaded by UseNuget.ps1
 nuget.exe
+
+# WIX log file
+UpgradeLog.htm

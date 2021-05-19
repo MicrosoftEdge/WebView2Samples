@@ -24,4 +24,5 @@ private:
     wil::com_ptr<HostObjectSample> m_hostObject;
 
     EventRegistrationToken m_navigationStartingToken = {};
+    EventRegistrationToken m_frameCreatedToken = {};
 };

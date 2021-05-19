@@ -232,7 +232,7 @@ bool ViewComponent::HandleWindowMessage(
             SetRasterizationScale(0.5f);
             return true;
         case IDM_RASTERIZATION_SCALE_100:
-            CHECK_FEATURE_RETURN(m_controller3,);
+            CHECK_FEATURE_RETURN(m_controller3);
             SetRasterizationScale(1.0f);
             return true;
         case IDM_RASTERIZATION_SCALE_125:

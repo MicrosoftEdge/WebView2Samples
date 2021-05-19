@@ -51,7 +51,30 @@
     <label for="invokeCallbackButton">Runs <code>chrome.webview.hostObjects.sample.CallCallbackAsynchronously(() => { /* ... */ })</code></label>
     <code><pre><span id="invokeCallbackOutput"></span></pre></code>
 
+    <div id="div_iframe" style="display: none;">
+    <h2>IFrame</h2>
+    </div>
+
     <script>
+        //! Create IFrame from the parent html page and load it
+        function createIFrame() {
+            var i = document.createElement("iframe");
+            i.src = "https://appassets.example/ScenarioAddHostObject.html";
+            i.scrolling = "auto";
+            i.frameborder = "0";
+            i.height = "90%";
+            i.width = "100%";
+            i.name = "iframe_name";
+            var div = document.getElementById("div_iframe");
+            div.appendChild(i); div.style.display = 'block';
+        };
+
+        window.onload = function () {
+            if (window.top === window) {
+                createIFrame();
+            }
+        };
+
         //! [HostObjectUsage]
         document.getElementById("getPropertyAsyncButton").addEventListener("click", async () => {
         const propertyValue = await chrome.webview.hostObjects.sample.property;

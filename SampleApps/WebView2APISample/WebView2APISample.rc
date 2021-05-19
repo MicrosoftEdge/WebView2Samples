@@ -49,6 +49,7 @@ BEGIN
         MENUITEM "Get Document Title",                          IDM_GET_DOCUMENT_TITLE
         MENUITEM "Get Browser Version After Creation",          IDM_GET_BROWSER_VERSION_AFTER_CREATION
         MENUITEM "Get Browser Version Before Creation",         IDM_GET_BROWSER_VERSION_BEFORE_CREATION
+        MENUITEM "Update WebView2 Runtime",                     IDM_UPDATE_RUNTIME
         MENUITEM "E&xit",                                       IDM_EXIT
     END
     POPUP "&Script"
@@ -105,6 +106,9 @@ BEGIN
         MENUITEM "Toggle DevTools enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
         MENUITEM "Toggle Block images",         ID_SETTINGS_BLOCKALLIMAGES
         MENUITEM "Toggle Replace images",       ID_SETTINGS_REPLACEALLIMAGES
+        MENUITEM "Toggle Password Autofill",    ID_SETTINGS_PASSWORD_AUTOFILL_ENABLED
+        MENUITEM "Toggle General Autofill",     ID_SETTINGS_GENERAL_AUTOFILL_ENABLED
+        MENUITEM "Toggle pinch zoom enabled",   ID_SETTINGS_PINCH_ZOOM_ENABLED
         POPUP "JavaScript Dialogs"
         BEGIN
             MENUITEM "Use Default Script Dialogs",  IDM_USE_DEFAULT_SCRIPT_DIALOGS
@@ -116,6 +120,7 @@ BEGIN
         MENUITEM "Toggle host objects allowed", ID_SETTINGS_HOST_OBJECTS_ALLOWED
         MENUITEM "Toggle zoom control enabled",   ID_SETTINGS_ZOOM_ENABLED
         MENUITEM "Toggle built-in error page enabled", ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED
+        MENUITEM "Toggle browser accelerator keys enabled", ID_SETTINGS_BROWSER_ACCELERATOR_KEYS_ENABLED
     END
     POPUP "&View"
     BEGIN
@@ -193,6 +198,11 @@ BEGIN
         MENUITEM "DOM Content Loaded",          IDM_SCENARIO_DOM_CONTENT_LOADED
         MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
         MENUITEM "Testing Focus",               IDM_SCENARIO_TESTING_FOCUS
+        POPUP "Custom Download Experience"
+        BEGIN
+            MENUITEM "Use Deferred Download Dialog",  IDM_SCENARIO_USE_DEFERRED_DOWNLOAD
+            MENUITEM "Complete Deferred Download",  IDM_SCENARIO_COMPLETE_DEFERRED_DOWNLOAD
+        END
     END
     POPUP "&Help"
     BEGIN

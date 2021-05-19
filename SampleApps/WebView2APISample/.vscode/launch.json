@@ -1,274 +1,274 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-          "name": "Debugger For Microsoft Edge: Sample app (Script Debug|x64)",  
-          "type": "edge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/x64/Debug"
-          },
-          "useWebView": true
+  "version": "0.2.0",
+  "configurations": [
+      {
+        "name": "Debugger For Microsoft Edge: Sample app (Script Debug|x64)",  
+        "type": "edge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Debug/x64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Debug/x64"
         },
-        {
-          "name": "Debugger For Microsoft Edge: Sample app (Script Debug|x86)",  
-          "type": "edge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x86/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/x86/Debug"
-          },
-          "useWebView": true
+        "useWebView": true
+      },
+      {
+        "name": "Debugger For Microsoft Edge: Sample app (Script Debug|x86)",  
+        "type": "edge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Debug/Win32/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Debug/Win32"
         },
-        {
-          "name": "Debugger For Microsoft Edge: Sample app (Script Debug|ARM64)",  
-          "type": "edge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_arm64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/arm64/Debug"
-          },
-          "useWebView": true
+        "useWebView": true
+      },
+      {
+        "name": "Debugger For Microsoft Edge: Sample app (Script Debug|ARM64)",  
+        "type": "edge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Debug/arm64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Debug/arm64"
         },
-        {
-          "name": "Debugger For Microsoft Edge: Sample app (Script Release|x64)",  
-          "type": "edge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_x64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/x64/Release"
-          },
-          "useWebView": true
+        "useWebView": true
+      },
+      {
+        "name": "Debugger For Microsoft Edge: Sample app (Script Release|x64)",  
+        "type": "edge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Release/x64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Release/x64"
         },
-        {
-          "name": "Debugger For Microsoft Edge: Sample app (Script Release|x86)",  
-          "type": "edge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_x86/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/x86/Release"
-          },
-          "useWebView": true
+        "useWebView": true
+      },
+      {
+        "name": "Debugger For Microsoft Edge: Sample app (Script Release|x86)",  
+        "type": "edge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Release/Win32/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Release/Win32"
         },
-        {
-          "name": "Debugger For Microsoft Edge: Sample app (Script Release|ARM64)",  
-          "type": "edge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_arm64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/arm64/Release"
-          },
-          "useWebView": true
+        "useWebView": true
+      },
+      {
+        "name": "Debugger For Microsoft Edge: Sample app (Script Release|ARM64)",  
+        "type": "edge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Release/arm64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Release/arm64"
         },
-        {
-          "name": "JavaScript Debugger(Nightly): Sample app (Script Debug|x64)", 
-          "type": "pwa-msedge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/x64/Debug"
-          },
-          "useWebView": true,
-          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
-          "webRoot": "${workspaceFolder}/assets"
+        "useWebView": true
+      },
+      {
+        "name": "JavaScript Debugger(Nightly): Sample app (Script Debug|x64)", 
+        "type": "pwa-msedge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Debug/x64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Debug/x64"
         },
-        {
-          "name": "JavaScript Debugger(Nightly): Sample app (Script Debug|x86)", 
-          "type": "pwa-msedge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x86/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/x86/Debug"
-          },
-          "useWebView": true,
-          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
-          "webRoot": "${workspaceFolder}/assets"
+        "useWebView": true,
+        "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+        "webRoot": "${workspaceFolder}/assets"
+      },
+      {
+        "name": "JavaScript Debugger(Nightly): Sample app (Script Debug|x86)", 
+        "type": "pwa-msedge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Debug/Win32/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Debug/Win32"
         },
-        {
-          "name": "JavaScript Debugger(Nightly): Sample app (Script Debug|ARM64)", 
-          "type": "pwa-msedge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_arm64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/arm64/Debug"
-          },
-          "useWebView": true,
-          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
-          "webRoot": "${workspaceFolder}/assets"
+        "useWebView": true,
+        "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+        "webRoot": "${workspaceFolder}/assets"
+      },
+      {
+        "name": "JavaScript Debugger(Nightly): Sample app (Script Debug|ARM64)", 
+        "type": "pwa-msedge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Debug/arm64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Debug/arm64"
         },
-        {
-          "name": "JavaScript Debugger(Nightly): Sample app (Script Release|x64)", 
-          "type": "pwa-msedge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_x64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/x64/Release"
-          },
-          "useWebView": true,
-          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
-          "webRoot": "${workspaceFolder}/assets"
+        "useWebView": true,
+        "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+        "webRoot": "${workspaceFolder}/assets"
+      },
+      {
+        "name": "JavaScript Debugger(Nightly): Sample app (Script Release|x64)", 
+        "type": "pwa-msedge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Release/x64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Release/x64"
         },
-        {
-          "name": "JavaScript Debugger(Nightly): Sample app (Script Release|x86)", 
-          "type": "pwa-msedge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_x86/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/x86/Release"
-          },
-          "useWebView": true,
-          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
-          "webRoot": "${workspaceFolder}/assets"
+        "useWebView": true,
+        "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+        "webRoot": "${workspaceFolder}/assets"
+      },
+      {
+        "name": "JavaScript Debugger(Nightly): Sample app (Script Release|x86)", 
+        "type": "pwa-msedge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Release/Win32/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Release/Win32"
         },
-        {
-          "name": "JavaScript Debugger(Nightly): Sample app (Script Release|ARM64)", 
-          "type": "pwa-msedge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/release_arm64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                  "Path": "%path%;${workspaceFolder}/arm64/Release"
-          },
-          "useWebView": true,
-          "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
-          "webRoot": "${workspaceFolder}/assets"
+        "useWebView": true,
+        "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+        "webRoot": "${workspaceFolder}/assets"
+      },
+      {
+        "name": "JavaScript Debugger(Nightly): Sample app (Script Release|ARM64)", 
+        "type": "pwa-msedge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/Release/arm64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+                "Path": "%path%;${workspaceFolder}/Release/arm64"
         },
-        {
-          "name": "Debugger For Microsoft Edge: Attach to Edge",
-          "type": "edge",
-          "port": 9222,
+        "useWebView": true,
+        "url": "file:///${workspaceFolder}/assets/ScenarioJavaScriptDebugIndex.html",
+        "webRoot": "${workspaceFolder}/assets"
+      },
+      {
+        "name": "Debugger For Microsoft Edge: Attach to Edge",
+        "type": "edge",
+        "port": 9222,
+        "request": "attach",
+        "webRoot": "${workspaceFolder}"
+      },
+      {
+        "name": "JavaScript Debugger(Nightly): Attach to Edge",
+        "type": "pwa-msedge",
+        "port": 9222,
+        "request": "attach",
+        "webRoot": "${workspaceFolder}"
+      },
+      {
+        "name": "Debugger For Microsoft Edge: Sample app-Targeted (Script Release|x64)",
+        "type": "edge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/debug/x64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+              "Path": "%path%;${workspaceFolder}/Debug/x64;"
+        },
+        "urlFilter": "*debugCase*",
+        "useWebView": "advanced"
+      },
+      {
+        "name": "Debugger For Microsoft Edge: Sample app-Targeted (Script Release|x86)",
+        "type": "edge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/debug/win32/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+              "Path": "%path%;${workspaceFolder}/Debug/win32;"
+        },
+        "urlFilter": "*debugCase*",
+        "useWebView": "advanced"
+      },
+      {
+        "name": "Debugger For Microsoft Edge: Sample app-Targeted (Script Release|ARM64)",
+        "type": "edge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/debug/arm64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+              "Path": "%path%;${workspaceFolder}/Debug/arm64;"
+        },
+        "urlFilter": "*debugCase*",
+        "useWebView": "advanced"
+      },
+      // TODO: Bug 27536687
+      {
+        "name": "JavaScript Debugger(Nightly): Sample app-Targeted (Script Release|x64)",
+        "type": "pwa-msedge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/debug/x64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+              "Path": "%path%;${workspaceFolder}/Debug/x64;"
+        },
+        "urlFilter": "*debugCase*",
+        "useWebView": "advanced"
+      },
+      // TODO: Bug 27536687
+      {
+        "name": "JavaScript Debugger(Nightly): Sample app-Targeted (Script Release|x86)",
+        "type": "pwa-msedge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/debug/win32/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+              "Path": "%path%;${workspaceFolder}/Debug/win32;"
+        },
+        "urlFilter": "*debugCase*",
+        "useWebView": "advanced"
+      },
+      // TODO: Bug 27536687
+      {
+        "name": "JavaScript Debugger(Nightly): Sample app-Targeted (Script Release|ARM64)",
+        "type": "pwa-msedge",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "${workspaceFolder}/debug/arm64/WebView2APISample.exe",
+        "env": {
+                // customize for your build location
+              "Path": "%path%;${workspaceFolder}/Debug/arm64;"
+        },
+        "urlFilter": "*debugCase*",
+        "useWebView": "advanced"
+      },
+      {
+          "name": "Sample app (debug app)",
+          "type": "cppvsdbg",
+          "request": "launch",
+          "program": "${workspaceFolder}/Debug/x64/WebView2APISample.exe",
+          "args": [],
+          "preLaunchTask": "",
+          "stopAtEntry": false,
+          "cwd": "${workspaceFolder}",
+          "environment": [],
+          "externalConsole": true
+      },
+      {
+          "name": "Sample app (debug webview)",
+          "type": "cppvsdbg",
           "request": "attach",
-          "webRoot": "${workspaceFolder}"
-        },
-        {
-          "name": "JavaScript Debugger(Nightly): Attach to Edge",
-          "type": "pwa-msedge",
-          "port": 9222,
-          "request": "attach",
-          "webRoot": "${workspaceFolder}"
-        },
-        {
-          "name": "Debugger For Microsoft Edge: Sample app-Targeted (Script Release|x64)",
-          "type": "edge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                "Path": "%path%;${workspaceFolder}/x64/Debug;"
-          },
-          "urlFilter": "*debugCase*",
-          "useWebView": "advanced"
-        },
-        {
-          "name": "Debugger For Microsoft Edge: Sample app-Targeted (Script Release|x86)",
-          "type": "edge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x86/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                "Path": "%path%;${workspaceFolder}/x86/Debug;"
-          },
-          "urlFilter": "*debugCase*",
-          "useWebView": "advanced"
-        },
-        {
-          "name": "Debugger For Microsoft Edge: Sample app-Targeted (Script Release|ARM64)",
-          "type": "edge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_arm64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                "Path": "%path%;${workspaceFolder}/arm64/Debug;"
-          },
-          "urlFilter": "*debugCase*",
-          "useWebView": "advanced"
-        },
-        // TODO: Bug 27536687
-        {
-          "name": "JavaScript Debugger(Nightly): Sample app-Targeted (Script Release|x64)",
-          "type": "pwa-msedge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                "Path": "%path%;${workspaceFolder}/x64/Debug;"
-          },
-          "urlFilter": "*debugCase*",
-          "useWebView": "advanced"
-        },
-        // TODO: Bug 27536687
-        {
-          "name": "JavaScript Debugger(Nightly): Sample app-Targeted (Script Release|x86)",
-          "type": "pwa-msedge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_x86/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                "Path": "%path%;${workspaceFolder}/x86/Debug;"
-          },
-          "urlFilter": "*debugCase*",
-          "useWebView": "advanced"
-        },
-        // TODO: Bug 27536687
-        {
-          "name": "JavaScript Debugger(Nightly): Sample app-Targeted (Script Release|ARM64)",
-          "type": "pwa-msedge",
-          "request": "launch",
-          "cwd": "${workspaceFolder}",
-          "runtimeExecutable": "${workspaceFolder}/../../../../out/debug_arm64/WebView2APISample.exe",
-          "env": {
-                  // customize for your build location
-                "Path": "%path%;${workspaceFolder}/arm64/Debug;"
-          },
-          "urlFilter": "*debugCase*",
-          "useWebView": "advanced"
-        },
-        {
-            "name": "Sample app (debug app)",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceFolder}/../../../../out/debug_x64/WebView2APISample.exe",
-            "args": [],
-            "preLaunchTask": "",
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": true
-        },
-        {
-            "name": "Sample app (debug webview)",
-            "type": "cppvsdbg",
-            "request": "attach",
-            "processId": "${command:pickProcess}"
-        }
-    ]
+          "processId": "${command:pickProcess}"
+      }
+  ]
 }

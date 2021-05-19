@@ -35,9 +35,14 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}" Executed="AddOrUpdateCookieCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteCookiesCommand}" Executed="DeleteCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}" Executed="DeleteAllCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PasswordAutofillCommand}" Executed="PasswordAutofillCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GeneralAutofillCommand}" Executed="GeneralAutofillCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PinchZoomCommand}" Executed="PinchZoomCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.DownloadStartingCommand}" Executed="DownloadStartingCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.BackgroundColorCommand}" Executed="BackgroundColorCmdExecuted" CanExecute="WebViewRequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SuspendCommand}" Executed="SuspendCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ResumeCommand}" Executed="ResumeCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.CheckUpdateCommand}" Executed="CheckUpdateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -58,12 +63,19 @@ found in the LICENSE file.
             </MenuItem>
             <MenuItem Header="S_ettings">
                 <MenuItem Header="WebView _userAgent" Command="{x:Static local:MainWindow.SetUserAgentCommand}"/>
+                <MenuItem Header="Password _autofill enabled" Name="passwordAutofillEnabled" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.PasswordAutofillCommand}"/>
+                <MenuItem Header="General _autofill enabled" Name ="generalAutofillEnabled" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.GeneralAutofillCommand}"/>
+                <MenuItem Header="Disable Pinch Zoom" Command="{x:Static local:MainWindow.PinchZoomCommand}"/>
             </MenuItem>
             <MenuItem Header="S_cenario">
                 <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>
                 <MenuItem Header="Resume" Command="{x:Static local:MainWindow.ResumeCommand}"/>
+                <MenuItem Header="Check Update" Command="{x:Static local:MainWindow.CheckUpdateCommand}"/>
                 <MenuItem Header="_DOM Content Loaded" Command="{x:Static local:MainWindow.DOMContentLoadedCommand}"/>
                 <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
+                <MenuItem Header="D_ownload Starting">
+                <MenuItem Header="_Start Deferred Download" Command="{x:Static local:MainWindow.DownloadStartingCommand}"/>
+                </MenuItem>
                 <MenuItem Header="_Cookie Management">
                     <MenuItem Header="Get Cookies" Command="{x:Static local:MainWindow.GetCookiesCommand}"/>
                     <MenuItem Header="Add Or Update Cookie" Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}"/>
@@ -98,10 +110,10 @@ found in the LICENSE file.
                 x:Name="webView"
                 CreationProperties="{StaticResource EvergreenWebView2CreationProperties}"
                 Source="https://www.bing.com/"
-                NavigationStarting="WebView_NavigationStarting"
-                NavigationCompleted="WebView_NavigationCompleted"
-                CoreWebView2InitializationCompleted="WebView_CoreWebView2InitializationCompleted"
             />
+            <!-- The control event handlers are set in code behind so they can be reused when replacing the control after
+            a WebView2 Runtime's browser process failure
+            -->
         </Grid>
     </DockPanel>
 </Window>

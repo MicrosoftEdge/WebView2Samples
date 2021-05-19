@@ -39,12 +39,14 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle Status Bar enabled](#Toggle-Status-Bar-enabled)
     * [Toggle DevTools enabled](#Toggle-DevTools-enabled)
     * [Toggle ZoomControl enabled](#Toggle-ZoomControl-enabled)
+    * [Toggle Pinch Zoom enabled](#Toggle-Pinch-Zoom-enabled)
     * [Toggle Block images](#Toggle-Block-images)
     * [JavaScript Dialogs](#JavaScript-Dialogs)
     * [Toggle context menus enabled](#Toggle-context-menus-enabled)
     * [Toggle builtin error page enabled](#Toggle-builtin-error-page-enabled)
     * [Toggle general autofill enabled](#Toggle-general-autofill-enabled)
     * [Toggle password autofill enabled](#Toggle-password-autofill-enabled)
+    * [Toggle browser accelerator keys enabled](#Toggle-browser-accelerator-keys-enabled)
   * [View](#View)
     * [Toggle Visibility](#Toggle-Visibility)
     * [WebView Bounds Reference](#WebView-Bounds-Reference)
@@ -443,6 +445,23 @@ _It is enabled by default._
 10. Expected: Message Box that says `Zoom control will be enabled after the next navigation.`
 11. Verify that zooming works again, ZoomView should not show up
 
+#### Toggle Pinch Zoom enabled
+
+Test that enables/disables Pinch Zoom
+_It is enabled by default._
+
+1. Launch the sample app on a device with touch screen
+1. Pinch zoom in/out
+1. Expected: The web content in Webview zooms in and out, web content layout does not change but view port changes.
+1. Go to `Settings -> Toggle pinch zoom enabled`
+1. Expected: Message Box that says `Pinch Zoom is disabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`
+1. Pinch zoom in/out
+1. Expected: The Webview content doesn't zoom in or out
+1. Go to `Settings -> Toggle pinch zoom enabled`
+1. Expected: Message Box that says `Pinch Zoom is enabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`
+1. Verify that pinch zooming works again.
 #### Toggle Block images
 
 Test that enables/disables image blocking
@@ -530,40 +549,86 @@ _Builtin error page is enabled by default._
 
 ### Toggle general autofill enabled
 
-Test that enables/disables general autofill 
+Test that enables/disables general autofill
 _General autofill is enabled by default._
 
 1. Launch the sample app.
 2. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
-3. Enter in any test information into the Profile Autofill section and click submit. 
-4. Navigate to <https://rsolomakhin.github.io/autofill/>.  
-5. Click on the Name field. 
-6. Expected: A drop down box with the saved profile information is shown. 
-7. Click on the box. 
-8. Expected: The profile information is autofilled.  
+3. Enter in any test information into the Profile Autofill section and click submit.
+4. Navigate to <https://rsolomakhin.github.io/autofill/>.
+5. Click on the Name field.
+6. Expected: A drop down box with the saved profile information is shown.
+7. Click on the box.
+8. Expected: The profile information is autofilled.
 9. Go to `Settings -> Toggle General Autofill`
 10. Expected: Message Box that says `General autofill will be disabled after the next navigation.`
-11. Click `OK` inside the popup dialog and click `Reload`. 
-12. Repeat step 5. 
-13. Expected: No drop down box appears. 
-14. Repeat steps 3-5. 
+11. Click `OK` inside the popup dialog and click `Reload`.
+12. Repeat step 5.
+13. Expected: No drop down box appears.
+14. Repeat steps 3-5.
 15. Expected: No drop down box appears.
 14. Go to `Settings -> Toggle General Autofill`
 15. Expected: Message Box that says `General autofill will be enabled after the next navigation.`
 16. Click `OK` inside the popup dialog and click `Reload`.
-17. Repeat step 5. 
-18. Expected: A drop down box with the original saved profile information is shown.  
-19. Click on the box. 
-20. Expected: The profile information is autofilled.  
+17. Repeat step 5.
+18. Expected: A drop down box with the original saved profile information is shown.
+19. Click on the box.
+20. Expected: The profile information is autofilled.
 
 ### Toggle password autofill enabled
 
-Test that enables/disables password autofill 
+Test that enables/disables password autofill
  _Password autofill is enabled by default._
 
 1. Launch the sample app.
 2. Go to `Settings -> Toggle Password Autofill`
 3. Expected: Message Box that says `Password autofill will be disabled after the next navigation.`
+4. Click `OK` inside the popup dialog and click `Reload`.
+5. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+6. Enter in any test information into the Username/Password section and press submit.
+7. Expected: The app navigates to <https://example.com/> and no save password prompt is shown.
+8. Navigate to <https://rsolomakhin.github.io/autofill/>.
+9. Click on the Username field.
+10. Expected: No drop down box appears. (note: if password information has previously been saved when the password autofill has been enabled, a drop down box will appear.)
+11. Go to `Settings -> Toggle Password Autofill`
+12. Expected: Message Box that says `Password autofill will be enabled after the next navigation.`
+13. Click `OK` inside the popup dialog and click `Reload`.
+14. Repeat step 6.
+15. Expected: The app navigates to <https://example.com> and a save password prompt will popup.
+16. Click Save.
+17. Repeat step 8.
+18. Expected: See the username and password information is autofilled.
+19. Click on the username field.
+20. Expected: A drop down box with the saved password information is shown.
+18. Go to `Settings -> Toggle Password Autofill`
+19. Expected: Message Box that says `Password autofill will be disabled after the next navigation.`
+16. Click `OK` inside the popup dialog and click `Reload`.
+17. Delete the information from the username and password fields and enter in new test information and click submit.
+18. Expected: No save password prompt is shown.
+19. Repeat step 8.
+20. Expected: Only the information entered from step 13 is autofilled.
+21. Repeat step 9.
+20. Expected: Only one drop down box is shown with the saved password information entered from step 14.
+
+### Toggle browser accelerator keys enabled
+
+Test that enabled/disables browser accelerator keys
+ _Browser accelerator keys are enabled by default._
+
+1. Launch the sample app.
+1. Go to `Settings -> Toggle browser accelerator keys enabled`
+1. Expected: Message Box that says "Browser accelerator keys will be disabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`.
+1. Press `Ctrl-F` on the keyboard.
+1. Expected: Nothing happens.
+1. Click on a text box inside the webpage and press `Ctrl-A` then `Ctrl-X`.
+1. Expected: The text in the text box is highlighted and then deleted as normal.
+1. Go to `Settings -> Toggle browser accelerator keys enabled`
+1. Expected: Message Box that says "Browser accelerator keys will be enabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`.
+1. Press `Ctrl-F` on the keyboard.
+1. Expected: A search box appears in the upper-right corner of the webpage.
+=======
 4. Click `OK` inside the popup dialog and click `Reload`. 
 5. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
 6. Enter in any test information into the Username/Password section and press submit. 
@@ -751,6 +816,18 @@ _It is disabled by default. Tabbing behavior should be identical whether this is
 1. Expected: See the focus is set to `Back` with the dotted line.
 1. Go to `View -> Toggle Tab Handling` (Enabling Tab Handling)
 1. Repeat steps 2-10 above.
+
+#### WebView DefaultBackgroundColor
+
+Test that sets WebView's DefaultBackgroundColor
+
+1. Launch the sample app and load <about:blank>
+1. Go to `View -> WebView Background Color -> Red`
+1. Expected: See webpage turn red
+1. Go to `View -> WebView Background Color -> Transparent`
+1. Expected: See WebView logo
+1. Load <https://www.google.com>
+1. Expected: See only WebView logo until webpage loads. No flashes of color.
 
 ### Scenario
 

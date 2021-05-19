@@ -4,7 +4,7 @@
 
 #pragma once
 
-class IDropTargetHelper;
+struct IDropTargetHelper;
 class ViewComponent;
 
 class DropTarget : public Microsoft::WRL::RuntimeClass<
