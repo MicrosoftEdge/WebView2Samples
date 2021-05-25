@@ -126,6 +126,7 @@
 #define ID_SETTINGS_GENERAL_AUTOFILL_ENABLED     32786
 #define ID_SETTINGS_PINCH_ZOOM_ENABLED        32787
 #define IDC_STATIC                      -1
+
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED

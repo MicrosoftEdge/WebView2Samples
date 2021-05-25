@@ -55,15 +55,10 @@ SettingsComponent::SettingsComponent(
         if (experimental_settings_old != nullptr) {
             wil::com_ptr<ICoreWebView2ExperimentalSettings3> experimental_settings;
             experimental_settings = m_settings.try_query<ICoreWebView2ExperimentalSettings3>();
-            if (experimental_settings != nullptr)
-            {
-                CHECK_FAILURE(
-                    experimental_settings_old->get_IsPasswordAutofillEnabled(&setting));
-                CHECK_FAILURE(experimental_settings->put_IsPasswordAutofillEnabled(setting));
-                CHECK_FAILURE(
-                    experimental_settings_old->get_IsGeneralAutofillEnabled(&setting));
-                CHECK_FAILURE(experimental_settings->put_IsGeneralAutofillEnabled(setting));
-            }
+            CHECK_FAILURE(experimental_settings_old->get_IsPasswordAutofillEnabled(&setting));
+            CHECK_FAILURE(experimental_settings->put_IsPasswordAutofillEnabled(setting));
+            CHECK_FAILURE(experimental_settings_old->get_IsGeneralAutofillEnabled(&setting));
+            CHECK_FAILURE(experimental_settings->put_IsGeneralAutofillEnabled(setting));
         }
         SetBlockImages(old->m_blockImages);
         SetReplaceImages(old->m_replaceImages);
@@ -72,6 +67,7 @@ SettingsComponent::SettingsComponent(
         m_blockedSitesSet = old->m_blockedSitesSet;
         m_blockedSites = std::move(old->m_blockedSites);
     }
+
     //! [NavigationStarting]
     // Register a handler for the NavigationStarting event.
     // This handler will check the domain being navigated to, and if the domain
@@ -602,6 +598,7 @@ bool SettingsComponent::HandleWindowMessage(
     }
     return false;
 }
+
 // Prompt the user for a list of blocked domains
 void SettingsComponent::ChangeBlockedSites()
 {

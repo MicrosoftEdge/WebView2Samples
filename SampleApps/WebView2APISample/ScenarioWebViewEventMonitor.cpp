@@ -27,7 +27,7 @@ ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEve
     m_sampleUri = m_appWindowEventSource->GetLocalUri(c_samplePath);
     m_appWindowEventView = new AppWindow(
         IDM_CREATION_MODE_WINDOWED,
-        m_sampleUri, appWindowEventSource->GetUserDataFolder(),
+        m_sampleUri,
         false,
         [this]() -> void {
             InitializeEventView(m_appWindowEventView->GetWebView());

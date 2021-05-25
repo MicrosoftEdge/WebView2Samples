@@ -628,33 +628,6 @@ Test that enabled/disables browser accelerator keys
 1. Click `OK` inside the popup dialog and click `Reload`.
 1. Press `Ctrl-F` on the keyboard.
 1. Expected: A search box appears in the upper-right corner of the webpage.
-=======
-4. Click `OK` inside the popup dialog and click `Reload`. 
-5. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
-6. Enter in any test information into the Username/Password section and press submit. 
-7. Expected: The app navigates to <https://example.com/> and no save password prompt is shown. 
-8. Navigate to <https://rsolomakhin.github.io/autofill/>.  
-9. Click on the Username field. 
-10. Expected: No drop down box appears. (note: if password information has previously been saved when the password autofill has been enabled, a drop down box will appear.)
-11. Go to `Settings -> Toggle Password Autofill`
-12. Expected: Message Box that says `Password autofill will be enabled after the next navigation.`
-13. Click `OK` inside the popup dialog and click `Reload`. 
-14. Repeat step 6.  
-15. Expected: The app navigates to <https://example.com> and a save password prompt will popup. 
-16. Click Save. 
-17. Repeat step 8. 
-18. Expected: See the username and password information is autofilled. 
-19. Click on the username field. 
-20. Expected: A drop down box with the saved password information is shown. 
-18. Go to `Settings -> Toggle Password Autofill`
-19. Expected: Message Box that says `Password autofill will be disabled after the next navigation.`
-16. Click `OK` inside the popup dialog and click `Reload`.
-17. Delete the information from the username and password fields and enter in new test information and click submit. 
-18. Expected: No save password prompt is shown. 
-19. Repeat step 8. 
-20. Expected: Only the information entered from step 13 is autofilled. 
-21. Repeat step 9. 
-20. Expected: Only one drop down box is shown with the saved password information entered from step 14. 
 
 ### View
 
