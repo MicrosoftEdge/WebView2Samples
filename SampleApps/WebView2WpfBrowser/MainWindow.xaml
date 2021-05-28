@@ -35,9 +35,13 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}" Executed="AddOrUpdateCookieCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteCookiesCommand}" Executed="DeleteCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}" Executed="DeleteAllCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
-        <CommandBinding Command="{x:Static local:MainWindow.PasswordAutofillCommand}" Executed="PasswordAutofillCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PasswordAutosaveCommand}" Executed="PasswordAutosaveCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GeneralAutofillCommand}" Executed="GeneralAutofillCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NewBrowserVersionCommand}" Executed="NewBrowserVersionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.SwipeNavigationCommand}" Executed="SwipeNavigationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PinchZoomCommand}" Executed="PinchZoomCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.CustomClientCertificateSelectionCommand}" Executed="CustomClientCertificateSelectionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.DeferredCustomCertificateDialogCommand}" Executed="DeferredCustomCertificateDialogCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DownloadStartingCommand}" Executed="DownloadStartingCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.BackgroundColorCommand}" Executed="BackgroundColorCmdExecuted" CanExecute="WebViewRequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SuspendCommand}" Executed="SuspendCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -63,9 +67,10 @@ found in the LICENSE file.
             </MenuItem>
             <MenuItem Header="S_ettings">
                 <MenuItem Header="WebView _userAgent" Command="{x:Static local:MainWindow.SetUserAgentCommand}"/>
-                <MenuItem Header="Password _autofill enabled" Name="passwordAutofillEnabled" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.PasswordAutofillCommand}"/>
+                <MenuItem Header="Password _autosave enabled" Name="passwordAutosaveEnabled" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.PasswordAutosaveCommand}"/>
                 <MenuItem Header="General _autofill enabled" Name ="generalAutofillEnabled" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.GeneralAutofillCommand}"/>
                 <MenuItem Header="Disable Pinch Zoom" Command="{x:Static local:MainWindow.PinchZoomCommand}"/>
+                <MenuItem Header="Disable Swipe to Navigate" Command="{x:Static local:MainWindow.SwipeNavigationCommand}"/>
             </MenuItem>
             <MenuItem Header="S_cenario">
                 <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>
@@ -73,14 +78,19 @@ found in the LICENSE file.
                 <MenuItem Header="Check Update" Command="{x:Static local:MainWindow.CheckUpdateCommand}"/>
                 <MenuItem Header="_DOM Content Loaded" Command="{x:Static local:MainWindow.DOMContentLoadedCommand}"/>
                 <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
+                <MenuItem x:Name="newVersionMenuItem" Header="New Browser _Version" Command="{x:Static local:MainWindow.NewBrowserVersionCommand}"/>
+                <MenuItem Header="_Client Certificate Requested">
+                    <MenuItem Header="_Custom Client Certificate Selection" Command="{x:Static local:MainWindow.CustomClientCertificateSelectionCommand}"/>
+                    <MenuItem Header="_Deferred Custom Client Certificate Selection Dialog" Command="{x:Static local:MainWindow.DeferredCustomCertificateDialogCommand}"/>
+                </MenuItem>
                 <MenuItem Header="D_ownload Starting">
                 <MenuItem Header="_Start Deferred Download" Command="{x:Static local:MainWindow.DownloadStartingCommand}"/>
                 </MenuItem>
                 <MenuItem Header="_Cookie Management">
-                    <MenuItem Header="Get Cookies" Command="{x:Static local:MainWindow.GetCookiesCommand}"/>
-                    <MenuItem Header="Add Or Update Cookie" Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}"/>
-                    <MenuItem Header="Delete Cookie" Command="{x:Static local:MainWindow.DeleteCookiesCommand}"/>
-                    <MenuItem Header="Delete All Cookies" Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}"/>
+                    <MenuItem Header="_Get Cookies" Command="{x:Static local:MainWindow.GetCookiesCommand}"/>
+                    <MenuItem Header="_Add Or Update Cookie" Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}"/>
+                    <MenuItem Header="_Delete Cookie" Command="{x:Static local:MainWindow.DeleteCookiesCommand}"/>
+                    <MenuItem Header="D_elete All Cookies" Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}"/>
                 </MenuItem>
                 <MenuItem Header="Intercept _Response" IsCheckable="True" IsChecked="{Binding ElementName=MyWindow, Path=ShowNextWebResponse, Mode=TwoWay}"/>
             </MenuItem>

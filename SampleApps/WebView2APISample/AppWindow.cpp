@@ -11,10 +11,13 @@
 #include <regex>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <sstream>
 #include <ShObjIdl_core.h>
 #include <Shellapi.h>
 #include <ShlObj_core.h>
 #include <winrt/windows.system.h>
+
 #include "App.h"
 #include "AppStartPage.h"
 #include "CheckFailure.h"
@@ -26,6 +29,7 @@
 #include "ScenarioAddHostObject.h"
 #include "ScenarioAuthentication.h"
 #include "ScenarioCookieManagement.h"
+#include "ScenarioClientCertificateRequested.h"
 #include "ScenarioCustomDownloadExperience.h"
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
@@ -95,11 +99,13 @@ DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
 AppWindow::AppWindow(
     UINT creationModeId,
     std::wstring initialUri,
+    std::wstring userDataFolderParam,
     bool isMainWindow,
     std::function<void()> webviewCreatedCallback,
     bool customWindowRect,
     RECT windowRect,
-    bool shouldHaveToolbar)
+    bool shouldHaveToolbar
+    )
     : m_creationModeId(creationModeId),
       m_initialUri(initialUri),
       m_onWebViewFirstInitialized(webviewCreatedCallback)
@@ -111,6 +117,11 @@ AppWindow::AppWindow(
 
     WCHAR szTitle[s_maxLoadString]; // The title bar text
     LoadStringW(g_hInstance, IDS_APP_TITLE, szTitle, s_maxLoadString);
+
+    if (userDataFolderParam.length() > 0)
+    {
+        m_userDataFolder = userDataFolderParam;
+    }
 
     if (customWindowRect)
     {
@@ -126,7 +137,7 @@ AppWindow::AppWindow(
     }
 
     m_appBackgroundImageHandle = (HBITMAP)LoadImage(
-        NULL, L"AppBackground.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+        g_hInstance, MAKEINTRESOURCE(IDI_WEBVIEW2_BACKGROUND), IMAGE_BITMAP, 0, 0, LR_DEFAULTCOLOR);
     GetObject(m_appBackgroundImageHandle, sizeof(m_appBackgroundImage), &m_appBackgroundImage);
     m_memHdc = CreateCompatibleDC(GetDC(m_mainWindow));
     SelectObject(m_memHdc, m_appBackgroundImageHandle);
@@ -152,7 +163,7 @@ AppWindow::AppWindow(
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
 
-    // If no WebVieRuntime installed, create new thread to do install/download.
+    // If no WebView2 Runtime installed, create new thread to do install/download.
     // Otherwise just initialize webview.
     wil::unique_cotaskmem_string version_info;
     HRESULT hr = GetAvailableCoreWebView2BrowserVersionString(nullptr, &version_info);
@@ -268,20 +279,13 @@ bool AppWindow::HandleWindowMessage(
     {
         PAINTSTRUCT ps;
         HDC hdc;
-        RECT mainWindowBounds;
-        RECT webViewBounds = {0};
         BeginPaint(hWnd, &ps);
 
         hdc = GetDC(hWnd);
-        GetClientRect(hWnd, &mainWindowBounds);
 
-        if (auto viewComponent = GetComponent<ViewComponent>())
-        {
-            webViewBounds = viewComponent->GetBounds();
-        }
-
-        StretchBlt(hdc, webViewBounds.left, webViewBounds.top, webViewBounds.right, webViewBounds.bottom,
-            m_memHdc, 0, 0, m_appBackgroundImage.bmWidth, m_appBackgroundImage.bmHeight, SRCCOPY);
+        StretchBlt(hdc, m_appBackgroundImageRect.left, m_appBackgroundImageRect.top,
+            m_appBackgroundImageRect.right, m_appBackgroundImageRect.bottom, m_memHdc,
+            0, 0, m_appBackgroundImage.bmWidth, m_appBackgroundImage.bmHeight, SRCCOPY);
 
         EndPaint(hWnd, &ps);
         return true;
@@ -455,6 +459,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_USE_DEFERRED_DOWNLOAD:
     {
         NewComponent<ScenarioCustomDownloadExperience>(this);
+        return true;
+    }
+    case IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG:
+    {
+        NewComponent<ScenarioClientCertificateRequested>(this);
         return true;
     }
     }
@@ -690,7 +699,7 @@ void AppWindow::InitializeWebView()
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
-        subFolder, nullptr, options.Get(),
+        subFolder, m_userDataFolder.c_str(), options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             this, &AppWindow::OnCreateEnvironmentCompleted)
             .Get());
@@ -791,6 +800,12 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
         // browser might not have support for the latest version of the
         // ICoreWebView2_N interface.
         coreWebView2.query_to(&m_webView);
+        // Save PID of the browser process serving last WebView created from our
+        // CoreWebView2Environment. We know the controller was created with
+        // S_OK, and it hasn't been closed (we haven't called Close and no
+        // ProcessFailed event could have been raised yet) so the PID is
+        // available.
+        CHECK_FAILURE(m_webView->get_BrowserProcessId(&m_newestBrowserPid));
         // Create components. These will be deleted when the WebView is closed.
         NewComponent<FileComponent>(this);
         NewComponent<ProcessComponent>(this);
@@ -829,17 +844,10 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_onWebViewFirstInitialized = nullptr;
         }
 
-        if (m_initialUri.empty())
-        {
-            // StartPage uses initialized values of the WebView and Environment
-            // so we wait to call StartPage::GetUri until after the WebView is
-            // created.
-            m_initialUri = AppStartPage::GetUri(this);
-        }
-
         if (m_initialUri != L"none")
         {
-            CHECK_FAILURE(m_webView->Navigate(m_initialUri.c_str()));
+            std::wstring initialUri = m_initialUri.empty() ? AppStartPage::GetUri(this) : m_initialUri;
+            CHECK_FAILURE(m_webView->Navigate(initialUri.c_str()));
         }
     }
     else
@@ -991,7 +999,9 @@ void AppWindow::RegisterEventHandlers()
                 // passing "none" as uri as its a noinitialnavigation
                 if (!useDefaultWindow)
                 {
-                  newAppWindow = new AppWindow(m_creationModeId, L"none", false, nullptr, true, windowRect, !!shouldHaveToolbar);
+                    newAppWindow = new AppWindow(
+                        m_creationModeId, L"none", m_userDataFolder, false, nullptr, true, windowRect,
+                        !!shouldHaveToolbar);
                 }
                 else
                 {
@@ -1079,13 +1089,79 @@ void AppWindow::ResizeEverything()
     {
         view->SetBounds(availableBounds);
     }
+    m_appBackgroundImageRect = availableBounds;
 }
 
 //! [Close]
 // Close the WebView and deinitialize related state. This doesn't close the app window.
 void AppWindow::CloseWebView(bool cleanupUserDataFolder)
 {
+    // 1. Delete components.
     DeleteAllComponents();
+
+    // 2. If cleanup needed and BrowserProcessExited event interface available,
+    // register to cleanup upon browser exit.
+    wil::com_ptr<ICoreWebView2ExperimentalEnvironment4> experimentalEnvironment4;
+    if (m_webViewEnvironment)
+    {
+        experimentalEnvironment4 =
+            m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment4>();
+    }
+    if (cleanupUserDataFolder && experimentalEnvironment4)
+    {
+        // Before closing the WebView, register a handler with code to run once the
+        // browser process and associated processes are terminated.
+        CHECK_FAILURE(experimentalEnvironment4->add_BrowserProcessExited(
+            Callback<ICoreWebView2ExperimentalBrowserProcessExitedEventHandler>(
+                [experimentalEnvironment4, this](
+                    ICoreWebView2Environment* sender,
+                    ICoreWebView2ExperimentalBrowserProcessExitedEventArgs* args) {
+                    COREWEBVIEW2_BROWSER_PROCESS_EXIT_KIND kind;
+                    UINT32 pid;
+                    CHECK_FAILURE(args->get_BrowserProcessExitKind(&kind));
+                    CHECK_FAILURE(args->get_BrowserProcessId(&pid));
+
+                    // If a new WebView is created from this CoreWebView2Environment after
+                    // the browser has exited but before our handler gets to run, a new
+                    // browser process will be created and lock the user data folder
+                    // again. Do not attempt to cleanup the user data folder in these
+                    // cases. We check the PID of the exited browser process against the
+                    // PID of the browser process to which our last CoreWebView2 attached.
+                    if (pid == m_newestBrowserPid)
+                    {
+                        // Watch for graceful browser process exit. Let ProcessFailed event
+                        // handler take care of failed browser process termination.
+                        if (kind == COREWEBVIEW2_BROWSER_PROCESS_EXIT_KIND_NORMAL)
+                        {
+                            CHECK_FAILURE(experimentalEnvironment4->remove_BrowserProcessExited(
+                                m_browserExitedEventToken));
+                            // Release the environment only after the handler is invoked.
+                            // Otherwise, there will be no environment to raise the event when
+                            // the collection of WebView2 Runtime processes exit.
+                            m_webViewEnvironment = nullptr;
+                            CleanupUserDataFolder();
+                        }
+                    }
+                    else
+                    {
+                        // The exiting process is not the last in use. Do not attempt cleanup
+                        // as we might still have a webview open over the user data folder.
+                        // Do not block from event handler.
+                        RunAsync([this]() {
+                            MessageBox(
+                                m_mainWindow,
+                                L"A new browser process prevented cleanup of the user data folder.",
+                                L"Cleanup User Data Folder", MB_OK);
+                        });
+                    }
+
+                    return S_OK;
+                })
+                .Get(),
+            &m_browserExitedEventToken));
+    }
+
+    // 3. Close the webview.
     if (m_controller)
     {
         m_controller->Close();
@@ -1093,34 +1169,53 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
         m_webView = nullptr;
         m_webView3 = nullptr;
     }
-    m_webViewEnvironment = nullptr;
-    if (cleanupUserDataFolder)
+
+    // 4. If BrowserProcessExited event interface is not available, release
+    // environment and proceed to cleanup immediately. If the interface is
+    // available, release environment only if not waiting for the event.
+    if (!experimentalEnvironment4)
     {
-        // For non-UWP apps, the default user data folder {Executable File Name}.WebView2
-        // is in the same directory next to the app executable. If end
-        // developers specify userDataFolder during WebView environment
-        // creation, they would need to pass in that explicit value here.
-        // For more information about userDataFolder:
-        // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/webview2-idl#createcorewebview2environmentwithoptions
-        WCHAR userDataFolder[MAX_PATH] = L"";
-        // Obtain the absolute path for relative paths that include "./" or "../"
-        _wfullpath(
-            userDataFolder, GetLocalPath(L".WebView2", true).c_str(), MAX_PATH);
-        std::wstring userDataFolderPath(userDataFolder);
-
-        std::wstring message = L"Are you sure you want to clean up the user data folder at\n";
-        message += userDataFolderPath;
-        message += L"\n?\nWarning: This action is not reversible.\n\n";
-        message += L"Click No if there are other open WebView instances.\n";
-
-        if (MessageBox(m_mainWindow, message.c_str(), L"Cleanup User Data Folder", MB_YESNO) ==
-            IDYES)
+        m_webViewEnvironment = nullptr;
+        if (cleanupUserDataFolder)
         {
-            CHECK_FAILURE(DeleteFileRecursive(userDataFolderPath));
+            CleanupUserDataFolder();
         }
+    }
+    else if (!cleanupUserDataFolder)
+    {
+        // Release the environment object here only if no cleanup is needed.
+        // If cleanup is needed, the environment object release is deferred
+        // until the browser process exits, otherwise the handler for the
+        // BrowserProcessExited event will not be called.
+        m_webViewEnvironment = nullptr;
     }
 }
 //! [Close]
+
+void AppWindow::CleanupUserDataFolder()
+{
+    // For non-UWP apps, the default user data folder {Executable File Name}.WebView2
+    // is in the same directory next to the app executable. If end
+    // developers specify userDataFolder during WebView environment
+    // creation, they would need to pass in that explicit value here.
+    // For more information about userDataFolder:
+    // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/webview2-idl#createcorewebview2environmentwithoptions
+    WCHAR userDataFolder[MAX_PATH] = L"";
+    // Obtain the absolute path for relative paths that include "./" or "../"
+    _wfullpath(userDataFolder, GetLocalPath(L".WebView2", true).c_str(), MAX_PATH);
+    std::wstring userDataFolderPath(userDataFolder);
+
+    std::wstring message = L"Are you sure you want to clean up the user data folder at\n";
+    message += userDataFolderPath;
+    message += L"\n?\nWarning: This action is not reversible.\n\n";
+    message += L"Click No if there are other open WebView instances.\n";
+
+    if (MessageBox(m_mainWindow, message.c_str(), L"Cleanup User Data Folder", MB_YESNO) ==
+        IDYES)
+    {
+        CHECK_FAILURE(DeleteFileRecursive(userDataFolderPath));
+    }
+}
 
 HRESULT AppWindow::DeleteFileRecursive(std::wstring path)
 {
@@ -1137,7 +1232,7 @@ HRESULT AppWindow::DeleteFileRecursive(std::wstring path)
 
     // Add the operation
     CHECK_FAILURE(fileOperation->DeleteItem(userDataFolder.get(), NULL));
-    CHECK_FAILURE(userDataFolder->Release());
+    userDataFolder.reset();
 
     // Perform the operation to delete the directory
     CHECK_FAILURE(fileOperation->PerformOperations());

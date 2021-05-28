@@ -389,6 +389,7 @@
     <ClInclude Include="AppStartPage.h" />
     <ClInclude Include="AppWindow.h" />
     <ClInclude Include="CheckFailure.h" />
+    <ClInclude Include="ClientCertificateSelectionDialog.h" />
     <ClInclude Include="ComponentBase.h" />
     <ClInclude Include="ControlComponent.h" />
     <ClInclude Include="DCompTargetImpl.h" />
@@ -400,6 +401,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScenarioAddHostObject.h" />
     <ClInclude Include="ScenarioAuthentication.h" />
+    <ClInclude Include="ScenarioClientCertificateRequested.h" />
     <ClInclude Include="ScenarioCookieManagement.h" />
     <ClInclude Include="ScenarioCustomDownloadExperience.h" />
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
@@ -419,6 +421,7 @@
     <ClCompile Include="AppStartPage.cpp" />
     <ClCompile Include="AppWindow.cpp" />
     <ClCompile Include="CheckFailure.cpp" />
+    <ClCompile Include="ClientCertificateSelectionDialog.cpp" />
     <ClCompile Include="ControlComponent.cpp" />
     <ClCompile Include="DCompTargetImpl.cpp" />
     <ClCompile Include="DpiUtil.cpp" />
@@ -428,6 +431,7 @@
     <ClCompile Include="HostObjectSampleImpl.cpp" />
     <ClCompile Include="ScenarioAddHostObject.cpp" />
     <ClCompile Include="ScenarioAuthentication.cpp" />
+    <ClCompile Include="ScenarioClientCertificateRequested.cpp" />
     <ClCompile Include="ScenarioCookieManagement.cpp" />
     <ClCompile Include="ScenarioCustomDownloadExperience.cpp" />
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
@@ -458,6 +462,7 @@
     <ResourceCompile Include="WebView2APISample.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="AppBackground.bmp" />
     <Image Include="small.ico" />
     <Image Include="WebView2APISample.ico" />
   </ItemGroup>
@@ -494,9 +499,6 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets\AppStartPage.js">
-      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="assets\AppStartPageBackground.png">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets\ScenarioTestingFocus.html">

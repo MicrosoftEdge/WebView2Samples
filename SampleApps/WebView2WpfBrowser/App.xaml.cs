@@ -12,6 +12,8 @@ namespace WebView2WpfBrowser
     /// </summary>
     public partial class App : Application
     {
+        public bool newRuntimeEventHandled = false;
+
         public App()
         {
             InitializeComponent();

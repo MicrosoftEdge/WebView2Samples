@@ -30,7 +30,8 @@ class AppWindow
 public:
     AppWindow(
         UINT creationModeId,
-        std::wstring initialUri = L"",
+        std::wstring initialUri = L"", 
+        std::wstring userDataFolderParam = L"",
         bool isMainWindow = false,
         std::function<void()> webviewCreatedCallback = nullptr,
         bool customWindowRect = false,
@@ -76,6 +77,11 @@ public:
     void Release();
     void NotifyClosed();
 
+    std::wstring GetUserDataFolder()
+    {
+        return m_userDataFolder;
+    }
+
 private:
     static PCWSTR GetWindowClass();
 
@@ -98,6 +104,7 @@ private:
     void ReinitializeWebViewWithNewBrowser();
     void RestartApp();
     void CloseWebView(bool cleanupUserDataFolder = false);
+    void CleanupUserDataFolder();
     void CloseAppWindow();
     void ChangeLanguage();
     void UpdateCreationModeMenu();
@@ -117,6 +124,7 @@ private:
     //  or "none" to mean don't perform an initial navigate,
     //  or a valid absolute URI to which we will navigate.
     std::wstring m_initialUri;
+    std::wstring m_userDataFolder;
     HWND m_mainWindow = nullptr;
     Toolbar m_toolbar;
     std::function<void()> m_onWebViewFirstInitialized;
@@ -131,6 +139,9 @@ private:
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webView;
     wil::com_ptr<ICoreWebView2_3> m_webView3;
+
+    EventRegistrationToken m_browserExitedEventToken = {};
+    UINT32 m_newestBrowserPid = 0;
 
     // All components are deleted when the WebView is closed.
     std::vector<std::unique_ptr<ComponentBase>> m_components;
@@ -163,6 +174,7 @@ private:
     HBITMAP m_appBackgroundImageHandle;
     BITMAP m_appBackgroundImage;
     HDC m_memHdc;
+    RECT m_appBackgroundImageRect;
 };
 
 template <class ComponentType, class... Args> void AppWindow::NewComponent(Args&&... args)

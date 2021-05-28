@@ -35,6 +35,7 @@ IDI_WEBVIEW2APISAMPLE   ICON                    "WebView2APISample.ico"
 
 IDI_SMALL               ICON                    "small.ico"
 
+IDI_WEBVIEW2_BACKGROUND BITMAP                   "AppBackground.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -106,8 +107,9 @@ BEGIN
         MENUITEM "Toggle DevTools enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
         MENUITEM "Toggle Block images",         ID_SETTINGS_BLOCKALLIMAGES
         MENUITEM "Toggle Replace images",       ID_SETTINGS_REPLACEALLIMAGES
-        MENUITEM "Toggle Password Autofill",    ID_SETTINGS_PASSWORD_AUTOFILL_ENABLED
+        MENUITEM "Toggle Password Autosave",    ID_SETTINGS_PASSWORD_AUTOSAVE_ENABLED
         MENUITEM "Toggle General Autofill",     ID_SETTINGS_GENERAL_AUTOFILL_ENABLED
+        MENUITEM "Toggle Client Certificate Requested", ID_TOGGLE_CLIENT_CERTIFICATE_REQUESTED
         MENUITEM "Toggle pinch zoom enabled",   ID_SETTINGS_PINCH_ZOOM_ENABLED
         POPUP "JavaScript Dialogs"
         BEGIN
@@ -121,6 +123,7 @@ BEGIN
         MENUITEM "Toggle zoom control enabled",   ID_SETTINGS_ZOOM_ENABLED
         MENUITEM "Toggle built-in error page enabled", ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED
         MENUITEM "Toggle browser accelerator keys enabled", ID_SETTINGS_BROWSER_ACCELERATOR_KEYS_ENABLED
+        MENUITEM "Toggle swipe navigation enabled",   ID_SETTINGS_SWIPE_NAVIGATION_ENABLED
     END
     POPUP "&View"
     BEGIN
@@ -201,7 +204,10 @@ BEGIN
         POPUP "Custom Download Experience"
         BEGIN
             MENUITEM "Use Deferred Download Dialog",  IDM_SCENARIO_USE_DEFERRED_DOWNLOAD
-            MENUITEM "Complete Deferred Download",  IDM_SCENARIO_COMPLETE_DEFERRED_DOWNLOAD
+        END
+        POPUP "Client Certificate Requested"
+        BEGIN
+            MENUITEM "Use Deferred Custom Client Certificate Selection Dialog", IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG
         END
     END
     POPUP "&Help"
@@ -250,6 +256,17 @@ BEGIN
     EDITTEXT        IDC_EDIT_DESCRIPTION,14,18,281,33,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
 END
 
+IDD_CERTIFICATE_DIALOG DIALOGEX 0, 0, 375, 175
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",ID_CERTIFICATE_OK,198,154,50,14
+    PUSHBUTTON      "Cancel",ID_CERTIFICATE_CANCEL,318,154,50,14
+    LISTBOX         IDC_CERTIFICATE_LIST,25,36,167,100,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Static",IDC_CERTIFICATE_STATIC,198,37,155,96
+    LTEXT           "Static",IDC_CERTIFICATE_LBL,24,17,232,11
+END
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -273,6 +290,13 @@ BEGIN
         RIGHTMARGIN, 302
         TOPMARGIN, 7
         BOTTOMMARGIN, 144
+    END
+    IDD_CERTIFICATE_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 368
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 168
     END
 END
 #endif    // APSTUDIO_INVOKED

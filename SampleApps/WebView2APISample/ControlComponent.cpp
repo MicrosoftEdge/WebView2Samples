@@ -9,6 +9,8 @@
 
 #include "App.h"
 #include "CheckFailure.h"
+#include <regex>
+#include <shlwapi.h>
 
 using namespace Microsoft::WRL;
 
@@ -362,9 +364,14 @@ void ControlComponent::NavigateToAddressBar()
         }
         else
         {
-            // Otherwise treat it as a web search. We aren't bothering to escape
-            // URL syntax characters such as & and #
-            hr = m_webView->Navigate((L"https://bing.com/search?q=" + uri).c_str());
+            // Otherwise treat it as a web search. 
+            std::wstring urlEscaped(2048, ' ');
+            DWORD dwEscaped = (DWORD)urlEscaped.length();
+            UrlEscapeW(uri.c_str(), &urlEscaped[0], &dwEscaped, URL_ESCAPE_ASCII_URI_COMPONENT);
+            hr = m_webView->Navigate(
+                (L"https://bing.com/search?q=" +
+                 std::regex_replace(urlEscaped, std::wregex(L"(?:%20)+"), L"+"))
+                    .c_str());
         }
     }
     if (hr != E_INVALIDARG) {

@@ -6,6 +6,7 @@
 
 #include "ViewComponent.h"
 #include "DCompTargetImpl.h"
+#include "AppStartPage.h"
 
 #include <d2d1helper.h>
 #include <sstream>
@@ -52,6 +53,41 @@ ViewComponent::ViewComponent(
         .Get(),
                 &m_zoomFactorChangedToken));
     //! [ZoomFactorChanged]
+
+    CHECK_FAILURE(m_webView->add_NavigationStarting(
+        Callback<ICoreWebView2NavigationStartingEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
+            -> HRESULT {
+                wil::unique_cotaskmem_string newUri;
+                CHECK_FAILURE(args->get_Uri(&newUri));
+
+                wil::unique_cotaskmem_string oldUri;
+                CHECK_FAILURE(m_webView->get_Source(&oldUri));
+
+                std::wstring appStartPage = AppStartPage::GetUri(m_appWindow);
+
+                if (wcscmp(appStartPage.c_str(), newUri.get()) == 0)
+                {
+                    // When navigating to the app start page, make the background color
+                    // transparent so the background image for WebView2 shows through.
+                    // Save the previous background color to restore when navigating away.
+                    COREWEBVIEW2_COLOR transparentColor = { 0, 255, 255, 255 };
+                    wil::com_ptr<ICoreWebView2Controller2> controller2 =
+                        m_controller.query<ICoreWebView2Controller2>();
+                    CHECK_FAILURE(controller2->get_DefaultBackgroundColor(&m_webViewColor));
+                    CHECK_FAILURE(controller2->put_DefaultBackgroundColor(transparentColor));
+                }
+                else if (wcscmp(appStartPage.c_str(), oldUri.get()) == 0)
+                {
+                    // When navigating away from the app start page, set the background color
+                    // back to the previous value. If the user changed the background color,
+                    // m_webViewColor will have changed.
+                    wil::com_ptr<ICoreWebView2Controller2> controller2 =
+                        m_controller.query<ICoreWebView2Controller2>();
+                    CHECK_FAILURE(controller2->put_DefaultBackgroundColor(m_webViewColor));
+                }
+                return S_OK;
+            }).Get(), &m_navigationStartingToken));
 
     m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
     if (m_controller3)
@@ -385,14 +421,13 @@ void ViewComponent::Resume()
 //! [DefaultBackgroundColor]
 void ViewComponent::SetBackgroundColor(COLORREF color, bool transparent)
 {
-    COREWEBVIEW2_COLOR wvColor;
-    wvColor.R = GetRValue(color);
-    wvColor.G = GetGValue(color);
-    wvColor.B = GetBValue(color);
-    wvColor.A = transparent ? 0 : 255;
+    m_webViewColor.R = GetRValue(color);
+    m_webViewColor.G = GetGValue(color);
+    m_webViewColor.B = GetBValue(color);
+    m_webViewColor.A = transparent ? 0 : 255;
     wil::com_ptr<ICoreWebView2Controller2> controller2 =
         m_controller.query<ICoreWebView2Controller2>();
-    controller2->put_DefaultBackgroundColor(wvColor);
+    controller2->put_DefaultBackgroundColor(m_webViewColor);
 }
 //! [DefaultBackgroundColor]
 
@@ -867,6 +902,7 @@ void ViewComponent::DestroyWinCompVisualTree()
 
 ViewComponent::~ViewComponent()
 {
+    m_webView->remove_NavigationStarting(m_navigationStartingToken);
     m_controller->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
     if (m_controller3)
     {

@@ -14,6 +14,7 @@ namespace WebView2WindowsFormsBrowser
         public BrowserForm()
         {
             InitializeComponent();
+            AttachControlEventHandlers(this.webView2Control);
             HandleResize();
         }
 
@@ -53,6 +54,15 @@ namespace WebView2WindowsFormsBrowser
             this.webView2Control.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
             this.webView2Control.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Image);
             UpdateTitleWithEvent("CoreWebView2InitializationCompleted succeeded");
+        }
+
+        void AttachControlEventHandlers(Microsoft.Web.WebView2.WinForms.WebView2 control) {
+            control.CoreWebView2InitializationCompleted += WebView2Control_CoreWebView2InitializationCompleted;
+            control.NavigationStarting += WebView2Control_NavigationStarting;
+            control.NavigationCompleted += WebView2Control_NavigationCompleted;
+            control.SourceChanged += WebView2Control_SourceChanged;
+            control.KeyDown += WebView2Control_KeyDown;
+            control.KeyUp += WebView2Control_KeyUp;
         }
 
         private void WebView2Control_KeyUp(object sender, KeyEventArgs e)
@@ -99,7 +109,26 @@ namespace WebView2WindowsFormsBrowser
 
         private void BtnGo_Click(object sender, EventArgs e)
         {
-            webView2Control.Source = new Uri(txtUrl.Text);
+            var rawUrl = txtUrl.Text;
+            Uri uri = null;
+
+            if (Uri.IsWellFormedUriString(rawUrl, UriKind.Absolute))
+            {
+                uri = new Uri(rawUrl);
+            }
+            else if (!rawUrl.Contains(" ") && rawUrl.Contains("."))
+            {
+                // An invalid URI contains a dot and no spaces, try tacking http:// on the front.
+                uri = new Uri("http://" + rawUrl);
+            }
+            else
+            {
+                // Otherwise treat it as a web search.
+                uri = new Uri("https://bing.com/search?q=" + 
+                    String.Join("+", Uri.EscapeDataString(rawUrl).Split(new string[] { "%20" }, StringSplitOptions.RemoveEmptyEntries)));
+            }
+
+            webView2Control.Source = uri;
         }
 
         private void btnBack_Click(object sender, EventArgs e)

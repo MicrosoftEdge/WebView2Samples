@@ -42,13 +42,14 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
     DPI_AWARENESS_CONTEXT dpiAwarenessContext =
         DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
     std::wstring appId(L"EBWebView.SampleApp");
+    std::wstring userDirectoryFolder(L"");
     std::wstring initialUri;
     DWORD creationModeId = IDM_CREATION_MODE_WINDOWED;
 
     if (lpCmdLine && lpCmdLine[0])
     {
         int paramCount = 0;
-        LPWSTR* params = CommandLineToArgvW(lpCmdLine, &paramCount);
+        LPWSTR* params = CommandLineToArgvW(GetCommandLineW(), &paramCount);
         for (int i = 0; i < paramCount; ++i)
         {
             std::wstring nextParam;
@@ -91,6 +92,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
             {
                 initialUri = nextParam.substr(nextParam.find(L'=') + 1);
             }
+            else if (NEXT_PARAM_CONTAINS(L"userdirectoryfolder="))
+            {
+                userDirectoryFolder = nextParam.substr(nextParam.find(L'=') + 1);
+            }
             else if (NEXT_PARAM_CONTAINS(L"creationmode="))
             {
                 nextParam = nextParam.substr(nextParam.find(L'=') + 1);
@@ -120,7 +125,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
     DpiUtil::SetProcessDpiAwarenessContext(dpiAwarenessContext);
 
-    new AppWindow(creationModeId, initialUri, true);
+    new AppWindow(creationModeId, initialUri, userDirectoryFolder, true);
 
     int retVal = RunMessagePump();
 

@@ -42,10 +42,11 @@ private:
     AppWindow* m_appWindowEventSource;
     wil::com_ptr<ICoreWebView2> m_webviewEventSource;
     wil::com_ptr<ICoreWebView2_2> m_webviewEventSource2;
-    wil::com_ptr<ICoreWebView2Experimental2> m_webviewEventSourceExperimental2;
+    wil::com_ptr<ICoreWebView2_4> m_webviewEventSource4;
 
     // The events we register on the event source
     EventRegistrationToken m_frameNavigationStartingToken = {};
+    EventRegistrationToken m_frameNavigationCompletedToken = {};
     EventRegistrationToken m_navigationStartingToken = {};
     EventRegistrationToken m_sourceChangedToken = {};
     EventRegistrationToken m_contentLoadingToken = {};

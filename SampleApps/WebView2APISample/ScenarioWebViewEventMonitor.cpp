@@ -27,7 +27,7 @@ ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEve
     m_sampleUri = m_appWindowEventSource->GetLocalUri(c_samplePath);
     m_appWindowEventView = new AppWindow(
         IDM_CREATION_MODE_WINDOWED,
-        m_sampleUri,
+        m_sampleUri, appWindowEventSource->GetUserDataFolder(),
         false,
         [this]() -> void {
             InitializeEventView(m_appWindowEventView->GetWebView());
@@ -42,12 +42,13 @@ ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
     m_webviewEventSource->remove_SourceChanged(m_sourceChangedToken);
     m_webviewEventSource->remove_ContentLoading(m_contentLoadingToken);
     m_webviewEventSource->remove_HistoryChanged(m_historyChangedToken);
+    m_webviewEventSource->remove_FrameNavigationCompleted(m_frameNavigationCompletedToken);
     m_webviewEventSource->remove_NavigationCompleted(m_navigationCompletedToken);
     m_webviewEventSource->remove_DocumentTitleChanged(m_documentTitleChangedToken);
     m_webviewEventSource->remove_WebMessageReceived(m_webMessageReceivedToken);
     m_webviewEventSource->remove_NewWindowRequested(m_newWindowRequestedToken);
     m_webviewEventSource2->remove_DOMContentLoaded(m_DOMContentLoadedToken);
-    m_webviewEventSourceExperimental2->remove_DownloadStarting(m_downloadStartingToken);
+    m_webviewEventSource4->remove_DownloadStarting(m_downloadStartingToken);
     EnableWebResourceRequestedEvent(false);
     EnableWebResourceResponseReceivedEvent(false);
 
@@ -540,10 +541,13 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 CHECK_FAILURE(args->get_RequestHeaders(&requestHeaders));
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
+                UINT64 navigationId = 0;
+                CHECK_FAILURE(args->get_NavigationId(&navigationId));
 
                 std::wstring message =
                     L"{ \"kind\": \"event\", \"name\": "
                     L"\"FrameNavigationStarting\", \"args\": {"
+                    L"\"navigationId\": " + std::to_wstring(navigationId) + L", "
                     L"\"cancel\": " + BoolToString(cancel) + L", "
                     L"\"isRedirected\": " + BoolToString(isRedirected) + L", "
                     L"\"isUserInitiated\": " + BoolToString(isUserInitiated) + L", "
@@ -644,6 +648,36 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
             .Get(),
         &m_navigationCompletedToken);
 
+        m_webviewEventSource->add_FrameNavigationCompleted(
+        Callback<ICoreWebView2NavigationCompletedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args)
+                -> HRESULT {
+                BOOL isSuccess = FALSE;
+                CHECK_FAILURE(args->get_IsSuccess(&isSuccess));
+                COREWEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
+                CHECK_FAILURE(args->get_WebErrorStatus(&webErrorStatus));
+                UINT64 navigationId = 0;
+                CHECK_FAILURE(args->get_NavigationId(&navigationId));
+
+                std::wstring message =
+                    L"{ \"kind\": \"event\", \"name\": \"FrameNavigationCompleted\", \"args\": {";
+
+                message += L"\"navigationId\": " + std::to_wstring(navigationId) + L", ";
+
+                message += L"\"isSuccess\": " + BoolToString(isSuccess) +
+                           L", "
+                           L"\"webErrorStatus\": " +
+                           EncodeQuote(WebErrorStatusToString(webErrorStatus)) +
+                           L" "
+                           L"}" +
+                           WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                PostEventMessage(message);
+
+                return S_OK;
+            })
+            .Get(),
+        &m_frameNavigationCompletedToken);
+
     m_webviewEventSource2->add_DOMContentLoaded(
         Callback<ICoreWebView2DOMContentLoadedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2DOMContentLoadedEventArgs* args)
@@ -680,13 +714,13 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
             .Get(),
         &m_documentTitleChangedToken);
 
-    m_webviewEventSourceExperimental2 = m_webviewEventSource.try_query<ICoreWebView2Experimental2>();
-    if (m_webviewEventSourceExperimental2) {
-        m_webviewEventSourceExperimental2->add_DownloadStarting(
-            Callback<ICoreWebView2ExperimentalDownloadStartingEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2ExperimentalDownloadStartingEventArgs* args)
+    m_webviewEventSource4 = m_webviewEventSource.try_query<ICoreWebView2_4>();
+    if (m_webviewEventSource4) {
+        m_webviewEventSource4->add_DownloadStarting(
+            Callback<ICoreWebView2DownloadStartingEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2DownloadStartingEventArgs* args)
                     -> HRESULT {
-                    wil::com_ptr<ICoreWebView2ExperimentalDownloadOperation> download;
+                    wil::com_ptr<ICoreWebView2DownloadOperation> download;
                     CHECK_FAILURE(args->get_DownloadOperation(&download));
 
                     BOOL cancel = FALSE;
@@ -715,9 +749,9 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                     CHECK_FAILURE(args->get_Handled(&handled));
 
                     download->add_StateChanged(
-                        Callback<ICoreWebView2ExperimentalStateChangedEventHandler>(
+                        Callback<ICoreWebView2StateChangedEventHandler>(
                             [this, download](
-                                ICoreWebView2ExperimentalDownloadOperation* sender,
+                                ICoreWebView2DownloadOperation* sender,
                                 IUnknown* args)
                                 -> HRESULT {
                                 COREWEBVIEW2_DOWNLOAD_STATE state;
@@ -766,9 +800,9 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
                     download->add_BytesReceivedChanged(
                         Callback<
-                            ICoreWebView2ExperimentalBytesReceivedChangedEventHandler>(
+                            ICoreWebView2BytesReceivedChangedEventHandler>(
                             [this, download](
-                                ICoreWebView2ExperimentalDownloadOperation* sender, IUnknown* args) -> HRESULT {
+                                ICoreWebView2DownloadOperation* sender, IUnknown* args) -> HRESULT {
                                 INT64 bytesReceived = 0;
                                 CHECK_FAILURE(download->get_BytesReceived(
                                     &bytesReceived));
@@ -790,9 +824,9 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                         &m_bytesReceivedChangedToken);
 
                     download->add_EstimatedEndTimeChanged(
-                        Callback<ICoreWebView2ExperimentalEstimatedEndTimeChangedEventHandler>(
+                        Callback<ICoreWebView2EstimatedEndTimeChangedEventHandler>(
                             [this, download](
-                                ICoreWebView2ExperimentalDownloadOperation* sender, IUnknown* args) -> HRESULT {
+                                ICoreWebView2DownloadOperation* sender, IUnknown* args) -> HRESULT {
                                 wil::unique_cotaskmem_string estimatedEndTime;
                                 CHECK_FAILURE(download->get_EstimatedEndTime(&estimatedEndTime));
 
