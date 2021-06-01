@@ -3,7 +3,7 @@
     <Platforms>AnyCPU</Platforms>
     <OutputType>WinExe</OutputType>
     <AssemblyName>WV2CDPExtensionWPFSample</AssemblyName>
-    <TargetFrameworks>netcoreapp3.1;net462</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.0;net462</TargetFrameworks>
     <Product>WebView2 CDP Extension WPF Sample App</Product>
     <Copyright>Copyright ©2020</Copyright>
     <UseWPF>true</UseWPF>
