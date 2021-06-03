@@ -39,14 +39,16 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle Status Bar enabled](#Toggle-Status-Bar-enabled)
     * [Toggle DevTools enabled](#Toggle-DevTools-enabled)
     * [Toggle ZoomControl enabled](#Toggle-ZoomControl-enabled)
+    * [Toggle Client Certificate Requested](#Toggle-Client-Certificate-Requested)
     * [Toggle Pinch Zoom enabled](#Toggle-Pinch-Zoom-enabled)
     * [Toggle Block images](#Toggle-Block-images)
     * [JavaScript Dialogs](#JavaScript-Dialogs)
     * [Toggle context menus enabled](#Toggle-context-menus-enabled)
     * [Toggle builtin error page enabled](#Toggle-builtin-error-page-enabled)
     * [Toggle general autofill enabled](#Toggle-general-autofill-enabled)
-    * [Toggle password autofill enabled](#Toggle-password-autofill-enabled)
+    * [Toggle password autosave enabled](#Toggle-password-autosave-enabled)
     * [Toggle browser accelerator keys enabled](#Toggle-browser-accelerator-keys-enabled)
+    * [Toggle Swipe Navigation enabled](#Toggle-Swipe-Navigation-enabled)
   * [View](#View)
     * [Toggle Visibility](#Toggle-Visibility)
     * [WebView Bounds Reference](#WebView-Bounds-Reference)
@@ -63,6 +65,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Script Debugging](#Script-Debugging)
     * [Cookie Management](#Cookie-Management)
     * [NavigateWithWebResourceRequest](#NavigateWithWebResourceRequest)
+    * [Client Certificate Requested](#ClientCertificateRequested)
   * [Help](#Help)
     * [About ...](#about-)
   * [Miscellaneous](#Miscellaneous)
@@ -462,6 +465,37 @@ _It is enabled by default._
 1. Expected: Message Box that says `Pinch Zoom is enabled after the next navigation.`
 1. Click `OK` inside the popup dialog and click `Reload`
 1. Verify that pinch zooming works again.
+
+#### Toggle Client Certificate Requested
+
+Test that turns off client certificate selection dialog.
+_It is disabled by default._
+
+1. Launch the sample app.
+2. Go to `Settings -> Toggle Client Certificate Requested`
+3. Expected: Message Box that says `Custom client certificate selection has been enabled.`
+4. Click `OK` inside the popup dialog.
+5. Navigate to <https://client.badssl.com>.
+6. Expected: Server responds with 400 Bad Request (No required SSL Certificate was sent) if client certificate is not installed on the user's machine.
+7. Close the sample app.
+8. Navigate to <https://badssl.com/download> from a browser to download client certificate required to access <https://client.badssl.com> site.\
+![Download-Client-Certificate](screenshots/download-client-certificate.png)
+9. Click badssl.com-client.p12 from the list and confirm download has begun.
+10. Go to the badssl.com-client certificate from the downloads.
+11. Double click on the above downloaded badssl.com-client.p12 certificate.
+12. Expected: Windows popup with title Certificate Import Wizard.\
+![Install-Client-Certificate](screenshots/install-client-certificate.png)
+13. Select `Current User` from the store location in the popup and click `Next`.
+14. Browse for the above downloaded client certificate location if not selected by default.
+15. Click `Next`.
+16. Type `badssl.com` in the password textbox and click `Next`.
+17. Click `Next` again and click `Finish` button in the popup to finish certificate installation on Windows OS.
+18. Expected: Message Box that says `The Import was successful.`
+19. Click `Ok`.
+20. Repeat steps 1-5 above.
+21. Expected: Server authenticates the user and displays as below.\
+![Success-Client-Certificate](screenshots/success-client-certificate.png)
+
 #### Toggle Block images
 
 Test that enables/disables image blocking
@@ -553,62 +587,62 @@ Test that enables/disables general autofill
 _General autofill is enabled by default._
 
 1. Launch the sample app.
-2. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
-3. Enter in any test information into the Profile Autofill section and click submit.
-4. Navigate to <https://rsolomakhin.github.io/autofill/>.
-5. Click on the Name field.
-6. Expected: A drop down box with the saved profile information is shown.
-7. Click on the box.
-8. Expected: The profile information is autofilled.
-9. Go to `Settings -> Toggle General Autofill`
-10. Expected: Message Box that says `General autofill will be disabled after the next navigation.`
-11. Click `OK` inside the popup dialog and click `Reload`.
-12. Repeat step 5.
-13. Expected: No drop down box appears.
-14. Repeat steps 3-5.
-15. Expected: No drop down box appears.
-14. Go to `Settings -> Toggle General Autofill`
-15. Expected: Message Box that says `General autofill will be enabled after the next navigation.`
-16. Click `OK` inside the popup dialog and click `Reload`.
-17. Repeat step 5.
-18. Expected: A drop down box with the original saved profile information is shown.
-19. Click on the box.
-20. Expected: The profile information is autofilled.
+1. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+1. Enter in any test information into the Profile Autofill section and click `Submit`.
+1. Repeat step 2.
+1. Click on the Name field.
+1. Expected: A drop down box with the saved profile information is shown.
+1. Click on the box.
+1. Expected: The profile information is autofilled.
+1. Go to `Settings -> Toggle General Autofill`
+1. Expected: Message Box that says `General autofill will be disabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`.
+1. Repeat step 5.
+1. Expected: No drop down box appears.
+1. Repeat steps 3-5.
+1. Expected: No drop down box appears.
+1. Go to `Settings -> Toggle General Autofill`
+1. Expected: Message Box that says `General autofill will be enabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`.
+1. Repeat step 5.
+1. Expected: A drop down box with the original saved profile information from step 3 is shown.
+1. Click on the box.
+1. Expected: The profile information is autofilled.
 
-### Toggle password autofill enabled
+### Toggle password autosave enabled
 
-Test that enables/disables password autofill
- _Password autofill is enabled by default._
+Test that enables/disables password autosave
+ _Password autosave is disabled by default._
 
 1. Launch the sample app.
-2. Go to `Settings -> Toggle Password Autofill`
-3. Expected: Message Box that says `Password autofill will be disabled after the next navigation.`
+2. Go to `Settings -> Toggle General Autofill`
+3. Expected: Message Box that says `General autofill will be disabled after the next navigation.`
 4. Click `OK` inside the popup dialog and click `Reload`.
 5. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
-6. Enter in any test information into the Username/Password section and press submit.
+6. Enter in any test information into the Username/Password section and click `Submit`.
 7. Expected: The app navigates to <https://example.com/> and no save password prompt is shown.
-8. Navigate to <https://rsolomakhin.github.io/autofill/>.
-9. Click on the Username field.
-10. Expected: No drop down box appears. (note: if password information has previously been saved when the password autofill has been enabled, a drop down box will appear.)
-11. Go to `Settings -> Toggle Password Autofill`
-12. Expected: Message Box that says `Password autofill will be enabled after the next navigation.`
+8. Repeat step 5.
+9. Click on the username field.
+10. Expected: No drop down box appears. (note: if password information has previously been saved when the password autosave has been enabled, a drop down box will appear.)
+11. Go to `Settings -> Toggle Password Autosave`
+12. Expected: Message Box that says `Password autosave will be enabled after the next navigation.`
 13. Click `OK` inside the popup dialog and click `Reload`.
 14. Repeat step 6.
 15. Expected: The app navigates to <https://example.com> and a save password prompt will popup.
-16. Click Save.
-17. Repeat step 8.
-18. Expected: See the username and password information is autofilled.
+16. Click `Save`.
+17. Repeat step 5.
+18. Expected: See the username and password information is auto-populated.
 19. Click on the username field.
 20. Expected: A drop down box with the saved password information is shown.
-18. Go to `Settings -> Toggle Password Autofill`
-19. Expected: Message Box that says `Password autofill will be disabled after the next navigation.`
-16. Click `OK` inside the popup dialog and click `Reload`.
-17. Delete the information from the username and password fields and enter in new test information and click submit.
-18. Expected: No save password prompt is shown.
-19. Repeat step 8.
-20. Expected: Only the information entered from step 13 is autofilled.
-21. Repeat step 9.
-20. Expected: Only one drop down box is shown with the saved password information entered from step 14.
+21. Go to `Settings -> Toggle Password Autosave`
+22. Expected: Message Box that says `Password autosave will be disabled after the next navigation.`
+23. Click `OK` inside the popup dialog and click `Reload`.
+24. Delete the information from the username and password fields and enter in new test information and click submit.
+25. Expected: No save password prompt is shown.
+26. Repeat step 5.
+27. Expected: Only the information entered from step 14 is auto-populated.
+28. Repeat step 9.
+29. Expected: There is not an additional drop down box that has been added.
 
 ### Toggle browser accelerator keys enabled
 
@@ -628,33 +662,27 @@ Test that enabled/disables browser accelerator keys
 1. Click `OK` inside the popup dialog and click `Reload`.
 1. Press `Ctrl-F` on the keyboard.
 1. Expected: A search box appears in the upper-right corner of the webpage.
-=======
-4. Click `OK` inside the popup dialog and click `Reload`. 
-5. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
-6. Enter in any test information into the Username/Password section and press submit. 
-7. Expected: The app navigates to <https://example.com/> and no save password prompt is shown. 
-8. Navigate to <https://rsolomakhin.github.io/autofill/>.  
-9. Click on the Username field. 
-10. Expected: No drop down box appears. (note: if password information has previously been saved when the password autofill has been enabled, a drop down box will appear.)
-11. Go to `Settings -> Toggle Password Autofill`
-12. Expected: Message Box that says `Password autofill will be enabled after the next navigation.`
-13. Click `OK` inside the popup dialog and click `Reload`. 
-14. Repeat step 6.  
-15. Expected: The app navigates to <https://example.com> and a save password prompt will popup. 
-16. Click Save. 
-17. Repeat step 8. 
-18. Expected: See the username and password information is autofilled. 
-19. Click on the username field. 
-20. Expected: A drop down box with the saved password information is shown. 
-18. Go to `Settings -> Toggle Password Autofill`
-19. Expected: Message Box that says `Password autofill will be disabled after the next navigation.`
-16. Click `OK` inside the popup dialog and click `Reload`.
-17. Delete the information from the username and password fields and enter in new test information and click submit. 
-18. Expected: No save password prompt is shown. 
-19. Repeat step 8. 
-20. Expected: Only the information entered from step 13 is autofilled. 
-21. Repeat step 9. 
-20. Expected: Only one drop down box is shown with the saved password information entered from step 14. 
+
+#### Toggle Swipe Navigation enabled
+
+Test that enables/disables Swipe to navigate
+_Swipe left/right to navigate is enabled by default._
+
+1. Launch the sample app on a device with touch screen
+1. Navigate to <https://www.bing.com>
+1. Swipe right
+1. Expected: WebView navigate back to the start up page
+1. Swipe left
+1. Expected: WebView navigate back to <https://www.bing.com>
+1. Go to `Settings -> Toggle Swipe Navigation enabled`
+1. Expected: Message Box that says `Swipe to navigate is disabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`
+1. Swipe right
+1. Expected: WebView doesn't navigate on swipe left/right.
+1. Go to `Settings -> Toggle Swipe Navigate enabled`
+1. Expected: Message Box that says `Swipe to navigate is enabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`
+1. Verify that swipe to navigate works again.
 
 ### View
 
@@ -806,7 +834,7 @@ _It is disabled by default. Tabbing behavior should be identical whether this is
 
 1. Launch the sample app and go to `Scenario -> Testing Focus`
 1. Click address bar
-1. Press `Tab` twice (-> `Go` -> fiirst element in WebView)
+1. Press `Tab` twice (-> `Go` -> first element in WebView)
 1. Expected: See the focus is set to First Active Element button in the WebView.
 1. Press `Shift+Tab`
 1. Expected: See the focus is set to `Go` with the dotted line.
@@ -974,11 +1002,30 @@ Test that demonstrates cookie management related APIs usage such as `GetCookies`
 3. Follow the instructions on the page
 
 #### NavigateWithWebResourceRequest
+
 1. Launch sample app.
 2. Go to **Scenario** > **NavigateWithWebResourceRequest**
 3. On the opened dialog box enter `test` as post data and click OK.
 4. Verify WebView2 navigated to `https://www.w3schools.com/action_page.php` and
    `input=test` is displayed in the text box under `Your input was received as:`.
+
+#### ClientCertificateRequested
+
+1. Close sample app if it is open and re-launch.
+2. Go to `Scenario -> Client Certificate Requested -> Use Deferred Custom Client Certificate Selection Dialog`.
+3. Expected: Message Box that says `Custom Client Certificate selection dialog will be used next when WebView2 is making a request to an HTTP server that needs a client certificate.`
+4. Follow steps 8-19 from [Toggle Client Certificate Requested](#Toggle-Client-Certificate-Requested) if client certificate is not installed, otherwise skip this.
+5. Navigate to <https://client.badssl.com>.
+6. Expected: A custom dialog box with title `Select a certificate for authentication` and certificate/s in the list box.
+7. Select a certificate from the list.
+8. Expected: Certificate details (Subject, ValidFrom, ValidTo and Certificate Kind) are displayed towards right side of the list box.
+9. Click `OK`.
+10. Expected: Server authenticates the user and displays as below.\
+![Success-Client-Certificate](screenshots/success-client-certificate.png)
+11. Close sample app and re-launch.
+12. Repeat steps 2-6 above.
+13. Click `Cancel` in the dialog box.
+14. Expected: Dialog box is closed and server responds with 400 Bad Request (No required SSL Certificate was sent).
 
 ### Help
 
@@ -1028,9 +1075,9 @@ Verify that language and conflicting configuration works
 Verify that we don't offer saving password.
 
 1. Launch the sample app.
-2. Load https://www.w3schools.com/Tags/tryit.asp?filename=tryhtml5_input_type_password, ignore any iframe navigation failure messages during the test.
+2. Load <https://www.w3schools.com/Tags/tryit.asp?filename=tryhtml5_input_type_password>, ignore any iframe navigation failure messages during the test.
 3. Type in some test email and password, like test@example.com and 12345678 in Email and Password field on the right part of the page.
-4. Click `Submit` button, the page should show the inputed values.
+4. Click `Submit` button, the page should show the inputted values.
 5. Make sure that there is no browser prompt for saving password with strings like `Microsoft Edge will save and fill your password for this site next time`.
 6. Reload the page, ignore any iframe navigation failure messages during the test.
 7. Ensure that the fields are not auto filled.
@@ -1042,8 +1089,8 @@ Verify that we don't offer saving password.
 Verify that the `NewWindowRequested` event is fired when opening a link in new window from PDF.
 
 1. Launch the sample app.
-2. Load https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf.
+2. Load <https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf>.
 3. Go to `Scenario -> Event Monitor` to begin tracking events.
 4. Scroll to the second page of the PDF and right click on the first link to open the context menu.
 5. Click on 'Open link in new window'.
-6. Expected: Even Monitor displays `NewWindowRequested`.
+6. Expected: Event Monitor displays `NewWindowRequested`.

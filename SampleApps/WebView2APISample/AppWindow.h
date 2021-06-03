@@ -104,6 +104,7 @@ private:
     void ReinitializeWebViewWithNewBrowser();
     void RestartApp();
     void CloseWebView(bool cleanupUserDataFolder = false);
+    void CleanupUserDataFolder();
     void CloseAppWindow();
     void ChangeLanguage();
     void UpdateCreationModeMenu();
@@ -139,6 +140,9 @@ private:
     wil::com_ptr<ICoreWebView2> m_webView;
     wil::com_ptr<ICoreWebView2_3> m_webView3;
 
+    EventRegistrationToken m_browserExitedEventToken = {};
+    UINT32 m_newestBrowserPid = 0;
+
     // All components are deleted when the WebView is closed.
     std::vector<std::unique_ptr<ComponentBase>> m_components;
     std::unique_ptr<SettingsComponent> m_oldSettingsComponent;
@@ -170,6 +174,7 @@ private:
     HBITMAP m_appBackgroundImageHandle;
     BITMAP m_appBackgroundImage;
     HDC m_memHdc;
+    RECT m_appBackgroundImageRect;
 };
 
 template <class ComponentType, class... Args> void AppWindow::NewComponent(Args&&... args)

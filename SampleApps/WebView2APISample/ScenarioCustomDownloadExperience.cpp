@@ -22,13 +22,13 @@ ScenarioCustomDownloadExperience::ScenarioCustomDownloadExperience(AppWindow* ap
     // Selecting `CANCEL` will cancel the download.
     m_demoUri = L"https://demo.smartscreen.msft.net/";
 
-    m_webViewExperimental2 = m_webView.try_query<ICoreWebView2Experimental2>();
-    if (m_webViewExperimental2) {
-        CHECK_FAILURE(m_webViewExperimental2->add_DownloadStarting(
-            Callback<ICoreWebView2ExperimentalDownloadStartingEventHandler>(
+    m_webView2_4 = m_webView.try_query<ICoreWebView2_4>();
+    if (m_webView2_4) {
+        CHECK_FAILURE(m_webView2_4->add_DownloadStarting(
+            Callback<ICoreWebView2DownloadStartingEventHandler>(
                 [this](
                     ICoreWebView2* sender,
-                    ICoreWebView2ExperimentalDownloadStartingEventArgs* args) -> HRESULT
+                    ICoreWebView2DownloadStartingEventArgs* args) -> HRESULT
                 {
                     // We avoid potential reentrancy from running a message loop in the download
                     // starting event handler by showing our download dialog via this lambda run
@@ -40,7 +40,7 @@ ScenarioCustomDownloadExperience::ScenarioCustomDownloadExperience(AppWindow* ap
                         // Hide the default download dialog.
                         CHECK_FAILURE(args->put_Handled(TRUE));
 
-                        wil::com_ptr<ICoreWebView2ExperimentalDownloadOperation> download;
+                        wil::com_ptr<ICoreWebView2DownloadOperation> download;
                         CHECK_FAILURE(args->get_DownloadOperation(&download));
 
                         INT64 totalBytesToReceive = 0;
@@ -95,13 +95,13 @@ ScenarioCustomDownloadExperience::ScenarioCustomDownloadExperience(AppWindow* ap
                     wil::com_ptr<ICoreWebView2Deferral> deferral;
                     CHECK_FAILURE(args->GetDeferral(&deferral));
 
-                    // This function can be called to show the download dialog and
-                    // complete the event at a later time, allowing the developer to
-                    // perform async work before the event completes.
-                    m_completeDeferredDownloadEvent = [showDialog, deferral] {
+                    // We avoid potential reentrancy from running a message loop in the download
+                    // starting event handler by showing our download dialog later when we
+                    // complete the deferral asynchronously.
+                    m_appWindow->RunAsync([deferral, showDialog]() {
                         showDialog();
                         CHECK_FAILURE(deferral->Complete());
-                    };
+                    });
 
                     return S_OK;
                 })
@@ -129,36 +129,12 @@ ScenarioCustomDownloadExperience::ScenarioCustomDownloadExperience(AppWindow* ap
     CHECK_FAILURE(m_appWindow->GetWebView()->Navigate(m_demoUri.c_str()));
 }
 
-bool ScenarioCustomDownloadExperience::HandleWindowMessage(
-    HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result)
-{
-    if (message == WM_COMMAND)
-    {
-        switch (LOWORD(wParam))
-        {
-        case IDM_SCENARIO_COMPLETE_DEFERRED_DOWNLOAD:
-            CompleteDownloadDeferral();
-            return true;
-        }
-    }
-    return false;
-}
-
-void ScenarioCustomDownloadExperience::CompleteDownloadDeferral()
-{
-    if (m_completeDeferredDownloadEvent)
-    {
-        m_completeDeferredDownloadEvent();
-        m_completeDeferredDownloadEvent = nullptr;
-    }
-}
-
-void ScenarioCustomDownloadExperience::UpdateProgress(ICoreWebView2ExperimentalDownloadOperation* download)
+void ScenarioCustomDownloadExperience::UpdateProgress(ICoreWebView2DownloadOperation* download)
 {
     //! [BytesReceivedChanged]
     CHECK_FAILURE(download->add_BytesReceivedChanged(
-        Callback<ICoreWebView2ExperimentalBytesReceivedChangedEventHandler>(
-            [this](ICoreWebView2ExperimentalDownloadOperation* download, IUnknown* args) -> HRESULT {
+        Callback<ICoreWebView2BytesReceivedChangedEventHandler>(
+            [this](ICoreWebView2DownloadOperation* download, IUnknown* args) -> HRESULT {
                 // Here developer can update UI to show progress of a download using
                 // `download->get_BytesReceived` and
                 // `download->get_TotalBytesToReceive`.
@@ -170,8 +146,8 @@ void ScenarioCustomDownloadExperience::UpdateProgress(ICoreWebView2ExperimentalD
 
     //! [StateChanged]
     CHECK_FAILURE(download->add_StateChanged(
-        Callback<ICoreWebView2ExperimentalStateChangedEventHandler>(
-          [this](ICoreWebView2ExperimentalDownloadOperation* download,
+        Callback<ICoreWebView2StateChangedEventHandler>(
+          [this](ICoreWebView2DownloadOperation* download,
             IUnknown* args) -> HRESULT {
                 COREWEBVIEW2_DOWNLOAD_STATE downloadState;
                 CHECK_FAILURE(download->get_State(&downloadState));
@@ -195,7 +171,7 @@ void ScenarioCustomDownloadExperience::UpdateProgress(ICoreWebView2ExperimentalD
     //! [StateChanged]
 }
 
-void ScenarioCustomDownloadExperience::CompleteDownload(ICoreWebView2ExperimentalDownloadOperation* download)
+void ScenarioCustomDownloadExperience::CompleteDownload(ICoreWebView2DownloadOperation* download)
 {
     // Close download progress dialog here.
 
@@ -207,6 +183,6 @@ void ScenarioCustomDownloadExperience::CompleteDownload(ICoreWebView2Experimenta
 
 ScenarioCustomDownloadExperience::~ScenarioCustomDownloadExperience()
 {
-    CHECK_FAILURE(m_webViewExperimental2->remove_DownloadStarting(m_downloadStartingToken));
+    CHECK_FAILURE(m_webView2_4->remove_DownloadStarting(m_downloadStartingToken));
     CHECK_FAILURE(m_webView->remove_ContentLoading(m_contentLoadingToken));
 }

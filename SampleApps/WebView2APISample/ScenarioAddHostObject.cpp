@@ -75,61 +75,64 @@ ScenarioAddHostObject::ScenarioAddHostObject(AppWindow* appWindow)
         return S_OK;
     }).Get(), &m_navigationStartingToken));
 
-    wil::com_ptr<ICoreWebView2Experimental> webviewExperimental;
-    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webviewExperimental)));
-    // Register a handler for the FrameCreated event.
-    // This handler can be used to add host objects to the created iframe.
-    CHECK_FAILURE(webviewExperimental->add_FrameCreated(
-        Callback<ICoreWebView2ExperimentalFrameCreatedEventHandler>(
-            [this](
-                ICoreWebView2* sender,
-                ICoreWebView2ExperimentalFrameCreatedEventArgs* args) -> HRESULT
+
+    wil::com_ptr<ICoreWebView2_4> webview2_4 = m_webView.try_query<ICoreWebView2_4>();
+    if (webview2_4)
     {
-        wil::com_ptr<ICoreWebView2ExperimentalFrame> webviewFrame;
-        CHECK_FAILURE(args->get_Frame(&webviewFrame));
-
-        wil::unique_cotaskmem_string name;
-        CHECK_FAILURE(webviewFrame->get_Name(&name));
-        if (std::wcscmp(name.get(), L"iframe_name") == 0)
+        // Register a handler for the FrameCreated event.
+        // This handler can be used to add host objects to the created iframe.
+        CHECK_FAILURE(webview2_4->add_FrameCreated(
+            Callback<ICoreWebView2FrameCreatedEventHandler>(
+                [this](
+                    ICoreWebView2* sender,
+                    ICoreWebView2FrameCreatedEventArgs* args) -> HRESULT
         {
-            //! [AddHostObjectToScriptWithOrigins]
-            wil::unique_variant remoteObjectAsVariant;
-            // It will throw if m_hostObject fails the QI, but because it is our object
-            // it should always succeed.
-            m_hostObject.query_to<IDispatch>(&remoteObjectAsVariant.pdispVal);
-            remoteObjectAsVariant.vt = VT_DISPATCH;
+            wil::com_ptr<ICoreWebView2Frame> webviewFrame;
+            CHECK_FAILURE(args->get_Frame(&webviewFrame));
 
-            // Create list of origins which will be checked.
-            // iframe will have access to host object only if its origin belongs
-            // to this list.
-            LPCWSTR origin = L"https://appassets.example/";
+            wil::unique_cotaskmem_string name;
+            CHECK_FAILURE(webviewFrame->get_Name(&name));
+            if (std::wcscmp(name.get(), L"iframe_name") == 0)
+            {
+                //! [AddHostObjectToScriptWithOrigins]
+                wil::unique_variant remoteObjectAsVariant;
+                // It will throw if m_hostObject fails the QI, but because it is our object
+                // it should always succeed.
+                m_hostObject.query_to<IDispatch>(&remoteObjectAsVariant.pdispVal);
+                remoteObjectAsVariant.vt = VT_DISPATCH;
 
-            CHECK_FAILURE(webviewFrame->AddHostObjectToScriptWithOrigins(
-                L"sample", &remoteObjectAsVariant, 1, &origin));
-            //! [AddHostObjectToScriptWithOrigins]
-        }
+                // Create list of origins which will be checked.
+                // iframe will have access to host object only if its origin belongs
+                // to this list.
+                LPCWSTR origin = L"https://appassets.example/";
 
-        // Subscribe to frame name changed event
-        webviewFrame->add_NameChanged(
-            Callback<ICoreWebView2ExperimentalFrameNameChangedEventHandler>(
-                [this](ICoreWebView2ExperimentalFrame* sender, IUnknown* args) -> HRESULT {
-                    wil::unique_cotaskmem_string newName;
-                    CHECK_FAILURE(sender->get_Name(&newName));
-                    // Handle name changed event
-                    return S_OK;
-                }).Get(), NULL);
+                CHECK_FAILURE(webviewFrame->AddHostObjectToScriptWithOrigins(
+                    L"sample", &remoteObjectAsVariant, 1, &origin));
+                //! [AddHostObjectToScriptWithOrigins]
+            }
 
-        // Subscribe to frame destroyed event
-        webviewFrame->add_Destroyed(
-            Callback<ICoreWebView2ExperimentalFrameDestroyedEventHandler>(
-                [this](ICoreWebView2ExperimentalFrame* sender, IUnknown* args) -> HRESULT {
-                    /*Cleanup on frame destruction*/
-                    return S_OK;
-                })
-                .Get(),
-            NULL);
-        return S_OK;
-    }).Get(), &m_frameCreatedToken));
+            // Subscribe to frame name changed event
+            webviewFrame->add_NameChanged(
+                Callback<ICoreWebView2FrameNameChangedEventHandler>(
+                    [this](ICoreWebView2Frame* sender, IUnknown* args) -> HRESULT {
+                        wil::unique_cotaskmem_string newName;
+                        CHECK_FAILURE(sender->get_Name(&newName));
+                        // Handle name changed event
+                        return S_OK;
+                    }).Get(), NULL);
+
+            // Subscribe to frame destroyed event
+            webviewFrame->add_Destroyed(
+                Callback<ICoreWebView2FrameDestroyedEventHandler>(
+                    [this](ICoreWebView2Frame* sender, IUnknown* args) -> HRESULT {
+                        /*Cleanup on frame destruction*/
+                        return S_OK;
+                    })
+                    .Get(),
+                NULL);
+            return S_OK;
+        }).Get(), &m_frameCreatedToken));
+    }
 
     CHECK_FAILURE(m_webView->Navigate(sampleUri.c_str()));
 }
@@ -138,7 +141,6 @@ ScenarioAddHostObject::~ScenarioAddHostObject()
 {
     m_webView->RemoveHostObjectFromScript(L"sample");
     m_webView->remove_NavigationStarting(m_navigationStartingToken);
-    wil::com_ptr<ICoreWebView2Experimental> webviewExperimental;
-    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webviewExperimental)));
-    webviewExperimental->remove_FrameCreated(m_frameCreatedToken);
+    wil::com_ptr<ICoreWebView2_4> webview2_4 = m_webView.try_query<ICoreWebView2_4>();
+    if (webview2_4) webview2_4->remove_FrameCreated(m_frameCreatedToken);
 }

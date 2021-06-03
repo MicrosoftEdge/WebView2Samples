@@ -14,22 +14,17 @@ class ScenarioCustomDownloadExperience : public ComponentBase
 {
 public:
     ScenarioCustomDownloadExperience(AppWindow* appWindow);
-    bool HandleWindowMessage(
-        HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
-    void StartDeferredDownload();
-    void CompleteDownloadDeferral();
-    void UpdateProgress(ICoreWebView2ExperimentalDownloadOperation* download);
-    void CompleteDownload(ICoreWebView2ExperimentalDownloadOperation* download);
+    void UpdateProgress(ICoreWebView2DownloadOperation* download);
+    void CompleteDownload(ICoreWebView2DownloadOperation* download);
     ~ScenarioCustomDownloadExperience() override;
 
 private:
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2Experimental2> m_webViewExperimental2;
+    wil::com_ptr<ICoreWebView2_4> m_webView2_4;
     std::wstring m_demoUri;
     EventRegistrationToken m_downloadStartingToken = {};
     EventRegistrationToken m_contentLoadingToken = {};
     EventRegistrationToken m_bytesReceivedChangedToken = {};
     EventRegistrationToken m_stateChangedToken = {};
-    std::function<void()> m_completeDeferredDownloadEvent;
 };

@@ -90,9 +90,11 @@ private:
     wil::com_ptr<DropTarget> m_dropTarget;
     float m_webviewAdditionalRasterizationScale = 1.0f;
     COREWEBVIEW2_BOUNDS_MODE m_boundsMode = COREWEBVIEW2_BOUNDS_MODE_USE_RAW_PIXELS;
+    COREWEBVIEW2_COLOR m_webViewColor = { 255, 255, 255, 255 };
 
     EventRegistrationToken m_zoomFactorChangedToken = {};
     EventRegistrationToken m_rasterizationScaleChangedToken = {};
+    EventRegistrationToken m_navigationStartingToken = {};
 
     bool OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam);
     bool OnPointerMessage(UINT message, WPARAM wParam, LPARAM lParam);

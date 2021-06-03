@@ -37,15 +37,19 @@ namespace WebView2WpfBrowser
         public static RoutedCommand SuspendCommand = new RoutedCommand();
         public static RoutedCommand ResumeCommand = new RoutedCommand();
         public static RoutedCommand CheckUpdateCommand = new RoutedCommand();
+        public static RoutedCommand NewBrowserVersionCommand = new RoutedCommand();
+        public static RoutedCommand CustomClientCertificateSelectionCommand = new RoutedCommand();
+        public static RoutedCommand DeferredCustomCertificateDialogCommand = new RoutedCommand();
         public static RoutedCommand BackgroundColorCommand = new RoutedCommand();
         public static RoutedCommand DownloadStartingCommand = new RoutedCommand();
         public static RoutedCommand AddOrUpdateCookieCommand = new RoutedCommand();
         public static RoutedCommand DeleteCookiesCommand = new RoutedCommand();
         public static RoutedCommand DeleteAllCookiesCommand = new RoutedCommand();
         public static RoutedCommand SetUserAgentCommand = new RoutedCommand();
-        public static RoutedCommand PasswordAutofillCommand = new RoutedCommand();
+        public static RoutedCommand PasswordAutosaveCommand = new RoutedCommand();
         public static RoutedCommand GeneralAutofillCommand = new RoutedCommand();
         public static RoutedCommand PinchZoomCommand = new RoutedCommand();
+        public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         CoreWebView2Settings _webViewSettings;
@@ -79,7 +83,8 @@ namespace WebView2WpfBrowser
             AttachControlEventHandlers(webView);
         }
 
-        void AttachControlEventHandlers(WebView2 control) {
+        void AttachControlEventHandlers(WebView2 control)
+        {
             control.NavigationStarting += WebView_NavigationStarting;
             control.NavigationCompleted += WebView_NavigationCompleted;
             control.CoreWebView2InitializationCompleted += WebView_CoreWebView2InitializationCompleted;
@@ -158,6 +163,15 @@ namespace WebView2WpfBrowser
             e.CanExecute = IsWebViewValid();
         }
 
+        void CustomClientCertificateSelectionCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            EnableCustomClientCertificateSelection();
+        }
+        void DeferredCustomCertificateDialogCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            DeferredCustomClientCertificateSelectionDialog();
+        }
+
         private bool _isControlInVisualTree = true;
 
         void RemoveControlFromVisualTree(WebView2 control)
@@ -172,12 +186,25 @@ namespace WebView2WpfBrowser
             _isControlInVisualTree = true;
         }
 
-        WebView2 GetReplacementControl()
+        WebView2 GetReplacementControl(bool useNewEnvironment)
         {
             WebView2 replacementControl = new WebView2();
             ((System.ComponentModel.ISupportInitialize)(replacementControl)).BeginInit();
-            // Setup properties and bindings
-            replacementControl.CreationProperties = webView.CreationProperties;
+            // Setup properties and bindings.
+            if (useNewEnvironment)
+            {
+                // Create a new CoreWebView2CreationProperties instance so the environment
+                // is made anew.
+                replacementControl.CreationProperties = new CoreWebView2CreationProperties();
+                replacementControl.CreationProperties.BrowserExecutableFolder = webView.CreationProperties.BrowserExecutableFolder;
+                replacementControl.CreationProperties.Language = webView.CreationProperties.Language;
+                replacementControl.CreationProperties.UserDataFolder = webView.CreationProperties.UserDataFolder;
+                shouldAttachEnvironmentEventHandlers = true;
+            }
+            else
+            {
+                replacementControl.CreationProperties = webView.CreationProperties;
+            }
             Binding urlBinding = new Binding()
             {
                 Source = replacementControl,
@@ -214,18 +241,14 @@ namespace WebView2WpfBrowser
                 if (selection == MessageBoxResult.Yes)
                 {
                     // The control cannot be re-initialized so we setup a new instance to replace it.
-                    // Note the previous instance of the control has been disposed of and removed from
-                    // the visual tree before attaching the new one.
-                    WebView2 replacementControl = GetReplacementControl();
+                    // Note the previous instance of the control is disposed of and removed from the
+                    // visual tree before attaching the new one.
                     if (_isControlInVisualTree)
                     {
                         RemoveControlFromVisualTree(webView);
                     }
-                    // Dispose of the control so additional resources are released. We do this only
-                    // after creating the replacement control as properties for the replacement
-                    // control are taken from the existing instance.
                     webView.Dispose();
-                    webView = replacementControl;
+                    webView = GetReplacementControl(false);
                     AttachControlToVisualTree(webView);
                 }
             }
@@ -409,9 +432,9 @@ namespace WebView2WpfBrowser
             webView.NavigateToString(@"<!DOCTYPE html><h1>DOMContentLoaded sample page</h1><h2>The content below will be added after DOM content is loaded </h2>");
         }
 
-        void PasswordAutofillCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        void PasswordAutosaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            WebViewSettings.IsPasswordAutofillEnabled = !WebViewSettings.IsPasswordAutofillEnabled;
+            WebViewSettings.IsPasswordAutosaveEnabled = !WebViewSettings.IsPasswordAutosaveEnabled;
         }
         void GeneralAutofillCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -451,6 +474,31 @@ namespace WebView2WpfBrowser
             MessageBox.Show("Pinch Zoom is" + (WebViewSettings.IsPinchZoomEnabled ? " enabled " : " disabled ") + "after the next navigation.");
         }
 
+        void SwipeNavigationCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            // Safeguarding the handler when unsupported runtime is used.
+            try
+            {
+                WebViewSettings.IsSwipeNavigationEnabled = !WebViewSettings.IsSwipeNavigationEnabled;
+                MessageBox.Show("Swipe to navigate is" + (WebViewSettings.IsSwipeNavigationEnabled ? " enabled " : " disabled ") + "after the next navigation.");
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Toggle Swipe Navigation Failed: " + exception.Message, "Swipe Navigation");
+            }
+        }
+        void NewBrowserVersionCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window is MainWindow mainWindow)
+                {
+                    // Simulate NewBrowserVersionAvailable being raised.
+                    mainWindow.Environment_NewBrowserVersionAvailable(null, null);
+                }
+            }
+        }
+
         void DownloadStartingCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             try
@@ -458,41 +506,41 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.DownloadStarting += delegate (
                   object sender, CoreWebView2DownloadStartingEventArgs args)
                 {
-                    // Developer can obtain a deferral for the event so that the CoreWebView2
-                    // doesn't examine the properties we set on the event args until
-                    // after the deferral completes asynchronously.
-                    CoreWebView2Deferral deferral = args.GetDeferral();
+            // Developer can obtain a deferral for the event so that the CoreWebView2
+            // doesn't examine the properties we set on the event args until
+            // after the deferral completes asynchronously.
+            CoreWebView2Deferral deferral = args.GetDeferral();
 
-                    // We avoid potential reentrancy from running a message loop in the download
-                    // starting event handler by showing our download dialog later when we
-                    // complete the deferral asynchronously.
-                    System.Threading.SynchronizationContext.Current.Post((_) =>
-                    {
-                        using (deferral)
-                        {
-                            // Hide the default download dialog.
-                            args.Handled = true;
-                            var dialog = new TextInputDialog(
-                                title: "Download Starting",
-                                description: "Enter new result file path or select OK to keep default path. Select cancel to cancel the download.",
-                                defaultInput: args.ResultFilePath);
-                            if (dialog.ShowDialog() == true)
-                            {
-                              args.ResultFilePath = dialog.Input.Text;
-                              UpdateProgress(args.DownloadOperation);
-                            }
-                            else
-                            {
-                              args.Cancel = true;
-                            }
-                        }
-                    }, null);
+            // We avoid potential reentrancy from running a message loop in the download
+            // starting event handler by showing our download dialog later when we
+            // complete the deferral asynchronously.
+            System.Threading.SynchronizationContext.Current.Post((_) =>
+            {
+                              using (deferral)
+                              {
+                          // Hide the default download dialog.
+                          args.Handled = true;
+                                  var dialog = new TextInputDialog(
+                                      title: "Download Starting",
+                                      description: "Enter new result file path or select OK to keep default path. Select cancel to cancel the download.",
+                                      defaultInput: args.ResultFilePath);
+                                  if (dialog.ShowDialog() == true)
+                                  {
+                                      args.ResultFilePath = dialog.Input.Text;
+                                      UpdateProgress(args.DownloadOperation);
+                                  }
+                                  else
+                                  {
+                                      args.Cancel = true;
+                                  }
+                              }
+                          }, null);
                 };
                 webView.CoreWebView2.Navigate("https://demo.smartscreen.msft.net/");
             }
             catch (NotImplementedException exception)
             {
-              MessageBox.Show(this, "DownloadStarting Failed: " + exception.Message, "Download Starting");
+                MessageBox.Show(this, "DownloadStarting Failed: " + exception.Message, "Download Starting");
             }
         }
 
@@ -501,37 +549,164 @@ namespace WebView2WpfBrowser
         {
             download.BytesReceivedChanged += delegate (object sender, Object e)
             {
-              // Here developer can update download dialog to show progress of a
-              // download using `download.BytesReceived` and `download.TotalBytesToReceive`
-            };
+          // Here developer can update download dialog to show progress of a
+          // download using `download.BytesReceived` and `download.TotalBytesToReceive`
+      };
 
             download.StateChanged += delegate (object sender, Object e)
             {
                 switch (download.State)
                 {
-                  case CoreWebView2DownloadState.InProgress:
-                    break;
-                  case CoreWebView2DownloadState.Interrupted:
-                    // Here developer can take different actions based on `download.InterruptReason`.
-                    // For example, show an error message to the end user.
-                    break;
-                  case CoreWebView2DownloadState.Completed:
-                    break;
+                    case CoreWebView2DownloadState.InProgress:
+                        break;
+                    case CoreWebView2DownloadState.Interrupted:
+                  // Here developer can take different actions based on `download.InterruptReason`.
+                  // For example, show an error message to the end user.
+                  break;
+                    case CoreWebView2DownloadState.Completed:
+                        break;
                 }
             };
         }
 
-    void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        // Turn off client certificate selection dialog using ClientCertificateRequested event handler
+        // that disables the dialog. This example hides the default client certificate dialog and
+        // always chooses the last certificate without prompting the user.
+        private bool _isCustomClientCertificateSelection = false;
+        void EnableCustomClientCertificateSelection()
+        {
+            // Safeguarding the handler when unsupported runtime is used.
+            try
+            {
+                if (!_isCustomClientCertificateSelection)
+                {
+                    webView.CoreWebView2.ClientCertificateRequested += WebView_ClientCertificateRequested;
+                }
+                else
+                {
+                    webView.CoreWebView2.ClientCertificateRequested -= WebView_ClientCertificateRequested;
+                }
+                _isCustomClientCertificateSelection = !_isCustomClientCertificateSelection;
+
+                MessageBox.Show(this,
+                    _isCustomClientCertificateSelection ? "Custom client certificate selection has been enabled" : "Custom client certificate selection has been disabled",
+                    "Custom client certificate selection");
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Custom client certificate selection Failed: " + exception.Message, "Custom client certificate selection");
+            }
+        }
+
+        void WebView_ClientCertificateRequested(object sender, CoreWebView2ClientCertificateRequestedEventArgs e)
+        {
+            IReadOnlyList<CoreWebView2ClientCertificate> certificateList = e.MutuallyTrustedCertificates;
+            if (certificateList.Count() > 0)
+            {
+                // There is no significance to the order, picking a certificate arbitrarily.
+                e.SelectedCertificate = certificateList.LastOrDefault();
+                // Continue with the selected certificate to respond to the server.
+                e.Handled = true;
+            }
+            else
+            {
+                // Continue without a certificate to respond to the server if certificate list is empty.
+                e.Handled = true;
+            }
+        }
+
+        // This example hides the default client certificate dialog and shows a custom dialog instead.
+        // The dialog box displays mutually trusted certificates list and allows the user to select a certificate.
+        // Selecting `OK` will continue the request with a certificate.
+        // Selecting `CANCEL` will continue the request without a certificate
+        private bool _isCustomClientCertificateSelectionDialog = false;
+        void DeferredCustomClientCertificateSelectionDialog()
+        {
+            // Safeguarding the handler when unsupported runtime is used.
+            try
+            {
+                if (!_isCustomClientCertificateSelectionDialog)
+                {
+                    webView.CoreWebView2.ClientCertificateRequested += delegate (
+                        object sender, CoreWebView2ClientCertificateRequestedEventArgs args)
+                    {
+              // Developer can obtain a deferral for the event so that the WebView2
+              // doesn't examine the properties we set on the event args until
+              // after the deferral completes asynchronously.
+              CoreWebView2Deferral deferral = args.GetDeferral();
+
+                        System.Threading.SynchronizationContext.Current.Post((_) =>
+                        {
+                                    using (deferral)
+                                    {
+                                        IReadOnlyList<CoreWebView2ClientCertificate> certificateList = args.MutuallyTrustedCertificates;
+                                        if (certificateList.Count() > 0)
+                                        {
+                                  // Display custom dialog box for the client certificate selection.
+                                  var dialog = new ClientCertificateSelectionDialog(
+                                                              title: "Select a Certificate for authentication",
+                                                              host: args.Host,
+                                                              port: args.Port,
+                                                              client_cert_list: certificateList);
+                                            if (dialog.ShowDialog() == true)
+                                            {
+                                      // Continue with the selected certificate to respond to the server if `OK` is selected.
+                                      args.SelectedCertificate = (CoreWebView2ClientCertificate)dialog.CertificateDataBinding.SelectedItem;
+                                            }
+                                  // Continue without a certificate to respond to the server if `CANCEL` is selected.
+                                  args.Handled = true;
+                                        }
+                                        else
+                                        {
+                                  // Continue without a certificate to respond to the server if certificate list is empty.
+                                  args.Handled = true;
+                                        }
+                                    }
+
+                                }, null);
+                    };
+                    _isCustomClientCertificateSelectionDialog = true;
+                    MessageBox.Show("Custom Client Certificate selection dialog will be used next when WebView2 is making a " +
+                        "request to an HTTP server that needs a client certificate.", "Client certificate selection");
+                }
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Custom client certificate selection dialog Failed: " + exception.Message, "Client certificate selection");
+            }
+        }
+
+        void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = webView != null && !_isNavigating;
         }
 
         async void GoToPageCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            await webView.EnsureCoreWebView2Async();
+
+            var rawUrl = (string)e.Parameter;
+            Uri uri = null;
+
+            if (Uri.IsWellFormedUriString(rawUrl, UriKind.Absolute))
+            {
+                uri = new Uri(rawUrl);
+            }
+            else if (!rawUrl.Contains(" ") && rawUrl.Contains("."))
+            {
+                // An invalid URI contains a dot and no spaces, try tacking http:// on the front.
+                uri = new Uri("http://" + rawUrl);
+            }
+            else
+            {
+                // Otherwise treat it as a web search.
+                uri = new Uri("https://bing.com/search?q=" +
+                    String.Join("+", Uri.EscapeDataString(rawUrl).Split(new string[] { "%20" }, StringSplitOptions.RemoveEmptyEntries)));
+            }
+
             // Setting webView.Source will not trigger a navigation if the Source is the same
             // as the previous Source.  CoreWebView.Navigate() will always trigger a navigation.
-            await webView.EnsureCoreWebView2Async();
-            webView.CoreWebView2.Navigate((string)e.Parameter);
+            webView.CoreWebView2.Navigate(uri.ToString());
         }
 
         async void SuspendCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -631,15 +806,108 @@ namespace WebView2WpfBrowser
             RequeryCommands();
         }
 
+        private bool shouldAttachEnvironmentEventHandlers = true;
+
         void WebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             if (e.IsSuccess)
             {
                 webView.CoreWebView2.ProcessFailed += WebView_ProcessFailed;
+
+                // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
+                // to the replacement control. We don't need to re-attach the event handlers unless the environment
+                // instance has changed.
+                if (shouldAttachEnvironmentEventHandlers)
+                {
+                    try
+                    {
+                        WebViewEnvironment.BrowserProcessExited += Environment_BrowserProcessExited;
+                        WebViewEnvironment.NewBrowserVersionAvailable += Environment_NewBrowserVersionAvailable;
+                    }
+                    catch (NotImplementedException)
+                    {
+                        newVersionMenuItem.IsEnabled = false;
+                    }
+                    shouldAttachEnvironmentEventHandlers = false;
+                }
                 return;
             }
 
             MessageBox.Show($"WebView2 creation failed with exception = {e.InitializationException}");
+        }
+
+        private bool shouldAttemptReinitOnBrowserExit = false;
+
+        void Environment_BrowserProcessExited(object sender, CoreWebView2BrowserProcessExitedEventArgs e)
+        {
+            // Let ProcessFailed handler take care of process failure.
+            if (e.BrowserProcessExitKind == CoreWebView2BrowserProcessExitKind.Failed)
+            {
+                return;
+            }
+            if (shouldAttemptReinitOnBrowserExit)
+            {
+                _webViewEnvironment = null;
+                webView = GetReplacementControl(true);
+                AttachControlToVisualTree(webView);
+                shouldAttemptReinitOnBrowserExit = false;
+            }
+        }
+
+        // A new version of the WebView2 Runtime is available, our handler gets called.
+        // We close our WebView and set a handler to reinitialize it once the WebView2
+        // Runtime collection of processes are gone, so we get the new version of the
+        // WebView2 Runtime.
+        void Environment_NewBrowserVersionAvailable(object sender, object e)
+        {
+            if (((App)Application.Current).newRuntimeEventHandled)
+            {
+                return;
+            }
+
+            ((App)Application.Current).newRuntimeEventHandled = true;
+            System.Threading.SynchronizationContext.Current.Post((_) =>
+            {
+                UpdateIfSelectedByUser();
+            }, null);
+        }
+
+        void UpdateIfSelectedByUser()
+        {
+            // New browser version available, ask user to close everything and re-init.
+            StringBuilder messageBuilder = new StringBuilder(256);
+            messageBuilder.Append("We detected there is a new version of the WebView2 Runtime installed. ");
+            messageBuilder.Append("Do you want to switch to it now? This will re-create the WebView.");
+            var selection = MessageBox.Show(this, messageBuilder.ToString(), "New WebView2 Runtime detected", MessageBoxButton.YesNo);
+            if (selection == MessageBoxResult.Yes)
+            {
+                // If this or any other application creates additional WebViews from the same
+                // environment configuration, all those WebViews need to be closed before
+                // the browser process will exit. This sample creates a single WebView per
+                // MainWindow, we let each MainWindow prepare to recreate and close its WebView.
+                CloseAppWebViewsForUpdate();
+            }
+            ((App)Application.Current).newRuntimeEventHandled = false;
+        }
+
+        private void CloseAppWebViewsForUpdate()
+        {
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window is MainWindow mainWindow)
+                {
+                    mainWindow.CloseWebViewForUpdate();
+                }
+            }
+        }
+
+        private void CloseWebViewForUpdate()
+        {
+            // We dispose of the control so the internal WebView objects are released
+            // and the associated browser process exits.
+            shouldAttemptReinitOnBrowserExit = true;
+            RemoveControlFromVisualTree(webView);
+            webView.Dispose();
         }
 
         private static void OnShowNextWebResponseChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

@@ -38,6 +38,7 @@ public:
     void ChangeUserAgent();
     void SetUserAgent(const std::wstring& userAgent);
     void CompleteScriptDialogDeferral();
+    void EnableCustomClientCertificateSelection();
 
     ~SettingsComponent() override;
 
@@ -48,6 +49,9 @@ private:
     wil::com_ptr<ICoreWebView2Settings> m_settings;
     wil::com_ptr<ICoreWebView2Settings2> m_settings2;
     wil::com_ptr<ICoreWebView2Settings3> m_settings3;
+    wil::com_ptr<ICoreWebView2Settings4> m_settings4;
+    wil::com_ptr<ICoreWebView2Settings5> m_settings5;
+    wil::com_ptr<ICoreWebView2Experimental3> m_webViewExperimental;
 
     bool m_blockImages = false;
     bool m_replaceImages = false;
@@ -55,6 +59,9 @@ private:
     bool m_changeUserAgent = false;
     bool m_isScriptEnabled = true;
     bool m_blockedSitesSet = false;
+    bool m_raiseClientCertificate = false;
+    std::map<std::tuple<std::wstring, COREWEBVIEW2_PERMISSION_KIND, BOOL>, bool>
+        m_cached_permissions;
     std::vector<std::wstring> m_blockedSites;
     std::wstring m_overridingUserAgent;
     std::function<void()> m_completeDeferredDialog;
@@ -66,5 +73,5 @@ private:
     EventRegistrationToken m_webResourceRequestedTokenForUserAgent = {};
     EventRegistrationToken m_scriptDialogOpeningToken = {};
     EventRegistrationToken m_permissionRequestedToken = {};
+    EventRegistrationToken m_ClientCertificateRequestedToken = {};
 };
-

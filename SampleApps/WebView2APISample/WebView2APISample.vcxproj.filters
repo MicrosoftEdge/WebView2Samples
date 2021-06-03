@@ -93,6 +93,12 @@
     <ClCompile Include="ScenarioCustomDownloadExperience.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScenarioClientCertificateRequested.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientCertificateSelectionDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -179,6 +185,12 @@
     <ClInclude Include="ScenarioCustomDownloadExperience.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ScenarioClientCertificateRequested.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientCertificateSelectionDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc">
@@ -200,9 +212,6 @@
     <CopyFileToFolders Include="assets\ScenarioWebViewEventMonitor.html" />
     <CopyFileToFolders Include="assets\AppStartPage.html" />
     <CopyFileToFolders Include="assets\AppStartPage.js" />
-    <CopyFileToFolders Include="assets\AppStartPageBackground.png">
-      <Filter>Resource Files</Filter>
-    </CopyFileToFolders>
     <CopyFileToFolders Include="assets\ScenarioTestingFocus.html" />
   </ItemGroup>
   <ItemGroup>
@@ -210,6 +219,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="WebView2APISample.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="AppBackground.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
