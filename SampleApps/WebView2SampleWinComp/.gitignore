@@ -1,0 +1,22 @@
+Debug/
+Release/
+ipch/
+x64/
+x86/
+ARM64/
+.vs/
+# Created by running event monitor
+enc_temp_folder/
+packages/
+
+# Override root .gitignore to ensure we pick up changes for the sample app
+!*.sln
+!*.vcxproj
+!*.vcxproj.filters
+!*.props
+
+# Ignore the binary generated version of the resource (.rc) file
+*.aps
+
+# Make sure script debug config is checked in for vendor testing
+!.vscode

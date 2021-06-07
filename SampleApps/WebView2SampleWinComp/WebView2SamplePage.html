@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+<html class="logo-background">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Microsoft Edge WebView2</title>
+    <style>
+        .logo-background {
+            background: url("WebViewStartPageBackground.png") no-repeat center fixed;
+            background-color: #e0e0e0;
+            background-size: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>WebView sample page</h1>
+    <p>This page demonstrates basic interactions with visual objects in sample app</p>
+
+    <h2>Interact with WebView:</h2>
+    <button id="myButton">Navigate to Bing</button>
+    <script>
+        document.getElementById("myButton").onclick = function () {
+            location.href = "https://www.bing.com/";
+        };
+    </script>
+
+
+</body>
+
+</html>
