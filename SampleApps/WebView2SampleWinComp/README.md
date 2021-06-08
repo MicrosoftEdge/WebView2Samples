@@ -2,7 +2,7 @@
 
 This is a hybrid application built with the [Microsoft Edge WebView2](https://aka.ms/webview2) control.
 
-![Sample App Snapshot](\screenshots\WinComp-Sample-App-Screenshot.png)
+![Sample App Snapshot](/screenshots/WinComp-Sample-App-Screenshot.png)
 
 The WebView2SampleWinComp is an example of an application that embeds a WebView within a Win32 native application. It is built as a Win32 [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) project and makes use of both C++ and HTML/CSS/JavaScript in the WebView2 environment. It also uses [Windows Runtime Composition APIs](https://docs.microsoft.com/en-us/uwp/api/windows.ui.composition?view=winrt-19041) (also called the Visual layer) to take avantage of the latest Windows 10 UI features and create better look, feel, and functionality in C++ Win32 applications.
 
@@ -32,4 +32,3 @@ That's it! Everything should be ready to just launch the app.
 *You can get the WebView2 NugetPackage through the Visual Studio NuGet Package Manager.
 
 **You can also use Visual Studio 2017 by changing the project's Platform Toolset in Project Properties/Configuration properties/General/Platform Toolset. You might also need to change the Windows SDK to the latest version available to you.
-
