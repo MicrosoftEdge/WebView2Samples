@@ -9,7 +9,7 @@ In the ``GettingStarted`` folder you will find the starter code for its respecti
 - [WinUI Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/winui)
 
 In the ``Sample Apps`` folder you will find:
-- [WebView2Samples.sln](SampleApps/WebView2Samples.sln) - a collective solution that includes [WebView2APISample.vcxproj](SampleApps/WebView2APISample/WebView2APISample.vcxproj), [WebView2WpfBrowser.csproj](SampleApps/WebView2WpfBrowser/WebView2WpfBrowser.csproj), [WebView2WindowsFormsBrowser.csproj](SampleApps/WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj), [WV2DeploymentWiXCustomActionSample](/SampleApps/WV2DeploymentWiXCustomActionSample/README.md), and [WV2DeploymentWiXBurnBundleSample](/SampleApps/WV2DeploymentWiXBurnBundleSample/README.md).
+- [WebView2Samples.sln](SampleApps/WebView2Samples.sln) - a collective solution that includes [WebView2APISample.vcxproj](SampleApps/WebView2APISample/WebView2APISample.vcxproj), [WebView2SampleWinComp.vcxproj](SampleApps/WebView2SampleWinComp/WebView2SampleWinComp.vcxproj), [WebView2WpfBrowser.csproj](SampleApps/WebView2WpfBrowser/WebView2WpfBrowser.csproj), [WebView2WindowsFormsBrowser.csproj](SampleApps/WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj), [WV2DeploymentWiXCustomActionSample](/SampleApps/WV2DeploymentWiXCustomActionSample/README.md), and [WV2DeploymentWiXBurnBundleSample](/SampleApps/WV2DeploymentWiXBurnBundleSample/README.md).
 
 Please leave feedback in our [our feedback repo](https://aka.ms/webviewfeedback)!
 
@@ -23,7 +23,7 @@ This will require downloading the [Getting Started Guide](https://github.com/Mic
 
 #### Comprehensive API Sample
 
-The **Win32 C++ Sample** can be found in the [WebView2APISample](./SampleApps/WebView2APISample) directory.
+The **Win32 C++ Sample** can be found in the [WebView2APISample](./SampleApps/WebView2APISample) directory and [WebView2SampleWinComp](./SampleApps/WebView2SampleWinComp) directory.
 
 #### Multiple WebViews Sample
 
