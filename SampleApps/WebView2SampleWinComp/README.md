@@ -2,9 +2,9 @@
 
 This is a hybrid application built with the [Microsoft Edge WebView2](https://aka.ms/webview2) control.
 
-![Sample App Snapshot](/screenshots/WinComp-Sample-App-Screenshot.png)
+![Sample App Snapshot](./screenshots/WinComp-Sample-App-Screenshot.png)
 
-The WebView2SampleWinComp is an example of an application that embeds a WebView within a Win32 native application. It is built as a Win32 [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) project and makes use of both C++ and HTML/CSS/JavaScript in the WebView2 environment. It also uses [Windows Runtime Composition APIs](https://docs.microsoft.com/en-us/uwp/api/windows.ui.composition?view=winrt-19041) (also called the Visual layer) to take avantage of the latest Windows 10 UI features and create better look, feel, and functionality in C++ Win32 applications.
+The WebView2SampleWinComp is an example of an application that embeds a WebView within a Win32 native application. It is built as a Win32 [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) project and makes use of both C++ and HTML/CSS/JavaScript in the WebView2 environment. It also uses [Windows Runtime Composition APIs](https://docs.microsoft.com/uwp/api/windows.ui.composition?view=winrt-19041) (also called the Visual layer) to take avantage of the latest Windows 10 UI features and create better look, feel, and functionality in C++ Win32 applications.
 
 The API Sample showcases a selection of WebView2's event handlers and API methods that allow a native Win32 application to directly interact with a WebView and vice versa.
 
