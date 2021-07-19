@@ -10,16 +10,16 @@
 
 using namespace Microsoft::WRL;
 
-ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) : m_appWindow(appWindow)
+ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) :
+    m_appWindow(appWindow)
 {
+    m_webView = wil::com_ptr<ICoreWebView2>(m_appWindow->GetWebView()).query<ICoreWebView2_2>();
     MessageBox(
         nullptr,
         L"Authentication scenario:\n Click HTML/NTLM Auth to get Authentication headers",
         nullptr, MB_OK);
     //! [WebResourceResponseReceived]
-    wil::com_ptr<ICoreWebView2_2> webview2;
-    CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&webview2)));
-    CHECK_FAILURE(webview2->add_WebResourceResponseReceived(
+    CHECK_FAILURE(m_webView->add_WebResourceResponseReceived(
         Callback<ICoreWebView2WebResourceResponseReceivedEventHandler>(
             [this](
                 ICoreWebView2* sender,
@@ -48,12 +48,10 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) : m_appWind
             .Get(),
         &m_webResourceResponseReceivedToken));
     //! [WebResourceResponseReceived]
-    CHECK_FAILURE(m_appWindow->GetWebView()->Navigate(L"https://authenticationtest.com"));
+    CHECK_FAILURE(m_webView->Navigate(L"https://authenticationtest.com"));
 }
 
 ScenarioAuthentication::~ScenarioAuthentication() {
-    wil::com_ptr<ICoreWebView2_2> webview2;
-    CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&webview2)));
     CHECK_FAILURE(
-        webview2->remove_WebResourceResponseReceived(m_webResourceResponseReceivedToken));
+        m_webView->remove_WebResourceResponseReceived(m_webResourceResponseReceivedToken));
 }

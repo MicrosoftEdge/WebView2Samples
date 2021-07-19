@@ -38,6 +38,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ResumeCommand = new RoutedCommand();
         public static RoutedCommand CheckUpdateCommand = new RoutedCommand();
         public static RoutedCommand NewBrowserVersionCommand = new RoutedCommand();
+        public static RoutedCommand PdfToolbarSaveCommand = new RoutedCommand();
         public static RoutedCommand CustomClientCertificateSelectionCommand = new RoutedCommand();
         public static RoutedCommand DeferredCustomCertificateDialogCommand = new RoutedCommand();
         public static RoutedCommand BackgroundColorCommand = new RoutedCommand();
@@ -76,7 +77,6 @@ namespace WebView2WpfBrowser
                 return _webViewEnvironment;
             }
         }
-
         public MainWindow()
         {
             InitializeComponent();
@@ -380,7 +380,6 @@ namespace WebView2WpfBrowser
                 MessageBox.Show(this, scriptResult, "Script Result");
             }
         }
-
         async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             List<CoreWebView2Cookie> cookieList = await webView.CoreWebView2.CookieManager.GetCookiesAsync("https://www.bing.com");
@@ -485,6 +484,20 @@ namespace WebView2WpfBrowser
             catch (NotImplementedException exception)
             {
                 MessageBox.Show(this, "Toggle Swipe Navigation Failed: " + exception.Message, "Swipe Navigation");
+            }
+        }
+
+        void PdfToolbarSaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            if(WebViewSettings.HiddenPdfToolbarItems.HasFlag(CoreWebView2PdfToolbarItems.Save))
+            {
+                WebViewSettings.HiddenPdfToolbarItems = CoreWebView2PdfToolbarItems.None;
+                MessageBox.Show("Save button on PDF toolbar is enabled after the next navigation.");
+            }
+            else
+            {
+                WebViewSettings.HiddenPdfToolbarItems = CoreWebView2PdfToolbarItems.Save;
+                MessageBox.Show("Save button on PDF toolbar is disabled after the next navigation.");
             }
         }
         void NewBrowserVersionCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -832,7 +845,6 @@ namespace WebView2WpfBrowser
                 }
                 return;
             }
-
             MessageBox.Show($"WebView2 creation failed with exception = {e.InitializationException}");
         }
 
@@ -853,7 +865,6 @@ namespace WebView2WpfBrowser
                 shouldAttemptReinitOnBrowserExit = false;
             }
         }
-
         // A new version of the WebView2 Runtime is available, our handler gets called.
         // We close our WebView and set a handler to reinitialize it once the WebView2
         // Runtime collection of processes are gone, so we get the new version of the

@@ -24,11 +24,7 @@ public:
         SettingsComponent* old = nullptr);
 
     bool HandleWindowMessage(
-        HWND hWnd,
-        UINT message,
-        WPARAM wParam,
-        LPARAM lParam,
-        LRESULT* result) override;
+        HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
     void ChangeBlockedSites();
     bool ShouldBlockUri(PWSTR uri);
@@ -51,8 +47,10 @@ private:
     wil::com_ptr<ICoreWebView2Settings3> m_settings3;
     wil::com_ptr<ICoreWebView2Settings4> m_settings4;
     wil::com_ptr<ICoreWebView2Settings5> m_settings5;
-    wil::com_ptr<ICoreWebView2Experimental3> m_webViewExperimental;
-
+    wil::com_ptr<ICoreWebView2ExperimentalSettings5> m_experimentalSettings5;
+    wil::com_ptr<ICoreWebView2_5> m_webView2_5;
+    wil::com_ptr<ICoreWebView2Controller> m_controller;
+    wil::com_ptr<ICoreWebView2Controller3> m_controller3;
     bool m_blockImages = false;
     bool m_replaceImages = false;
     bool m_deferScriptDialogs = false;

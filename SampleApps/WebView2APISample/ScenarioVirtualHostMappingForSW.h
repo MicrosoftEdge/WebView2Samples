@@ -1,3 +1,4 @@
+#pragma once
 // Copyright (C) Microsoft Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -10,14 +11,15 @@
 #include "AppWindow.h"
 #include "ComponentBase.h"
 
-class ScenarioAuthentication : public ComponentBase
+class ScenarioVirtualHostMappingForSW : public ComponentBase
 {
 public:
-    ScenarioAuthentication(AppWindow* appWindow);
-    ~ScenarioAuthentication() override;
+    ScenarioVirtualHostMappingForSW(AppWindow* appWindow);
+    ~ScenarioVirtualHostMappingForSW() override;
 
 private:
-    EventRegistrationToken m_webResourceResponseReceivedToken = {};
     AppWindow* m_appWindow = nullptr;
-    wil::com_ptr<ICoreWebView2_2> m_webView = nullptr;
+    wil::com_ptr<ICoreWebView2> m_webView;
+    std::wstring m_sampleUri;
+    EventRegistrationToken m_contentLoadingToken = {};
 };

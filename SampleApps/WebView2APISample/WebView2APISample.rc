@@ -68,6 +68,7 @@ BEGIN
         MENUITEM "Add COM object",              IDM_ADD_HOST_OBJECT
         MENUITEM SEPARATOR
         MENUITEM "Open DevTools Window",        IDM_OPEN_DEVTOOLS_WINDOW
+        MENUITEM "Open Task Manager Window",    IDM_OPEN_TASK_MANAGER_WINDOW
     END
     POPUP "&Window"
     BEGIN
@@ -118,12 +119,13 @@ BEGIN
             MENUITEM "Use Deferred Script Dialogs", IDM_USE_DEFERRED_SCRIPT_DIALOGS
             MENUITEM "Complete Deferred Script Dialog", IDM_COMPLETE_JAVASCRIPT_DIALOG
         END
-        MENUITEM "Toggle context menus enabled",  ID_SETTINGS_CONTEXT_MENUS_ENABLED
+        MENUITEM "Toggle context menus enabled", ID_SETTINGS_CONTEXT_MENUS_ENABLED
         MENUITEM "Toggle host objects allowed", ID_SETTINGS_HOST_OBJECTS_ALLOWED
         MENUITEM "Toggle zoom control enabled",   ID_SETTINGS_ZOOM_ENABLED
         MENUITEM "Toggle built-in error page enabled", ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED
         MENUITEM "Toggle browser accelerator keys enabled", ID_SETTINGS_BROWSER_ACCELERATOR_KEYS_ENABLED
         MENUITEM "Toggle swipe navigation enabled",   ID_SETTINGS_SWIPE_NAVIGATION_ENABLED
+        MENUITEM "Toggle hide pdf toolbar items", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS
     END
     POPUP "&View"
     BEGIN
@@ -132,7 +134,7 @@ BEGIN
         MENUITEM "Resume",                      IDM_RESUME
         POPUP "WebView Area"
         BEGIN
-            MENUITEM "Get WebView Bounds",      IDM_GET_WEBVIEW_BOUNDS
+       MENUITEM "Get WebView Bounds",      IDM_GET_WEBVIEW_BOUNDS
             MENUITEM "25%",                     IDM_SIZE_25
             MENUITEM "50%",                     IDM_SIZE_50
             MENUITEM "75%",                     IDM_SIZE_75
@@ -199,7 +201,7 @@ BEGIN
         MENUITEM "Authentication",              IDM_SCENARIO_AUTHENTICATION
         MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
         MENUITEM "DOM Content Loaded",          IDM_SCENARIO_DOM_CONTENT_LOADED
-        MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
+        MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST        
         MENUITEM "Testing Focus",               IDM_SCENARIO_TESTING_FOCUS
         POPUP "Custom Download Experience"
         BEGIN
@@ -209,6 +211,7 @@ BEGIN
         BEGIN
             MENUITEM "Use Deferred Custom Client Certificate Selection Dialog", IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG
         END
+        MENUITEM "Virtual Host Mapping With Service Worker",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING
     END
     POPUP "&Help"
     BEGIN

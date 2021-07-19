@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "stdafx.h"
+#include <algorithm>
 
 #include "ScriptComponent.h"
 
@@ -13,8 +14,8 @@ using namespace Microsoft::WRL;
 
 ScriptComponent::ScriptComponent(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
-{ }
-
+{
+}
 bool ScriptComponent::HandleWindowMessage(
     HWND hWnd,
     UINT message,
@@ -53,11 +54,13 @@ bool ScriptComponent::HandleWindowMessage(
         case IDM_OPEN_DEVTOOLS_WINDOW:
             m_webView->OpenDevToolsWindow();
             return true;
+        case IDM_OPEN_TASK_MANAGER_WINDOW:
+            OpenTaskManagerWindow();
+            return true;
         }
     }
     return false;
 }
-
 //! [ExecuteScript]
 // Prompt the user for some script and then execute it.
 void ScriptComponent::InjectScript()
@@ -83,7 +86,6 @@ void ScriptComponent::InjectScript()
     }
 }
 //! [ExecuteScript]
-
 //! [AddScriptToExecuteOnDocumentCreated]
 // Prompt the user for some script and register it to execute whenever a new page loads.
 void ScriptComponent::AddInitializeScript()
@@ -296,6 +298,16 @@ void ScriptComponent::AddComObject()
     }
 }
 
+void ScriptComponent::OpenTaskManagerWindow()
+{
+    auto webViewExperimental4 = 
+        m_webView.try_query<ICoreWebView2Experimental4>();
+
+    if (webViewExperimental4)
+    {
+        webViewExperimental4->OpenTaskManagerWindow();
+    }
+}
 
 ScriptComponent::~ScriptComponent()
 {

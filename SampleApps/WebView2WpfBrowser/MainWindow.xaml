@@ -39,6 +39,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.GeneralAutofillCommand}" Executed="GeneralAutofillCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NewBrowserVersionCommand}" Executed="NewBrowserVersionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SwipeNavigationCommand}" Executed="SwipeNavigationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}" Executed="PdfToolbarSaveCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PinchZoomCommand}" Executed="PinchZoomCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CustomClientCertificateSelectionCommand}" Executed="CustomClientCertificateSelectionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeferredCustomCertificateDialogCommand}" Executed="DeferredCustomCertificateDialogCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -71,6 +72,7 @@ found in the LICENSE file.
                 <MenuItem Header="General _autofill enabled" Name ="generalAutofillEnabled" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.GeneralAutofillCommand}"/>
                 <MenuItem Header="Disable Pinch Zoom" Command="{x:Static local:MainWindow.PinchZoomCommand}"/>
                 <MenuItem Header="Disable Swipe to Navigate" Command="{x:Static local:MainWindow.SwipeNavigationCommand}"/>
+                <MenuItem Header="Toggle PDF toolbar save button" Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}"/>
             </MenuItem>
             <MenuItem Header="S_cenario">
                 <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>

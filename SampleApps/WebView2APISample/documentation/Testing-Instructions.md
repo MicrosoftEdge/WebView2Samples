@@ -49,6 +49,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle password autosave enabled](#Toggle-password-autosave-enabled)
     * [Toggle browser accelerator keys enabled](#Toggle-browser-accelerator-keys-enabled)
     * [Toggle Swipe Navigation enabled](#Toggle-Swipe-Navigation-enabled)
+    * [Toggle Hidden PDF toolbar items](#Toggle-hide-PDF-toolbar-items)
   * [View](#View)
     * [Toggle Visibility](#Toggle-Visibility)
     * [WebView Bounds Reference](#WebView-Bounds-Reference)
@@ -475,16 +476,16 @@ _It is disabled by default._
 2. Go to `Settings -> Toggle Client Certificate Requested`
 3. Expected: Message Box that says `Custom client certificate selection has been enabled.`
 4. Click `OK` inside the popup dialog.
-5. Navigate to https://client.badssl.com.
+5. Navigate to <https://client.badssl.com>.
 6. Expected: Server responds with 400 Bad Request (No required SSL Certificate was sent) if client certificate is not installed on the user's machine.
 7. Close the sample app.
-8. Navigate to https://badssl.com/download from a browser to download client certificate requried to access https://client.badssl.com site.\
-![Download-Client-Certificate](screenshots/Download-Client-Certificate.png)
+8. Navigate to <https://badssl.com/download> from a browser to download client certificate required to access <https://client.badssl.com> site.\
+![Download-Client-Certificate](screenshots/download-client-certificate.png)
 9. Click badssl.com-client.p12 from the list and confirm download has begun.
 10. Go to the badssl.com-client certificate from the downloads.
 11. Double click on the above downloaded badssl.com-client.p12 certificate.
 12. Expected: Windows popup with title Certificate Import Wizard.\
-![Install-Client-Certificate](screenshots/Install-Client-Certificate.png)
+![Install-Client-Certificate](screenshots/install-client-certificate.png)
 13. Select `Current User` from the store location in the popup and click `Next`.
 14. Browse for the above downloaded client certificate location if not selected by default.
 15. Click `Next`.
@@ -494,7 +495,7 @@ _It is disabled by default._
 19. Click `Ok`.
 20. Repeat steps 1-5 above.
 21. Expected: Server authenticates the user and displays as below.\
-![Success-Client-Certificate](screenshots/Success-Client-Certificate.png)
+![Success-Client-Certificate](screenshots/success-client-certificate.png)
 
 #### Toggle Block images
 
@@ -587,27 +588,27 @@ Test that enables/disables general autofill
 _General autofill is enabled by default._
 
 1. Launch the sample app.
-2. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
-3. Enter in any test information into the Profile Autofill section and click `Submit`.
-4. Repeat step 2.
-5. Click on the Name field.
-6. Expected: A drop down box with the saved profile information is shown.
-7. Click on the box.
-8. Expected: The profile information is autofilled.
-9. Go to `Settings -> Toggle General Autofill`
-10. Expected: Message Box that says `General autofill will be disabled after the next navigation.`
-11. Click `OK` inside the popup dialog and click `Reload`.
-12. Repeat step 5.
-13. Expected: No drop down box appears.
-14. Repeat steps 3-5.
-15. Expected: No drop down box appears.
-14. Go to `Settings -> Toggle General Autofill`
-15. Expected: Message Box that says `General autofill will be enabled after the next navigation.`
-16. Click `OK` inside the popup dialog and click `Reload`.
-17. Repeat step 5.
-18. Expected: A drop down box with the original saved profile information from step 3 is shown.
-19. Click on the box.
-20. Expected: The profile information is autofilled.
+1. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+1. Enter in any test information into the Profile Autofill section and click `Submit`.
+1. Repeat step 2.
+1. Click on the Name field.
+1. Expected: A drop down box with the saved profile information is shown.
+1. Click on the box.
+1. Expected: The profile information is autofilled.
+1. Go to `Settings -> Toggle General Autofill`
+1. Expected: Message Box that says `General autofill will be disabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`.
+1. Repeat step 5.
+1. Expected: No drop down box appears.
+1. Repeat steps 3-5.
+1. Expected: No drop down box appears.
+1. Go to `Settings -> Toggle General Autofill`
+1. Expected: Message Box that says `General autofill will be enabled after the next navigation.`
+1. Click `OK` inside the popup dialog and click `Reload`.
+1. Repeat step 5.
+1. Expected: A drop down box with the original saved profile information from step 3 is shown.
+1. Click on the box.
+1. Expected: The profile information is autofilled.
 
 ### Toggle password autosave enabled
 
@@ -683,6 +684,19 @@ _Swipe left/right to navigate is enabled by default._
 1. Expected: Message Box that says `Swipe to navigate is enabled after the next navigation.`
 1. Click `OK` inside the popup dialog and click `Reload`
 1. Verify that swipe to navigate works again.
+
+#### Toggle hide PDF toolbar items
+Test that hide/show PDF save button and print button.
+
+1. Launch the sample app
+1. Navigate to <https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE2PjDI>
+1. Expected: The save button and print button is on the toolbar
+1. Go to `Settings -> Toggle hide pdf toolbar items`
+1. Refresh the page
+1. Expected: The save button and print button is not on the toolbar
+1. Go to `Settings -> Toggle hide pdf toolbar items`
+1. Refresh the page
+1. Expected: The save button and print button is on the toolbar again
 
 ### View
 
@@ -1002,6 +1016,7 @@ Test that demonstrates cookie management related APIs usage such as `GetCookies`
 3. Follow the instructions on the page
 
 #### NavigateWithWebResourceRequest
+
 1. Launch sample app.
 2. Go to **Scenario** > **NavigateWithWebResourceRequest**
 3. On the opened dialog box enter `test` as post data and click OK.
@@ -1009,17 +1024,18 @@ Test that demonstrates cookie management related APIs usage such as `GetCookies`
    `input=test` is displayed in the text box under `Your input was received as:`.
 
 #### ClientCertificateRequested
+
 1. Close sample app if it is open and re-launch.
-2. Go to `Scenario -> Client Certificate Requested -> Use Deferred Custom Client Certificate Selection Dialog.
+2. Go to `Scenario -> Client Certificate Requested -> Use Deferred Custom Client Certificate Selection Dialog`.
 3. Expected: Message Box that says `Custom Client Certificate selection dialog will be used next when WebView2 is making a request to an HTTP server that needs a client certificate.`
 4. Follow steps 8-19 from [Toggle Client Certificate Requested](#Toggle-Client-Certificate-Requested) if client certificate is not installed, otherwise skip this.
-5. Navigate to https://client.badssl.com.
+5. Navigate to <https://client.badssl.com>.
 6. Expected: A custom dialog box with title `Select a certificate for authentication` and certificate/s in the list box.
 7. Select a certificate from the list.
 8. Expected: Certificate details (Subject, ValidFrom, ValidTo and Certificate Kind) are displayed towards right side of the list box.
 9. Click `OK`.
 10. Expected: Server authenticates the user and displays as below.\
-![Success-Client-Certificate](screenshots/Success-Client-Certificate.png)
+![Success-Client-Certificate](screenshots/success-client-certificate.png)
 11. Close sample app and re-launch.
 12. Repeat steps 2-6 above.
 13. Click `Cancel` in the dialog box.
@@ -1073,9 +1089,9 @@ Verify that language and conflicting configuration works
 Verify that we don't offer saving password.
 
 1. Launch the sample app.
-2. Load https://www.w3schools.com/Tags/tryit.asp?filename=tryhtml5_input_type_password, ignore any iframe navigation failure messages during the test.
+2. Load <https://www.w3schools.com/Tags/tryit.asp?filename=tryhtml5_input_type_password>, ignore any iframe navigation failure messages during the test.
 3. Type in some test email and password, like test@example.com and 12345678 in Email and Password field on the right part of the page.
-4. Click `Submit` button, the page should show the inputed values.
+4. Click `Submit` button, the page should show the inputted values.
 5. Make sure that there is no browser prompt for saving password with strings like `Microsoft Edge will save and fill your password for this site next time`.
 6. Reload the page, ignore any iframe navigation failure messages during the test.
 7. Ensure that the fields are not auto filled.
@@ -1087,7 +1103,7 @@ Verify that we don't offer saving password.
 Verify that the `NewWindowRequested` event is fired when opening a link in new window from PDF.
 
 1. Launch the sample app.
-2. Load https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf.
+2. Load <https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf>.
 3. Go to `Scenario -> Event Monitor` to begin tracking events.
 4. Scroll to the second page of the PDF and right click on the first link to open the context menu.
 5. Click on 'Open link in new window'.

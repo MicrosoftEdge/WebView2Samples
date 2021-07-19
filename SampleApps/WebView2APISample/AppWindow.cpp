@@ -28,11 +28,12 @@
 #include "Resource.h"
 #include "ScenarioAddHostObject.h"
 #include "ScenarioAuthentication.h"
-#include "ScenarioCookieManagement.h"
 #include "ScenarioClientCertificateRequested.h"
+#include "ScenarioCookieManagement.h"
 #include "ScenarioCustomDownloadExperience.h"
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
+#include "ScenarioVirtualHostMappingForSW.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
@@ -299,6 +300,12 @@ bool AppWindow::HandleWindowMessage(
         return true;
     }
     break;
+    case WM_CLOSE:
+    {
+        CloseAppWindow();
+        return true;
+    }
+    break;
     case WM_NCDESTROY:
     {
         int retValue = 0;
@@ -464,6 +471,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG:
     {
         NewComponent<ScenarioClientCertificateRequested>(this);
+        return true;
+    }
+    case IDM_SCENARIO_VIRTUAL_HOST_MAPPING:
+    {
+        NewComponent<ScenarioVirtualHostMappingForSW>(this);
         return true;
     }
     }
@@ -1244,6 +1256,11 @@ HRESULT AppWindow::DeleteFileRecursive(std::wstring path)
 
 void AppWindow::CloseAppWindow()
 {
+    if (m_onAppWindowClosing)
+    {
+        m_onAppWindowClosing();
+        m_onAppWindowClosing = nullptr;
+    }
     CloseWebView();
     DestroyWindow(m_mainWindow);
 }
