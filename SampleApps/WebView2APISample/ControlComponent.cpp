@@ -400,7 +400,7 @@ void ControlComponent::TabForwards(size_t currentIndex)
 void ControlComponent::TabBackwards(size_t currentIndex)
 {
     // Find first enabled window before the active one
-    for (size_t i = currentIndex - 1; i >= 0; i--)
+    for (size_t i = currentIndex - 1; i >= 0 && i < m_tabbableWindows.size(); i--)
     {
         HWND hwnd = m_tabbableWindows.at(i).first;
         if (IsWindowEnabled(hwnd))
