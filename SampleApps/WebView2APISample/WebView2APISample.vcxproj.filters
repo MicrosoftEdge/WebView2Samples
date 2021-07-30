@@ -99,6 +99,9 @@
     <ClCompile Include="ClientCertificateSelectionDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScenarioVirtualHostMappingForSW.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -190,6 +193,9 @@
     </ClInclude>
     <ClInclude Include="ClientCertificateSelectionDialog.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioVirtualHostMappingForSW.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

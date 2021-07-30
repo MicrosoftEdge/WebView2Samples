@@ -22,6 +22,7 @@ public:
     void InitializeEventView(ICoreWebView2* webviewEventView);
 
 private:
+    void InitializeFrameEventView(ICoreWebView2Frame* webviewFrame);
     // Because WebResourceRequested fires so much more often than
     // all other events, we default to it off and it is configurable.
     void EnableWebResourceRequestedEvent(bool enable);
@@ -62,6 +63,7 @@ private:
     EventRegistrationToken m_stateChangedToken = {};
     EventRegistrationToken m_bytesReceivedChangedToken = {};
     EventRegistrationToken m_estimatedEndTimeChanged = {};
+    EventRegistrationToken m_frameCreatedToken = {};
 
     // This event is registered with the event viewer so they
     // can communicate back to us for toggling the WebResourceRequested

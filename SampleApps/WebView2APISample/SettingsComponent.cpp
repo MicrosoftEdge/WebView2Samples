@@ -19,7 +19,7 @@ static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
 SettingsComponent::SettingsComponent(
     AppWindow* appWindow, ICoreWebView2Environment* environment, SettingsComponent* old)
     : m_appWindow(appWindow), m_webViewEnvironment(environment),
-    m_webView(appWindow->GetWebView())
+      m_webView(appWindow->GetWebView())
 {
     CHECK_FAILURE(m_webView->get_Settings(&m_settings));
 
@@ -27,8 +27,10 @@ SettingsComponent::SettingsComponent(
     m_settings3 = m_settings.try_query<ICoreWebView2Settings3>();
     m_settings4 = m_settings.try_query<ICoreWebView2Settings4>();
     m_settings5 = m_settings.try_query<ICoreWebView2Settings5>();
-
-    m_webViewExperimental = m_webView.try_query<ICoreWebView2Experimental3>();
+    m_experimentalSettings5 = m_webView.try_query<ICoreWebView2ExperimentalSettings5>();
+    m_controller = m_appWindow->GetWebViewController();
+    m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
+    m_webView2_5 = m_webView.try_query<ICoreWebView2_5>();
     // Copy old settings if desired
     if (old)
     {
@@ -43,6 +45,16 @@ SettingsComponent::SettingsComponent(
         CHECK_FAILURE(m_settings->put_IsStatusBarEnabled(setting));
         CHECK_FAILURE(old->m_settings->get_AreDevToolsEnabled(&setting));
         CHECK_FAILURE(m_settings->put_AreDevToolsEnabled(setting));
+        CHECK_FAILURE(old->m_settings->get_IsBuiltInErrorPageEnabled(&setting));
+        CHECK_FAILURE(m_settings->put_IsBuiltInErrorPageEnabled(setting));
+        CHECK_FAILURE(old->m_settings->get_AreDefaultScriptDialogsEnabled(&setting));
+        CHECK_FAILURE(m_settings->put_AreDefaultScriptDialogsEnabled(setting));
+        CHECK_FAILURE(old->m_settings->get_AreDefaultContextMenusEnabled(&setting));
+        CHECK_FAILURE(m_settings->put_AreDefaultContextMenusEnabled(setting));
+        CHECK_FAILURE(old->m_settings->get_AreHostObjectsAllowed(&setting));
+        CHECK_FAILURE(m_settings->put_AreHostObjectsAllowed(setting));
+        CHECK_FAILURE(old->m_settings->get_IsZoomControlEnabled(&setting));
+        CHECK_FAILURE(m_settings->put_IsZoomControlEnabled(setting));
         if (old->m_settings2 && m_settings2)
         {
             LPWSTR user_agent;
@@ -66,6 +78,11 @@ SettingsComponent::SettingsComponent(
             CHECK_FAILURE(old->m_settings5->get_IsPinchZoomEnabled(&setting));
             CHECK_FAILURE(m_settings5->put_IsPinchZoomEnabled(setting));
         }
+        if (old->m_experimentalSettings5 && m_experimentalSettings5)
+        {
+            CHECK_FAILURE(old->m_experimentalSettings5->get_IsSwipeNavigationEnabled(&setting));
+            CHECK_FAILURE(m_experimentalSettings5->put_IsSwipeNavigationEnabled(setting));
+        }
         SetBlockImages(old->m_blockImages);
         SetReplaceImages(old->m_replaceImages);
         m_deferScriptDialogs = old->m_deferScriptDialogs;
@@ -84,7 +101,7 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_NavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
-            -> HRESULT {
+                -> HRESULT {
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
 
@@ -131,8 +148,8 @@ SettingsComponent::SettingsComponent(
                 //! [UserAgent]
                 return S_OK;
             })
-        .Get(),
-                &m_navigationStartingToken));
+            .Get(),
+        &m_navigationStartingToken));
     //! [NavigationStarting]
 
     //! [FrameNavigationStarting]
@@ -141,7 +158,7 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_FrameNavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
-            -> HRESULT {
+                -> HRESULT {
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
 
@@ -151,8 +168,8 @@ SettingsComponent::SettingsComponent(
                 }
                 return S_OK;
             })
-        .Get(),
-                &m_frameNavigationStartingToken));
+            .Get(),
+        &m_frameNavigationStartingToken));
     //! [FrameNavigationStarting]
 
     //! [ScriptDialogOpening]
@@ -162,7 +179,7 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_ScriptDialogOpening(
         Callback<ICoreWebView2ScriptDialogOpeningEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2ScriptDialogOpeningEventArgs* args)
-            -> HRESULT {
+                -> HRESULT {
                 wil::com_ptr<ICoreWebView2ScriptDialogOpeningEventArgs> eventArgs = args;
                 auto showDialog = [this, eventArgs] {
                     wil::unique_cotaskmem_string uri;
@@ -204,8 +221,8 @@ SettingsComponent::SettingsComponent(
 
                 return S_OK;
             })
-        .Get(),
-                &m_scriptDialogOpeningToken));
+            .Get(),
+        &m_scriptDialogOpeningToken));
     //! [ScriptDialogOpening]
 
     //! [PermissionRequested]
@@ -214,7 +231,7 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_PermissionRequested(
         Callback<ICoreWebView2PermissionRequestedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)
-            -> HRESULT {
+                -> HRESULT {
                 wil::unique_cotaskmem_string uri;
                 COREWEBVIEW2_PERMISSION_KIND kind =
                     COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
@@ -247,7 +264,7 @@ SettingsComponent::SettingsComponent(
                 message += L"?\n\n";
                 message +=
                     (userInitiated ? L"This request came from a user gesture."
-                        : L"This request did not come from a user gesture.");
+                                   : L"This request did not come from a user gesture.");
 
                 int response = MessageBox(
                     nullptr, message.c_str(), L"Permission Request",
@@ -262,15 +279,16 @@ SettingsComponent::SettingsComponent(
                     m_cached_permissions[cached_key] = false;
                 }
                 COREWEBVIEW2_PERMISSION_STATE state =
-                    response == IDYES ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
-                    : response == IDNO ? COREWEBVIEW2_PERMISSION_STATE_DENY
-                    : COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
+                    response == IDYES
+                        ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
+                        : response == IDNO ? COREWEBVIEW2_PERMISSION_STATE_DENY
+                                           : COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
                 CHECK_FAILURE(args->put_State(state));
 
                 return S_OK;
             })
-        .Get(),
-                &m_permissionRequestedToken));
+            .Get(),
+        &m_permissionRequestedToken));
     //! [PermissionRequested]
 }
 
@@ -299,9 +317,9 @@ bool SettingsComponent::HandleWindowMessage(
             MessageBox(
                 nullptr,
                 (std::wstring(L"JavaScript will be ") +
-                    (m_isScriptEnabled ? L"enabled" : L"disabled") +
-                    L" after the next navigation.")
-                .c_str(),
+                 (m_isScriptEnabled ? L"enabled" : L"disabled") +
+                 L" after the next navigation.")
+                    .c_str(),
                 L"Settings change", MB_OK);
             return true;
         }
@@ -313,9 +331,9 @@ bool SettingsComponent::HandleWindowMessage(
             MessageBox(
                 nullptr,
                 (std::wstring(L"Web Messaging will be ") +
-                    (!isWebMessageEnabled ? L"enabled" : L"disabled") +
-                    L" after the next navigation.")
-                .c_str(),
+                 (!isWebMessageEnabled ? L"enabled" : L"disabled") +
+                 L" after the next navigation.")
+                    .c_str(),
                 L"Settings change", MB_OK);
             return true;
         }
@@ -327,9 +345,9 @@ bool SettingsComponent::HandleWindowMessage(
             MessageBox(
                 nullptr,
                 (std::wstring(L"Status bar will be ") +
-                    +(!isStatusBarEnabled ? L"enabled" : L"disabled") +
-                    L" after the next navigation.")
-                .c_str(),
+                 +(!isStatusBarEnabled ? L"enabled" : L"disabled") +
+                 L" after the next navigation.")
+                    .c_str(),
                 L"Settings change", MB_OK);
             return true;
         }
@@ -341,9 +359,9 @@ bool SettingsComponent::HandleWindowMessage(
             MessageBox(
                 nullptr,
                 (std::wstring(L"Dev tools will be ") +
-                    (!areDevToolsEnabled ? L"enabled" : L"disabled") +
-                    L" after the next navigation.")
-                .c_str(),
+                 (!areDevToolsEnabled ? L"enabled" : L"disabled") +
+                 L" after the next navigation.")
+                    .c_str(),
                 L"Settings change", MB_OK);
             return true;
         }
@@ -417,8 +435,8 @@ bool SettingsComponent::HandleWindowMessage(
             MessageBox(
                 nullptr,
                 (std::wstring(L"Image blocking has been ") +
-                    (m_blockImages ? L"enabled." : L"disabled."))
-                .c_str(),
+                 (m_blockImages ? L"enabled." : L"disabled."))
+                    .c_str(),
                 L"Settings change", MB_OK);
             return true;
         }
@@ -428,8 +446,8 @@ bool SettingsComponent::HandleWindowMessage(
             MessageBox(
                 nullptr,
                 (std::wstring(L"Image replacing has been ") +
-                    (m_replaceImages ? L"enabled." : L"disabled."))
-                .c_str(),
+                 (m_replaceImages ? L"enabled." : L"disabled."))
+                    .c_str(),
                 L"Settings change", MB_OK);
             return true;
         }
@@ -505,7 +523,6 @@ bool SettingsComponent::HandleWindowMessage(
         {
             //! [TogglePinchZoomEnabled]
             CHECK_FEATURE_RETURN(m_settings5);
-
             BOOL pinchZoomEnabled;
             CHECK_FAILURE(m_settings5->get_IsPinchZoomEnabled(&pinchZoomEnabled));
             if (pinchZoomEnabled)
@@ -558,16 +575,14 @@ bool SettingsComponent::HandleWindowMessage(
             {
                 CHECK_FAILURE(m_settings4->put_IsPasswordAutosaveEnabled(FALSE));
                 MessageBox(
-                    nullptr,
-                    L"Password autosave will be disabled after the next navigation.",
+                    nullptr, L"Password autosave will be disabled after the next navigation.",
                     L"Settings change", MB_OK);
             }
             else
             {
                 CHECK_FAILURE(m_settings4->put_IsPasswordAutosaveEnabled(TRUE));
                 MessageBox(
-                    nullptr,
-                    L"Password autosave will be enabled after the next navigation.",
+                    nullptr, L"Password autosave will be enabled after the next navigation.",
                     L"Settings change", MB_OK);
             }
             //! [PasswordAutosaveEnabled]
@@ -603,8 +618,8 @@ bool SettingsComponent::HandleWindowMessage(
             MessageBox(
                 nullptr,
                 (std::wstring(L"Custom client certificate selection has been ") +
-                    (m_ClientCertificateRequestedToken.value != 0 ? L"enabled." : L"disabled."))
-                .c_str(),
+                 (m_ClientCertificateRequestedToken.value != 0 ? L"enabled." : L"disabled."))
+                    .c_str(),
                 L"Custom client certificate selection", MB_OK);
             return true;
         }
@@ -638,24 +653,14 @@ bool SettingsComponent::HandleWindowMessage(
         }
         case ID_SETTINGS_SWIPE_NAVIGATION_ENABLED:
         {
-            //! [ToggleSwipeNavigationEnabled]
-            wil::com_ptr<ICoreWebView2ExperimentalSettings5> experimentalSettings5;
-            experimentalSettings5 = m_settings.try_query<ICoreWebView2ExperimentalSettings5>();
-            CHECK_FEATURE_RETURN(experimentalSettings5);
-
+            //! [ToggleSwipeNavigationDisabled]
+            CHECK_FEATURE_RETURN(m_experimentalSettings5);
             BOOL swipeNavigationEnabled;
             CHECK_FAILURE(
-                experimentalSettings5->get_IsSwipeNavigationEnabled(&swipeNavigationEnabled));
+                m_experimentalSettings5->get_IsSwipeNavigationEnabled(&swipeNavigationEnabled));
             if (swipeNavigationEnabled)
             {
-                CHECK_FAILURE(experimentalSettings5->put_IsSwipeNavigationEnabled(FALSE));
-                MessageBox(
-                    nullptr, L"Swipe to navigate is disabled after the next navigation.",
-                    L"Settings change", MB_OK);
-            }
-            else
-            {
-                CHECK_FAILURE(experimentalSettings5->put_IsSwipeNavigationEnabled(TRUE));
+                CHECK_FAILURE(m_experimentalSettings5->put_IsSwipeNavigationEnabled(FALSE));
                 MessageBox(
                     nullptr, L"Swipe to navigate is enabled after the next navigation.",
                     L"Settings change", MB_OK);
@@ -663,11 +668,43 @@ bool SettingsComponent::HandleWindowMessage(
             //! [ToggleSwipeNavigationEnabled]
             return true;
         }
+        case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS:
+        {
+            //! [ToggleHidePdfToolbarItems]
+            wil::com_ptr<ICoreWebView2ExperimentalSettings6> experimentalSettings6;
+            experimentalSettings6 = m_settings.try_query<ICoreWebView2ExperimentalSettings6>();
+            CHECK_FEATURE_RETURN(experimentalSettings6);
+
+            COREWEBVIEW2_PDF_TOOLBAR_ITEMS hiddenPdfToolbarItems;
+            CHECK_FAILURE(
+                experimentalSettings6->get_HiddenPdfToolbarItems(&hiddenPdfToolbarItems));
+            if (hiddenPdfToolbarItems ==
+                COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_NONE)
+            {
+                CHECK_FAILURE(experimentalSettings6->put_HiddenPdfToolbarItems(
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE));
+                MessageBox(
+                    nullptr,
+                    L"PDF toolbar print and save buttons are hidden after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(experimentalSettings6->put_HiddenPdfToolbarItems(
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_NONE));
+                MessageBox(
+                    nullptr,
+                    L"PDF toolbar print and save buttons are shown after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            //! [ToggleHidePdfToolbarItems]
+            return true;
+        }
         }
     }
     return false;
 }
-
 // Prompt the user for a list of blocked domains
 void SettingsComponent::ChangeBlockedSites()
 {
@@ -749,28 +786,28 @@ void SettingsComponent::SetBlockImages(bool blockImages)
                     [this](
                         ICoreWebView2* sender,
                         ICoreWebView2WebResourceRequestedEventArgs* args) {
-                            COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
-                            CHECK_FAILURE(args->get_ResourceContext(&resourceContext));
-                            // Ensure that the type is image
-                            if (resourceContext != COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE)
-                            {
-                                return E_INVALIDARG;
-                            }
-                            // Override the response with an empty one to block the image.
-                            // If put_Response is not called, the request will continue as normal.
-                            wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-                            wil::com_ptr<ICoreWebView2Environment> environment;
-                            wil::com_ptr<ICoreWebView2_2> webview2;
-                            CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webview2)));
-                            CHECK_FAILURE(webview2->get_Environment(&environment));
-                            CHECK_FAILURE(environment->CreateWebResourceResponse(
-                                nullptr, 403 /*NoContent*/, L"Blocked", L"Content-Type: image/jpeg",
-                                &response));
-                            CHECK_FAILURE(args->put_Response(response.get()));
-                            return S_OK;
+                        COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
+                        CHECK_FAILURE(args->get_ResourceContext(&resourceContext));
+                        // Ensure that the type is image
+                        if (resourceContext != COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE)
+                        {
+                            return E_INVALIDARG;
+                        }
+                        // Override the response with an empty one to block the image.
+                        // If put_Response is not called, the request will continue as normal.
+                        wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+                        wil::com_ptr<ICoreWebView2Environment> environment;
+                        wil::com_ptr<ICoreWebView2_2> webview2;
+                        CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webview2)));
+                        CHECK_FAILURE(webview2->get_Environment(&environment));
+                        CHECK_FAILURE(environment->CreateWebResourceResponse(
+                            nullptr, 403 /*NoContent*/, L"Blocked", L"Content-Type: image/jpeg",
+                            &response));
+                        CHECK_FAILURE(args->put_Response(response.get()));
+                        return S_OK;
                     })
-                .Get(),
-                        &m_webResourceRequestedTokenForImageBlocking));
+                    .Get(),
+                &m_webResourceRequestedTokenForImageBlocking));
         }
         else
         {
@@ -799,31 +836,31 @@ void SettingsComponent::SetReplaceImages(bool replaceImages)
                     [this](
                         ICoreWebView2* sender,
                         ICoreWebView2WebResourceRequestedEventArgs* args) {
-                            COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
-                            CHECK_FAILURE(args->get_ResourceContext(&resourceContext));
-                            // Ensure that the type is image
-                            if (resourceContext != COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE)
-                            {
-                                return E_INVALIDARG;
-                            }
-                            // Override the response with an another image.
-                            // If put_Response is not called, the request will continue as normal.
-                            wil::com_ptr<IStream> stream;
-                            CHECK_FAILURE(SHCreateStreamOnFileEx(
-                                L"assets/EdgeWebView2-80.jpg", STGM_READ, FILE_ATTRIBUTE_NORMAL,
-                                FALSE, nullptr, &stream));
-                            wil::com_ptr<ICoreWebView2WebResourceResponse> response;
-                            wil::com_ptr<ICoreWebView2Environment> environment;
-                            wil::com_ptr<ICoreWebView2_2> webview2;
-                            CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webview2)));
-                            CHECK_FAILURE(webview2->get_Environment(&environment));
-                            CHECK_FAILURE(environment->CreateWebResourceResponse(
-                                stream.get(), 200, L"OK", L"Content-Type: image/jpeg", &response));
-                            CHECK_FAILURE(args->put_Response(response.get()));
-                            return S_OK;
+                        COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
+                        CHECK_FAILURE(args->get_ResourceContext(&resourceContext));
+                        // Ensure that the type is image
+                        if (resourceContext != COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE)
+                        {
+                            return E_INVALIDARG;
+                        }
+                        // Override the response with an another image.
+                        // If put_Response is not called, the request will continue as normal.
+                        wil::com_ptr<IStream> stream;
+                        CHECK_FAILURE(SHCreateStreamOnFileEx(
+                            L"assets/EdgeWebView2-80.jpg", STGM_READ, FILE_ATTRIBUTE_NORMAL,
+                            FALSE, nullptr, &stream));
+                        wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+                        wil::com_ptr<ICoreWebView2Environment> environment;
+                        wil::com_ptr<ICoreWebView2_2> webview2;
+                        CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webview2)));
+                        CHECK_FAILURE(webview2->get_Environment(&environment));
+                        CHECK_FAILURE(environment->CreateWebResourceResponse(
+                            stream.get(), 200, L"OK", L"Content-Type: image/jpeg", &response));
+                        CHECK_FAILURE(args->put_Response(response.get()));
+                        return S_OK;
                     })
-                .Get(),
-                        &m_webResourceRequestedTokenForImageReplacing));
+                    .Get(),
+                &m_webResourceRequestedTokenForImageReplacing));
         }
         else
         {
@@ -877,44 +914,52 @@ void SettingsComponent::SetUserAgent(const std::wstring& userAgent)
 //! [ClientCertificateRequested1]
 void SettingsComponent::EnableCustomClientCertificateSelection()
 {
-    if (m_ClientCertificateRequestedToken.value == 0)
+    if (m_webView2_5)
     {
-        CHECK_FAILURE(m_webViewExperimental->add_ClientCertificateRequested(
-            Callback<ICoreWebView2ExperimentalClientCertificateRequestedEventHandler>(
-                [this](
-                    ICoreWebView2* sender,
-                    ICoreWebView2ExperimentalClientCertificateRequestedEventArgs* args) {
-                        wil::com_ptr<ICoreWebView2ExperimentalClientCertificateCollection> certificateCollection;
-                        CHECK_FAILURE(args->get_MutuallyTrustedCertificates(&certificateCollection));
+        if (m_ClientCertificateRequestedToken.value == 0)
+        {
+            CHECK_FAILURE(m_webView2_5->add_ClientCertificateRequested(
+                Callback<ICoreWebView2ClientCertificateRequestedEventHandler>(
+                    [this](
+                        ICoreWebView2* sender,
+                        ICoreWebView2ClientCertificateRequestedEventArgs* args) {
+                        wil::com_ptr<ICoreWebView2ClientCertificateCollection>
+                            certificateCollection;
+                        CHECK_FAILURE(
+                            args->get_MutuallyTrustedCertificates(&certificateCollection));
 
                         UINT certificateCollectionCount = 0;
-                        CHECK_FAILURE(certificateCollection->get_Count(&certificateCollectionCount));
-
-                        wil::com_ptr<ICoreWebView2ExperimentalClientCertificate> certificate = nullptr;
+                        CHECK_FAILURE(
+                            certificateCollection->get_Count(&certificateCollectionCount));
+                        wil::com_ptr<ICoreWebView2ClientCertificate> certificate = nullptr;
 
                         if (certificateCollectionCount > 0)
                         {
-                            // There is no significance to the order, picking a certificate arbitrarily.
-                            CHECK_FAILURE(certificateCollection->GetValueAtIndex(certificateCollectionCount - 1, &certificate));
+                            // There is no significance to the order, picking a certificate
+                            // arbitrarily.
+                            CHECK_FAILURE(certificateCollection->GetValueAtIndex(
+                                certificateCollectionCount - 1, &certificate));
                             // Continue with the selected certificate to respond to the server.
                             CHECK_FAILURE(args->put_SelectedCertificate(certificate.get()));
                             CHECK_FAILURE(args->put_Handled(TRUE));
                         }
                         else
                         {
-                            //Continue without a certificate to respond to the server if certificate collection is empty.
+                            // Continue without a certificate to respond to the server if
+                            // certificate collection is empty.
                             CHECK_FAILURE(args->put_Handled(TRUE));
                         }
                         return S_OK;
-                })
-            .Get(),
-                    &m_ClientCertificateRequestedToken));
-    }
-    else
-    {
-        CHECK_FAILURE(m_webViewExperimental->remove_ClientCertificateRequested(
-            m_ClientCertificateRequestedToken));
-        m_ClientCertificateRequestedToken.value = 0;
+                    })
+                    .Get(),
+                &m_ClientCertificateRequestedToken));
+        }
+        else
+        {
+            CHECK_FAILURE(m_webView2_5->remove_ClientCertificateRequested(
+                m_ClientCertificateRequestedToken));
+            m_ClientCertificateRequestedToken.value = 0;
+        }
     }
 }
 //! [ClientCertificateRequested1]

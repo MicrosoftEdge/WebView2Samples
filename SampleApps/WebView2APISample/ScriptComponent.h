@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#pragma once
+#ifndef THIRD_PARTY_WEBVIEW_WIN_API_SAMPLE_SCRIPT_COMPONENT_H
+#define THIRD_PARTY_WEBVIEW_WIN_API_SAMPLE_SCRIPT_COMPONENT_H
 
 #include "stdafx.h"
 
 #include <map>
+#include <set>
 #include <string>
 
 #include "AppWindow.h"
@@ -33,7 +35,7 @@ public:
     void SubscribeToCdpEvent();
     void CallCdpMethod();
     void AddComObject();
-
+    void OpenTaskManagerWindow();
     ~ScriptComponent() override;
 
 private:
@@ -44,3 +46,4 @@ private:
     std::map<std::wstring, EventRegistrationToken> m_devToolsProtocolEventReceivedTokenMap;
 };
 
+#endif

@@ -49,6 +49,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle password autosave enabled](#Toggle-password-autosave-enabled)
     * [Toggle browser accelerator keys enabled](#Toggle-browser-accelerator-keys-enabled)
     * [Toggle Swipe Navigation enabled](#Toggle-Swipe-Navigation-enabled)
+    * [Toggle Hidden PDF toolbar items](#Toggle-hide-PDF-toolbar-items)
   * [View](#View)
     * [Toggle Visibility](#Toggle-Visibility)
     * [WebView Bounds Reference](#WebView-Bounds-Reference)
@@ -683,6 +684,19 @@ _Swipe left/right to navigate is enabled by default._
 1. Expected: Message Box that says `Swipe to navigate is enabled after the next navigation.`
 1. Click `OK` inside the popup dialog and click `Reload`
 1. Verify that swipe to navigate works again.
+
+#### Toggle hide PDF toolbar items
+Test that hide/show PDF save button and print button.
+
+1. Launch the sample app
+1. Navigate to <https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE2PjDI>
+1. Expected: The save button and print button is on the toolbar
+1. Go to `Settings -> Toggle hide pdf toolbar items`
+1. Refresh the page
+1. Expected: The save button and print button is not on the toolbar
+1. Go to `Settings -> Toggle hide pdf toolbar items`
+1. Refresh the page
+1. Expected: The save button and print button is on the toolbar again
 
 ### View
 

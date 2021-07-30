@@ -32,6 +32,10 @@ ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEve
         [this]() -> void {
             InitializeEventView(m_appWindowEventView->GetWebView());
         });
+    // Delete this component when the event monitor window closes.
+    m_appWindowEventView->SetOnAppWindowClosing([&]{
+        m_appWindowEventSource->DeleteComponent(this);
+    });
     m_webviewEventSource2 = m_webviewEventSource.query<ICoreWebView2_2>();
 }
 
@@ -48,7 +52,11 @@ ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
     m_webviewEventSource->remove_WebMessageReceived(m_webMessageReceivedToken);
     m_webviewEventSource->remove_NewWindowRequested(m_newWindowRequestedToken);
     m_webviewEventSource2->remove_DOMContentLoaded(m_DOMContentLoadedToken);
-    m_webviewEventSource4->remove_DownloadStarting(m_downloadStartingToken);
+    if (m_webviewEventSource4)
+    {
+        m_webviewEventSource4->remove_DownloadStarting(m_downloadStartingToken);
+        m_webviewEventSource4->remove_FrameCreated(m_frameCreatedToken);
+    }
     EnableWebResourceRequestedEvent(false);
     EnableWebResourceResponseReceivedEvent(false);
 
@@ -300,6 +308,98 @@ std::wstring WebViewPropertiesToJsonString(ICoreWebView2* webview)
     return result;
 }
 
+std::wstring NavigationStartingArgsToJsonString(
+    ICoreWebView2* webview, ICoreWebView2NavigationStartingEventArgs* args,
+    const std::wstring& eventName)
+{
+    BOOL cancel = FALSE;
+    CHECK_FAILURE(args->get_Cancel(&cancel));
+    BOOL isRedirected = FALSE;
+    CHECK_FAILURE(args->get_IsRedirected(&isRedirected));
+    BOOL isUserInitiated = FALSE;
+    CHECK_FAILURE(args->get_IsUserInitiated(&isUserInitiated));
+    wil::com_ptr<ICoreWebView2HttpRequestHeaders> requestHeaders;
+    CHECK_FAILURE(args->get_RequestHeaders(&requestHeaders));
+    wil::unique_cotaskmem_string uri;
+    CHECK_FAILURE(args->get_Uri(&uri));
+    UINT64 navigationId = 0;
+    CHECK_FAILURE(args->get_NavigationId(&navigationId));
+
+    std::wstring message =
+        L"{ \"kind\": \"event\", \"name\": \"" + eventName + L"\", \"args\": {";
+
+    message += L"\"navigationId\": " + std::to_wstring(navigationId) + L", ";
+
+    message += L"\"cancel\": " + BoolToString(cancel) + L", " + L"\"isRedirected\": " +
+               BoolToString(isRedirected) + L", " + L"\"isUserInitiated\": " +
+               BoolToString(isUserInitiated) + L", " + L"\"requestHeaders\": " +
+               RequestHeadersToJsonString(requestHeaders.get()) + L", " + L"\"uri\": " +
+               EncodeQuote(uri.get()) + L" " + L"}" + WebViewPropertiesToJsonString(webview) +
+               L"}";
+
+    return message;
+}
+
+std::wstring ContentLoadingArgsToJsonString(
+    ICoreWebView2* webview, ICoreWebView2ContentLoadingEventArgs* args,
+    const std::wstring& eventName)
+{
+    BOOL isErrorPage = FALSE;
+    CHECK_FAILURE(args->get_IsErrorPage(&isErrorPage));
+    UINT64 navigationId = 0;
+    CHECK_FAILURE(args->get_NavigationId(&navigationId));
+
+    std::wstring message =
+        L"{ \"kind\": \"event\", \"name\": \"" + eventName + L"\", \"args\": {";
+
+    message += L"\"navigationId\": " + std::to_wstring(navigationId) + L", ";
+    message += L"\"isErrorPage\": " + BoolToString(isErrorPage) + L"}" +
+               WebViewPropertiesToJsonString(webview) + L"}";
+    return message;
+}
+
+std::wstring NavigationCompletedArgsToJsonString(
+    ICoreWebView2* webview, ICoreWebView2NavigationCompletedEventArgs* args,
+    const std::wstring& eventName)
+{
+    BOOL isSuccess = FALSE;
+    CHECK_FAILURE(args->get_IsSuccess(&isSuccess));
+    COREWEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
+    CHECK_FAILURE(args->get_WebErrorStatus(&webErrorStatus));
+    UINT64 navigationId = 0;
+    CHECK_FAILURE(args->get_NavigationId(&navigationId));
+
+    std::wstring message =
+        L"{ \"kind\": \"event\", \"name\": \"" + eventName + L"\", \"args\": {";
+
+    message += L"\"navigationId\": " + std::to_wstring(navigationId) + L", ";
+
+    message += L"\"isSuccess\": " + BoolToString(isSuccess) +
+               L", "
+               L"\"webErrorStatus\": " +
+               EncodeQuote(WebErrorStatusToString(webErrorStatus)) +
+               L" "
+               L"}" +
+               WebViewPropertiesToJsonString(webview) + L"}";
+    return message;
+}
+
+std::wstring DOMContentLoadedArgsToJsonString(
+    ICoreWebView2* webview, ICoreWebView2DOMContentLoadedEventArgs* args,
+    const std::wstring& eventName)
+{
+    UINT64 navigationId = 0;
+    CHECK_FAILURE(args->get_NavigationId(&navigationId));
+
+    std::wstring message =
+        L"{ \"kind\": \"event\", \"name\": \"" + eventName + L"\", \"args\": {";
+
+    message += L"\"navigationId\": " + std::to_wstring(navigationId);
+
+    message += L"}" + WebViewPropertiesToJsonString(webview) + L"}";
+    return message;
+}
+
 void ScenarioWebViewEventMonitor::EnableWebResourceResponseReceivedEvent(bool enable) {
     if (!enable && m_webResourceResponseReceivedToken.value != 0)
     {
@@ -473,11 +573,22 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
 
+                wil::com_ptr<ICoreWebView2ExperimentalNewWindowRequestedEventArgs> 
+                    experimentalArgs;
+                wil::unique_cotaskmem_string name;
+                std::wstring encodedName = EncodeQuote(L"");
+                
+                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&experimentalArgs)))) {
+                    CHECK_FAILURE(experimentalArgs->get_Name(&name));
+                    encodedName = EncodeQuote(name.get());
+                }
+
                 std::wstring message =
                     L"{ \"kind\": \"event\", \"name\": \"NewWindowRequested\", \"args\": {"
                     L"\"handled\": " + BoolToString(handled) + L", "
                     L"\"isUserInitiated\": " + BoolToString(isUserInitiated) + L", "
                     L"\"uri\": " + EncodeQuote(uri.get()) + L", "
+                    L"\"name\": " + encodedName + L", "
                     L"\"newWindow\": null"
                     L"}"
                     + WebViewPropertiesToJsonString(m_webviewEventSource.get())
@@ -493,33 +604,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
                 -> HRESULT {
-                BOOL cancel = FALSE;
-                CHECK_FAILURE(args->get_Cancel(&cancel));
-                BOOL isRedirected = FALSE;
-                CHECK_FAILURE(args->get_IsRedirected(&isRedirected));
-                BOOL isUserInitiated = FALSE;
-                CHECK_FAILURE(args->get_IsUserInitiated(&isUserInitiated));
-                wil::com_ptr<ICoreWebView2HttpRequestHeaders> requestHeaders;
-                CHECK_FAILURE(args->get_RequestHeaders(&requestHeaders));
-                wil::unique_cotaskmem_string uri;
-                CHECK_FAILURE(args->get_Uri(&uri));
-                UINT64 navigationId = 0;
-                CHECK_FAILURE(args->get_NavigationId(&navigationId));
-
                 std::wstring message =
-                    L"{ \"kind\": \"event\", \"name\": \"NavigationStarting\", \"args\": {";
-
-                message += L"\"navigationId\": " + std::to_wstring(navigationId) + L", ";
-
-                message += L"\"cancel\": " + BoolToString(cancel) + L", " +
-                    L"\"isRedirected\": " + BoolToString(isRedirected) + L", " +
-                    L"\"isUserInitiated\": " + BoolToString(isUserInitiated) + L", " +
-                    L"\"requestHeaders\": " + RequestHeadersToJsonString(requestHeaders.get()) + L", " +
-                    L"\"uri\": " + EncodeQuote(uri.get()) + L" " +
-                    L"}" +
-                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) +
-                    L"}";
-
+                    NavigationStartingArgsToJsonString(sender, args, L"NavigationStarting");
                 PostEventMessage(message);
 
                 return S_OK;
@@ -531,31 +617,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
                 -> HRESULT {
-                BOOL cancel = FALSE;
-                CHECK_FAILURE(args->get_Cancel(&cancel));
-                BOOL isRedirected = FALSE;
-                CHECK_FAILURE(args->get_IsRedirected(&isRedirected));
-                BOOL isUserInitiated = FALSE;
-                CHECK_FAILURE(args->get_IsUserInitiated(&isUserInitiated));
-                wil::com_ptr<ICoreWebView2HttpRequestHeaders> requestHeaders;
-                CHECK_FAILURE(args->get_RequestHeaders(&requestHeaders));
-                wil::unique_cotaskmem_string uri;
-                CHECK_FAILURE(args->get_Uri(&uri));
-                UINT64 navigationId = 0;
-                CHECK_FAILURE(args->get_NavigationId(&navigationId));
-
-                std::wstring message =
-                    L"{ \"kind\": \"event\", \"name\": "
-                    L"\"FrameNavigationStarting\", \"args\": {"
-                    L"\"navigationId\": " + std::to_wstring(navigationId) + L", "
-                    L"\"cancel\": " + BoolToString(cancel) + L", "
-                    L"\"isRedirected\": " + BoolToString(isRedirected) + L", "
-                    L"\"isUserInitiated\": " + BoolToString(isUserInitiated) + L", "
-                    L"\"requestHeaders\": " + RequestHeadersToJsonString(requestHeaders.get()) + L", "
-                    L"\"uri\": " + EncodeQuote(uri.get()) + L" "
-                    L"}" +
-                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
-
+                std::wstring message = NavigationStartingArgsToJsonString(
+                    sender, args, L"FrameNavigationStarting");
                 PostEventMessage(message);
 
                 return S_OK;
@@ -586,18 +649,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
             [this](
                 ICoreWebView2* sender,
                 ICoreWebView2ContentLoadingEventArgs* args) -> HRESULT {
-                BOOL isErrorPage = FALSE;
-                CHECK_FAILURE(args->get_IsErrorPage(&isErrorPage));
-                UINT64 navigationId = 0;
-                CHECK_FAILURE(args->get_NavigationId(&navigationId));
-
                 std::wstring message =
-                    L"{ \"kind\": \"event\", \"name\": \"ContentLoading\", \"args\": {";
-
-                message += L"\"navigationId\": " + std::to_wstring(navigationId) + L", ";
-
-                message += L"\"isErrorPage\": " + BoolToString(isErrorPage) + L"}" +
-                           WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                    ContentLoadingArgsToJsonString(sender, args, L"ContentLoading");
                 PostEventMessage(message);
 
                 return S_OK;
@@ -623,24 +676,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
         Callback<ICoreWebView2NavigationCompletedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args)
                 -> HRESULT {
-                BOOL isSuccess = FALSE;
-                CHECK_FAILURE(args->get_IsSuccess(&isSuccess));
-                COREWEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
-                CHECK_FAILURE(args->get_WebErrorStatus(&webErrorStatus));
-                UINT64 navigationId = 0;
-                CHECK_FAILURE(args->get_NavigationId(&navigationId));
-
                 std::wstring message =
-                    L"{ \"kind\": \"event\", \"name\": \"NavigationCompleted\", \"args\": {";
-
-                message += L"\"navigationId\": " + std::to_wstring(navigationId) + L", ";
-
-                message +=
-                    L"\"isSuccess\": " + BoolToString(isSuccess) + L", "
-                    L"\"webErrorStatus\": " + EncodeQuote(WebErrorStatusToString(webErrorStatus)) + L" "
-                    L"}" +
-                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) +
-                    L"}";
+                    NavigationCompletedArgsToJsonString(sender, args, L"NavigationCompleted");
                 PostEventMessage(message);
 
                 return S_OK;
@@ -652,25 +689,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
         Callback<ICoreWebView2NavigationCompletedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args)
                 -> HRESULT {
-                BOOL isSuccess = FALSE;
-                CHECK_FAILURE(args->get_IsSuccess(&isSuccess));
-                COREWEBVIEW2_WEB_ERROR_STATUS webErrorStatus;
-                CHECK_FAILURE(args->get_WebErrorStatus(&webErrorStatus));
-                UINT64 navigationId = 0;
-                CHECK_FAILURE(args->get_NavigationId(&navigationId));
-
-                std::wstring message =
-                    L"{ \"kind\": \"event\", \"name\": \"FrameNavigationCompleted\", \"args\": {";
-
-                message += L"\"navigationId\": " + std::to_wstring(navigationId) + L", ";
-
-                message += L"\"isSuccess\": " + BoolToString(isSuccess) +
-                           L", "
-                           L"\"webErrorStatus\": " +
-                           EncodeQuote(WebErrorStatusToString(webErrorStatus)) +
-                           L" "
-                           L"}" +
-                           WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                std::wstring message = NavigationCompletedArgsToJsonString(
+                    sender, args, L"FrameNavigationCompleted");
                 PostEventMessage(message);
 
                 return S_OK;
@@ -682,16 +702,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
         Callback<ICoreWebView2DOMContentLoadedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2DOMContentLoadedEventArgs* args)
                 -> HRESULT {
-                UINT64 navigationId = 0;
-                CHECK_FAILURE(args->get_NavigationId(&navigationId));
-
                 std::wstring message =
-                    L"{ \"kind\": \"event\", \"name\": \"DOMContentLoaded\", \"args\": {";
-
-                message += L"\"navigationId\": " + std::to_wstring(navigationId);
-
-                message +=
-                    L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                    DOMContentLoadedArgsToJsonString(sender, args, L"DOMContentLoaded");
                 PostEventMessage(message);
 
                 return S_OK;
@@ -866,7 +878,47 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 })
                 .Get(),
             &m_downloadStartingToken);
+
+        m_webviewEventSource4->add_FrameCreated(
+            Callback<ICoreWebView2FrameCreatedEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args)
+                    -> HRESULT {
+                    wil::com_ptr<ICoreWebView2Frame> webviewFrame;
+                    CHECK_FAILURE(args->get_Frame(&webviewFrame));
+
+                    InitializeFrameEventView(webviewFrame.get());
+
+                    wil::unique_cotaskmem_string name;
+                    CHECK_FAILURE(webviewFrame->get_Name(&name));
+
+                    std::wstring message =
+                        L"{ \"kind\": \"event\", \"name\": \"FrameCreated\", \"args\": {";
+                    message += L"\"frame\": " + EncodeQuote(name.get());
+                    message +=
+                        L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                    PostEventMessage(message);
+
+                    return S_OK;
+                })
+                .Get(),
+            &m_frameCreatedToken);
     }
+}
+
+void ScenarioWebViewEventMonitor::InitializeFrameEventView(ICoreWebView2Frame* webviewFrame)
+{
+    webviewFrame->add_Destroyed(
+        Callback<ICoreWebView2FrameDestroyedEventHandler>(
+            [this](ICoreWebView2Frame* sender, IUnknown* args) -> HRESULT {
+                std::wstring message = L"{ \"kind\": \"event\", \"name\": "
+                                       L"\"CoreWebView2Frame::Destroyed\", \"args\": {";
+                message +=
+                    L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                PostEventMessage(message);
+                return S_OK;
+            })
+            .Get(),
+        NULL);
 }
 
 void ScenarioWebViewEventMonitor::PostEventMessage(std::wstring message)

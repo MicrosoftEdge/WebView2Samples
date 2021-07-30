@@ -77,6 +77,10 @@ public:
     void Release();
     void NotifyClosed();
 
+    void SetOnAppWindowClosing(std::function<void()>&& f) {
+      m_onAppWindowClosing = std::move(f);
+    }
+
     std::wstring GetUserDataFolder()
     {
         return m_userDataFolder;
@@ -128,6 +132,7 @@ private:
     HWND m_mainWindow = nullptr;
     Toolbar m_toolbar;
     std::function<void()> m_onWebViewFirstInitialized;
+    std::function<void()> m_onAppWindowClosing;
     DWORD m_creationModeId = 0;
     int m_refCount = 1;
     bool m_isClosed = false;

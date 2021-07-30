@@ -18,7 +18,7 @@ public:
 private:
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2Experimental3> m_webViewExperimental;
+    wil::com_ptr<ICoreWebView2_5> m_webView2_5;
     EventRegistrationToken m_ClientCertificateRequestedToken = {};
     std::vector<ClientCertificate> clientCertificates_;
 };

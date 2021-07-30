@@ -108,6 +108,12 @@ ScenarioCustomDownloadExperience::ScenarioCustomDownloadExperience(AppWindow* ap
                 .Get(),
             &m_downloadStartingToken));
     }
+    else
+    {
+        // This scenario component is useless without this feature, but deleting an object in its own
+        // constructor is...not advisable, so we'll just let this component do nothing until it goes away.
+        FeatureNotAvailable();
+    }
     //! [DownloadStarting]
 
     // Turn off this scenario if we navigate away from the demo page.
@@ -183,6 +189,9 @@ void ScenarioCustomDownloadExperience::CompleteDownload(ICoreWebView2DownloadOpe
 
 ScenarioCustomDownloadExperience::~ScenarioCustomDownloadExperience()
 {
-    CHECK_FAILURE(m_webView2_4->remove_DownloadStarting(m_downloadStartingToken));
+    if (m_webView2_4)
+    {
+        CHECK_FAILURE(m_webView2_4->remove_DownloadStarting(m_downloadStartingToken));
+    }
     CHECK_FAILURE(m_webView->remove_ContentLoading(m_contentLoadingToken));
 }
