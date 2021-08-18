@@ -60,4 +60,5 @@ The **UWP WinUI Sample** can be found in the [WinUI Controls Gallery](https://gi
 ## Next Steps
 
 * Checkout [Introduction to Microsoft Edge WebView2](https://aka.ms/webview) to learn more about WebView2
-* Please leave us feedback in our [feedback repo](https://aka.ms/webviewfeedback).
+* Please leave us feedback specifically about the samples in [this repo](https://github.com/MicrosoftEdge/WebView2Samples/issues).
+* Please leave us feedback about the WebView2 control in our [feedback repo](https://aka.ms/webviewfeedback).
