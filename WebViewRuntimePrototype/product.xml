@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+***********************************************************************
+ 
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+ 
+ THIS CODE AND INFORMATION ARE PROVIDED AS IS WITHOUT WARRANTY OF ANY
+ KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+ PARTICULAR PURPOSE.
+***********************************************************************
+-->
+
+<Product 
+  xmlns="http://schemas.microsoft.com/developer/2004/01/bootstrapper" 
+  ProductCode="Microsoft.EdgeRuntime">
+
+  <!-- Defines the list of files to be copied on build. -->
+  <PackageFiles CopyAllPackageFiles="false">
+    <PackageFile Name="MicrosoftEdgeWebview2Setup.exe" HomeSite="WebViewRuntime" PublicKey="0"/>
+  </PackageFiles>
+
+  <InstallChecks>
+    <RegistryCheck Property="EdgeRuntimeVersionInstalled" Key="HKLM\SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Value="pv"/>
+  </InstallChecks>
+
+  <!-- Defines how to run the Setup package. -->
+  <Commands Reboot="Defer">
+    <Command 
+      PackageFile="MicrosoftEdgeWebview2Setup.exe" 
+      Arguments=" /silent /installelevated /install" 
+      EstimatedInstalledBytes="2600000" 
+      EstimatedTempBytes="4500000"
+      EstimatedInstallSeconds="60">
+      <InstallConditions>
+        <BypassIf Property="EdgeRuntimeVersionInstalled" Compare="VersionGreaterThanOrEqualTo" Value="86.0.622.15"/>
+      </InstallConditions>
+      <ExitCodes>
+        <ExitCode Value="0" Result="Success"/>
+        <DefaultExitCode Result="Fail" FormatMessageFromSystem="true" String="GeneralFailure" />
+      </ExitCodes>
+    </Command>
+  </Commands>
+</Product>

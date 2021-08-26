@@ -1,0 +1,3 @@
+This is a placeholder for the shipping EULA.
+
+This is only for prototype work and MUST be replaced with final EULA before shipping product.

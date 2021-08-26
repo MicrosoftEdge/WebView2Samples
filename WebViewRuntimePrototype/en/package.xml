@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+***********************************************************************
+ 
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+ 
+ THIS CODE AND INFORMATION ARE PROVIDED AS IS WITHOUT WARRANTY OF ANY
+ KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+ PARTICULAR PURPOSE.
+***********************************************************************
+-->
+
+<Package 
+  xmlns="http://schemas.microsoft.com/developer/2004/01/bootstrapper"
+  Name="DisplayName"
+  Culture="Culture"
+  LicenseAgreement="placeholdereula.txt">
+  <PackageFiles>
+    <PackageFile Name="placeholdereula.txt"/>
+  </PackageFiles>
+
+  <!-- Defines a localizable string table for messages. -->
+  <Strings>
+    <String Name="DisplayName">Edge WebView runtime bootstrapper</String>
+    <String Name="Culture">en</String>
+    <String Name="AdminRequired">Administrator permissions are required to install the Microsoft Edge WebView runtime. Contact your administrator.</String>
+    <String Name="GeneralFailure">A failure occurred attempting to install the Microsoft Edge WebView runtime.</String>
+    <String Name="WebViewRuntime">http://go.microsoft.com/fwlink/p/?LinkId=2124703</String>
+  </Strings>
+</Package>
