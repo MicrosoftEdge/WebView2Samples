@@ -7,6 +7,7 @@
 #include <wrl.h>
 #include <wil/com.h>
 // include WebView2 header
+#include "WebView2.h"
 
 using namespace Microsoft::WRL;
 
@@ -104,6 +105,86 @@ int CALLBACK WinMain(
 	UpdateWindow(hWnd);
 
 	// <-- WebView2 sample code starts here -->
+	// Step 3 - Create a single WebView within the parent window
+	// Locate the browser and set up the environment for WebView
+	CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
+		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
+			[hWnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
+
+				// Create a CoreWebView2Controller and get the associated CoreWebView2 whose parent is the main window hWnd
+				env->CreateCoreWebView2Controller(hWnd, Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
+					[hWnd](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
+						if (controller != nullptr) {
+							webviewController = controller;
+							webviewController->get_CoreWebView2(&webviewWindow);
+						}
+
+						// Add a few settings for the webview
+						// The demo step is redundant since the values are the default settings
+						ICoreWebView2Settings* Settings;
+						webviewWindow->get_Settings(&Settings);
+						Settings->put_IsScriptEnabled(TRUE);
+						Settings->put_AreDefaultScriptDialogsEnabled(TRUE);
+						Settings->put_IsWebMessageEnabled(TRUE);
+
+						// Resize WebView to fit the bounds of the parent window
+						RECT bounds;
+						GetClientRect(hWnd, &bounds);
+						webviewController->put_Bounds(bounds);
+
+						// Schedule an async task to navigate to Bing
+						webviewWindow->Navigate(L"https://www.bing.com/");
+
+						// Step 4 - Navigation events
+						// register an ICoreWebView2NavigationStartingEventHandler to cancel any non-https navigation
+						EventRegistrationToken token;
+						webviewWindow->add_NavigationStarting(Callback<ICoreWebView2NavigationStartingEventHandler>(
+							[](ICoreWebView2* webview, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+								PWSTR uri;
+								args->get_Uri(&uri);
+								std::wstring source(uri);
+								if (source.substr(0, 5) != L"https") {
+									args->put_Cancel(true);
+								}
+								CoTaskMemFree(uri);
+								return S_OK;
+							}).Get(), &token);
+
+						// Step 5 - Scripting
+						// Schedule an async task to add initialization script that freezes the Object object
+						webviewWindow->AddScriptToExecuteOnDocumentCreated(L"Object.freeze(Object);", nullptr);
+						// Schedule an async task to get the document URL
+						webviewWindow->ExecuteScript(L"window.document.URL;", Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
+							[](HRESULT errorCode, LPCWSTR resultObjectAsJson) -> HRESULT {
+								LPCWSTR URL = resultObjectAsJson;
+								//doSomethingWithURL(URL);
+								return S_OK;
+							}).Get());
+
+						// Step 6 - Communication between host and web content
+						// Set an event handler for the host to return received message back to the web content
+						webviewWindow->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+							[](ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+								PWSTR message;
+								args->TryGetWebMessageAsString(&message);
+								// processMessage(&message);
+								webview->PostWebMessageAsString(message);
+								CoTaskMemFree(message);
+								return S_OK;
+							}).Get(), &token);
+
+						// Schedule an async task to add initialization script that
+						// 1) Add an listener to print message from the host
+						// 2) Post document URL to the host
+						webviewWindow->AddScriptToExecuteOnDocumentCreated(
+							L"window.chrome.webview.addEventListener(\'message\', event => alert(event.data));" \
+							L"window.chrome.webview.postMessage(window.document.URL);",
+							nullptr);
+
+						return S_OK;
+					}).Get());
+				return S_OK;
+			}).Get());
 
 
 	
