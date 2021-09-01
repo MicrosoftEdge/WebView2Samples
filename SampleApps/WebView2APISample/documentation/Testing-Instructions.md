@@ -303,7 +303,7 @@ Test browser process becoming unresponsive
 1. Launch the sample app.
 2. Navigate to `edge://hang`.
 3. Wait ~20-30 seconds.
-4. Expected: Error dialog popup that says `Browser renderer process stopped responding. Recreate webview?`\
+4. Expected: Error dialog popup that says `Browser renderer process stopped responding. Recreate webview?` (note: an additional `Child process failed` popup might show. Close and ignore if it does.)\
   ![step 3](screenshots/unresponsive-renderer-error.png)
 5. Click `Yes` inside the Popup dialog
 6. Expected: The app window resets to the same state as step 1.
