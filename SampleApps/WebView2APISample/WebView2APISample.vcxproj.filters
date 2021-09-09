@@ -102,6 +102,9 @@
     <ClCompile Include="ScenarioVirtualHostMappingForSW.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -197,6 +200,9 @@
     <ClInclude Include="ScenarioVirtualHostMappingForSW.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc">
@@ -214,6 +220,8 @@
     <CopyFileToFolders Include="assets\ScenarioJavaScriptDebugIndex.html" />
     <CopyFileToFolders Include="assets\ScenarioTypeScriptDebugIndex.html" />
     <CopyFileToFolders Include="assets\ScenarioTypeScriptDebugIndex.ts" />
+    <CopyFileToFolders Include="assets\ScenarioVirtualHostMappingForPopUpWindow.html" />
+    <CopyFileToFolders Include="assets\ScenarioVirtualHostMappingForPopUpWindow.js" />
     <CopyFileToFolders Include="assets\ScenarioWebMessage.html" />
     <CopyFileToFolders Include="assets\ScenarioWebViewEventMonitor.html" />
     <CopyFileToFolders Include="assets\AppStartPage.html" />

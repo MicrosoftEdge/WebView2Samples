@@ -22,7 +22,7 @@ public:
     void InitializeEventView(ICoreWebView2* webviewEventView);
 
 private:
-    void InitializeFrameEventView(ICoreWebView2Frame* webviewFrame);
+    void InitializeFrameEventView(wil::com_ptr<ICoreWebView2Frame> webviewFrame);
     // Because WebResourceRequested fires so much more often than
     // all other events, we default to it off and it is configurable.
     void EnableWebResourceRequestedEvent(bool enable);
@@ -42,10 +42,11 @@ private:
     // The event source objects fire the events.
     AppWindow* m_appWindowEventSource;
     wil::com_ptr<ICoreWebView2> m_webviewEventSource;
+    wil::com_ptr<ICoreWebView2Controller> m_controllerEventSource;
     wil::com_ptr<ICoreWebView2_2> m_webviewEventSource2;
     wil::com_ptr<ICoreWebView2_4> m_webviewEventSource4;
 
-    // The events we register on the event source
+    // The events we register on the event sources
     EventRegistrationToken m_frameNavigationStartingToken = {};
     EventRegistrationToken m_frameNavigationCompletedToken = {};
     EventRegistrationToken m_navigationStartingToken = {};
@@ -64,6 +65,8 @@ private:
     EventRegistrationToken m_bytesReceivedChangedToken = {};
     EventRegistrationToken m_estimatedEndTimeChanged = {};
     EventRegistrationToken m_frameCreatedToken = {};
+    EventRegistrationToken m_gotFocusToken = {};
+    EventRegistrationToken m_lostFocusToken = {};
 
     // This event is registered with the event viewer so they
     // can communicate back to us for toggling the WebResourceRequested

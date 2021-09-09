@@ -57,10 +57,14 @@ bool ScriptComponent::HandleWindowMessage(
         case IDM_OPEN_TASK_MANAGER_WINDOW:
             OpenTaskManagerWindow();
             return true;
+        case IDM_INJECT_SCRIPT_FRAME:
+            InjectScriptInIFrame();
+            return true;
         }
     }
     return false;
 }
+
 //! [ExecuteScript]
 // Prompt the user for some script and then execute it.
 void ScriptComponent::InjectScript()
@@ -86,6 +90,61 @@ void ScriptComponent::InjectScript()
     }
 }
 //! [ExecuteScript]
+void ScriptComponent::InjectScriptInIFrame()
+{
+    std::wstring iframesData = IFramesToString();
+    std::wstring iframesInfo =
+        L"Enter iframe to run the JavaScript code in.\r\nAvailable iframes:" +
+        (m_frames.size() > 0 ? iframesData : L"not available at this page.");
+    TextInputDialog dialogIFrame(
+        m_appWindow->GetMainWindow(), L"Inject Script Into IFrame", L"Enter iframe number:",
+        iframesInfo.c_str(), L"0");
+    if (dialogIFrame.confirmed)
+    {
+        int index = -1;
+        try
+        {
+            index = std::stoi(dialogIFrame.input);
+        }
+        catch (std::exception)
+        {
+        }
+
+        if (index < 0 || index >= static_cast<int>(m_frames.size()))
+        {
+            ShowFailure(S_OK, L"Can not read frame index or it is out of available range");
+            return;
+        }
+
+        std::wstring iframesEnterCode =
+            L"Enter the JavaScript code to run in the iframe " + dialogIFrame.input;
+        TextInputDialog dialogScript(
+            m_appWindow->GetMainWindow(), L"Inject Script Into IFrame", L"Enter script code:",
+            iframesEnterCode.c_str(),
+            L"window.getComputedStyle(document.body).backgroundColor");
+        if (dialogScript.confirmed)
+        {
+            wil::com_ptr<ICoreWebView2ExperimentalFrame> frameExperimental =
+                m_frames[index].try_query<ICoreWebView2ExperimentalFrame>();
+            if (frameExperimental)
+            {
+                frameExperimental->ExecuteScript(
+                    dialogScript.input.c_str(),
+                    Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
+                        [](HRESULT error, PCWSTR result) -> HRESULT {
+                            if (error != S_OK)
+                            {
+                                ShowFailure(error, L"ExecuteScript failed");
+                            }
+                            MessageBox(nullptr, result, L"ExecuteScript Result", MB_OK);
+                            return S_OK;
+                        })
+                        .Get());
+            }
+        }
+    }
+}
+
 //! [AddScriptToExecuteOnDocumentCreated]
 // Prompt the user for some script and register it to execute whenever a new page loads.
 void ScriptComponent::AddInitializeScript()
@@ -298,14 +357,62 @@ void ScriptComponent::AddComObject()
     }
 }
 
+void ScriptComponent::HandleIFrames()
+{
+    wil::com_ptr<ICoreWebView2_4> webview2_4 = m_webView.try_query<ICoreWebView2_4>();
+    if (webview2_4)
+    {
+        CHECK_FAILURE(webview2_4->add_FrameCreated(
+            Callback<ICoreWebView2FrameCreatedEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args)
+                    -> HRESULT {
+                    wil::com_ptr<ICoreWebView2Frame> webviewFrame;
+                    CHECK_FAILURE(args->get_Frame(&webviewFrame));
+
+                    m_frames.emplace_back(webviewFrame);
+
+                    webviewFrame->add_Destroyed(
+                        Callback<ICoreWebView2FrameDestroyedEventHandler>(
+                            [this](ICoreWebView2Frame* sender, IUnknown* args) -> HRESULT {
+                                auto frame =
+                                    std::find(m_frames.begin(), m_frames.end(), sender);
+                                if (frame != m_frames.end())
+                                {
+                                    m_frames.erase(frame);
+                                }
+                                return S_OK;
+                            })
+                            .Get(),
+                        NULL);
+                    return S_OK;
+                })
+                .Get(),
+            NULL));
+    }
+}
+
+std::wstring ScriptComponent::IFramesToString()
+{
+    std::wstring data;
+    for (size_t i = 0; i < m_frames.size(); i++)
+    {
+        wil::unique_cotaskmem_string name;
+        CHECK_FAILURE(m_frames[i]->get_Name(&name));
+        if (i > 0)
+            data += L"; ";
+        data += std::to_wstring(i) + L": " +
+                (!std::wcslen(name.get()) ? L"<empty_name>" : name.get());
+    }
+    return data;
+}
+
 void ScriptComponent::OpenTaskManagerWindow()
 {
-    auto webViewExperimental4 = 
-        m_webView.try_query<ICoreWebView2Experimental4>();
+    auto webView6 = m_webView.try_query<ICoreWebView2_6>();
 
-    if (webViewExperimental4)
+    if (webView6)
     {
-        webViewExperimental4->OpenTaskManagerWindow();
+        webView6->OpenTaskManagerWindow();
     }
 }
 

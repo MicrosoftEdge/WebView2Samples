@@ -65,6 +65,7 @@ private:
     void ToggleVisibility();
     void Suspend();
     void Resume();
+    void ToggleMemoryUsageTargetLevel();
     void SetBackgroundColor(COLORREF color, bool transparent);
     void SetSizeRatio(float ratio);
     void SetZoomFactor(float zoom);

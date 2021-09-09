@@ -406,6 +406,7 @@
     <ClInclude Include="ScenarioCustomDownloadExperience.h" />
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
+    <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForSW.h" />
     <ClInclude Include="ScenarioWebMessage.h" />
     <ClInclude Include="ScenarioWebViewEventMonitor.h" />
@@ -437,6 +438,7 @@
     <ClCompile Include="ScenarioCustomDownloadExperience.cpp" />
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
+    <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForSW.cpp" />
     <ClCompile Include="ScenarioWebMessage.cpp" />
     <ClCompile Include="ScenarioWebViewEventMonitor.cpp" />
@@ -489,6 +491,12 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets\ScenarioTypeScriptDebugIndex.ts">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioVirtualHostMappingForPopUpWindow.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioVirtualHostMappingForPopUpWindow.js">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets\ScenarioWebMessage.html">

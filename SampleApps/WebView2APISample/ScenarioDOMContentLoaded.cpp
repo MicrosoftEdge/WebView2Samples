@@ -56,6 +56,53 @@ ScenarioDOMContentLoaded::ScenarioDOMContentLoaded(AppWindow* appWindow)
             .Get(),
         &m_contentLoadingToken));
 
+    //! [ExecuteScriptFrame]
+    wil::com_ptr<ICoreWebView2_4> webview2_4 = m_webView.try_query<ICoreWebView2_4>();
+    if (webview2_4)
+    {
+        CHECK_FAILURE(webview2_4->add_FrameCreated(
+            Callback<ICoreWebView2FrameCreatedEventHandler>(
+                [](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args) -> HRESULT {
+                    wil::com_ptr<ICoreWebView2Frame> webviewFrame;
+                    CHECK_FAILURE(args->get_Frame(&webviewFrame));
+                    wil::com_ptr<ICoreWebView2ExperimentalFrame> frameExperimental =
+                        webviewFrame.try_query<ICoreWebView2ExperimentalFrame>();
+                    if (frameExperimental)
+                    {
+                        frameExperimental->add_DOMContentLoaded(
+                            Callback<
+                                ICoreWebView2ExperimentalFrameDOMContentLoadedEventHandler>(
+                                [](ICoreWebView2Frame* frame,
+                                   ICoreWebView2DOMContentLoadedEventArgs* args) -> HRESULT {
+                                    wil::com_ptr<ICoreWebView2ExperimentalFrame>
+                                        frameExperimental;
+                                    frame->QueryInterface(IID_PPV_ARGS(&frameExperimental));
+                                    frameExperimental->ExecuteScript(
+                                        LR"~(
+                                        let content = document.createElement("h2");
+                                        content.style.color = 'blue';
+                                        content.textContent = "This text was added to the iframe by the host app";
+                                        document.body.appendChild(content);
+                                        )~",
+                                        Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
+                                            [](HRESULT error, PCWSTR result) -> HRESULT {
+                                                // Handle ExecuteScript error and result here if needed
+                                                // or pass nullptr as callback parametr otherwise.
+                                                return S_OK;
+                                            })
+                                            .Get());
+                                    return S_OK;
+                                })
+                                .Get(),
+                            NULL);
+                    }
+                    return S_OK;
+                })
+                .Get(),
+            NULL));
+    }
+    //! [ExecuteScriptFrame]
+
     CHECK_FAILURE(m_webView->Navigate(m_sampleUri.c_str()));
 }
 

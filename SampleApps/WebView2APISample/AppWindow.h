@@ -30,13 +30,14 @@ class AppWindow
 public:
     AppWindow(
         UINT creationModeId,
-        std::wstring initialUri = L"", 
-        std::wstring userDataFolderParam = L"",
+        const std::wstring& initialUri = L"",
+        const std::wstring& userDataFolderParam = L"",
         bool isMainWindow = false,
         std::function<void()> webviewCreatedCallback = nullptr,
         bool customWindowRect = false,
         RECT windowRect = { 0 },
         bool shouldHaveToolbar = true);
+    ~AppWindow();
 
     ICoreWebView2Controller* GetWebViewController()
     {
@@ -54,7 +55,8 @@ public:
     {
         return m_mainWindow;
     }
-    void SetTitleText(PCWSTR titleText);
+    void SetDocumentTitle(PCWSTR titleText);
+    std::wstring GetDocumentTitle();
     RECT GetWindowBounds();
     std::wstring GetLocalUri(std::wstring path, bool useVirtualHostName = true);
     std::function<void()> GetAcceleratorKeyFunction(UINT key);
@@ -76,6 +78,8 @@ public:
     void AddRef();
     void Release();
     void NotifyClosed();
+    void EnableHandlingNewWindowRequest(bool enable);
+
 
     void SetOnAppWindowClosing(std::function<void()>&& f) {
       m_onAppWindowClosing = std::move(f);
@@ -84,6 +88,10 @@ public:
     std::wstring GetUserDataFolder()
     {
         return m_userDataFolder;
+    }
+    const DWORD GetCreationModeId()
+    {
+        return m_creationModeId;
     }
 
 private:
@@ -107,12 +115,14 @@ private:
     void RegisterEventHandlers();
     void ReinitializeWebViewWithNewBrowser();
     void RestartApp();
-    void CloseWebView(bool cleanupUserDataFolder = false);
+    bool CloseWebView(bool cleanupUserDataFolder = false);
     void CleanupUserDataFolder();
     void CloseAppWindow();
     void ChangeLanguage();
     void UpdateCreationModeMenu();
     void ToggleAADSSO();
+    void UpdateAppTitle();
+    void ToggleExclusiveUserDataFolderAccess();
 #ifdef USE_WEBVIEW2_WIN10
     void OnTextScaleChanged(
         winrt::Windows::UI::ViewManagement::UISettings const& uiSettings,
@@ -145,16 +155,24 @@ private:
     wil::com_ptr<ICoreWebView2> m_webView;
     wil::com_ptr<ICoreWebView2_3> m_webView3;
 
+    bool m_shouldHandleNewWindowRequest = true;
+
     EventRegistrationToken m_browserExitedEventToken = {};
     UINT32 m_newestBrowserPid = 0;
 
     // All components are deleted when the WebView is closed.
     std::vector<std::unique_ptr<ComponentBase>> m_components;
     std::unique_ptr<SettingsComponent> m_oldSettingsComponent;
-
     std::wstring m_language;
 
+    // app title, initialized in constructor
+    std::wstring m_appTitle;
+
+    // document title from web page that wants to show in window title bar
+    std::wstring m_documentTitle;
+
     bool m_AADSSOEnabled = false;
+    bool m_ExclusiveUserDataFolderAccess = false;
 
     // Fullscreen related code
     RECT m_previousWindowRect;

@@ -9,7 +9,6 @@
 #include "CheckFailure.h"
 #include "TextInputDialog.h"
 #include <shlwapi.h>
-
 using namespace Microsoft::WRL;
 
 // Some utility functions
@@ -27,10 +26,12 @@ SettingsComponent::SettingsComponent(
     m_settings3 = m_settings.try_query<ICoreWebView2Settings3>();
     m_settings4 = m_settings.try_query<ICoreWebView2Settings4>();
     m_settings5 = m_settings.try_query<ICoreWebView2Settings5>();
-    m_experimentalSettings5 = m_webView.try_query<ICoreWebView2ExperimentalSettings5>();
+    m_settings6 = m_settings.try_query<ICoreWebView2Settings6>();
     m_controller = m_appWindow->GetWebViewController();
     m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
     m_webView2_5 = m_webView.try_query<ICoreWebView2_5>();
+    m_webViewExperimental5 = m_webView.try_query<ICoreWebView2Experimental5>();
+    m_webViewExperimental6 = m_webView.try_query<ICoreWebView2Experimental6>();
     // Copy old settings if desired
     if (old)
     {
@@ -78,10 +79,10 @@ SettingsComponent::SettingsComponent(
             CHECK_FAILURE(old->m_settings5->get_IsPinchZoomEnabled(&setting));
             CHECK_FAILURE(m_settings5->put_IsPinchZoomEnabled(setting));
         }
-        if (old->m_experimentalSettings5 && m_experimentalSettings5)
+        if (old->m_settings6 && m_settings6)
         {
-            CHECK_FAILURE(old->m_experimentalSettings5->get_IsSwipeNavigationEnabled(&setting));
-            CHECK_FAILURE(m_experimentalSettings5->put_IsSwipeNavigationEnabled(setting));
+            CHECK_FAILURE(old->m_settings6->get_IsSwipeNavigationEnabled(&setting));
+            CHECK_FAILURE(m_settings6->put_IsSwipeNavigationEnabled(setting));
         }
         SetBlockImages(old->m_blockImages);
         SetReplaceImages(old->m_replaceImages);
@@ -473,6 +474,172 @@ bool SettingsComponent::HandleWindowMessage(
             //! [DisableContextMenu]
             return true;
         }
+        case ID_TOGGLE_CUSTOM_CONTEXT_MENU:
+        {
+            m_allowCustomMenus = !m_allowCustomMenus;
+            //! [EnableCustomMenu]
+            if (m_allowCustomMenus)
+            {
+                m_webViewExperimental6->add_ContextMenuRequested(
+                    Callback<ICoreWebView2ExperimentalContextMenuRequestedEventHandler>(
+                        [this](
+                            ICoreWebView2* sender,
+                            ICoreWebView2ExperimentalContextMenuRequestedEventArgs* eventArgs) {
+                            wil::com_ptr<ICoreWebView2ExperimentalContextMenuRequestedEventArgs>
+                                args = eventArgs;
+                            wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> items;
+                            CHECK_FAILURE(args->get_MenuItems(&items));
+                            UINT32 itemsCount;
+                            CHECK_FAILURE(items->get_Count(&itemsCount));
+
+                            wil::com_ptr<ICoreWebView2ExperimentalContextMenuTarget> target;
+                            CHECK_FAILURE(args->get_ContextMenuTarget(&target));
+
+                            COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND targetKind;
+                            CHECK_FAILURE(target->get_Kind(&targetKind));
+                            // Custom UI Context Menu rendered if invoked on selected text
+                            if (targetKind ==
+                                COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND_SELECTED_TEXT)
+                            {
+                                auto showMenu = [this, args, itemsCount, items, target] {
+                                    CHECK_FAILURE(args->put_Handled(true));
+                                    HMENU hPopupMenu = CreatePopupMenu();
+                                    AddMenuItems(hPopupMenu, items);
+                                    HWND hWnd;
+                                    m_controller->get_ParentWindow(&hWnd);
+                                    SetForegroundWindow(hWnd);
+                                    RECT rct;
+                                    GetClientRect(hWnd, &rct);
+                                    POINT topLeft;
+                                    topLeft.x = rct.left;
+                                    topLeft.y = rct.top;
+                                    ClientToScreen(hWnd, &topLeft);
+                                    POINT p;
+                                    CHECK_FAILURE(args->get_Location(&p));
+                                    RECT bounds;
+                                    CHECK_FAILURE(m_controller->get_Bounds(&bounds));
+                                    double scale;
+                                    m_controller3->get_RasterizationScale(&scale);
+                                    INT32 selectedCommandId = TrackPopupMenu(
+                                        hPopupMenu,
+                                        TPM_TOPALIGN | TPM_LEFTALIGN | TPM_RETURNCMD,
+                                        bounds.left + topLeft.x + ((int)(p.x * scale)),
+                                        bounds.top + topLeft.y + ((int)(p.y * scale)), 0, hWnd,
+                                        NULL);
+                                    CHECK_FAILURE(
+                                        args->put_SelectedCommandId(selectedCommandId));
+                                };
+                                wil::com_ptr<ICoreWebView2Deferral> deferral;
+                                CHECK_FAILURE(args->GetDeferral(&deferral));
+                                m_appWindow->RunAsync([deferral, showMenu]() {
+                                    showMenu();
+                                    CHECK_FAILURE(deferral->Complete());
+                                });
+                            }
+                            // Removing the 'Save image as' context menu item for image context
+                            // selections.
+                            else if (targetKind == COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND_IMAGE)
+                            {
+                                UINT32 removeIndex = itemsCount;
+                                wil::com_ptr<ICoreWebView2ExperimentalContextMenuItem> current;
+                                for (UINT32 i = 0; i < itemsCount; i++)
+                                {
+                                    CHECK_FAILURE(items->GetValueAtIndex(i, &current));
+                                    wil::unique_cotaskmem_string name;
+                                    CHECK_FAILURE(current->get_Name(&name));
+                                    if (std::wstring(L"saveImageAs") == name.get())
+                                    {
+                                        removeIndex = i;
+                                    }
+                                }
+                                if (removeIndex < itemsCount)
+                                {
+                                    CHECK_FAILURE(items->RemoveValueAtIndex(removeIndex));
+                                }
+                            }
+                            // Adding a custom context menu item for the page that will display the
+                            // page's URI.
+                            else if (targetKind == COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND_PAGE)
+                            {
+                                // Custom items should be reused whenever possible.
+                                if (!m_displayPageUrlContextSubMenuItem)
+                                {
+                                    wil::com_ptr<ICoreWebView2ExperimentalEnvironment6>
+                                        webviewEnvironment;
+                                    CHECK_FAILURE(
+                                        m_appWindow->GetWebViewEnvironment()->QueryInterface(
+                                            IID_PPV_ARGS(&webviewEnvironment)));
+                                    wil::com_ptr<ICoreWebView2ExperimentalContextMenuItem>
+                                        displayPageUrlItem;
+                                    wil::com_ptr<IStream> iconStream;
+                                    CHECK_FAILURE(SHCreateStreamOnFileEx(
+                                        L"small.ico", STGM_READ, FILE_ATTRIBUTE_NORMAL, FALSE,
+                                        nullptr, &iconStream));
+                                    CHECK_FAILURE(webviewEnvironment->CreateContextMenuItem(
+                                        L"Display Page Url", iconStream.get(),
+                                        COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_COMMAND,
+                                        &displayPageUrlItem));
+                                    CHECK_FAILURE(displayPageUrlItem->add_CustomItemSelected(
+                                        Callback<
+                                            ICoreWebView2ExperimentalCustomItemSelectedEventHandler>(
+                                            [this, target](
+                                                ICoreWebView2ExperimentalContextMenuItem*
+                                                    sender,
+                                                IUnknown* args)
+                                            {
+                                                wil::unique_cotaskmem_string pageUri;
+                                                CHECK_FAILURE(target->get_PageUri(&pageUri));
+                                                std::wstring pageString = pageUri.get();
+                                                m_appWindow->RunAsync(
+                                                    [this, pageString]() {
+                                                        MessageBox(
+                                                            m_appWindow->GetMainWindow(),
+                                                            pageString.c_str(),
+                                                            L"Display Page Uri", MB_OK);
+                                                    });
+                                                return S_OK;
+                                            })
+                                            .Get(),
+                                        nullptr));
+                                    CHECK_FAILURE(webviewEnvironment->CreateContextMenuItem(
+                                        L"New Submenu", nullptr,
+                                        COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_SUBMENU,
+                                        &m_displayPageUrlContextSubMenuItem));
+                                    wil::com_ptr<
+                                        ICoreWebView2ExperimentalContextMenuItemCollection>
+                                        m_displayPageUrlContextSubMenuItemChildren;
+                                    CHECK_FAILURE(
+                                        m_displayPageUrlContextSubMenuItem->get_Children(
+                                        &m_displayPageUrlContextSubMenuItemChildren));
+                                    m_displayPageUrlContextSubMenuItemChildren
+                                        ->InsertValueAtIndex(
+                                        0, displayPageUrlItem.get());
+                                }
+
+                                CHECK_FAILURE(items->InsertValueAtIndex(
+                                    itemsCount, m_displayPageUrlContextSubMenuItem.get()));
+                            }
+                            // If type is not an image, video, or page, the regular Edge context
+                            // menu will be displayed
+                            return S_OK;
+                        })
+                        .Get(),
+                    &m_contextMenuRequestedToken);
+
+                MessageBox(
+                    nullptr, L"Custom Context menus are now enabled.", L"Settings change",
+                    MB_OK);
+            }
+            else
+            {
+                m_webViewExperimental6->remove_ContextMenuRequested(m_contextMenuRequestedToken);
+                MessageBox(
+                    nullptr, L"Custom Context menus are now disabled.", L"Settings change",
+                    MB_OK);
+            }
+            //! [EnableCustomMenu]
+            return true;
+        }
         case ID_SETTINGS_HOST_OBJECTS_ALLOWED:
         {
             //! [HostObjectsAccess]
@@ -523,6 +690,7 @@ bool SettingsComponent::HandleWindowMessage(
         {
             //! [TogglePinchZoomEnabled]
             CHECK_FEATURE_RETURN(m_settings5);
+
             BOOL pinchZoomEnabled;
             CHECK_FAILURE(m_settings5->get_IsPinchZoomEnabled(&pinchZoomEnabled));
             if (pinchZoomEnabled)
@@ -653,14 +821,20 @@ bool SettingsComponent::HandleWindowMessage(
         }
         case ID_SETTINGS_SWIPE_NAVIGATION_ENABLED:
         {
-            //! [ToggleSwipeNavigationDisabled]
-            CHECK_FEATURE_RETURN(m_experimentalSettings5);
+            //! [ToggleSwipeNavigationEnabled]
+            CHECK_FEATURE_RETURN(m_settings6);
             BOOL swipeNavigationEnabled;
-            CHECK_FAILURE(
-                m_experimentalSettings5->get_IsSwipeNavigationEnabled(&swipeNavigationEnabled));
+            CHECK_FAILURE(m_settings6->get_IsSwipeNavigationEnabled(&swipeNavigationEnabled));
             if (swipeNavigationEnabled)
             {
-                CHECK_FAILURE(m_experimentalSettings5->put_IsSwipeNavigationEnabled(FALSE));
+                CHECK_FAILURE(m_settings6->put_IsSwipeNavigationEnabled(FALSE));
+                MessageBox(
+                    nullptr, L"Swipe to navigate is disabled after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(m_settings6->put_IsSwipeNavigationEnabled(TRUE));
                 MessageBox(
                     nullptr, L"Swipe to navigate is enabled after the next navigation.",
                     L"Settings change", MB_OK);
@@ -701,10 +875,128 @@ bool SettingsComponent::HandleWindowMessage(
             //! [ToggleHidePdfToolbarItems]
             return true;
         }
+        case ID_TOGGLE_ALLOW_EXTERNAL_DROP:
+        {
+            //! [ToggleAllowExternalDrop]
+            wil::com_ptr<ICoreWebView2Controller> controller =
+                m_appWindow->GetWebViewController();
+            wil::com_ptr<ICoreWebView2ExperimentalController2> controllerExperimental =
+                controller.try_query<ICoreWebView2ExperimentalController2>();
+            if (controllerExperimental)
+            {
+                BOOL allowExternalDrop;
+                CHECK_FAILURE(
+                    controllerExperimental->get_AllowExternalDrop(&allowExternalDrop));
+                if (allowExternalDrop)
+                {
+                    CHECK_FAILURE(controllerExperimental->put_AllowExternalDrop(FALSE));
+                    MessageBox(
+                        nullptr, L"WebView disallows dropping files now.",
+                        L"WebView AllowDrop property changed", MB_OK);
+                }
+                else
+                {
+                    CHECK_FAILURE(controllerExperimental->put_AllowExternalDrop(TRUE));
+                    MessageBox(
+                        nullptr, L"WebView allows dropping files now.",
+                        L"WebView AllowDrop property changed", MB_OK);
+                }
+            }
+            //! [ToggleAllowExternalDrop]
+            return true;
+        }
         }
     }
     return false;
 }
+
+void SettingsComponent::AddMenuItems(
+    HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> items)
+{
+    wil::com_ptr<ICoreWebView2ExperimentalContextMenuItem> current;
+    UINT32 itemsCount;
+    CHECK_FAILURE(items->get_Count(&itemsCount));
+    for (UINT32 i = 0; i < itemsCount; i++)
+    {
+        CHECK_FAILURE(items->GetValueAtIndex(i, &current));
+        COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND kind;
+        CHECK_FAILURE(current->get_Kind(&kind));
+        wil::unique_cotaskmem_string label;
+        CHECK_FAILURE(current->get_Label(&label));
+        std::wstring labelString = label.get();
+        wil::unique_cotaskmem_string shortcut;
+        CHECK_FAILURE(current->get_ShortcutKeyDescription(&shortcut));
+        std::wstring shortcutString = shortcut.get();
+        if (!shortcutString.empty())
+        {
+            // L"\t" will right align the shortcut string
+            labelString = labelString + L"\t" + shortcutString;
+        }
+        BOOL isEnabled;
+        CHECK_FAILURE(current->get_IsEnabled(&isEnabled));
+        BOOL isChecked;
+        CHECK_FAILURE(current->get_IsChecked(&isChecked));
+        INT32 commandId;
+        CHECK_FAILURE(current->get_CommandId(&commandId));
+        if (kind == COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_SEPARATOR)
+        {
+            AppendMenu(hPopupMenu, MF_SEPARATOR, 0, nullptr);
+        }
+        else if (kind == COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_SUBMENU)
+        {
+            HMENU newMenu = CreateMenu();
+            wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> submenuItems;
+            CHECK_FAILURE(current->get_Children(&submenuItems));
+            AddMenuItems(newMenu, submenuItems);
+            AppendMenu(hPopupMenu, MF_POPUP, (UINT_PTR)newMenu, labelString.c_str());
+        }
+        else if (kind == COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_COMMAND)
+        {
+            if (isEnabled)
+            {
+                AppendMenu(
+                    hPopupMenu, MF_BYPOSITION | MF_STRING, commandId, labelString.c_str());
+            }
+            else
+            {
+                AppendMenu(hPopupMenu, MF_GRAYED | MF_STRING, commandId, labelString.c_str());
+            }
+        }
+        else if (
+            kind == COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_CHECK_BOX ||
+            kind == COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_RADIO)
+        {
+            if (isEnabled)
+            {
+                if (isChecked)
+                {
+                    AppendMenu(
+                        hPopupMenu, MF_CHECKED | MF_STRING, commandId, labelString.c_str());
+                }
+                else
+                {
+                    AppendMenu(
+                        hPopupMenu, MF_BYPOSITION | MF_STRING, commandId, labelString.c_str());
+                }
+            }
+            else
+            {
+                if (isChecked)
+                {
+                    AppendMenu(
+                        hPopupMenu, MF_CHECKED | MF_GRAYED | MF_STRING, commandId,
+                        labelString.c_str());
+                }
+                else
+                {
+                    AppendMenu(
+                        hPopupMenu, MF_GRAYED | MF_STRING, commandId, labelString.c_str());
+                }
+            }
+        }
+    }
+}
+
 // Prompt the user for a list of blocked domains
 void SettingsComponent::ChangeBlockedSites()
 {
@@ -981,7 +1273,6 @@ SettingsComponent::~SettingsComponent()
     m_webView->remove_ScriptDialogOpening(m_scriptDialogOpeningToken);
     m_webView->remove_PermissionRequested(m_permissionRequestedToken);
 }
-
 // Take advantage of urlmon's URI library to parse a URI
 static wil::unique_bstr GetDomainOfUri(PWSTR uri)
 {

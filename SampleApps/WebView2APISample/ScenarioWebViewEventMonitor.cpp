@@ -22,17 +22,16 @@ static constexpr wchar_t c_samplePath[] = L"ScenarioWebViewEventMonitor.html";
 
 ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEventSource)
     : m_appWindowEventSource(appWindowEventSource),
-      m_webviewEventSource(appWindowEventSource->GetWebView())
+      m_webviewEventSource(appWindowEventSource->GetWebView()),
+      m_controllerEventSource(appWindowEventSource->GetWebViewController())
 {
     m_sampleUri = m_appWindowEventSource->GetLocalUri(c_samplePath);
     m_appWindowEventView = new AppWindow(
-        IDM_CREATION_MODE_WINDOWED,
-        m_sampleUri, appWindowEventSource->GetUserDataFolder(),
-        false,
-        [this]() -> void {
-            InitializeEventView(m_appWindowEventView->GetWebView());
-        });
+        IDM_CREATION_MODE_WINDOWED, m_sampleUri, appWindowEventSource->GetUserDataFolder(),
+        false, [this]() -> void { InitializeEventView(m_appWindowEventView->GetWebView()); });
     // Delete this component when the event monitor window closes.
+    // Since this is a component of the event source window, it will automatically
+    // be deleted when the event source webview is closed.
     m_appWindowEventView->SetOnAppWindowClosing([&]{
         m_appWindowEventSource->DeleteComponent(this);
     });
@@ -57,10 +56,14 @@ ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
         m_webviewEventSource4->remove_DownloadStarting(m_downloadStartingToken);
         m_webviewEventSource4->remove_FrameCreated(m_frameCreatedToken);
     }
+    m_controllerEventSource->remove_GotFocus(m_gotFocusToken);
+    m_controllerEventSource->remove_LostFocus(m_lostFocusToken);
     EnableWebResourceRequestedEvent(false);
     EnableWebResourceResponseReceivedEvent(false);
 
     m_webviewEventView->remove_WebMessageReceived(m_eventViewWebMessageReceivedToken);
+    // Clear our app window's reference to this.
+    m_appWindowEventView->SetOnAppWindowClosing(nullptr);
 }
 
 std::wstring WebErrorStatusToString(COREWEBVIEW2_WEB_ERROR_STATUS status)
@@ -573,13 +576,13 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
 
-                wil::com_ptr<ICoreWebView2ExperimentalNewWindowRequestedEventArgs> 
-                    experimentalArgs;
+                wil::com_ptr<ICoreWebView2NewWindowRequestedEventArgs2> 
+                    args2;
                 wil::unique_cotaskmem_string name;
                 std::wstring encodedName = EncodeQuote(L"");
                 
-                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&experimentalArgs)))) {
-                    CHECK_FAILURE(experimentalArgs->get_Name(&name));
+                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2)))) {
+                    CHECK_FAILURE(args2->get_Name(&name));
                     encodedName = EncodeQuote(name.get());
                 }
 
@@ -886,7 +889,7 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                     wil::com_ptr<ICoreWebView2Frame> webviewFrame;
                     CHECK_FAILURE(args->get_Frame(&webviewFrame));
 
-                    InitializeFrameEventView(webviewFrame.get());
+                    InitializeFrameEventView(webviewFrame);
 
                     wil::unique_cotaskmem_string name;
                     CHECK_FAILURE(webviewFrame->get_Name(&name));
@@ -903,9 +906,33 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 .Get(),
             &m_frameCreatedToken);
     }
+
+    m_controllerEventSource->add_GotFocus(
+        Callback<ICoreWebView2FocusChangedEventHandler>(
+            [this](ICoreWebView2Controller* sender, IUnknown* args)
+                -> HRESULT {
+                std::wstring message =
+                    L"{ \"kind\": \"event\", \"name\": \"GotFocus\", \"args\": {} }";
+                PostEventMessage(message);
+                return S_OK;
+            })
+            .Get(),
+        &m_gotFocusToken);
+    m_controllerEventSource->add_LostFocus(
+        Callback<ICoreWebView2FocusChangedEventHandler>(
+            [this](ICoreWebView2Controller* sender, IUnknown* args)
+                -> HRESULT {
+                std::wstring message =
+                    L"{ \"kind\": \"event\", \"name\": \"LostFocus\", \"args\": {} }";
+                PostEventMessage(message);
+                return S_OK;
+            })
+            .Get(),
+        &m_lostFocusToken);
 }
 
-void ScenarioWebViewEventMonitor::InitializeFrameEventView(ICoreWebView2Frame* webviewFrame)
+void ScenarioWebViewEventMonitor::InitializeFrameEventView(
+    wil::com_ptr<ICoreWebView2Frame> webviewFrame)
 {
     webviewFrame->add_Destroyed(
         Callback<ICoreWebView2FrameDestroyedEventHandler>(
@@ -919,6 +946,68 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(ICoreWebView2Frame* w
             })
             .Get(),
         NULL);
+
+    wil::com_ptr<ICoreWebView2ExperimentalFrame> frameExperimental =
+        webviewFrame.try_query<ICoreWebView2ExperimentalFrame>();
+    if (frameExperimental)
+    {
+        frameExperimental->add_NavigationStarting(
+            Callback<ICoreWebView2ExperimentalFrameNavigationStartingEventHandler>(
+                [this](
+                    ICoreWebView2Frame* sender,
+                    ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+                    std::wstring message = NavigationStartingArgsToJsonString(
+                        m_webviewEventSource.get(), args,
+                        L"CoreWebView2Frame::NavigationStarting");
+                    PostEventMessage(message);
+
+                    return S_OK;
+                })
+                .Get(),
+            NULL);
+
+        frameExperimental->add_ContentLoading(
+            Callback<ICoreWebView2ExperimentalFrameContentLoadingEventHandler>(
+                [this](ICoreWebView2Frame* sender, ICoreWebView2ContentLoadingEventArgs* args)
+                    -> HRESULT {
+                    std::wstring message = ContentLoadingArgsToJsonString(
+                        m_webviewEventSource.get(), args, L"CoreWebView2Frame::ContentLoading");
+                    PostEventMessage(message);
+
+                    return S_OK;
+                })
+                .Get(),
+            NULL);
+
+        frameExperimental->add_NavigationCompleted(
+            Callback<ICoreWebView2ExperimentalFrameNavigationCompletedEventHandler>(
+                [this](
+                    ICoreWebView2Frame* sender,
+                    ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+                    std::wstring message = NavigationCompletedArgsToJsonString(
+                        m_webviewEventSource.get(), args,
+                        L"CoreWebView2Frame::NavigationCompleted");
+                    PostEventMessage(message);
+
+                    return S_OK;
+                })
+                .Get(),
+            NULL);
+
+        frameExperimental->add_DOMContentLoaded(
+            Callback<ICoreWebView2ExperimentalFrameDOMContentLoadedEventHandler>(
+                [this](ICoreWebView2Frame* sender, ICoreWebView2DOMContentLoadedEventArgs* args)
+                    -> HRESULT {
+                    std::wstring message = DOMContentLoadedArgsToJsonString(
+                        m_webviewEventSource.get(), args,
+                        L"CoreWebView2Frame::DOMContentLoaded");
+                    PostEventMessage(message);
+
+                    return S_OK;
+                })
+                .Get(),
+            NULL);
+    }
 }
 
 void ScenarioWebViewEventMonitor::PostEventMessage(std::wstring message)
