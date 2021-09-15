@@ -66,7 +66,9 @@ static INT_PTR CALLBACK ClientCertificateSelectionBoxDlg(HWND hDlg, UINT message
 
                 // Get selected index.
                 int lbItem = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
-                self->selectedItem = lbItem;
+                // Get item index before listbox sorted items alphabetically.
+                int i = (int)SendMessage(hwndList, LB_GETITEMDATA, lbItem, 0);
+                self->selectedItem = i;
                 self->confirmed = true;
             }
 
@@ -121,5 +123,5 @@ ClientCertificateSelectionDialog::ClientCertificateSelectionDialog(
 {
     DialogBoxParam(
         g_hInstance, MAKEINTRESOURCE(IDD_CERTIFICATE_DIALOG), parent, ClientCertificateSelectionBoxDlg,
-        (LPARAM)this);    
+        (LPARAM)this);
 }

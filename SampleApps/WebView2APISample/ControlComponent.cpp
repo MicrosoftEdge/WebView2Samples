@@ -230,6 +230,12 @@ bool ControlComponent::HandleWindowMessage(
             return true;
         case IDM_TOGGLE_TAB_HANDLING:
             g_autoTabHandle = !g_autoTabHandle;
+            MessageBox(
+                nullptr,
+                (std::wstring(L"Tab handling by host app is now ") +
+                    (g_autoTabHandle ? L"disabled." : L"enabled."))
+                .c_str(),
+                L"", MB_OK);
             return true;
         case IDE_ADDRESSBAR_GO:
             if (HIWORD(wParam) == BN_CLICKED)

@@ -32,9 +32,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_WEBVIEW2APISAMPLE   ICON                    "WebView2APISample.ico"
-
 IDI_SMALL               ICON                    "small.ico"
-
 IDI_WEBVIEW2_BACKGROUND BITMAP                   "AppBackground.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -47,15 +45,22 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "Save Screenshot",                             IDM_SAVE_SCREENSHOT
+        POPUP "Print to PDF"
+        BEGIN
+            MENUITEM "Portrait",                                IDM_PRINT_TO_PDF_PORTRAIT
+            MENUITEM "Landscape",                               IDM_PRINT_TO_PDF_LANDSCAPE
+        END
         MENUITEM "Get Document Title",                          IDM_GET_DOCUMENT_TITLE
         MENUITEM "Get Browser Version After Creation",          IDM_GET_BROWSER_VERSION_AFTER_CREATION
         MENUITEM "Get Browser Version Before Creation",         IDM_GET_BROWSER_VERSION_BEFORE_CREATION
+        MENUITEM "Get User Data Folder",                        IDM_GET_USER_DATA_FOLDER
         MENUITEM "Update WebView2 Runtime",                     IDM_UPDATE_RUNTIME
         MENUITEM "E&xit",                                       IDM_EXIT
     END
     POPUP "&Script"
     BEGIN
         MENUITEM "Inject Script",               IDM_INJECT_SCRIPT
+        MENUITEM "Inject Script Into IFrame",   IDM_INJECT_SCRIPT_FRAME
         MENUITEM "Add Initialize Script",       ID_ADD_INITIALIZE_SCRIPT
         MENUITEM "Remove Initialize Script",    ID_REMOVE_INITIALIZE_SCRIPT
         MENUITEM SEPARATOR
@@ -74,8 +79,9 @@ BEGIN
     BEGIN
         MENUITEM "Set WebView Language",                       IDM_SET_LANGUAGE
         MENUITEM "Toggle AAD SSO enabled",                     IDM_TOGGLE_AAD_SSO
+        MENUITEM "Toggle exclusive user data folder access",   IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS
         MENUITEM "Close WebView",                              IDM_CLOSE_WEBVIEW
-        MENUITEM "Close WebView and cleanup user data folder", IDM_CLOSE_WEBVIEW_CLEANUP
+        MENUITEM "Close WebView and Delete User Data Folder", IDM_CLOSE_WEBVIEW_CLEANUP
         MENUITEM SEPARATOR
         POPUP "WebView Creation Mode"
         BEGIN
@@ -89,6 +95,7 @@ BEGIN
         MENUITEM "Create WebView"                             IDM_REINIT
         MENUITEM "Create New Window",           IDM_NEW_WINDOW
         MENUITEM "Create New Thread",           IDM_NEW_THREAD
+        MENUITEM "Toggle TopMost", IDM_TOGGLE_TOPMOST_WINDOW
     END
     POPUP "&Process"
     BEGIN
@@ -99,19 +106,6 @@ BEGIN
     POPUP "S&ettings"
     BEGIN
         MENUITEM "Blocked Domains",             ID_BLOCKEDSITES
-        MENUITEM "Set User Agent",              ID_SETTINGS_SETUSERAGENT
-        MENUITEM SEPARATOR
-        MENUITEM "Toggle JavaScript",           IDM_TOGGLE_JAVASCRIPT
-        MENUITEM "Toggle Web Messaging",        IDM_TOGGLE_WEB_MESSAGING
-        MENUITEM "Toggle Fullscreen allowed",   IDM_TOGGLE_FULLSCREEN_ALLOWED
-        MENUITEM "Toggle Status Bar enabled",   ID_SETTINGS_STATUS_BAR_ENABLED
-        MENUITEM "Toggle DevTools enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
-        MENUITEM "Toggle Block images",         ID_SETTINGS_BLOCKALLIMAGES
-        MENUITEM "Toggle Replace images",       ID_SETTINGS_REPLACEALLIMAGES
-        MENUITEM "Toggle Password Autosave",    ID_SETTINGS_PASSWORD_AUTOSAVE_ENABLED
-        MENUITEM "Toggle General Autofill",     ID_SETTINGS_GENERAL_AUTOFILL_ENABLED
-        MENUITEM "Toggle Client Certificate Requested", ID_TOGGLE_CLIENT_CERTIFICATE_REQUESTED
-        MENUITEM "Toggle pinch zoom enabled",   ID_SETTINGS_PINCH_ZOOM_ENABLED
         POPUP "JavaScript Dialogs"
         BEGIN
             MENUITEM "Use Default Script Dialogs",  IDM_USE_DEFAULT_SCRIPT_DIALOGS
@@ -119,33 +113,60 @@ BEGIN
             MENUITEM "Use Deferred Script Dialogs", IDM_USE_DEFERRED_SCRIPT_DIALOGS
             MENUITEM "Complete Deferred Script Dialog", IDM_COMPLETE_JAVASCRIPT_DIALOG
         END
-        MENUITEM "Toggle context menus enabled", ID_SETTINGS_CONTEXT_MENUS_ENABLED
-        MENUITEM "Toggle host objects allowed", ID_SETTINGS_HOST_OBJECTS_ALLOWED
-        MENUITEM "Toggle zoom control enabled",   ID_SETTINGS_ZOOM_ENABLED
-        MENUITEM "Toggle built-in error page enabled", ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED
-        MENUITEM "Toggle browser accelerator keys enabled", ID_SETTINGS_BROWSER_ACCELERATOR_KEYS_ENABLED
-        MENUITEM "Toggle swipe navigation enabled",   ID_SETTINGS_SWIPE_NAVIGATION_ENABLED
-        MENUITEM "Toggle hide pdf toolbar items", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS
+        MENUITEM "Set User Agent",              ID_SETTINGS_SETUSERAGENT
+        MENUITEM "Toggle Allow External Drop",    ID_TOGGLE_ALLOW_EXTERNAL_DROP
+        MENUITEM "Toggle Block Images",         ID_SETTINGS_BLOCKALLIMAGES
+        MENUITEM "Toggle Browser Accelerator Keys Enabled", ID_SETTINGS_BROWSER_ACCELERATOR_KEYS_ENABLED
+        MENUITEM "Toggle Built-in Error Page Enabled", ID_SETTINGS_BUILTIN_ERROR_PAGE_ENABLED
+        MENUITEM "Toggle Client Certificate Requested", ID_TOGGLE_CLIENT_CERTIFICATE_REQUESTED
+        MENUITEM "Toggle Context Menus Enabled", ID_SETTINGS_CONTEXT_MENUS_ENABLED
+        MENUITEM "Toggle Custom Context Menu", ID_TOGGLE_CUSTOM_CONTEXT_MENU
+        MENUITEM "Toggle DevTools Enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
+        MENUITEM "Toggle General Autofill",     ID_SETTINGS_GENERAL_AUTOFILL_ENABLED
+        MENUITEM "Toggle Hide PDF Toolbar Items", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS
+        MENUITEM "Toggle Host Objects Allowed", ID_SETTINGS_HOST_OBJECTS_ALLOWED
+        MENUITEM "Toggle JavaScript",           IDM_TOGGLE_JAVASCRIPT
+        MENUITEM "Toggle Password Autosave",    ID_SETTINGS_PASSWORD_AUTOSAVE_ENABLED
+        MENUITEM "Toggle Pinch Zoom Enabled",   ID_SETTINGS_PINCH_ZOOM_ENABLED
+        MENUITEM "Toggle Replace Images",       ID_SETTINGS_REPLACEALLIMAGES
+        MENUITEM "Toggle Status Bar Enabled",   ID_SETTINGS_STATUS_BAR_ENABLED
+        MENUITEM "Toggle Swipe navigation Enabled",   ID_SETTINGS_SWIPE_NAVIGATION_ENABLED
+        MENUITEM "Toggle Web Messaging",        IDM_TOGGLE_WEB_MESSAGING
+        MENUITEM "Toggle Zoom Control Enabled",   ID_SETTINGS_ZOOM_ENABLED
     END
     POPUP "&View"
     BEGIN
         MENUITEM "Toggle Visibility",           IDM_TOGGLE_VISIBILITY
         MENUITEM "Suspend",                     IDM_SUSPEND
         MENUITEM "Resume",                      IDM_RESUME
+        MENUITEM "Toggle memory usage target level", IDM_TOGGLE_MEMORY_USAGE_TARGET_LEVEL
         POPUP "WebView Area"
         BEGIN
-       MENUITEM "Get WebView Bounds",      IDM_GET_WEBVIEW_BOUNDS
+            MENUITEM "Get WebView Bounds",      IDM_GET_WEBVIEW_BOUNDS
             MENUITEM "25%",                     IDM_SIZE_25
             MENUITEM "50%",                     IDM_SIZE_50
             MENUITEM "75%",                     IDM_SIZE_75
             MENUITEM "100%",                    IDM_SIZE_100
         END
-        POPUP "WebView Zoom"
+        POPUP "WebView Background Color"
         BEGIN
-            MENUITEM "Get WebView Zoom",        IDM_GET_WEBVIEW_ZOOM
-            MENUITEM "0.5x",                    IDM_ZOOM_05
-            MENUITEM "1.0x",                    IDM_ZOOM_10
-            MENUITEM "2.0x",                    IDM_ZOOM_20
+            MENUITEM "White"                   IDM_BACKGROUNDCOLOR_WHITE
+            MENUITEM "Red"                     IDM_BACKGROUNDCOLOR_RED
+            MENUITEM "Blue"                    IDM_BACKGROUNDCOLOR_BLUE
+            MENUITEM "Transparent"             IDM_BACKGROUNDCOLOR_TRANSPARENT
+        END
+        POPUP "WebView Bounds Mode"
+            BEGIN
+            MENUITEM "Raw Pixels"               IDM_BOUNDS_MODE_RAW_PIXELS
+            MENUITEM "View Pixels"              IDM_BOUNDS_MODE_VIEW_PIXELS
+        END
+        POPUP "WebView Rasterization"
+        BEGIN
+            MENUITEM "Use Monitor Scale"        IDM_RASTERIZATION_SCALE_DEFAULT
+            MENUITEM "Raster 0.5x"              IDM_RASTERIZATION_SCALE_50
+            MENUITEM "Raster 1.0x"              IDM_RASTERIZATION_SCALE_100
+            MENUITEM "Raster 1.25x"             IDM_RASTERIZATION_SCALE_125
+            MENUITEM "Raster 1.5x"              IDM_RASTERIZATION_SCALE_150
         END
         POPUP "WebView Scaling"
         BEGIN
@@ -160,58 +181,47 @@ BEGIN
           MENUITEM "Rotate 30Deg"               IDM_TRANSFORM_ROTATE_30DEG
           MENUITEM "Rotate 60Deg Diagonally"    IDM_TRANSFORM_ROTATE_60DEG_DIAG
         END
-        POPUP "WebView Rasterization"
+        POPUP "WebView Zoom"
         BEGIN
-            MENUITEM "Use Monitor Scale"        IDM_RASTERIZATION_SCALE_DEFAULT
-            MENUITEM "Raster 0.5x"              IDM_RASTERIZATION_SCALE_50
-            MENUITEM "Raster 1.0x"              IDM_RASTERIZATION_SCALE_100
-            MENUITEM "Raster 1.25x"             IDM_RASTERIZATION_SCALE_125
-            MENUITEM "Raster 1.5x"              IDM_RASTERIZATION_SCALE_150
+            MENUITEM "Get WebView Zoom",        IDM_GET_WEBVIEW_ZOOM
+            MENUITEM "0.5x",                    IDM_ZOOM_05
+            MENUITEM "1.0x",                    IDM_ZOOM_10
+            MENUITEM "2.0x",                    IDM_ZOOM_20
         END
-            POPUP "WebView Bounds Mode"
-            BEGIN
-            MENUITEM "Raw Pixels"               IDM_BOUNDS_MODE_RAW_PIXELS
-            MENUITEM "View Pixels"              IDM_BOUNDS_MODE_VIEW_PIXELS
-        END
+        MENUITEM SEPARATOR
         MENUITEM "Toggle Cursor Handling"       IDM_TOGGLE_CURSOR_HANDLING
         MENUITEM "Set Focus",                   IDM_FOCUS_SET
         MENUITEM "Tab In",                      IDM_FOCUS_TAB_IN
         MENUITEM "Reverse Tab In",              IDM_FOCUS_REVERSE_TAB_IN
         MENUITEM "Toggle Tab Handling",         IDM_TOGGLE_TAB_HANDLING
-        POPUP "WebView Background Color"
-        BEGIN
-            MENUITEM "White"                   IDM_BACKGROUNDCOLOR_WHITE
-            MENUITEM "Red"                     IDM_BACKGROUNDCOLOR_RED
-            MENUITEM "Blue"                    IDM_BACKGROUNDCOLOR_BLUE
-            MENUITEM "Transparent"             IDM_BACKGROUNDCOLOR_TRANSPARENT
-        END
     END
     POPUP "S&cenario"
     BEGIN
-        MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
+        MENUITEM "Authentication",              IDM_SCENARIO_AUTHENTICATION
+        POPUP "Client Certificate Requested"
+        BEGIN
+            MENUITEM "Use Deferred Custom Client Certificate Selection Dialog", IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG
+        END
+        MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
+        POPUP "Custom Download Experience"
+        BEGIN
+            MENUITEM "Use Deferred Download Dialog",  IDM_SCENARIO_USE_DEFERRED_DOWNLOAD
+        END
+        MENUITEM "DOM Content Loaded",          IDM_SCENARIO_DOM_CONTENT_LOADED
         MENUITEM "Host Objects",                IDM_SCENARIO_ADD_HOST_OBJECT
-        MENUITEM "Event Monitor",               IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
+        MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
         POPUP "Script Debugging"
         BEGIN
             MENUITEM "JavaScript Local File",  IDM_SCENARIO_JAVA_SCRIPT
             MENUITEM "TypeScript Local File",  IDM_SCENARIO_TYPE_SCRIPT
             MENUITEM "JavaScript Virtual File", IDM_SCENARIO_JAVA_SCRIPT_VIRTUAL
             MENUITEM "TypeScript Virtual File", IDM_SCENARIO_TYPE_SCRIPT_VIRTUAL
-            END
-        MENUITEM "Authentication",              IDM_SCENARIO_AUTHENTICATION
-        MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
-        MENUITEM "DOM Content Loaded",          IDM_SCENARIO_DOM_CONTENT_LOADED
-        MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST        
+        END
         MENUITEM "Testing Focus",               IDM_SCENARIO_TESTING_FOCUS
-        POPUP "Custom Download Experience"
-        BEGIN
-            MENUITEM "Use Deferred Download Dialog",  IDM_SCENARIO_USE_DEFERRED_DOWNLOAD
-        END
-        POPUP "Client Certificate Requested"
-        BEGIN
-            MENUITEM "Use Deferred Custom Client Certificate Selection Dialog", IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG
-        END
         MENUITEM "Virtual Host Mapping With Service Worker",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING
+        MENUITEM "Virtual Host Mapping For Pop Up Window",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING_POP_UP_WINDOW
+        MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
+        MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
     END
     POPUP "&Help"
     BEGIN
@@ -270,7 +280,6 @@ BEGIN
     LTEXT           "Static",IDC_CERTIFICATE_STATIC,198,37,155,96
     LTEXT           "Static",IDC_CERTIFICATE_LBL,24,17,232,11
 END
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // DESIGNINFO

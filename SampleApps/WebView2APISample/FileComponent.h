@@ -8,6 +8,7 @@
 
 #include "AppWindow.h"
 #include "ComponentBase.h"
+#include <commdlg.h>
 
 // This component handles commands from the File menu, except for Exit.
 // It also handles the DocumentTitleChanged event.
@@ -24,12 +25,18 @@ public:
         LRESULT* result) override;
 
     void SaveScreenshot();
+    void PrintToPdf(bool enableLandscape);
+    bool IsPrintToPdfInProgress();
 
     ~FileComponent() override;
 
 private:
+    OPENFILENAME CreateOpenFileName(LPWSTR defaultName, LPCWSTR filter);
+
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
+    bool m_printToPdfInProgress = false;
+    bool m_enableLandscape = false;
 
     EventRegistrationToken m_documentTitleChangedToken = {};
 };

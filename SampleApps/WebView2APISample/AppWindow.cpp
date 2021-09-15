@@ -34,13 +34,13 @@
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioVirtualHostMappingForSW.h"
+#include "ScenarioVirtualHostMappingForPopUpWindow.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
-
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -99,8 +99,8 @@ DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
 // Creates a new window which is a copy of the entire app, but on the same thread.
 AppWindow::AppWindow(
     UINT creationModeId,
-    std::wstring initialUri,
-    std::wstring userDataFolderParam,
+    const std::wstring& initialUri,
+    const std::wstring& userDataFolderParam,
     bool isMainWindow,
     std::function<void()> webviewCreatedCallback,
     bool customWindowRect,
@@ -113,11 +113,11 @@ AppWindow::AppWindow(
 {
     // Initialize COM as STA.
     CHECK_FAILURE(OleInitialize(NULL));
-
     ++s_appInstances;
 
     WCHAR szTitle[s_maxLoadString]; // The title bar text
     LoadStringW(g_hInstance, IDS_APP_TITLE, szTitle, s_maxLoadString);
+    m_appTitle = szTitle;
 
     if (userDataFolderParam.length() > 0)
     {
@@ -185,6 +185,12 @@ AppWindow::AppWindow(
             MessageBox(m_mainWindow, L"WebView Runtime not installed", L"WebView Runtime Installation status", MB_OK);
         }
     }
+}
+
+AppWindow::~AppWindow()
+{
+    DeleteObject(m_appBackgroundImageHandle);
+    DeleteDC(m_memHdc);
 }
 
 // Register the Win32 window class for the app window.
@@ -315,8 +321,7 @@ bool AppWindow::HandleWindowMessage(
         {
             PostQuitMessage(retValue);
         }
-        DeleteObject(m_appBackgroundImageHandle);
-        DeleteDC(m_memHdc);
+        Release();
     }
     break;
     //! [RestartManager]
@@ -380,6 +385,20 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
             m_mainWindow, version_info.get(), L"Browser Version Info After WebView Creation",
             MB_OK);
         //! [GetBrowserVersionString]
+        return true;
+    }
+    case IDM_GET_USER_DATA_FOLDER:
+    {
+        //! [GetUserDataFolder]
+        auto experimentalEnvironment5 =
+            m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment5>();
+        CHECK_FEATURE_RETURN(experimentalEnvironment5);
+        wil::unique_cotaskmem_string userDataFolder;
+        experimentalEnvironment5->get_UserDataFolder(&userDataFolder);
+        MessageBox(
+            m_mainWindow, userDataFolder.get(), L"User Data Folder",
+            MB_OK);
+        //! [GetUserDataFolder]
         return true;
     }
     case IDM_CLOSE_WEBVIEW:
@@ -478,6 +497,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         NewComponent<ScenarioVirtualHostMappingForSW>(this);
         return true;
     }
+    case IDM_SCENARIO_VIRTUAL_HOST_MAPPING_POP_UP_WINDOW:
+    {
+        NewComponent<ScenarioVirtualHostMappingForPopUpWindow>(this);
+        return true;
+    }
     }
     return false;
 }
@@ -555,28 +579,27 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_REINIT:
         InitializeWebView();
         return true;
-    case IDM_TOGGLE_FULLSCREEN_ALLOWED:
-    {
-        m_fullScreenAllowed = !m_fullScreenAllowed;
-        MessageBox(
-            nullptr,
-            (std::wstring(L"Fullscreen is now ") +
-             (m_fullScreenAllowed ? L"allowed" : L"disallowed"))
-                .c_str(),
-            L"", MB_OK);
-        return true;
-    }
     case IDM_NEW_WINDOW:
         new AppWindow(m_creationModeId);
         return true;
     case IDM_NEW_THREAD:
-        CreateNewThread(m_creationModeId);
+        CreateNewThread(this);
         return true;
     case IDM_SET_LANGUAGE:
         ChangeLanguage();
         return true;
     case IDM_TOGGLE_AAD_SSO:
         ToggleAADSSO();
+        return true;
+    case IDM_TOGGLE_TOPMOST_WINDOW:
+    {
+        bool isCurrentlyTopMost = (GetWindowLong(m_mainWindow, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
+        SetWindowPos(m_mainWindow, isCurrentlyTopMost ? HWND_NOTOPMOST : HWND_TOPMOST,
+            0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+        return true;
+    }
+    case IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS:
+        ToggleExclusiveUserDataFolderAccess();
         return true;
     }
     return false;
@@ -607,6 +630,19 @@ void AppWindow::ToggleAADSSO()
                           L" created after all webviews are closed.",
         L"AAD SSO change",
         MB_OK);
+}
+
+void AppWindow::ToggleExclusiveUserDataFolderAccess()
+{
+    m_ExclusiveUserDataFolderAccess = !m_ExclusiveUserDataFolderAccess;
+    MessageBox(
+        nullptr,
+        m_ExclusiveUserDataFolderAccess ?
+            L"Will request exclusive access to user data folder "
+            L"for new WebView created after all webviews are closed." :
+            L"Will not request exclusive access to user data folder "
+            L"for new WebView created after all webviews are closed.",
+        L"Exclusive User Data Folder Access change", MB_OK);
 }
 
 // Message handler for about dialog.
@@ -649,7 +685,7 @@ std::function<void()> AppWindow::GetAcceleratorKeyFunction(UINT key)
                 }
             };
         case 'T':
-            return [this] { CreateNewThread(m_creationModeId); };
+            return [this] { CreateNewThread(this); };
         case 'W':
             return [this] { CloseWebView(); };
         }
@@ -704,9 +740,12 @@ void AppWindow::InitializeWebView()
     }
 #endif
     //! [CreateCoreWebView2EnvironmentWithOptions]
-    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
-    CHECK_FAILURE(options->put_AllowSingleSignOnUsingOSPrimaryAccount(
+    auto options = Microsoft::WRL::Make<CoreWebView2ExperimentalEnvironmentOptions>();
+    CHECK_FAILURE(
+        options->put_AllowSingleSignOnUsingOSPrimaryAccount(
         m_AADSSOEnabled ? TRUE : FALSE));
+    CHECK_FAILURE(options->put_ExclusiveUserDataFolderAccess(
+        m_ExclusiveUserDataFolderAccess ? TRUE : FALSE));
     if (!m_language.empty())
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
 
@@ -724,9 +763,8 @@ void AppWindow::InitializeWebView()
             {
                 MessageBox(
                     m_mainWindow,
-                    L"Couldn't find Edge installation. "
-                    "Do you have a version installed that's compatible with this "
-                    "WebView2 SDK version?",
+                    L"Couldn't find Edge WebView2 Runtime. "
+                    "Do you have a version installed?",
                     nullptr, MB_OK);
             }
             break;
@@ -832,7 +870,6 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
 #endif
             m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<ControlComponent>(this, &m_toolbar);
-
         m_webView3 = coreWebView2.try_query<ICoreWebView2_3>();
         if (m_webView3)
         {
@@ -945,18 +982,15 @@ void AppWindow::RegisterEventHandlers()
     CHECK_FAILURE(m_webView->add_ContainsFullScreenElementChanged(
         Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
             [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                if (m_fullScreenAllowed)
+                CHECK_FAILURE(
+                    sender->get_ContainsFullScreenElement(&m_containsFullscreenElement));
+                if (m_containsFullscreenElement)
                 {
-                    CHECK_FAILURE(
-                        sender->get_ContainsFullScreenElement(&m_containsFullscreenElement));
-                    if (m_containsFullscreenElement)
-                    {
-                        EnterFullScreen();
-                    }
-                    else
-                    {
-                        ExitFullScreen();
-                    }
+                    EnterFullScreen();
+                }
+                else
+                {
+                    ExitFullScreen();
                 }
                 return S_OK;
             })
@@ -972,6 +1006,11 @@ void AppWindow::RegisterEventHandlers()
     CHECK_FAILURE(m_webView->add_NewWindowRequested(
         Callback<ICoreWebView2NewWindowRequestedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) {
+                if (!m_shouldHandleNewWindowRequest)
+                {
+                    args->put_Handled(FALSE);
+                    return S_OK;
+                }
                 wil::com_ptr<ICoreWebView2Deferral> deferral;
                 CHECK_FAILURE(args->GetDeferral(&deferral));
                 AppWindow* newAppWindow;
@@ -1004,20 +1043,22 @@ void AppWindow::RegisterEventHandlers()
                 CHECK_FAILURE(windowFeatures->get_ShouldDisplayToolbar(&shouldHaveToolbar));
 
                 windowRect.left = left;
-                windowRect.right = left + (width < s_minNewWindowSize ? s_minNewWindowSize : width);
+                windowRect.right =
+                    left + (width < s_minNewWindowSize ? s_minNewWindowSize : width);
                 windowRect.top = top;
-                windowRect.bottom = top + (height < s_minNewWindowSize ? s_minNewWindowSize : height);
+                windowRect.bottom =
+                    top + (height < s_minNewWindowSize ? s_minNewWindowSize : height);
 
                 // passing "none" as uri as its a noinitialnavigation
                 if (!useDefaultWindow)
                 {
                     newAppWindow = new AppWindow(
-                        m_creationModeId, L"none", m_userDataFolder, false, nullptr, true, windowRect,
-                        !!shouldHaveToolbar);
+                        m_creationModeId, L"none", m_userDataFolder, false, nullptr, true,
+                        windowRect, !!shouldHaveToolbar);
                 }
                 else
                 {
-                  newAppWindow = new AppWindow(m_creationModeId, L"none");
+                    newAppWindow = new AppWindow(m_creationModeId, L"none");
                 }
                 newAppWindow->m_isPopupWindow = true;
                 newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]() {
@@ -1025,7 +1066,6 @@ void AppWindow::RegisterEventHandlers()
                     CHECK_FAILURE(args->put_Handled(TRUE));
                     CHECK_FAILURE(deferral->Complete());
                 };
-
                 return S_OK;
             })
             .Get(),
@@ -1106,28 +1146,41 @@ void AppWindow::ResizeEverything()
 
 //! [Close]
 // Close the WebView and deinitialize related state. This doesn't close the app window.
-void AppWindow::CloseWebView(bool cleanupUserDataFolder)
+bool AppWindow::CloseWebView(bool cleanupUserDataFolder)
 {
+    if (auto file = GetComponent<FileComponent>())
+    {
+        if (file->IsPrintToPdfInProgress())
+        {
+            int selection = MessageBox(m_mainWindow,
+                L"Print to PDF is in progress. Continue closing?",
+                L"Print to PDF", MB_YESNO);
+            if (selection == IDNO)
+            {
+                return false;
+            }
+        }
+    }
     // 1. Delete components.
     DeleteAllComponents();
 
     // 2. If cleanup needed and BrowserProcessExited event interface available,
     // register to cleanup upon browser exit.
-    wil::com_ptr<ICoreWebView2ExperimentalEnvironment4> experimentalEnvironment4;
+    wil::com_ptr<ICoreWebView2Environment5> environment5;
     if (m_webViewEnvironment)
     {
-        experimentalEnvironment4 =
-            m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment4>();
+        environment5 =
+            m_webViewEnvironment.try_query<ICoreWebView2Environment5>();
     }
-    if (cleanupUserDataFolder && experimentalEnvironment4)
+    if (cleanupUserDataFolder && environment5)
     {
         // Before closing the WebView, register a handler with code to run once the
         // browser process and associated processes are terminated.
-        CHECK_FAILURE(experimentalEnvironment4->add_BrowserProcessExited(
-            Callback<ICoreWebView2ExperimentalBrowserProcessExitedEventHandler>(
-                [experimentalEnvironment4, this](
+        CHECK_FAILURE(environment5->add_BrowserProcessExited(
+            Callback<ICoreWebView2BrowserProcessExitedEventHandler>(
+                [environment5, this](
                     ICoreWebView2Environment* sender,
-                    ICoreWebView2ExperimentalBrowserProcessExitedEventArgs* args) {
+                    ICoreWebView2BrowserProcessExitedEventArgs* args) {
                     COREWEBVIEW2_BROWSER_PROCESS_EXIT_KIND kind;
                     UINT32 pid;
                     CHECK_FAILURE(args->get_BrowserProcessExitKind(&kind));
@@ -1145,13 +1198,13 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
                         // handler take care of failed browser process termination.
                         if (kind == COREWEBVIEW2_BROWSER_PROCESS_EXIT_KIND_NORMAL)
                         {
-                            CHECK_FAILURE(experimentalEnvironment4->remove_BrowserProcessExited(
+                            CHECK_FAILURE(environment5->remove_BrowserProcessExited(
                                 m_browserExitedEventToken));
                             // Release the environment only after the handler is invoked.
                             // Otherwise, there will be no environment to raise the event when
                             // the collection of WebView2 Runtime processes exit.
                             m_webViewEnvironment = nullptr;
-                            CleanupUserDataFolder();
+                            RunAsync([this]() { CleanupUserDataFolder(); });
                         }
                     }
                     else
@@ -1185,7 +1238,7 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
     // 4. If BrowserProcessExited event interface is not available, release
     // environment and proceed to cleanup immediately. If the interface is
     // available, release environment only if not waiting for the event.
-    if (!experimentalEnvironment4)
+    if (!environment5)
     {
         m_webViewEnvironment = nullptr;
         if (cleanupUserDataFolder)
@@ -1201,6 +1254,8 @@ void AppWindow::CloseWebView(bool cleanupUserDataFolder)
         // BrowserProcessExited event will not be called.
         m_webViewEnvironment = nullptr;
     }
+    m_documentTitle = L"";
+    return true;
 }
 //! [Close]
 
@@ -1261,7 +1316,10 @@ void AppWindow::CloseAppWindow()
         m_onAppWindowClosing();
         m_onAppWindowClosing = nullptr;
     }
-    CloseWebView();
+    if (!CloseWebView())
+    {
+        return;
+    }
     DestroyWindow(m_mainWindow);
 }
 
@@ -1300,11 +1358,25 @@ template <class ComponentType> std::unique_ptr<ComponentType> AppWindow::MoveCom
     return nullptr;
 }
 
-void AppWindow::SetTitleText(PCWSTR titleText)
+void AppWindow::SetDocumentTitle(PCWSTR titleText)
 {
-    SetWindowText(m_mainWindow, titleText);
+    m_documentTitle = titleText;
+    UpdateAppTitle();
 }
 
+std::wstring AppWindow::GetDocumentTitle()
+{
+    return m_documentTitle;
+}
+
+void AppWindow::UpdateAppTitle() {
+    std::wstring str(m_appTitle);
+    if (!m_documentTitle.empty())
+    {
+        str += L" - " + m_documentTitle;
+    }
+    SetWindowText(m_mainWindow, str.c_str());
+}
 RECT AppWindow::GetWindowBounds()
 {
     RECT hwndBounds = {0};
@@ -1521,6 +1593,11 @@ void AppWindow::Release()
 void AppWindow::NotifyClosed()
 {
     m_isClosed = true;
+}
+
+void AppWindow::EnableHandlingNewWindowRequest(bool enable)
+{
+    m_shouldHandleNewWindowRequest = enable;
 }
 
 void AppWindow::InstallComplete(int return_code)

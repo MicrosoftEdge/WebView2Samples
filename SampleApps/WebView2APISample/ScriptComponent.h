@@ -28,6 +28,7 @@ public:
         LRESULT* result) override;
 
     void InjectScript();
+    void InjectScriptInIFrame();
     void AddInitializeScript();
     void RemoveInitializeScript();
     void SendStringWebMessage();
@@ -36,9 +37,14 @@ public:
     void CallCdpMethod();
     void AddComObject();
     void OpenTaskManagerWindow();
+
     ~ScriptComponent() override;
 
 private:
+    void HandleIFrames();
+    std::wstring IFramesToString();
+    std::vector<wil::com_ptr<ICoreWebView2Frame>> m_frames;
+
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
 

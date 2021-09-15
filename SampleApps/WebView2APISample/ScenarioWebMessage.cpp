@@ -46,7 +46,7 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
 
         if (message.compare(0, 13, L"SetTitleText ") == 0)
         {
-            m_appWindow->SetTitleText(message.substr(13).c_str());
+            m_appWindow->SetDocumentTitle(message.substr(13).c_str());
         }
         else if (message.compare(L"GetWindowBounds") == 0)
         {

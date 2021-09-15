@@ -174,11 +174,12 @@ static int RunMessagePump()
 }
 
 // Make a new thread.
-void CreateNewThread(UINT creationModeId)
+void CreateNewThread(AppWindow* app)
 {
     DWORD threadId;
+    app->AddRef();
     HANDLE thread = CreateThread(
-        nullptr, 0, ThreadProc, reinterpret_cast<LPVOID>(uintptr_t(creationModeId)),
+        nullptr, 0, ThreadProc, reinterpret_cast<LPVOID>(app),
         STACK_SIZE_PARAM_IS_A_RESERVATION, &threadId);
     s_threads.insert(std::pair<DWORD, HANDLE>(threadId, thread));
 }
@@ -186,7 +187,9 @@ void CreateNewThread(UINT creationModeId)
 // This function is the starting point for new threads. It will open a new app window.
 static DWORD WINAPI ThreadProc(void* pvParam)
 {
-    new AppWindow(static_cast<UINT>(reinterpret_cast<intptr_t>(pvParam)));
+    AppWindow* app = static_cast<AppWindow*>(pvParam);
+    new AppWindow(app->GetCreationModeId());
+    app->Release();
     return RunMessagePump();
 }
 

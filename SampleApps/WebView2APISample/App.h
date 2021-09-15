@@ -8,4 +8,5 @@
 extern HINSTANCE g_hInstance;
 extern int g_nCmdShow;
 extern bool g_autoTabHandle;
-void CreateNewThread(UINT creationModeId);
+class AppWindow;
+void CreateNewThread(AppWindow* app);
