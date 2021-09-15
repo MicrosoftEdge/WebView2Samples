@@ -32,4 +32,4 @@ jobs:
         run: nuget sources
         
       - name: msbuild
-        run: msbuild /p:platform=x86,configuration=Debug /restore /p:RestorePackagesConfig=true
+        run: msbuild ./SampleApps/WebView2Samples.sln /p:platform=x86,configuration=Debug /restore /p:RestorePackagesConfig=true
