@@ -105,6 +105,9 @@
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AudioComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -203,6 +206,9 @@
     <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AudioComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc">
@@ -236,6 +242,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="AppBackground.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="WebView2APISample_Inprivate.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

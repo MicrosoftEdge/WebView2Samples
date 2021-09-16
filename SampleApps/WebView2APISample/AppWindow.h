@@ -25,11 +25,44 @@ namespace winrtComp = winrt::Windows::UI::Composition;
 
 class SettingsComponent;
 
+enum class WebViewCreateEntry
+{
+    OTHER = 0,
+    EVER_FROM_CREATE_WITH_OPTION_MENU = 1,
+};
+class AppWindow;
+struct WebViewCreateOption
+{
+    std::wstring profile;
+    bool isInPrivate = false;
+
+    // This value is inherited from the operated AppWindow
+    WebViewCreateEntry entry = WebViewCreateEntry::OTHER;
+    WebViewCreateOption()
+    {
+    }
+
+    WebViewCreateOption(const std::wstring& profile_, bool inPrivate, WebViewCreateEntry entry_)
+        : profile(profile_), isInPrivate(inPrivate), entry(entry_)
+    {
+    }
+
+    WebViewCreateOption(const WebViewCreateOption& opt)
+    {
+        profile = opt.profile;
+        isInPrivate = opt.isInPrivate;
+        entry = opt.entry;
+    }
+
+    void PopupDialog(AppWindow* app);
+};
+
 class AppWindow
 {
 public:
     AppWindow(
         UINT creationModeId,
+        const WebViewCreateOption& opt,
         const std::wstring& initialUri = L"",
         const std::wstring& userDataFolderParam = L"",
         bool isMainWindow = false,
@@ -37,6 +70,7 @@ public:
         bool customWindowRect = false,
         RECT windowRect = { 0 },
         bool shouldHaveToolbar = true);
+
     ~AppWindow();
 
     ICoreWebView2Controller* GetWebViewController()
@@ -94,6 +128,11 @@ public:
         return m_creationModeId;
     }
 
+    const WebViewCreateOption& GetWebViewOption()
+    {
+        return m_webviewOption;
+    }
+
 private:
     static PCWSTR GetWindowClass();
 
@@ -109,6 +148,9 @@ private:
 
     void ResizeEverything();
     void InitializeWebView();
+    HRESULT CreateControllerWithOptions();
+    void SetAppIcon(bool inPrivate);
+
     HRESULT OnCreateEnvironmentCompleted(HRESULT result, ICoreWebView2Environment* environment);
     HRESULT OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICoreWebView2Controller* controller);
     HRESULT DeleteFileRecursive(std::wstring path);
@@ -128,6 +170,7 @@ private:
         winrt::Windows::UI::ViewManagement::UISettings const& uiSettings,
         winrt::Windows::Foundation::IInspectable const& args);
 #endif
+
     std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
 
@@ -162,7 +205,12 @@ private:
 
     // All components are deleted when the WebView is closed.
     std::vector<std::unique_ptr<ComponentBase>> m_components;
+    // options for creation of webview controller
+    WebViewCreateOption m_webviewOption;
+    std::wstring m_profileDirName;
+
     std::unique_ptr<SettingsComponent> m_oldSettingsComponent;
+
     std::wstring m_language;
 
     // app title, initialized in constructor

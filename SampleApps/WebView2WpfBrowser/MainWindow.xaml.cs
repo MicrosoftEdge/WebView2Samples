@@ -54,6 +54,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand GeneralAutofillCommand = new RoutedCommand();
         public static RoutedCommand PinchZoomCommand = new RoutedCommand();
         public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
+        public static RoutedCommand ToggleMuteStateCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         CoreWebView2Settings _webViewSettings;
@@ -82,6 +83,7 @@ namespace WebView2WpfBrowser
         }
 
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
+
 
         public MainWindow()
         {
@@ -1044,6 +1046,9 @@ namespace WebView2WpfBrowser
             {
                 webView.CoreWebView2.ProcessFailed += WebView_ProcessFailed;
                 webView.CoreWebView2.DocumentTitleChanged += WebView_DocumentTitleChanged;
+                webView.CoreWebView2.IsDocumentPlayingAudioChanged += WebView_IsDocumentPlayingAudioChanged;
+                webView.CoreWebView2.IsMutedChanged += WebView_IsMutedChanged;
+
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
                 // instance has changed.
@@ -1258,6 +1263,41 @@ namespace WebView2WpfBrowser
         void WebView_DocumentTitleChanged(object sender, object e)
         {
             this.Title = webView.CoreWebView2.DocumentTitle;
+        }
+
+        void UpdateTitleWithMuteState()
+        {
+            bool isDocumentPlayingAudio = webView.CoreWebView2.IsDocumentPlayingAudio;
+            bool isMuted = webView.CoreWebView2.IsMuted;
+            string currentDocumentTitle = webView.CoreWebView2.DocumentTitle;
+            if (isDocumentPlayingAudio)
+            {
+                if (isMuted)
+                {
+                    this.Title = "🔇 " + currentDocumentTitle;
+                }
+                else
+                {
+                    this.Title = "🔊 " + currentDocumentTitle;
+                }
+            }
+            else
+            {
+                this.Title = currentDocumentTitle;
+            }
+        }
+        void WebView_IsMutedChanged(object sender, object e)
+        {
+            UpdateTitleWithMuteState();
+        }
+        void WebView_IsDocumentPlayingAudioChanged(object sender, object e)
+        {
+            UpdateTitleWithMuteState();
+        }
+
+        void ToggleMuteStateCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.IsMuted = !webView.CoreWebView2.IsMuted;
         }
     }
 }
