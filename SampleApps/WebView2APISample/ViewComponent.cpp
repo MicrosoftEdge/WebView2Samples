@@ -325,15 +325,15 @@ bool ViewComponent::HandleWindowMessage(
         }
     }
     //! [ToggleIsVisibleOnMinimize]
-    if (message == WM_SYSCOMMAND)
+    if (message == WM_SIZE)
     {
-        if (wParam == SC_MINIMIZE)
+        if (wParam == SIZE_MINIMIZED)
         {
             // Hide the webview when the app window is minimized.
             m_controller->put_IsVisible(FALSE);
             Suspend();
         }
-        else if (wParam == SC_RESTORE)
+        else if (wParam == SIZE_RESTORED)
         {
             // When the app window is restored, show the webview
             // (unless the user has toggle visibility off).
