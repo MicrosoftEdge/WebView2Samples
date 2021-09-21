@@ -32,7 +32,9 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_WEBVIEW2APISAMPLE   ICON                    "WebView2APISample.ico"
+IDI_WEBVIEW2APISAMPLE_INPRIVATE ICON            "WebView2APISample_Inprivate.ico"
 IDI_SMALL               ICON                    "small.ico"
+
 IDI_WEBVIEW2_BACKGROUND BITMAP                   "AppBackground.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -93,6 +95,7 @@ BEGIN
 #endif
         END
         MENUITEM "Create WebView"                             IDM_REINIT
+        MENUITEM "Create New Window With Option"    IDM_CREATE_WITH_OPTION
         MENUITEM "Create New Window",           IDM_NEW_WINDOW
         MENUITEM "Create New Thread",           IDM_NEW_THREAD
         MENUITEM "Toggle TopMost", IDM_TOGGLE_TOPMOST_WINDOW
@@ -223,6 +226,10 @@ BEGIN
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
         MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
     END
+    POPUP "&Audio"
+    BEGIN
+        MENUITEM "&Toggle Mute State",                  IDM_TOGGLE_MUTE_STATE
+    END
     POPUP "&Help"
     BEGIN
         MENUITEM "&About ...",                  IDM_ABOUT
@@ -279,6 +286,20 @@ BEGIN
     LISTBOX         IDC_CERTIFICATE_LIST,25,36,167,100,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Static",IDC_CERTIFICATE_STATIC,198,37,155,96
     LTEXT           "Static",IDC_CERTIFICATE_LBL,24,17,232,11
+END
+
+IDD_WEBVIEW2_OPTION DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,198,155,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,252,155,50,14
+    GROUPBOX        "profile settings",IDC_STATIC,7,3,295,100
+    LTEXT           "Profile:",IDC_STATIC,25,22,36,12
+    EDITTEXT        IDC_EDIT_PROFILE,62,18,96,18,ES_AUTOHSCROLL
+    CONTROL         "  InPrivate",IDC_CHECK_INPRIVATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,46,74,16
+    LTEXT           "Only allow alphabet characters (a-z, A-Z), digit characters (0-9) and '#', '@', '$', '(', ')', '+', '-', '_', '~', '.', ' ' (space).",IDC_STATIC,160,14,138,37
 END
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -30,7 +30,7 @@ public:
     std::wstring ProcessFailedReasonToString(const COREWEBVIEW2_PROCESS_FAILED_REASON reason);
     void CrashBrowserProcess();
     void CrashRenderProcess();
-
+    void ProcessInfo();
     ~ProcessComponent() override;
 
     // Wait for process to exit for timeoutMs, then force quit it if it hasn't.
@@ -44,7 +44,9 @@ private:
 
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
+    wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
 
     UINT m_browserProcessId = 0;
     EventRegistrationToken m_processFailedToken = {};
+    EventRegistrationToken m_processInfoChangedToken = {};
 };
