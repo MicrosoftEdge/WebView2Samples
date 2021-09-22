@@ -65,7 +65,6 @@ private:
     void ToggleVisibility();
     void Suspend();
     void Resume();
-    void ToggleMemoryUsageTargetLevel();
     void SetBackgroundColor(COLORREF color, bool transparent);
     void SetSizeRatio(float ratio);
     void SetZoomFactor(float zoom);
@@ -75,7 +74,6 @@ private:
     void SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE boundsMode);
     void ShowWebViewBounds();
     void ShowWebViewZoom();
-
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2Controller3> m_controller3;
@@ -92,7 +90,6 @@ private:
     float m_webviewAdditionalRasterizationScale = 1.0f;
     COREWEBVIEW2_BOUNDS_MODE m_boundsMode = COREWEBVIEW2_BOUNDS_MODE_USE_RAW_PIXELS;
     COREWEBVIEW2_COLOR m_webViewColor = { 255, 255, 255, 255 };
-
     EventRegistrationToken m_zoomFactorChangedToken = {};
     EventRegistrationToken m_rasterizationScaleChangedToken = {};
     EventRegistrationToken m_navigationStartingToken = {};

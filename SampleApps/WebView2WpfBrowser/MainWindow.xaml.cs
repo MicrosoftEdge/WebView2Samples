@@ -31,8 +31,6 @@ namespace WebView2WpfBrowser
     public partial class MainWindow : Window
     {
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
-        public static RoutedCommand InjectScriptIFrameCommand = new RoutedCommand();
-        public static RoutedCommand PrintToPdfCommand = new RoutedCommand();
         public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
         public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
         public static RoutedCommand GetCookiesCommand = new RoutedCommand();
@@ -42,7 +40,6 @@ namespace WebView2WpfBrowser
         public static RoutedCommand NewBrowserVersionCommand = new RoutedCommand();
         public static RoutedCommand PdfToolbarSaveCommand = new RoutedCommand();
         public static RoutedCommand CustomClientCertificateSelectionCommand = new RoutedCommand();
-        public static RoutedCommand CustomContextMenuCommand = new RoutedCommand();
         public static RoutedCommand DeferredCustomCertificateDialogCommand = new RoutedCommand();
         public static RoutedCommand BackgroundColorCommand = new RoutedCommand();
         public static RoutedCommand DownloadStartingCommand = new RoutedCommand();
@@ -54,7 +51,6 @@ namespace WebView2WpfBrowser
         public static RoutedCommand GeneralAutofillCommand = new RoutedCommand();
         public static RoutedCommand PinchZoomCommand = new RoutedCommand();
         public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
-        public static RoutedCommand ToggleMuteStateCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         CoreWebView2Settings _webViewSettings;
@@ -83,7 +79,6 @@ namespace WebView2WpfBrowser
         }
 
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
-
 
         public MainWindow()
         {
@@ -118,16 +113,6 @@ namespace WebView2WpfBrowser
 
         void CloseCmdExecuted(object sender, ExecutedRoutedEventArgs e)
         {
-            if (_isPrintToPdfInProgress)
-            {
-                var selection = MessageBox.Show(
-                    "Print to PDF in progress. Continue closing?",
-                    "Print to PDF", MessageBoxButton.YesNo);
-                if (selection == MessageBoxResult.No)
-                {
-                    return;
-                }
-            }
             this.Close();
         }
 
@@ -308,7 +293,7 @@ namespace WebView2WpfBrowser
                     // moves the CoreWebView2 to its Closed state. Most calls will
                     // become invalid as they require a backing browser process.
                     // Remove the control from the visual tree so the framework does
-                    // not attempt to redraw it, which would call the invalid methods.
+                    // not atempt to redraw it, which would call the invalid methods.
                     RemoveControlFromVisualTree(webView);
                     goto case CoreWebView2ProcessFailedKind.RenderProcessUnresponsive;
                 case CoreWebView2ProcessFailedKind.RenderProcessUnresponsive:
@@ -433,47 +418,6 @@ namespace WebView2WpfBrowser
             }
         }
 
-        private bool _isPrintToPdfInProgress = false;
-        async void PrintToPdfCmdExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-            if (_isPrintToPdfInProgress)
-            {
-                MessageBox.Show(this, "Print to PDF in progress", "Print To PDF");
-                return;
-            }
-            try
-            {
-                CoreWebView2PrintSettings printSettings = null;
-                string orientationString = e.Parameter.ToString();
-                if (orientationString == "Landscape")
-                {
-                    printSettings = WebViewEnvironment.CreatePrintSettings();
-                    printSettings.Orientation =
-                        CoreWebView2PrintOrientation.Landscape;
-                }
-
-                Microsoft.Win32.SaveFileDialog saveFileDialog =
-                    new Microsoft.Win32.SaveFileDialog();
-                saveFileDialog.InitialDirectory = "C:\\";
-                saveFileDialog.Filter = "Pdf Files|*.pdf";
-                Nullable<bool> result = saveFileDialog.ShowDialog();
-                if (result == true) {
-                    _isPrintToPdfInProgress = true;
-                    bool isSuccessful = await webView.CoreWebView2.PrintToPdfAsync(
-                        saveFileDialog.FileName, printSettings);
-                    _isPrintToPdfInProgress = false;
-                    string message = (isSuccessful) ?
-                        "Print to PDF succeeded" : "Print to PDF failed";
-                    MessageBox.Show(this, message, "Print To PDF Completed");
-                }
-            }
-            catch (NotImplementedException exception)
-            {
-                MessageBox.Show(this, "Print to PDF Failed: " + exception.Message,
-                   "Print to PDF");
-            }
-        }
-
         async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             List<CoreWebView2Cookie> cookieList = await webView.CoreWebView2.CookieManager.GetCookiesAsync("https://www.bing.com");
@@ -574,118 +518,7 @@ namespace WebView2WpfBrowser
             }
         }
 
-        private bool _isCustomContextMenu = false;
 
-        void CustomContextMenuCmdExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-            try
-            {
-                if (!_isCustomContextMenu)
-                {
-                    webView.CoreWebView2.ContextMenuRequested +=
-                        WebView_ContextMenuRequested;
-                }
-                else
-                {
-                    webView.CoreWebView2.ContextMenuRequested -=
-                        WebView_ContextMenuRequested;
-                }
-                _isCustomContextMenu = !_isCustomContextMenu;
-                MessageBox.Show(this,
-                                _isCustomContextMenu
-                                    ? "Custom context menus have been enabled"
-                                    : "Custom context menus have been disabled",
-                                "Custom context menus");
-            }
-            catch (NotImplementedException exception)
-            {
-                MessageBox.Show(this, "Custom context menu Failed: " + exception.Message,
-                                "Custom context menus");
-            }
-        }
-
-        void WebView_ContextMenuRequested(
-              object sender,
-              CoreWebView2ContextMenuRequestedEventArgs args)
-        {
-            IList<CoreWebView2ContextMenuItem> menuList = args.MenuItems;
-            CoreWebView2ContextMenuTargetKind context = args.ContextMenuTarget.Kind;
-            // Using custom context menu UI
-            if (context == CoreWebView2ContextMenuTargetKind.SelectedText)
-            {
-                CoreWebView2Deferral deferral = args.GetDeferral();
-                args.Handled = true;
-                ContextMenu cm = new ContextMenu();
-                cm.Closed += (s, ex) => deferral.Complete();
-                PopulateContextMenu(args, menuList, cm);
-                cm.IsOpen = true;
-            }
-            // Remove item from WebView context menu
-            else if (context == CoreWebView2ContextMenuTargetKind.Image)
-            {
-                /// removes the last item in the collection
-                menuList.RemoveAt(menuList.Count - 1);
-            }
-            // Add item to WebView context menu
-            else if (context == CoreWebView2ContextMenuTargetKind.Page)
-            {
-                CoreWebView2ContextMenuItem subItem =
-                    webView.CoreWebView2.Environment.CreateContextMenuItem(
-                        "Display Page Uri", null,
-                        CoreWebView2ContextMenuItemKind.Command);
-                subItem.CustomItemSelected += delegate (object send, Object ex) {
-                    string pageUrl = args.ContextMenuTarget.PageUri;
-                    System.Threading.SynchronizationContext.Current.Post((_) => {
-                        MessageBox.Show(pageUrl, "Display Page Uri", MessageBoxButton.YesNo);
-                    }, null);
-                };
-                CoreWebView2ContextMenuItem newItem =
-                  webView.CoreWebView2.Environment.CreateContextMenuItem(
-                      "New Submenu", null,
-                      CoreWebView2ContextMenuItemKind.Submenu);
-                IList<CoreWebView2ContextMenuItem> submenuList = newItem.Children;
-                submenuList.Insert(0, subItem);
-                menuList.Insert(menuList.Count, newItem);
-            }
-        }
-
-        void PopulateContextMenu(CoreWebView2ContextMenuRequestedEventArgs args,
-                                IList<CoreWebView2ContextMenuItem> menuList,
-                                ItemsControl cm)
-        {
-            for (int i = 0; i < menuList.Count; i++)
-            {
-                CoreWebView2ContextMenuItem current = menuList[i];
-                if (current.Kind == CoreWebView2ContextMenuItemKind.Separator)
-                {
-                    Separator sep = new Separator();
-                    cm.Items.Add(sep);
-                    continue;
-                }
-                MenuItem newItem = new MenuItem();
-                // The accessibility key is the key after the & in the label
-                newItem.Header = current.Label.Replace('&', '_');
-                newItem.InputGestureText = current.ShortcutKeyDescription;
-                newItem.IsEnabled = current.IsEnabled;
-                if (current.Kind == CoreWebView2ContextMenuItemKind.Submenu)
-                {
-                    PopulateContextMenu(args, current.Children, newItem);
-                }
-                else
-                {
-                    if (current.Kind == CoreWebView2ContextMenuItemKind.CheckBox ||
-                        current.Kind == CoreWebView2ContextMenuItemKind.Radio)
-                    {
-                        newItem.IsCheckable = true;
-                        newItem.IsChecked = current.IsChecked;
-                    }
-
-                    newItem.Click +=
-                        (s, ex) => { args.SelectedCommandId = current.CommandId; };
-                }
-                cm.Items.Add(newItem);
-            }
-        }
         void PinchZoomCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             WebViewSettings.IsPinchZoomEnabled = !WebViewSettings.IsPinchZoomEnabled;
@@ -862,40 +695,40 @@ namespace WebView2WpfBrowser
                     webView.CoreWebView2.ClientCertificateRequested += delegate (
                         object sender, CoreWebView2ClientCertificateRequestedEventArgs args)
                     {
-                        // Developer can obtain a deferral for the event so that the WebView2
-                        // doesn't examine the properties we set on the event args until
-                        // after the deferral completes asynchronously.
-                        CoreWebView2Deferral deferral = args.GetDeferral();
+              // Developer can obtain a deferral for the event so that the WebView2
+              // doesn't examine the properties we set on the event args until
+              // after the deferral completes asynchronously.
+              CoreWebView2Deferral deferral = args.GetDeferral();
 
                         System.Threading.SynchronizationContext.Current.Post((_) =>
                         {
-                            using (deferral)
-                            {
-                                IReadOnlyList<CoreWebView2ClientCertificate> certificateList = args.MutuallyTrustedCertificates;
-                                if (certificateList.Count() > 0)
-                                {
-                                    // Display custom dialog box for the client certificate selection.
-                                    var dialog = new ClientCertificateSelectionDialog(
-                                                                title: "Select a Certificate for authentication",
-                                                                host: args.Host,
-                                                                port: args.Port,
-                                                                client_cert_list: certificateList);
-                                    if (dialog.ShowDialog() == true)
+                                    using (deferral)
                                     {
-                                        // Continue with the selected certificate to respond to the server if `OK` is selected.
-                                        args.SelectedCertificate = (CoreWebView2ClientCertificate)dialog.CertificateDataBinding.SelectedItem;
+                                        IReadOnlyList<CoreWebView2ClientCertificate> certificateList = args.MutuallyTrustedCertificates;
+                                        if (certificateList.Count() > 0)
+                                        {
+                                  // Display custom dialog box for the client certificate selection.
+                                  var dialog = new ClientCertificateSelectionDialog(
+                                                              title: "Select a Certificate for authentication",
+                                                              host: args.Host,
+                                                              port: args.Port,
+                                                              client_cert_list: certificateList);
+                                            if (dialog.ShowDialog() == true)
+                                            {
+                                      // Continue with the selected certificate to respond to the server if `OK` is selected.
+                                      args.SelectedCertificate = (CoreWebView2ClientCertificate)dialog.CertificateDataBinding.SelectedItem;
+                                            }
+                                  // Continue without a certificate to respond to the server if `CANCEL` is selected.
+                                  args.Handled = true;
+                                        }
+                                        else
+                                        {
+                                  // Continue without a certificate to respond to the server if certificate list is empty.
+                                  args.Handled = true;
+                                        }
                                     }
-                                    // Continue without a certificate to respond to the server if `CANCEL` is selected.
-                                    args.Handled = true;
-                                }
-                                else
-                                {
-                                    // Continue without a certificate to respond to the server if certificate list is empty.
-                                    args.Handled = true;
-                                }
-                            }
 
-                        }, null);
+                                }, null);
                     };
                     _isCustomClientCertificateSelectionDialog = true;
                     MessageBox.Show("Custom Client Certificate selection dialog will be used next when WebView2 is making a " +
@@ -1046,8 +879,6 @@ namespace WebView2WpfBrowser
             {
                 webView.CoreWebView2.ProcessFailed += WebView_ProcessFailed;
                 webView.CoreWebView2.DocumentTitleChanged += WebView_DocumentTitleChanged;
-                webView.CoreWebView2.IsDocumentPlayingAudioChanged += WebView_IsDocumentPlayingAudioChanged;
-                webView.CoreWebView2.IsMutedChanged += WebView_IsMutedChanged;
 
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
@@ -1263,41 +1094,6 @@ namespace WebView2WpfBrowser
         void WebView_DocumentTitleChanged(object sender, object e)
         {
             this.Title = webView.CoreWebView2.DocumentTitle;
-        }
-
-        void UpdateTitleWithMuteState()
-        {
-            bool isDocumentPlayingAudio = webView.CoreWebView2.IsDocumentPlayingAudio;
-            bool isMuted = webView.CoreWebView2.IsMuted;
-            string currentDocumentTitle = webView.CoreWebView2.DocumentTitle;
-            if (isDocumentPlayingAudio)
-            {
-                if (isMuted)
-                {
-                    this.Title = "🔇 " + currentDocumentTitle;
-                }
-                else
-                {
-                    this.Title = "🔊 " + currentDocumentTitle;
-                }
-            }
-            else
-            {
-                this.Title = currentDocumentTitle;
-            }
-        }
-        void WebView_IsMutedChanged(object sender, object e)
-        {
-            UpdateTitleWithMuteState();
-        }
-        void WebView_IsDocumentPlayingAudioChanged(object sender, object e)
-        {
-            UpdateTitleWithMuteState();
-        }
-
-        void ToggleMuteStateCmdExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-            webView.CoreWebView2.IsMuted = !webView.CoreWebView2.IsMuted;
         }
     }
 }

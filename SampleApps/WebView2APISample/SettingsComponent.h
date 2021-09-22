@@ -25,9 +25,6 @@ public:
     bool HandleWindowMessage(
         HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
-    void AddMenuItems(
-        HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> items);
-
     void ChangeBlockedSites();
     bool ShouldBlockUri(PWSTR uri);
     bool ShouldBlockScriptForUri(PWSTR uri);
@@ -53,9 +50,6 @@ private:
     wil::com_ptr<ICoreWebView2_5> m_webView2_5;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2Controller3> m_controller3;
-    wil::com_ptr<ICoreWebView2Experimental5> m_webViewExperimental5;
-    wil::com_ptr<ICoreWebView2Experimental6> m_webViewExperimental6;
-    wil::com_ptr<ICoreWebView2ExperimentalContextMenuItem> m_displayPageUrlContextSubMenuItem;
     bool m_blockImages = false;
     bool m_replaceImages = false;
     bool m_deferScriptDialogs = false;
@@ -63,7 +57,6 @@ private:
     bool m_isScriptEnabled = true;
     bool m_blockedSitesSet = false;
     bool m_raiseClientCertificate = false;
-    BOOL m_allowCustomMenus = false;
     std::map<std::tuple<std::wstring, COREWEBVIEW2_PERMISSION_KIND, BOOL>, bool>
         m_cached_permissions;
     std::vector<std::wstring> m_blockedSites;
@@ -78,5 +71,4 @@ private:
     EventRegistrationToken m_scriptDialogOpeningToken = {};
     EventRegistrationToken m_permissionRequestedToken = {};
     EventRegistrationToken m_ClientCertificateRequestedToken = {};
-    EventRegistrationToken m_contextMenuRequestedToken = {};
 };

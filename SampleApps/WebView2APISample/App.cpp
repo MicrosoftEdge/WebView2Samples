@@ -125,7 +125,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
     DpiUtil::SetProcessDpiAwarenessContext(dpiAwarenessContext);
 
-    new AppWindow(creationModeId, WebViewCreateOption(), initialUri, userDirectoryFolder, true);
+    new AppWindow(creationModeId, initialUri, userDirectoryFolder, true);
 
     int retVal = RunMessagePump();
 
@@ -188,7 +188,7 @@ void CreateNewThread(AppWindow* app)
 static DWORD WINAPI ThreadProc(void* pvParam)
 {
     AppWindow* app = static_cast<AppWindow*>(pvParam);
-    new AppWindow(app->GetCreationModeId(), app->GetWebViewOption());
+    new AppWindow(app->GetCreationModeId());
     app->Release();
     return RunMessagePump();
 }

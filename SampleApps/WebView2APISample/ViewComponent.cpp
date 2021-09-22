@@ -22,20 +22,6 @@ using namespace Microsoft::WRL;
 namespace numerics = winrt::Windows::Foundation::Numerics;
 static D2D1_MATRIX_4X4_F Convert3x2MatrixTo4x4Matrix(D2D1_MATRIX_3X2_F* matrix3x2);
 
-static void UpdateDocumentTitle(AppWindow* appWindow, const std::wstring& prefix,
-                                double scale) {
-    std::wstring docTitle = appWindow->GetDocumentTitle();
-    // remove last prefix if exists
-    size_t pos = docTitle.rfind(prefix);
-    if (pos != std::wstring::npos)
-    {
-        docTitle = docTitle.substr(0, pos);
-    }
-
-    docTitle += prefix + std::to_wstring(int(scale * 100)) + L"%)";
-    appWindow->SetDocumentTitle(docTitle.c_str());
-};
-
 ViewComponent::ViewComponent(
     AppWindow* appWindow,
     IDCompositionDevice* dcompDevice,
@@ -59,7 +45,9 @@ ViewComponent::ViewComponent(
                 double zoomFactor;
                 CHECK_FAILURE(sender->get_ZoomFactor(&zoomFactor));
 
-                UpdateDocumentTitle(m_appWindow, L" (Zoom: ", zoomFactor);
+                std::wstring message = L"WebView2APISample (Zoom: " +
+                    std::to_wstring(int(zoomFactor * 100)) + L"%)";
+                SetWindowText(m_appWindow->GetMainWindow(), message.c_str());
                 return S_OK;
             })
         .Get(),
@@ -111,8 +99,9 @@ ViewComponent::ViewComponent(
                     double rasterizationScale;
                     CHECK_FAILURE(m_controller3->get_RasterizationScale(&rasterizationScale));
 
-                    UpdateDocumentTitle(
-                        m_appWindow, L" (RasterizationScale: ", rasterizationScale);
+                    std::wstring message = L"WebView2APISample (RasterizationScale: " +
+                        std::to_wstring(int(rasterizationScale * 100)) + L"%)";
+                    SetWindowText(m_appWindow->GetMainWindow(), message.c_str());
                     return S_OK;
                 })
             .Get(), &m_rasterizationScaleChangedToken));
@@ -227,9 +216,6 @@ bool ViewComponent::HandleWindowMessage(
             return true;
         case IDM_RESUME:
             Resume();
-            return true;
-        case IDM_TOGGLE_MEMORY_USAGE_TARGET_LEVEL:
-            ToggleMemoryUsageTargetLevel();
             return true;
         case IDM_BACKGROUNDCOLOR_WHITE:
             SetBackgroundColor(RGB(255, 255, 255), false);
@@ -365,7 +351,6 @@ bool ViewComponent::HandleWindowMessage(
     //! [NotifyParentWindowPositionChanged]
     return false;
 }
-
 void ViewComponent::UpdateDpiAndTextScale()
 {
     if (m_controller3)
@@ -394,7 +379,7 @@ void ViewComponent::ToggleVisibility()
 void ViewComponent::Suspend()
 {
     wil::com_ptr<ICoreWebView2_3> webView;
-    webView = m_webView.try_query<ICoreWebView2_3>();
+    webView = m_webView.query<ICoreWebView2_3>();
     if (!webView)
     {
         ShowFailure(E_NOINTERFACE, L"TrySuspend API not available");
@@ -418,37 +403,11 @@ void ViewComponent::Suspend()
 }
 //! [Suspend]
 
-//! [MemoryUsageTargetLevel]
-void ViewComponent::ToggleMemoryUsageTargetLevel()
-{
-    wil::com_ptr<ICoreWebView2Experimental5> webView;
-    webView = m_webView.try_query<ICoreWebView2Experimental5>();
-    if (!webView)
-    {
-        ShowFailure(E_NOINTERFACE, L"MemoryUsageTargetLevel API not available");
-        return;
-    }
-    COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL memory_target_level =
-        COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_NORMAL;
-    CHECK_FAILURE(webView->get_MemoryUsageTargetLevel(&memory_target_level));
-    memory_target_level = (memory_target_level == COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_LOW)
-                              ? COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_NORMAL
-                              : COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_LOW;
-    CHECK_FAILURE(webView->put_MemoryUsageTargetLevel(memory_target_level));
-    MessageBox(
-        nullptr,
-        (memory_target_level == COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_LOW)
-            ? L"MemoryUsageTargetLevel is set to LOW."
-            : L"MemoryUsageTargetLevel is set to NORMAL.",
-        L"MemoryUsageTargetLevel change", MB_OK);
-}
-//! [MemoryUsageTargetLevel]
-
 //! [Resume]
 void ViewComponent::Resume()
 {
     wil::com_ptr<ICoreWebView2_3> webView;
-    webView = m_webView.try_query<ICoreWebView2_3>();
+    webView = m_webView.query<ICoreWebView2_3>();
     if (!webView)
     {
         ShowFailure(E_NOINTERFACE, L"Resume API not available");

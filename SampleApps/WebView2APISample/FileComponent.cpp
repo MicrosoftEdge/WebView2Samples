@@ -7,8 +7,8 @@
 #include "FileComponent.h"
 
 #include "CheckFailure.h"
+#include <commdlg.h>
 #include <shlwapi.h>
-#include <sstream>
 
 using namespace Microsoft::WRL;
 
@@ -23,7 +23,7 @@ FileComponent::FileComponent(AppWindow* appWindow)
             [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
                 wil::unique_cotaskmem_string title;
                 CHECK_FAILURE(sender->get_DocumentTitle(&title));
-                m_appWindow->SetDocumentTitle(title.get());
+                SetWindowText(m_appWindow->GetMainWindow(), title.get());
                 return S_OK;
             })
             .Get(),
@@ -40,21 +40,6 @@ bool FileComponent::HandleWindowMessage(
         {
         case IDM_SAVE_SCREENSHOT:
             SaveScreenshot();
-            return true;
-        case IDM_PRINT_TO_PDF_LANDSCAPE:
-            m_enableLandscape = true;
-        case IDM_PRINT_TO_PDF_PORTRAIT:
-            if (m_printToPdfInProgress)
-            {
-                MessageBox(
-                    m_appWindow->GetMainWindow(), L"Print to PDF is in progress.",
-                    L"Print to PDF", MB_OK);
-            }
-            else
-            {
-                PrintToPdf(m_enableLandscape);
-            }
-            m_enableLandscape = false;
             return true;
         case IDM_GET_DOCUMENT_TITLE:
         {
@@ -73,13 +58,21 @@ bool FileComponent::HandleWindowMessage(
 // to the selected file.
 void FileComponent::SaveScreenshot()
 {
-    WCHAR defaultName[MAX_PATH] = L"WebView2_Screenshot.png";
-    OPENFILENAME openFileName = CreateOpenFileName(defaultName, L"PNG File\0*.png\0");
+    OPENFILENAME openFileName = {};
+    openFileName.lStructSize = sizeof(openFileName);
+    openFileName.hwndOwner = nullptr;
+    openFileName.hInstance = nullptr;
+    WCHAR fileName[MAX_PATH] = L"WebView2_Screenshot.png";
+    openFileName.lpstrFile = fileName;
+    openFileName.lpstrFilter = L"PNG File\0*.png\0";
+    openFileName.nMaxFile = ARRAYSIZE(fileName);
+    openFileName.Flags = OFN_OVERWRITEPROMPT;
+
     if (GetSaveFileName(&openFileName))
     {
         wil::com_ptr<IStream> stream;
         CHECK_FAILURE(SHCreateStreamOnFileEx(
-            defaultName, STGM_READWRITE | STGM_CREATE, FILE_ATTRIBUTE_NORMAL, TRUE, nullptr,
+            fileName, STGM_READWRITE | STGM_CREATE, FILE_ATTRIBUTE_NORMAL, TRUE, nullptr,
             &stream));
 
         HWND mainWindow = m_appWindow->GetMainWindow();
@@ -97,75 +90,6 @@ void FileComponent::SaveScreenshot()
     }
 }
 //! [CapturePreview]
-
-//! [PrintToPdf]
-// Shows the user a file selection dialog, then uses the selected path when
-// printing to PDF. If `enableLandscape` is true, the page is printed
-// in landscape mode, otherwise the page is printed in portrait mode.
-void FileComponent::PrintToPdf(bool enableLandscape)
-{
-    WCHAR defaultName[MAX_PATH] = L"WebView2_PrintedPdf.pdf";
-    OPENFILENAME openFileName = CreateOpenFileName(defaultName, L"PDF File\0*.pdf\0");
-    if (GetSaveFileName(&openFileName))
-    {
-        wil::com_ptr<ICoreWebView2ExperimentalPrintSettings> printSettings = nullptr;
-        if (enableLandscape)
-        {
-            wil::com_ptr<ICoreWebView2ExperimentalEnvironment7> webviewEnvironment7;
-            CHECK_FAILURE(m_appWindow->GetWebViewEnvironment()->QueryInterface(
-                IID_PPV_ARGS(&webviewEnvironment7)));
-            if (webviewEnvironment7)
-            {
-                CHECK_FAILURE(webviewEnvironment7->CreatePrintSettings(&printSettings));
-                CHECK_FAILURE(
-                    printSettings->put_Orientation(COREWEBVIEW2_PRINT_ORIENTATION_LANDSCAPE));
-            }
-        }
-
-        wil::com_ptr<ICoreWebView2Experimental7> webviewExperimental7;
-        CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webviewExperimental7)));
-        if (webviewExperimental7)
-        {
-            m_printToPdfInProgress = true;
-            CHECK_FAILURE(webviewExperimental7->PrintToPdf(
-                openFileName.lpstrFile, printSettings.get(),
-                Callback<ICoreWebView2ExperimentalPrintToPdfCompletedHandler>(
-                    [this](HRESULT errorCode, BOOL isSuccessful) -> HRESULT {
-                        CHECK_FAILURE(errorCode);
-                        m_printToPdfInProgress = false;
-                        auto showDialog = [isSuccessful] {
-                            MessageBox(
-                                nullptr,
-                                (isSuccessful) ? L"Print to PDF succeeded"
-                                               : L"Print to PDF failed",
-                                L"Print to PDF Completed", MB_OK);
-                        };
-                        m_appWindow->RunAsync([showDialog]() { showDialog(); });
-                        return S_OK;
-                    })
-                    .Get()));
-        }
-    }
-}
-//! [PrintToPdf]
-
-bool FileComponent::IsPrintToPdfInProgress()
-{
-    return m_printToPdfInProgress;
-}
-
-OPENFILENAME FileComponent::CreateOpenFileName(LPWSTR defaultName, LPCWSTR filter)
-{
-    OPENFILENAME openFileName = {};
-    openFileName.lStructSize = sizeof(openFileName);
-    openFileName.hwndOwner = nullptr;
-    openFileName.hInstance = nullptr;
-    openFileName.lpstrFile = defaultName;
-    openFileName.lpstrFilter = filter;
-    openFileName.nMaxFile = MAX_PATH;
-    openFileName.Flags = OFN_OVERWRITEPROMPT;
-    return openFileName;
-}
 
 FileComponent::~FileComponent()
 {

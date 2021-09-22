@@ -20,7 +20,6 @@
 
 #include "App.h"
 #include "AppStartPage.h"
-#include "AudioComponent.h"
 #include "CheckFailure.h"
 #include "ControlComponent.h"
 #include "DpiUtil.h"
@@ -34,15 +33,14 @@
 #include "ScenarioCustomDownloadExperience.h"
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
-#include "ScenarioVirtualHostMappingForPopUpWindow.h"
 #include "ScenarioVirtualHostMappingForSW.h"
+#include "ScenarioVirtualHostMappingForPopUpWindow.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScriptComponent.h"
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
-
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -98,62 +96,9 @@ DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
     return returnCode;
 }
 
-static INT_PTR CALLBACK DlgProcStatic(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    auto app = (AppWindow*)GetWindowLongPtr(hDlg, GWLP_USERDATA);
-
-    switch (message)
-    {
-    case WM_INITDIALOG:
-    {
-        app = (AppWindow*)lParam;
-        SetWindowLongPtr(hDlg, GWLP_USERDATA, (LONG_PTR)app);
-
-        SetDlgItemText(hDlg, IDC_EDIT_PROFILE, app->GetWebViewOption().profile.c_str());
-        CheckDlgButton(hDlg, IDC_CHECK_INPRIVATE, app->GetWebViewOption().isInPrivate);
-        return (INT_PTR)TRUE;
-    }
-    case WM_COMMAND:
-    {
-        if (LOWORD(wParam) == IDOK)
-        {
-            int length = GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT_PROFILE));
-            wchar_t text[MAX_PATH] = {};
-            GetDlgItemText(hDlg, IDC_EDIT_PROFILE, text, length + 1);
-            bool inPrivate = IsDlgButtonChecked(hDlg, IDC_CHECK_INPRIVATE);
-
-            WebViewCreateOption opt(std::wstring(std::move(text)), inPrivate, WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU);
-
-            // create app window
-            new AppWindow(app->GetCreationModeId(), opt);
-        }
-
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    case WM_NCDESTROY:
-        SetWindowLongPtr(hDlg, GWLP_USERDATA, NULL);
-        return (INT_PTR)TRUE;
-    }
-    return (INT_PTR)FALSE;
-}
-
-void WebViewCreateOption::PopupDialog(AppWindow* app)
-{
-    DialogBoxParam(
-        g_hInstance, MAKEINTRESOURCE(IDD_WEBVIEW2_OPTION), app->GetMainWindow(), DlgProcStatic,
-        (LPARAM)app);
-}
-
-
 // Creates a new window which is a copy of the entire app, but on the same thread.
 AppWindow::AppWindow(
     UINT creationModeId,
-    const WebViewCreateOption& opt,
     const std::wstring& initialUri,
     const std::wstring& userDataFolderParam,
     bool isMainWindow,
@@ -163,18 +108,15 @@ AppWindow::AppWindow(
     bool shouldHaveToolbar
     )
     : m_creationModeId(creationModeId),
-      m_webviewOption(opt),
       m_initialUri(initialUri),
       m_onWebViewFirstInitialized(webviewCreatedCallback)
 {
     // Initialize COM as STA.
     CHECK_FAILURE(OleInitialize(NULL));
-
     ++s_appInstances;
 
     WCHAR szTitle[s_maxLoadString]; // The title bar text
     LoadStringW(g_hInstance, IDS_APP_TITLE, szTitle, s_maxLoadString);
-    m_appTitle = szTitle;
 
     if (userDataFolderParam.length() > 0)
     {
@@ -444,20 +386,6 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         //! [GetBrowserVersionString]
         return true;
     }
-    case IDM_GET_USER_DATA_FOLDER:
-    {
-        //! [GetUserDataFolder]
-        auto experimentalEnvironment5 =
-            m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment5>();
-        CHECK_FEATURE_RETURN(experimentalEnvironment5);
-        wil::unique_cotaskmem_string userDataFolder;
-        experimentalEnvironment5->get_UserDataFolder(&userDataFolder);
-        MessageBox(
-            m_mainWindow, userDataFolder.get(), L"User Data Folder",
-            MB_OK);
-        //! [GetUserDataFolder]
-        return true;
-    }
     case IDM_CLOSE_WEBVIEW:
     {
         CloseWebView();
@@ -637,7 +565,7 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
         InitializeWebView();
         return true;
     case IDM_NEW_WINDOW:
-        new AppWindow(m_creationModeId, GetWebViewOption());
+        new AppWindow(m_creationModeId);
         return true;
     case IDM_NEW_THREAD:
         CreateNewThread(this);
@@ -648,9 +576,6 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_TOGGLE_AAD_SSO:
         ToggleAADSSO();
         return true;
-    case IDM_CREATE_WITH_OPTION:
-        m_webviewOption.PopupDialog(this);
-        return true;
     case IDM_TOGGLE_TOPMOST_WINDOW:
     {
         bool isCurrentlyTopMost = (GetWindowLong(m_mainWindow, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
@@ -658,9 +583,6 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
             0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
         return true;
     }
-    case IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS:
-        ToggleExclusiveUserDataFolderAccess();
-        return true;
     }
     return false;
 }
@@ -692,19 +614,6 @@ void AppWindow::ToggleAADSSO()
         MB_OK);
 }
 
-void AppWindow::ToggleExclusiveUserDataFolderAccess()
-{
-    m_ExclusiveUserDataFolderAccess = !m_ExclusiveUserDataFolderAccess;
-    MessageBox(
-        nullptr,
-        m_ExclusiveUserDataFolderAccess ?
-            L"Will request exclusive access to user data folder "
-            L"for new WebView created after all webviews are closed." :
-            L"Will not request exclusive access to user data folder "
-            L"for new WebView created after all webviews are closed.",
-        L"Exclusive User Data Folder Access change", MB_OK);
-}
-
 // Message handler for about dialog.
 INT_PTR CALLBACK AppWindow::About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -734,7 +643,7 @@ std::function<void()> AppWindow::GetAcceleratorKeyFunction(UINT key)
         switch (key)
         {
         case 'N':
-            return [this] { new AppWindow(m_creationModeId, GetWebViewOption()); };
+            return [this] { new AppWindow(m_creationModeId); };
         case 'Q':
             return [this] { CloseAppWindow(); };
         case 'S':
@@ -800,15 +709,12 @@ void AppWindow::InitializeWebView()
     }
 #endif
     //! [CreateCoreWebView2EnvironmentWithOptions]
-    auto options = Microsoft::WRL::Make<CoreWebView2ExperimentalEnvironmentOptions>();
+    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
     CHECK_FAILURE(
         options->put_AllowSingleSignOnUsingOSPrimaryAccount(
         m_AADSSOEnabled ? TRUE : FALSE));
-    CHECK_FAILURE(options->put_ExclusiveUserDataFolderAccess(
-        m_ExclusiveUserDataFolderAccess ? TRUE : FALSE));
     if (!m_language.empty())
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
-
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
         subFolder, m_userDataFolder.c_str(), options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
@@ -862,11 +768,6 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
     CHECK_FAILURE(result);
     m_webViewEnvironment = environment;
 
-    if (m_webviewOption.entry == WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU)
-    {
-        return CreateControllerWithOptions();
-    }
-
     auto webViewEnvironment3 =
         m_webViewEnvironment.try_query<ICoreWebView2Environment3>();
 #ifdef USE_WEBVIEW2_WIN10
@@ -901,86 +802,6 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
 }
 //! [CreateCoreWebView2Controller]
 
-HRESULT AppWindow::CreateControllerWithOptions()
-{
-    auto webViewEnvironment8 =
-        m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment8>();
-    if (!webViewEnvironment8)
-    {
-        FeatureNotAvailable();
-        return S_OK;
-    }
-
-    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalControllerOptions> options;
-    HRESULT hr = webViewEnvironment8->CreateCoreWebView2ControllerOptions(
-        m_webviewOption.profile.c_str(), m_webviewOption.isInPrivate, options.GetAddressOf());
-    if (hr == E_INVALIDARG)
-    {
-        ShowFailure(hr, L"Unable to create WebView2 due to an invalid profile name.");
-        CloseAppWindow();
-        return S_OK;
-    }
-    CHECK_FAILURE(hr);
-
-#ifdef USE_WEBVIEW2_WIN10
-    if (m_dcompDevice || m_wincompCompositor)
-#else
-    if (m_dcompDevice)
-#endif
-    {
-        CHECK_FAILURE(webViewEnvironment8->CreateCoreWebView2CompositionControllerWithOptions(
-            m_mainWindow, options.Get(),
-            Callback<ICoreWebView2CreateCoreWebView2CompositionControllerCompletedHandler>(
-                [this](
-                    HRESULT result,
-                    ICoreWebView2CompositionController* compositionController) -> HRESULT {
-                    auto controller =
-                        wil::com_ptr<ICoreWebView2CompositionController>(compositionController)
-                            .query<ICoreWebView2Controller>();
-                    return OnCreateCoreWebView2ControllerCompleted(result, controller.get());
-                })
-                .Get()));
-    }
-    else
-    {
-        CHECK_FAILURE(webViewEnvironment8->CreateCoreWebView2ControllerWithOptions(
-            m_mainWindow, options.Get(),
-            Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
-                this, &AppWindow::OnCreateCoreWebView2ControllerCompleted)
-                .Get()));
-    }
-
-    return S_OK;
-}
-
-void AppWindow::SetAppIcon(bool inPrivate)
-{
-    HICON newSmallIcon = nullptr;
-    HICON newBigIcon = nullptr;
-    if (inPrivate)
-    {
-        static HICON smallInPrivateIcon = reinterpret_cast<HICON>(LoadImage(
-            g_hInstance, MAKEINTRESOURCEW(IDI_WEBVIEW2APISAMPLE_INPRIVATE), IMAGE_ICON, 16, 16,
-            LR_DEFAULTCOLOR));
-        static HICON bigInPrivateIcon = reinterpret_cast<HICON>(LoadImage(
-            g_hInstance, MAKEINTRESOURCEW(IDI_WEBVIEW2APISAMPLE_INPRIVATE), IMAGE_ICON, 32, 32,
-            LR_DEFAULTCOLOR));
-        newSmallIcon = smallInPrivateIcon;
-        newBigIcon = bigInPrivateIcon;
-    }
-    else
-    {
-        static HICON smallIcon = LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_WEBVIEW2APISAMPLE));
-        static HICON bigIcon = LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_SMALL));
-        newSmallIcon = smallIcon;
-        newBigIcon = bigIcon;
-    }
-    reinterpret_cast<HICON>(SendMessage(
-        m_mainWindow, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(newSmallIcon)));
-    reinterpret_cast<HICON>(
-        SendMessage(m_mainWindow, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(newBigIcon)));
-}
-
 // This is the callback passed to CreateCoreWebView2Controller. Here we initialize all WebView-related
 // state and register most of our event handlers with the WebView.
 HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICoreWebView2Controller* controller)
@@ -1001,23 +822,6 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
         // ProcessFailed event could have been raised yet) so the PID is
         // available.
         CHECK_FAILURE(m_webView->get_BrowserProcessId(&m_newestBrowserPid));
-        auto webview2Experimental8 = coreWebView2.try_query<ICoreWebView2Experimental8>();
-        if (webview2Experimental8)
-        {
-            wil::com_ptr<ICoreWebView2ExperimentalProfile> profile;
-            CHECK_FAILURE(webview2Experimental8->get_Profile(&profile));
-            wil::unique_cotaskmem_string profile_path;
-            CHECK_FAILURE(profile->get_ProfilePath(&profile_path));
-            std::wstring str(profile_path.get());
-            m_profileDirName = str.substr(str.find_last_of(L'\\') + 1);
-            BOOL inPrivate = FALSE;
-            CHECK_FAILURE(profile->get_IsInPrivateModeEnabled(&inPrivate));
-            // update window title with m_profileDirName
-            UpdateAppTitle();
-
-            // update window icon
-            SetAppIcon(inPrivate);
-        }
         // Create components. These will be deleted when the WebView is closed.
         NewComponent<FileComponent>(this);
         NewComponent<ProcessComponent>(this);
@@ -1215,12 +1019,12 @@ void AppWindow::RegisterEventHandlers()
                 if (!useDefaultWindow)
                 {
                     newAppWindow = new AppWindow(
-                        m_creationModeId, GetWebViewOption(), L"none", m_userDataFolder, false,
-                        nullptr, true, windowRect, !!shouldHaveToolbar);
+                        m_creationModeId, L"none", m_userDataFolder, false, nullptr, true,
+                        windowRect, !!shouldHaveToolbar);
                 }
                 else
                 {
-                    newAppWindow = new AppWindow(m_creationModeId, GetWebViewOption(), L"none");
+                    newAppWindow = new AppWindow(m_creationModeId, L"none");
                 }
                 newAppWindow->m_isPopupWindow = true;
                 newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]() {
@@ -1308,21 +1112,8 @@ void AppWindow::ResizeEverything()
 
 //! [Close]
 // Close the WebView and deinitialize related state. This doesn't close the app window.
-bool AppWindow::CloseWebView(bool cleanupUserDataFolder)
+void AppWindow::CloseWebView(bool cleanupUserDataFolder)
 {
-    if (auto file = GetComponent<FileComponent>())
-    {
-        if (file->IsPrintToPdfInProgress())
-        {
-            int selection = MessageBox(m_mainWindow,
-                L"Print to PDF is in progress. Continue closing?",
-                L"Print to PDF", MB_YESNO);
-            if (selection == IDNO)
-            {
-                return false;
-            }
-        }
-    }
     // 1. Delete components.
     DeleteAllComponents();
 
@@ -1416,11 +1207,6 @@ bool AppWindow::CloseWebView(bool cleanupUserDataFolder)
         // BrowserProcessExited event will not be called.
         m_webViewEnvironment = nullptr;
     }
-
-    // reset profile name
-    m_profileDirName = L"";
-    m_documentTitle = L"";
-    return true;
 }
 //! [Close]
 
@@ -1481,10 +1267,7 @@ void AppWindow::CloseAppWindow()
         m_onAppWindowClosing();
         m_onAppWindowClosing = nullptr;
     }
-    if (!CloseWebView())
-    {
-        return;
-    }
+    CloseWebView();
     DestroyWindow(m_mainWindow);
 }
 
@@ -1523,28 +1306,9 @@ template <class ComponentType> std::unique_ptr<ComponentType> AppWindow::MoveCom
     return nullptr;
 }
 
-void AppWindow::SetDocumentTitle(PCWSTR titleText)
+void AppWindow::SetTitleText(PCWSTR titleText)
 {
-    m_documentTitle = titleText;
-    UpdateAppTitle();
-}
-
-std::wstring AppWindow::GetDocumentTitle()
-{
-    return m_documentTitle;
-}
-
-void AppWindow::UpdateAppTitle() {
-    std::wstring str(m_appTitle);
-    if (!m_profileDirName.empty())
-    {
-        str += L" - " + m_profileDirName;
-    }
-    if (!m_documentTitle.empty())
-    {
-        str += L" - " + m_documentTitle;
-    }
-    SetWindowText(m_mainWindow, str.c_str());
+    SetWindowText(m_mainWindow, titleText);
 }
 
 RECT AppWindow::GetWindowBounds()

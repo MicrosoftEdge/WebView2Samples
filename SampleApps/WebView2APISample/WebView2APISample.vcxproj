@@ -388,11 +388,11 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="AppStartPage.h" />
     <ClInclude Include="AppWindow.h" />
-    <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="CheckFailure.h" />
     <ClInclude Include="ClientCertificateSelectionDialog.h" />
     <ClInclude Include="ComponentBase.h" />
     <ClInclude Include="ControlComponent.h" />
+    <ClInclude Include="CustomStatusBar.h" />
     <ClInclude Include="DCompTargetImpl.h" />
     <ClInclude Include="DpiUtil.h" />
     <ClInclude Include="DropTarget.h" />
@@ -423,10 +423,10 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="AppStartPage.cpp" />
     <ClCompile Include="AppWindow.cpp" />
-    <ClCompile Include="AudioComponent.cpp" />
     <ClCompile Include="CheckFailure.cpp" />
     <ClCompile Include="ClientCertificateSelectionDialog.cpp" />
     <ClCompile Include="ControlComponent.cpp" />
+    <ClCompile Include="CustomStatusBar.cpp" />
     <ClCompile Include="DCompTargetImpl.cpp" />
     <ClCompile Include="DpiUtil.cpp" />
     <ClCompile Include="DropTarget.cpp" />

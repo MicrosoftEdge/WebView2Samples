@@ -50,7 +50,6 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle browser accelerator keys enabled](#Toggle-browser-accelerator-keys-enabled)
     * [Toggle Swipe Navigation enabled](#Toggle-Swipe-Navigation-enabled)
     * [Toggle Hidden PDF toolbar items](#Toggle-hide-PDF-toolbar-items)
-    * [Toggle Allow External Drop](#Toggle-Allow-External-Drop)
   * [View](#View)
     * [Toggle Visibility](#Toggle-Visibility)
     * [WebView Bounds Reference](#WebView-Bounds-Reference)
@@ -304,7 +303,7 @@ Test browser process becoming unresponsive
 1. Launch the sample app.
 2. Navigate to `edge://hang`.
 3. Wait ~20-30 seconds.
-4. Expected: Error dialog popup that says `Browser renderer process stopped responding. Recreate webview?` (note: an additional `Child process failed` popup might show. Close and ignore if it does.)\
+4. Expected: Error dialog popup that says `Browser renderer process stopped responding. Recreate webview?`\
   ![step 3](screenshots/unresponsive-renderer-error.png)
 5. Click `Yes` inside the Popup dialog
 6. Expected: The app window resets to the same state as step 1.
@@ -699,20 +698,6 @@ Test that hide/show PDF save button and print button.
 1. Refresh the page
 1. Expected: The save button and print button is on the toolbar again
 
-#### Toggle Allow External Drop
-
-Test that enables or disables dragging and dropping files into webview.
-
-1. Launch the sample app.
-1. Drag and drop a file(e.g. txt file) into the sample app
-1. Expected: A new window with this text file opened is launched
-1. Go to `Settings -> Toggle Allow External Drop`
-1. Drag and drop the file into the sample app again
-1. Expected: The drag and drop action is disabled and no new window is launched
-1. Go to `Settings -> Toggle Allow External Drop`
-1. Drag and drop the file into the sample app again
-1. Expected: A new window with this text file opened is launched
-
 ### View
 
 #### Toggle Visibility
@@ -858,8 +843,8 @@ Test that moves focus due to Tab traversal backward
 
 #### Toggle Tab Handling
 
-Test that enables/disables tab handling by host app
-_It is disabled by default. With the tab handling sample code, tabbing behavior should be identical whether this is enabled or disabled. Note that you can tell that the address bar gets focus by seeing the caret or the url being highlighted._
+Test that enables/disables tab handling
+_It is disabled by default. Tabbing behavior should be identical whether this is enabled or disabled._
 
 1. Launch the sample app and go to `Scenario -> Testing Focus`
 1. Click address bar
@@ -872,8 +857,6 @@ _It is disabled by default. With the tab handling sample code, tabbing behavior 
 1. Press `Tab`
 1. Expected: See the focus is set to `Back` with the dotted line.
 1. Go to `View -> Toggle Tab Handling` (Enabling Tab Handling)
-1. Expected: Message Box that says `Tab handling by host app is now enabled.`
-1. Click `OK` inside the popup dialog.
 1. Repeat steps 2-10 above.
 
 #### WebView DefaultBackgroundColor

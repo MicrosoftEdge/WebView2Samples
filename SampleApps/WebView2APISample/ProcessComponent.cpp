@@ -1,4 +1,4 @@
-﻿// Copyright (C) Microsoft Corporation. All rights reserved.
+// Copyright (C) Microsoft Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -159,6 +159,7 @@ bool ProcessComponent::HandleWindowMessage(
     }
     return false;
 }
+
 // Show the WebView's PID to the user.
 void ProcessComponent::ShowBrowserProcessInfo() {
     UINT32 processId;
@@ -231,11 +232,6 @@ void ProcessComponent::CrashRenderProcess()
     m_webView->Navigate(L"edge://kill");
 }
 
-//! [ProcessInfoChanged]
-void ProcessComponent::ProcessInfo()
-{
-}
-//! [ProcessInfoChanged]
 /*static*/ void ProcessComponent::EnsureProcessIsClosed(UINT processId, int timeoutMs)
 {
     UINT exitCode = 1;

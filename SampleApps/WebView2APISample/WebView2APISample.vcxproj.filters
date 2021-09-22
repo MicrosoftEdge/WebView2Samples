@@ -105,7 +105,7 @@
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="AudioComponent.cpp">
+    <ClCompile Include="CustomStatusBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -206,7 +206,7 @@
     <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AudioComponent.h">
+    <ClInclude Include="CustomStatusBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
