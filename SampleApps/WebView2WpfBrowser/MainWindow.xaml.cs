@@ -83,7 +83,6 @@ namespace WebView2WpfBrowser
         }
 
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
-        IReadOnlyList<CoreWebView2ProcessInfo> _processList;
 
 
         public MainWindow()
@@ -1059,7 +1058,6 @@ namespace WebView2WpfBrowser
                     {
                         WebViewEnvironment.BrowserProcessExited += Environment_BrowserProcessExited;
                         WebViewEnvironment.NewBrowserVersionAvailable += Environment_NewBrowserVersionAvailable;
-                        WebViewEnvironment.ProcessInfoChanged += WebView_ProcessInfoChanged;
                     }
                     catch (NotImplementedException)
                     {
