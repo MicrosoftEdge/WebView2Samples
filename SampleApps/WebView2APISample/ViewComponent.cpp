@@ -199,6 +199,13 @@ ViewComponent::ViewComponent(
         m_dropTarget->Init(
             m_appWindow->GetMainWindow(), this, compositionController3.get());
     }
+
+    m_webViewExperimental11 = m_webView.try_query<ICoreWebView2Experimental11>();
+    if (m_webViewExperimental11)
+    {
+        SetDefaultDownloadDialogPosition();
+    }
+
 #ifdef USE_WEBVIEW2_WIN10
     else if (m_dcompDevice || m_wincompCompositor)
 #else
@@ -322,18 +329,24 @@ bool ViewComponent::HandleWindowMessage(
         case IDM_TOGGLE_CURSOR_HANDLING:
             m_useCursorId = !m_useCursorId;
             return true;
+        case IDM_TOGGLE_DEFAULT_DOWNLOAD_DIALOG:
+            ToggleDefaultDownloadDialog();
+            return true;
+        case IDM_TOGGLE_DOWNLOADS_BUTTON:
+            ToggleDownloadsButton();
+            return true;
         }
     }
     //! [ToggleIsVisibleOnMinimize]
-    if (message == WM_SYSCOMMAND)
+    if (message == WM_SIZE)
     {
-        if (wParam == SC_MINIMIZE)
+        if (wParam == SIZE_MINIMIZED)
         {
             // Hide the webview when the app window is minimized.
             m_controller->put_IsVisible(FALSE);
             Suspend();
         }
-        else if (wParam == SC_RESTORE)
+        else if (wParam == SIZE_RESTORED)
         {
             // When the app window is restored, show the webview
             // (unless the user has toggle visibility off).
@@ -940,9 +953,102 @@ void ViewComponent::DestroyWinCompVisualTree()
 }
 #endif
 
+//! [ToggleDefaultDownloadDialog]
+void ViewComponent::ToggleDefaultDownloadDialog()
+{
+    if (m_webViewExperimental11)
+    {
+        BOOL isOpen;
+        m_webViewExperimental11->get_IsDefaultDownloadDialogOpen(&isOpen);
+        if (isOpen)
+        {
+            m_webViewExperimental11->CloseDefaultDownloadDialog();
+        }
+        else
+        {
+            m_webViewExperimental11->OpenDefaultDownloadDialog();
+        }
+    }
+}
+//! [ToggleDefaultDownloadDialog]
+
+//! [SetDefaultDownloadDialogPosition]
+void ViewComponent::SetDefaultDownloadDialogPosition()
+{
+    COREWEBVIEW2_DEFAULT_DOWNLOAD_DIALOG_CORNER_ALIGNMENT cornerAlignment =
+        COREWEBVIEW2_DEFAULT_DOWNLOAD_DIALOG_CORNER_ALIGNMENT_TOP_LEFT;
+    POINT margin = {m_downloadsButtonMargin,
+        (m_downloadsButtonMargin + m_downloadsButtonHeight)};
+    CHECK_FAILURE(
+        m_webViewExperimental11->put_DefaultDownloadDialogCornerAlignment(
+        cornerAlignment));
+    CHECK_FAILURE(
+        m_webViewExperimental11->put_DefaultDownloadDialogMargin(margin));
+}
+//! [SetDefaultDownloadDialogPosition]
+
+
+void ViewComponent::ToggleDownloadsButton()
+{
+    if (!m_webViewExperimental11)
+    {
+        FeatureNotAvailable();
+        return;
+    }
+    if (!m_downloadsButton)
+    {
+        CreateDownloadsButton();
+        return;
+    }
+    int nCmdShow = (IsWindowVisible(m_downloadsButton)) ? SW_HIDE : SW_SHOW;
+    ShowWindow(m_downloadsButton, nCmdShow);
+}
+
+void ViewComponent::CreateDownloadsButton()
+{
+    RECT bounds;
+    CHECK_FAILURE(m_controller->get_Bounds(&bounds));
+    m_downloadsButton = CreateWindow(
+        L"button", L"Downloads", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        bounds.left + m_downloadsButtonMargin,
+        bounds.top + m_downloadsButtonMargin, m_downloadsButtonWidth,
+        m_downloadsButtonHeight, m_appWindow->GetMainWindow(),
+        (HMENU)IDM_TOGGLE_DEFAULT_DOWNLOAD_DIALOG, nullptr, 0);
+    SetWindowPos(m_downloadsButton, HWND_TOP, 0, 0, 0, 0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+    // Subscribe to the `IsDefaultDownloadDialogOpenChanged` event
+    // to make changes in response to the default download dialog
+    // opening or closing. For example, if the dialog is anchored
+    // to a button in the application, the button can change its appearance
+    // depending on whether the dialog is opened or closed.
+    CHECK_FAILURE(m_webViewExperimental11->add_IsDefaultDownloadDialogOpenChanged(
+        Callback<ICoreWebView2ExperimentalIsDefaultDownloadDialogOpenChangedEventHandler>(
+            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+            BOOL isOpen;
+            m_webViewExperimental11->get_IsDefaultDownloadDialogOpen(&isOpen);
+            if (isOpen) {
+              SetWindowText(m_downloadsButton, L"Opened");
+            } else {
+              SetWindowText(m_downloadsButton, L"Closed");
+            }
+            return S_OK;
+            })
+            .Get(),
+        &m_isDefaultDownloadDialogOpenChangedToken));
+}
+
 ViewComponent::~ViewComponent()
 {
     m_webView->remove_NavigationStarting(m_navigationStartingToken);
+    if (m_webViewExperimental11)
+    {
+        m_webViewExperimental11->remove_IsDefaultDownloadDialogOpenChanged(
+            m_isDefaultDownloadDialogOpenChangedToken);
+    }
+    if (m_downloadsButton) {
+        DestroyWindow(m_downloadsButton);
+    }
     m_controller->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
     if (m_controller3)
     {

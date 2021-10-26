@@ -50,6 +50,39 @@ STDMETHODIMP HostObjectSample::put_IndexedProperty(INT index, BSTR stringValue)
     return S_OK;
 }
 
+STDMETHODIMP HostObjectSample::get_DateProperty(DATE* dateResult)
+{
+    *dateResult = m_date;
+    return S_OK;
+}
+
+STDMETHODIMP HostObjectSample::put_DateProperty(DATE dateValue)
+{
+    m_date = dateValue;
+    SYSTEMTIME systemTime;
+    if (VariantTimeToSystemTime(dateValue, &systemTime))
+    {
+        // Save the Date and Time as strings to be able to easily check that we are getting the correct values.
+        GetDateFormatEx(
+            LOCALE_NAME_INVARIANT, 0 /*flags*/, &systemTime, NULL /*format*/, m_formattedDate, ARRAYSIZE(m_formattedDate), NULL /*reserved*/);
+        GetTimeFormatEx(
+            LOCALE_NAME_INVARIANT, 0 /*flags*/, &systemTime, NULL /*format*/, m_formattedTime, ARRAYSIZE(m_formattedTime));
+    }
+    return S_OK;
+}
+
+STDMETHODIMP HostObjectSample::CreateNativeDate()
+{
+    SYSTEMTIME systemTime;
+    GetSystemTime(&systemTime);
+    DATE date;
+    if (SystemTimeToVariantTime(&systemTime, &date))
+    {
+        return put_DateProperty(date);
+    }
+    return E_UNEXPECTED;
+}
+
 STDMETHODIMP HostObjectSample::CallCallbackAsynchronously(IDispatch* callbackParameter)
 {
     wil::com_ptr<IDispatch> callbackParameterForCapture = callbackParameter;

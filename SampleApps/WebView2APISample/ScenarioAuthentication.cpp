@@ -14,10 +14,7 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) :
     m_appWindow(appWindow)
 {
     m_webView = wil::com_ptr<ICoreWebView2>(m_appWindow->GetWebView()).query<ICoreWebView2_2>();
-    MessageBox(
-        nullptr,
-        L"Authentication scenario:\n Click HTML/NTLM Auth to get Authentication headers",
-        nullptr, MB_OK);
+
     //! [WebResourceResponseReceived]
     CHECK_FAILURE(m_webView->add_WebResourceResponseReceived(
         Callback<ICoreWebView2WebResourceResponseReceivedEventHandler>(
@@ -48,10 +45,38 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) :
             .Get(),
         &m_webResourceResponseReceivedToken));
     //! [WebResourceResponseReceived]
-    CHECK_FAILURE(m_webView->Navigate(L"https://authenticationtest.com"));
+
+    //! [AuthRequested]
+    if (auto webViewExperimental10 = m_webView.try_query<ICoreWebView2Experimental10>())
+    {
+        CHECK_FAILURE(webViewExperimental10->add_BasicAuthenticationRequested(
+            Callback<ICoreWebView2ExperimentalBasicAuthenticationRequestedEventHandler>(
+                [this](
+                    ICoreWebView2* sender,
+                    ICoreWebView2ExperimentalBasicAuthenticationRequestedEventArgs* args) {
+                    wil::com_ptr<ICoreWebView2ExperimentalBasicAuthenticationResponse> basicAuthenticationResponse;
+                    CHECK_FAILURE(args->get_Response(&basicAuthenticationResponse));
+                    CHECK_FAILURE(basicAuthenticationResponse->put_UserName(L"user"));
+                    CHECK_FAILURE(basicAuthenticationResponse->put_Password(L"pass"));
+
+                    return S_OK;
+                })
+                .Get(),
+            &m_basicAuthenticationRequestedToken));
+    }
+    else {
+        FeatureNotAvailable();
+    }
+    //! [AuthRequested]
+    CHECK_FAILURE(m_webView->Navigate(L"https://authenticationtest.com/HTTPAuth/"));
 }
 
 ScenarioAuthentication::~ScenarioAuthentication() {
     CHECK_FAILURE(
         m_webView->remove_WebResourceResponseReceived(m_webResourceResponseReceivedToken));
+    if (auto webViewExperimental10 = m_webView.try_query<ICoreWebView2Experimental10>())
+    {
+        CHECK_FAILURE(webViewExperimental10->remove_BasicAuthenticationRequested(
+            m_basicAuthenticationRequestedToken));
+    }
 }

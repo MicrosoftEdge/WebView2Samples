@@ -68,6 +68,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Cookie Management](#Cookie-Management)
     * [NavigateWithWebResourceRequest](#NavigateWithWebResourceRequest)
     * [Client Certificate Requested](#ClientCertificateRequested)
+    * [Clear Browsing Data](#ClearBrowsingData)
   * [Help](#Help)
     * [About ...](#about-)
   * [Miscellaneous](#Miscellaneous)
@@ -75,6 +76,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Language](#Language)
     * [Saving Password](#Saving-Password)
     * [Open Link in New Window From PDF](#Open-Link-in-New-Window-from-PDF)
+    * [WebView Does Not Crash](#WebView-Does-Not-Crash)
 
 ## Getting started
 
@@ -1058,6 +1060,43 @@ Test that demonstrates cookie management related APIs usage such as `GetCookies`
 13. Click `Cancel` in the dialog box.
 14. Expected: Dialog box is closed and server responds with 400 Bad Request (No required SSL Certificate was sent).
 
+#### Clear Browsing Data
+
+Test that demonstrates the clear browsing data API. 
+
+1. Launch the sample app.
+2. Load <https://www.facebook.com>.
+3. Go to **Scenario** > **Cookie Management**
+4. Select `Get Cookies` with no URI entered. 
+5. Verify that there are a non-zero amount of cookies returned. 
+6. Click OK.
+7. Go to **Scenario** > **Clear Browsing Data** > **Cookies**
+8. Expected: Message Box that says `Succeeded`.
+9. Click OK.
+10. Repeat step 4. 
+11. Expected: Message Box that says `No cookies found.`. 
+12. Repeat steps 2-6. 
+13. Go to **Scenario** > **Clear Browsing Data** > **Download History**
+14. Expected: Message Box that says `Succeeded`.
+15. Click OK.
+16. Repeat step 4. 
+17. Expected: the same number of cookies that were returned in step 12 are returned here. 
+18. Click OK. 
+19. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+20. Enter in any test information into the Profile Autofill section and click submit.
+21. Navigate to <https://rsolomakhin.github.io/autofill/>.
+22. Click on the Name field.
+23. Expected: A drop down box with the saved profile information is shown.
+24. Go to **Scenario** > **Clear Browsing Data** > **General Autofill**
+25. Click `Refresh`.
+26. Click on the Name field.
+27. Expected: No drop down box appears.
+28. Repeat steps 19-23. 
+29. Go to **Scenario** > **Clear Browsing Data** > **Password Autofill**.
+30. Click `Refresh`.
+31. Click on the Name field. 
+32. Expected: A drop down box with the saved profile information is shown.
+
 ### Help
 
 #### About ...
@@ -1125,3 +1164,17 @@ Verify that the `NewWindowRequested` event is fired when opening a link in new w
 4. Scroll to the second page of the PDF and right click on the first link to open the context menu.
 5. Click on 'Open link in new window'.
 6. Expected: Event Monitor displays `NewWindowRequested`.
+
+#### WebView Does Not Crash
+Test that there is no crash in WebView processes for some of the error prone scenarios.
+
+1. Launch the sample app.
+1. Go to `Window -> Create New Thread`.
+1. Expected:  A new app window opened.
+1. Close the newly opened window by clicking on the red cross at the top right of the window.
+1. Expected:  The new app window closed while no browser process failure message box is observed for the first app window.
+1. Go to `Window -> Create New Thread`.
+1. Expected:  A new app window opened.
+1. Close the WebView in first app window by `Window -> Close WebView`.
+1. Expected:  The WebView in first app window does not render the start page anymore, while no browser process failure message box is observed for the newly created app window.
+1. Wait for 1 minute, expect no browser process failure message box is observed for the newly created app window.

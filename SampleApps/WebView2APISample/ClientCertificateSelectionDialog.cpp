@@ -6,6 +6,7 @@
 #include <Windows.h>
 
 #include "stdafx.h"
+
 #include "App.h"
 #include "resource.h"
 #include "ClientCertificateSelectionDialog.h"

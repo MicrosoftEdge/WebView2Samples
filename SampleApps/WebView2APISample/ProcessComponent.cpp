@@ -4,10 +4,11 @@
 
 #include "stdafx.h"
 
-#include "ProcessComponent.h"
+#include "psapi.h"
 
 #include <sstream>
 
+#include "ProcessComponent.h"
 #include "CheckFailure.h"
 
 using namespace Microsoft::WRL;
@@ -232,7 +233,7 @@ void ProcessComponent::CrashRenderProcess()
 }
 
 //! [ProcessInfoChanged]
-void ProcessComponent::ProcessInfo()
+void ProcessComponent::PerformanceInfo()
 {
 }
 //! [ProcessInfoChanged]

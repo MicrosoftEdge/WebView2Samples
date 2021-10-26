@@ -63,6 +63,11 @@ ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
     EnableWebResourceResponseReceivedEvent(false);
 
     m_webviewEventView->remove_WebMessageReceived(m_eventViewWebMessageReceivedToken);
+    if (m_webViewEventSourceExperimental11) {
+        m_webViewEventSourceExperimental11->remove_IsDefaultDownloadDialogOpenChanged(
+            m_isDefaultDownloadDialogOpenChangedToken);
+    }
+
     // Clear our app window's reference to this.
     m_appWindowEventView->SetOnAppWindowClosing(nullptr);
 }
@@ -577,11 +582,11 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
 
-                wil::com_ptr<ICoreWebView2NewWindowRequestedEventArgs2> 
+                wil::com_ptr<ICoreWebView2NewWindowRequestedEventArgs2>
                     args2;
                 wil::unique_cotaskmem_string name;
                 std::wstring encodedName = EncodeQuote(L"");
-                
+
                 if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2)))) {
                     CHECK_FAILURE(args2->get_Name(&name));
                     encodedName = EncodeQuote(name.get());
@@ -930,6 +935,29 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
             })
             .Get(),
         &m_lostFocusToken);
+
+    m_webViewEventSourceExperimental11 =
+        m_webviewEventSource.try_query<ICoreWebView2Experimental11>();
+    if (m_webViewEventSourceExperimental11)
+    {
+        m_webViewEventSourceExperimental11->add_IsDefaultDownloadDialogOpenChanged(
+            Callback<ICoreWebView2ExperimentalIsDefaultDownloadDialogOpenChangedEventHandler>(
+                [this](
+                    ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                    std::wstring message =
+                        L"{ \"kind\": \"event\", \"name\": "
+                        L"\"IsDefaultDownloadDialogOpenChanged\", \"args\": {";
+                    BOOL isOpen;
+                    m_webViewEventSourceExperimental11->get_IsDefaultDownloadDialogOpen(&isOpen);
+                    message += L"\"isDefaultDownloadDialogOpen\": " + BoolToString(isOpen);
+                    message +=
+                        L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                    PostEventMessage(message);
+                    return S_OK;
+                })
+                .Get(),
+            &m_isDefaultDownloadDialogOpenChangedToken);
+    }
 }
 
 void ScenarioWebViewEventMonitor::InitializeFrameEventView(

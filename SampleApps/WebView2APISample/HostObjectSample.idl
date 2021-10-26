@@ -21,6 +21,13 @@ library HostObjectSampleLibrary
         // Demonstrate native calling back into JavaScript.
         HRESULT CallCallbackAsynchronously([in] IDispatch* callbackParameter);
 
+        // Demonstrate a property which uses Date types
+        [propget] HRESULT DateProperty([out, retval] DATE * dateResult);
+        [propput] HRESULT DateProperty([in] DATE dateValue);
+
+        // Creates a date object on the native side and sets the DateProperty to it.
+        HRESULT CreateNativeDate();
+
     };
     //! [AddHostObjectInterface]
 

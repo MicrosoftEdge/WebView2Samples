@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "stdafx.h"
+
 #include "CheckFailure.h"
 #include "DpiUtil.h"
 

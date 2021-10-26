@@ -18,6 +18,8 @@ public:
 
 private:
     EventRegistrationToken m_webResourceResponseReceivedToken = {};
+    EventRegistrationToken m_basicAuthenticationRequestedToken = {};
+
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2_2> m_webView = nullptr;
 };

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "stdafx.h"
+
 #include <string>
 #include "ComponentBase.h"
 
@@ -45,6 +46,7 @@ private:
     wil::com_ptr<ICoreWebView2Controller> m_controllerEventSource;
     wil::com_ptr<ICoreWebView2_2> m_webviewEventSource2;
     wil::com_ptr<ICoreWebView2_4> m_webviewEventSource4;
+    wil::com_ptr<ICoreWebView2Experimental11> m_webViewEventSourceExperimental11;
 
     // The events we register on the event sources
     EventRegistrationToken m_frameNavigationStartingToken = {};
@@ -67,6 +69,7 @@ private:
     EventRegistrationToken m_frameCreatedToken = {};
     EventRegistrationToken m_gotFocusToken = {};
     EventRegistrationToken m_lostFocusToken = {};
+    EventRegistrationToken m_isDefaultDownloadDialogOpenChangedToken = {};
 
     // This event is registered with the event viewer so they
     // can communicate back to us for toggling the WebResourceRequested

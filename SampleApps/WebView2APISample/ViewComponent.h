@@ -75,11 +75,16 @@ private:
     void SetBoundsMode(COREWEBVIEW2_BOUNDS_MODE boundsMode);
     void ShowWebViewBounds();
     void ShowWebViewZoom();
+    void ToggleDefaultDownloadDialog();
+    void SetDefaultDownloadDialogPosition();
+    void CreateDownloadsButton();
+    void ToggleDownloadsButton();
 
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2Controller3> m_controller3;
     wil::com_ptr<ICoreWebView2> m_webView;
+    wil::com_ptr<ICoreWebView2Experimental11> m_webViewExperimental11;
 
     bool m_isDcompTargetMode;
     bool m_isVisible = true;
@@ -92,10 +97,15 @@ private:
     float m_webviewAdditionalRasterizationScale = 1.0f;
     COREWEBVIEW2_BOUNDS_MODE m_boundsMode = COREWEBVIEW2_BOUNDS_MODE_USE_RAW_PIXELS;
     COREWEBVIEW2_COLOR m_webViewColor = { 255, 255, 255, 255 };
+    const int m_downloadsButtonMargin = 50;
+    const int m_downloadsButtonWidth = 120;
+    const int m_downloadsButtonHeight = 80;
+    HWND m_downloadsButton;
 
     EventRegistrationToken m_zoomFactorChangedToken = {};
     EventRegistrationToken m_rasterizationScaleChangedToken = {};
     EventRegistrationToken m_navigationStartingToken = {};
+    EventRegistrationToken m_isDefaultDownloadDialogOpenChangedToken = {};
 
     bool OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam);
     bool OnPointerMessage(UINT message, WPARAM wParam, LPARAM lParam);
