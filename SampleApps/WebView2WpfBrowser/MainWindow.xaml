@@ -42,6 +42,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.NewBrowserVersionCommand}" Executed="NewBrowserVersionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SwipeNavigationCommand}" Executed="SwipeNavigationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}" Executed="PdfToolbarSaveCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.CreateDownloadsButtonCommand}" Executed="CreateDownloadsButtonCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ToggleMuteStateCommand}" Executed="ToggleMuteStateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPdfCommand}" Executed="PrintToPdfCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PinchZoomCommand}" Executed="PinchZoomCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -74,6 +75,7 @@ found in the LICENSE file.
                     <MenuItem Header="Blue" Command="{x:Static local:MainWindow.BackgroundColorCommand}" CommandParameter="Blue"/>
                     <MenuItem Header="Transparent" Command="{x:Static local:MainWindow.BackgroundColorCommand}" CommandParameter="Transparent"/>
                 </MenuItem>
+                <MenuItem Header="_Create Downloads Button" Command="{x:Static local:MainWindow.CreateDownloadsButtonCommand}"/>
             </MenuItem>
             <MenuItem Header="S_ettings">
                 <MenuItem Header="WebView _userAgent" Command="{x:Static local:MainWindow.SetUserAgentCommand}"/>
@@ -108,7 +110,7 @@ found in the LICENSE file.
                 <MenuItem Header="Intercept _Response" IsCheckable="True" IsChecked="{Binding ElementName=MyWindow, Path=ShowNextWebResponse, Mode=TwoWay}"/>
             </MenuItem>
         </Menu>
-        <DockPanel DockPanel.Dock="Top">
+        <DockPanel Name="dockPanel" DockPanel.Dock="Top">
             <Button DockPanel.Dock="Left" Command="NavigationCommands.BrowseBack">Back</Button>
             <Button DockPanel.Dock="Left" Command="NavigationCommands.BrowseForward">Forward</Button>
             <Button DockPanel.Dock="Left" Command="NavigationCommands.Refresh">Refresh</Button>

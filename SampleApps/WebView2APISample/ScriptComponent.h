@@ -37,9 +37,7 @@ public:
     void CallCdpMethod();
     void AddComObject();
     void OpenTaskManagerWindow();
-
     ~ScriptComponent() override;
-
 private:
     void HandleIFrames();
     std::wstring IFramesToString();

@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 #include "stdafx.h"
+
 #include <algorithm>
 
+#include "ProcessComponent.h"
 #include "ScriptComponent.h"
 
 #include "CheckFailure.h"
@@ -15,7 +17,9 @@ using namespace Microsoft::WRL;
 ScriptComponent::ScriptComponent(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
 {
+    HandleIFrames();
 }
+
 bool ScriptComponent::HandleWindowMessage(
     HWND hWnd,
     UINT message,
@@ -64,7 +68,6 @@ bool ScriptComponent::HandleWindowMessage(
     }
     return false;
 }
-
 //! [ExecuteScript]
 // Prompt the user for some script and then execute it.
 void ScriptComponent::InjectScript()
@@ -390,7 +393,6 @@ void ScriptComponent::HandleIFrames()
             NULL));
     }
 }
-
 std::wstring ScriptComponent::IFramesToString()
 {
     std::wstring data;

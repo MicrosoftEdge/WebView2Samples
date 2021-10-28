@@ -197,6 +197,7 @@ BEGIN
         MENUITEM "Tab In",                      IDM_FOCUS_TAB_IN
         MENUITEM "Reverse Tab In",              IDM_FOCUS_REVERSE_TAB_IN
         MENUITEM "Toggle Tab Handling",         IDM_TOGGLE_TAB_HANDLING
+        MENUITEM "Toggle Downloads Button",     IDM_TOGGLE_DOWNLOADS_BUTTON
     END
     POPUP "S&cenario"
     BEGIN

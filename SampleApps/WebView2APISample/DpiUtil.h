@@ -5,6 +5,7 @@
 #pragma once
 
 #include "stdafx.h"
+
 #include <ShellScalingApi.h>
 
 class DpiUtil

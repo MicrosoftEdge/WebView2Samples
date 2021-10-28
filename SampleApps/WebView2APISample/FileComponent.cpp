@@ -108,28 +108,28 @@ void FileComponent::PrintToPdf(bool enableLandscape)
     OPENFILENAME openFileName = CreateOpenFileName(defaultName, L"PDF File\0*.pdf\0");
     if (GetSaveFileName(&openFileName))
     {
-        wil::com_ptr<ICoreWebView2ExperimentalPrintSettings> printSettings = nullptr;
+        wil::com_ptr<ICoreWebView2PrintSettings> printSettings = nullptr;
         if (enableLandscape)
         {
-            wil::com_ptr<ICoreWebView2ExperimentalEnvironment7> webviewEnvironment7;
+            wil::com_ptr<ICoreWebView2Environment6> webviewEnvironment6;
             CHECK_FAILURE(m_appWindow->GetWebViewEnvironment()->QueryInterface(
-                IID_PPV_ARGS(&webviewEnvironment7)));
-            if (webviewEnvironment7)
+                IID_PPV_ARGS(&webviewEnvironment6)));
+            if (webviewEnvironment6)
             {
-                CHECK_FAILURE(webviewEnvironment7->CreatePrintSettings(&printSettings));
+                CHECK_FAILURE(webviewEnvironment6->CreatePrintSettings(&printSettings));
                 CHECK_FAILURE(
                     printSettings->put_Orientation(COREWEBVIEW2_PRINT_ORIENTATION_LANDSCAPE));
             }
         }
 
-        wil::com_ptr<ICoreWebView2Experimental7> webviewExperimental7;
-        CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webviewExperimental7)));
-        if (webviewExperimental7)
+        wil::com_ptr<ICoreWebView2_7> webview2_7;
+        CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webview2_7)));
+        if (webview2_7)
         {
             m_printToPdfInProgress = true;
-            CHECK_FAILURE(webviewExperimental7->PrintToPdf(
+            CHECK_FAILURE(webview2_7->PrintToPdf(
                 openFileName.lpstrFile, printSettings.get(),
-                Callback<ICoreWebView2ExperimentalPrintToPdfCompletedHandler>(
+                Callback<ICoreWebView2PrintToPdfCompletedHandler>(
                     [this](HRESULT errorCode, BOOL isSuccessful) -> HRESULT {
                         CHECK_FAILURE(errorCode);
                         m_printToPdfInProgress = false;

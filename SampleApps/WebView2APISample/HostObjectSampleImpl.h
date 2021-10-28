@@ -32,6 +32,9 @@ public:
     STDMETHODIMP put_Property(BSTR stringValue) override;
     STDMETHODIMP get_IndexedProperty(INT index, BSTR* stringResult) override;
     STDMETHODIMP put_IndexedProperty(INT index, BSTR stringValue) override;
+    STDMETHODIMP get_DateProperty(DATE* dateResult) override;
+    STDMETHODIMP put_DateProperty(DATE dateValue) override;
+    STDMETHODIMP CreateNativeDate() override;
 
     // Demonstrate native calling back into JavaScript.
     STDMETHODIMP CallCallbackAsynchronously(IDispatch* callbackParameter) override;
@@ -54,4 +57,7 @@ private:
     wil::com_ptr<IDispatch> m_callback;
     RunCallbackAsync m_runCallbackAsync;
     wil::com_ptr<ITypeLib> m_typeLib;
+    DATE m_date;
+    WCHAR m_formattedTime[200];
+    WCHAR m_formattedDate[200];
 };

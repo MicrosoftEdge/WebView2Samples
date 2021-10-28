@@ -80,6 +80,17 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
             .Get(),
         &m_contentLoadingToken));
 
+    wil::com_ptr<ICoreWebView2_4> webview2_4 = m_webView.try_query<ICoreWebView2_4>();
+    if (webview2_4)
+    {
+        CHECK_FAILURE(webview2_4->add_FrameCreated(
+            Callback<ICoreWebView2FrameCreatedEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args) -> HRESULT {
+            wil::com_ptr<ICoreWebView2Frame> webviewFrame;
+            CHECK_FAILURE(args->get_Frame(&webviewFrame));
+            return S_OK;
+        }).Get(), NULL));
+    }
     // Changes to ICoreWebView2Settings::IsWebMessageEnabled apply to the next document
     // to which we navigate.
     CHECK_FAILURE(m_webView->Navigate(m_sampleUri.c_str()));

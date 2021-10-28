@@ -41,6 +41,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand CheckUpdateCommand = new RoutedCommand();
         public static RoutedCommand NewBrowserVersionCommand = new RoutedCommand();
         public static RoutedCommand PdfToolbarSaveCommand = new RoutedCommand();
+        public static RoutedCommand CreateDownloadsButtonCommand = new RoutedCommand();
         public static RoutedCommand CustomClientCertificateSelectionCommand = new RoutedCommand();
         public static RoutedCommand CustomContextMenuCommand = new RoutedCommand();
         public static RoutedCommand DeferredCustomCertificateDialogCommand = new RoutedCommand();
@@ -81,10 +82,20 @@ namespace WebView2WpfBrowser
                 return _webViewEnvironment;
             }
         }
+        CoreWebView2Profile _webViewProfile;
+        CoreWebView2Profile WebViewProfile
+        {
+            get
+            {
+                if (_webViewProfile == null && webView?.CoreWebView2 != null)
+                {
+                    _webViewProfile = webView.CoreWebView2.Profile;
+                }
+                return _webViewProfile;
+            }
+        }
 
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
-
-
         public MainWindow()
         {
             InitializeComponent();
@@ -604,6 +615,8 @@ namespace WebView2WpfBrowser
             }
         }
 
+        private CoreWebView2ContextMenuItem displayUriParentContextMenuItem = null;
+
         void WebView_ContextMenuRequested(
               object sender,
               CoreWebView2ContextMenuRequestedEventArgs args)
@@ -629,23 +642,28 @@ namespace WebView2WpfBrowser
             // Add item to WebView context menu
             else if (context == CoreWebView2ContextMenuTargetKind.Page)
             {
-                CoreWebView2ContextMenuItem subItem =
+                // Created context menu items should be reused.
+                if (displayUriParentContextMenuItem == null)
+                {
+                    CoreWebView2ContextMenuItem subItem =
                     webView.CoreWebView2.Environment.CreateContextMenuItem(
                         "Display Page Uri", null,
                         CoreWebView2ContextMenuItemKind.Command);
-                subItem.CustomItemSelected += delegate (object send, Object ex) {
-                    string pageUrl = args.ContextMenuTarget.PageUri;
-                    System.Threading.SynchronizationContext.Current.Post((_) => {
-                        MessageBox.Show(pageUrl, "Display Page Uri", MessageBoxButton.YesNo);
-                    }, null);
-                };
-                CoreWebView2ContextMenuItem newItem =
-                  webView.CoreWebView2.Environment.CreateContextMenuItem(
-                      "New Submenu", null,
-                      CoreWebView2ContextMenuItemKind.Submenu);
-                IList<CoreWebView2ContextMenuItem> submenuList = newItem.Children;
-                submenuList.Insert(0, subItem);
-                menuList.Insert(menuList.Count, newItem);
+                    subItem.CustomItemSelected += delegate (object send, Object ex) {
+                        string pageUrl = args.ContextMenuTarget.PageUri;
+                        System.Threading.SynchronizationContext.Current.Post((_) => {
+                            MessageBox.Show(pageUrl, "Display Page Uri", MessageBoxButton.YesNo);
+                        }, null);
+                    };
+                    displayUriParentContextMenuItem =
+                      webView.CoreWebView2.Environment.CreateContextMenuItem(
+                          "New Submenu", null,
+                          CoreWebView2ContextMenuItemKind.Submenu);
+                    IList<CoreWebView2ContextMenuItem> submenuList = displayUriParentContextMenuItem.Children;
+                    submenuList.Insert(0, subItem);
+                }
+
+                menuList.Insert(menuList.Count, displayUriParentContextMenuItem);
             }
         }
 
@@ -1065,12 +1083,29 @@ namespace WebView2WpfBrowser
                     }
                     shouldAttachEnvironmentEventHandlers = false;
                 }
-
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
+
+                SetDefaultDownloadDialogPosition();
+
                 return;
             }
 
             MessageBox.Show($"WebView2 creation failed with exception = {e.InitializationException}");
+        }
+        private void SetDefaultDownloadDialogPosition()
+        {
+            try
+            {
+                const int defaultMarginX = 75, defaultMarginY = 0;
+                CoreWebView2DefaultDownloadDialogCornerAlignment cornerAlignment
+                    = CoreWebView2DefaultDownloadDialogCornerAlignment.TopLeft;
+                System.Drawing.Point margin = new System.Drawing.Point(
+                    defaultMarginX, defaultMarginY);
+                webView.CoreWebView2.DefaultDownloadDialogCornerAlignment =
+                    cornerAlignment;
+                webView.CoreWebView2.DefaultDownloadDialogMargin = margin;
+            }
+            catch (NotImplementedException) {}
         }
 
         private bool shouldAttemptReinitOnBrowserExit = false;
@@ -1298,6 +1333,58 @@ namespace WebView2WpfBrowser
         void ToggleMuteStateCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             webView.CoreWebView2.IsMuted = !webView.CoreWebView2.IsMuted;
+        }
+        void CreateDownloadsButtonCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            Button downloadsButton = new Button();
+            downloadsButton.Content = "Downloads";
+            downloadsButton.Click +=
+                new RoutedEventHandler(ToggleDownloadDialog);
+            DockPanel.SetDock(downloadsButton, Dock.Left);
+            dockPanel.Children.Insert(dockPanel.Children.IndexOf(url),
+                downloadsButton);
+            try
+            {
+                // Subscribe to the `IsDefaultDownloadDialogOpenChanged` event
+                // to make changes in response to the default download dialog
+                // opening or closing. For example, if the dialog is anchored to
+                // a button in the application, the button appearance can change
+                // depending on whether the dialog is opened or closed.
+                webView.CoreWebView2.IsDefaultDownloadDialogOpenChanged +=
+                    (sender, args) =>
+                {
+                    if (webView.CoreWebView2.IsDefaultDownloadDialogOpen)
+                    {
+                        downloadsButton.Background = new SolidColorBrush(
+                            Colors.LightBlue);
+                    }
+                    else
+                    {
+                        downloadsButton.Background = new SolidColorBrush(
+                            Colors.AliceBlue);
+                    }
+                };
+            }
+            catch (NotImplementedException) {}
+        }
+        private void ToggleDownloadDialog(object target, RoutedEventArgs e)
+        {
+            try
+            {
+                if (webView.CoreWebView2.IsDefaultDownloadDialogOpen)
+                {
+                    webView.CoreWebView2.CloseDefaultDownloadDialog();
+                }
+                else
+                {
+                    webView.CoreWebView2.OpenDefaultDownloadDialog();
+                }
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Toggle download dialog: " + exception.Message,
+                    "Download Dialog");
+            }
         }
     }
 }

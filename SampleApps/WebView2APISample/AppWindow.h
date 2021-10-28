@@ -170,7 +170,6 @@ private:
         winrt::Windows::UI::ViewManagement::UISettings const& uiSettings,
         winrt::Windows::Foundation::IInspectable const& args);
 #endif
-
     std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
 

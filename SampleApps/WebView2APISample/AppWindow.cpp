@@ -447,11 +447,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_GET_USER_DATA_FOLDER:
     {
         //! [GetUserDataFolder]
-        auto experimentalEnvironment5 =
-            m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment5>();
-        CHECK_FEATURE_RETURN(experimentalEnvironment5);
+        auto environment7 =
+            m_webViewEnvironment.try_query<ICoreWebView2Environment7>();
+        CHECK_FEATURE_RETURN(environment7);
         wil::unique_cotaskmem_string userDataFolder;
-        experimentalEnvironment5->get_UserDataFolder(&userDataFolder);
+        environment7->get_UserDataFolder(&userDataFolder);
         MessageBox(
             m_mainWindow, userDataFolder.get(), L"User Data Folder",
             MB_OK);
@@ -664,7 +664,8 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     }
     return false;
 }
-
+//! [ClearBrowsingData]
+//! [ClearBrowsingData]
 // Prompt the user for a new language string
 void AppWindow::ChangeLanguage()
 {
