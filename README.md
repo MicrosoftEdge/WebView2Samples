@@ -9,7 +9,7 @@ In the ``GettingStarted`` folder you will find the starter code for its respecti
 - [WinUI Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/winui)
 
 In the ``Sample Apps`` folder you will find:
-- [WebView2Samples.sln](SampleApps/WebView2Samples.sln) - a collective solution that includes [WebView2APISample.vcxproj](SampleApps/WebView2APISample/WebView2APISample.vcxproj), [WebView2SampleWinComp.vcxproj](SampleApps/WebView2SampleWinComp/WebView2SampleWinComp.vcxproj), [WebView2WpfBrowser.csproj](SampleApps/WebView2WpfBrowser/WebView2WpfBrowser.csproj), [WebView2WindowsFormsBrowser.csproj](SampleApps/WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj), [WV2DeploymentWiXCustomActionSample](/SampleApps/WV2DeploymentWiXCustomActionSample/README.md), and [WV2DeploymentWiXBurnBundleSample](/SampleApps/WV2DeploymentWiXBurnBundleSample/README.md).
+- [WebView2Samples.sln](SampleApps/WebView2Samples.sln) - a collective solution that includes [WebView2APISample.vcxproj](SampleApps/WebView2APISample/WebView2APISample.vcxproj), [WebView2SampleWinComp.vcxproj](SampleApps/WebView2SampleWinComp/WebView2SampleWinComp.vcxproj), [WebView2WpfBrowser.csproj](SampleApps/WebView2WpfBrowser/WebView2WpfBrowser.csproj), [WebView2WindowsFormsBrowser.csproj](SampleApps/WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj), [WV2DeploymentWiXCustomActionSample](/SampleApps/WV2DeploymentWiXCustomActionSample/README.md), [WV2DeploymentWiXBurnBundleSample](/SampleApps/WV2DeploymentWiXBurnBundleSample/README.md), and [webview2_sample_uwp](/SampleApps/webview2_sample_uwp/README.md) 
 
 Please leave feedback in our [our feedback repo](https://aka.ms/webviewfeedback)!
 
@@ -43,11 +43,11 @@ Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Brow
 * The **WPF Sample** can be found in the [WebView2WpfBrowser](./SampleApps/WebView2WpfBrowser) directory.
 * The **Windows Forms Sample** can be found in the [WebView2WindowsFormsBrowser](./SampleApps/WebView2WindowsFormsBrowser) directory.
 
-## UWP/WinUI
+## UWP/WinUI2
 
-#### Comprehensive API Sample
+#### WebView2 UWP sample
+* The "WinUi2 Webview UWP sample can be found int the [webview2_sample_uwp](./SampleApps/webview2_sample_uwp) directory.
 
-The **UWP WinUI Sample** can be found in the [WinUI Controls Gallery](https://github.com/microsoft/Xaml-Controls-Gallery/tree/winui3preview).
 
 ## WebView2 Deployment
 
