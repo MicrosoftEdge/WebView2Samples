@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -463,6 +463,7 @@
     <ClCompile Include="TextInputDialog.cpp" />
     <ClCompile Include="Toolbar.cpp" />
     <ClCompile Include="ViewComponent.cpp" />
+    <ClCompile Include="Toolbar2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc" />

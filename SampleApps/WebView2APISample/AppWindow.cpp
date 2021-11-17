@@ -42,7 +42,6 @@
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
-
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -562,7 +561,6 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     }
     return false;
 }
-
 // Handle commands not related to the WebView, which will work even if the WebView
 // is not currently initialized.
 bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
@@ -904,6 +902,7 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
 
 HRESULT AppWindow::CreateControllerWithOptions()
 {
+    //! [CreateControllerWithOptions]
     auto webViewEnvironment8 =
         m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment8>();
     if (!webViewEnvironment8)
@@ -922,6 +921,7 @@ HRESULT AppWindow::CreateControllerWithOptions()
         return S_OK;
     }
     CHECK_FAILURE(hr);
+    //! [CreateControllerWithOptions]
 
 #ifdef USE_WEBVIEW2_WIN10
     if (m_dcompDevice || m_wincompCompositor)
@@ -1002,6 +1002,7 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
         // ProcessFailed event could have been raised yet) so the PID is
         // available.
         CHECK_FAILURE(m_webView->get_BrowserProcessId(&m_newestBrowserPid));
+        //! [CoreWebView2Profile]
         auto webview2Experimental8 = coreWebView2.try_query<ICoreWebView2Experimental8>();
         if (webview2Experimental8)
         {
@@ -1019,6 +1020,7 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             // update window icon
             SetAppIcon(inPrivate);
         }
+        //! [CoreWebView2Profile]
         // Create components. These will be deleted when the WebView is closed.
         NewComponent<FileComponent>(this);
         NewComponent<ProcessComponent>(this);

@@ -141,5 +141,8 @@ ScenarioAddHostObject::~ScenarioAddHostObject()
     m_webView->RemoveHostObjectFromScript(L"sample");
     m_webView->remove_NavigationStarting(m_navigationStartingToken);
     wil::com_ptr<ICoreWebView2_4> webview2_4 = m_webView.try_query<ICoreWebView2_4>();
-    if (webview2_4) webview2_4->remove_FrameCreated(m_frameCreatedToken);
+    if (webview2_4)
+    {
+        webview2_4->remove_FrameCreated(m_frameCreatedToken);
+    }
 }

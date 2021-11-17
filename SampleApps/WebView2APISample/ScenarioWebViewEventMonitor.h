@@ -70,6 +70,7 @@ private:
     EventRegistrationToken m_gotFocusToken = {};
     EventRegistrationToken m_lostFocusToken = {};
     EventRegistrationToken m_isDefaultDownloadDialogOpenChangedToken = {};
+    EventRegistrationToken m_permissionRequestedToken = {};
 
     // This event is registered with the event viewer so they
     // can communicate back to us for toggling the WebResourceRequested
