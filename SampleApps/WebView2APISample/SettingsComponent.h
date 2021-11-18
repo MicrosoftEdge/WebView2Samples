@@ -38,6 +38,8 @@ public:
     void CompleteScriptDialogDeferral();
     void EnableCustomClientCertificateSelection();
 
+    static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
+
     ~SettingsComponent() override;
 
 private:

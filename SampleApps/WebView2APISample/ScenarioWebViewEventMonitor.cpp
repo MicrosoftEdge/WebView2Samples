@@ -958,6 +958,25 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 .Get(),
             &m_isDefaultDownloadDialogOpenChangedToken);
     }
+
+    m_webviewEventSource->add_PermissionRequested(
+        Callback<ICoreWebView2PermissionRequestedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)
+                -> HRESULT {
+                wil::unique_cotaskmem_string uri;
+                CHECK_FAILURE(args->get_Uri(&uri));
+
+                std::wstring message =
+                    L"{ \"kind\": \"event\", \"name\": \"PermissionRequested\", \"args\": {"
+                    L"\"uri\": " + EncodeQuote(uri.get()) +
+                    L"}"
+                    + WebViewPropertiesToJsonString(m_webviewEventSource.get())
+                    + L"}";
+                PostEventMessage(message);
+                return S_OK;
+                })
+                .Get(),
+        &m_permissionRequestedToken);
 }
 
 void ScenarioWebViewEventMonitor::InitializeFrameEventView(

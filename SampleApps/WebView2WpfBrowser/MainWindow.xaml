@@ -32,6 +32,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.SetUserAgentCommand}" Executed="SetUserAgentCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GetCookiesCommand}" Executed="GetCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DOMContentLoadedCommand}" Executed="DOMContentLoadedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.WebMessagesCommand}" Executed="WebMessagesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}" Executed="NavigateWithWebResourceRequestCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}" Executed="AddOrUpdateCookieCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DeleteCookiesCommand}" Executed="DeleteCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -91,6 +92,7 @@ found in the LICENSE file.
                 <MenuItem Header="Resume" Command="{x:Static local:MainWindow.ResumeCommand}"/>
                 <MenuItem Header="Check Update" Command="{x:Static local:MainWindow.CheckUpdateCommand}"/>
                 <MenuItem Header="_DOM Content Loaded" Command="{x:Static local:MainWindow.DOMContentLoadedCommand}"/>
+                <MenuItem Header="_Web Messages" Command="{x:Static local:MainWindow.WebMessagesCommand}"/>
                 <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem x:Name="newVersionMenuItem" Header="New Browser _Version" Command="{x:Static local:MainWindow.NewBrowserVersionCommand}"/>
                 <MenuItem Header="_Client Certificate Requested">

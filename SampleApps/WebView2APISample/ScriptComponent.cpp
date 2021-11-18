@@ -14,6 +14,48 @@
 
 using namespace Microsoft::WRL;
 
+//! [AdditionalAllowedFrameAncestors_1]
+const std::wstring myTrustedSite = L"https://appassets.example";
+const std::wstring siteToEmbed = L"https://www.microsoft.com";
+
+// The trusted page is using <iframe name="my_site_embedding_frame">
+// element to embed other sites.
+const std::wstring siteEmbeddingFrameName = L"my_site_embedding_frame";
+
+bool AreSitesSame(PCWSTR url1, PCWSTR url2)
+{
+    wil::com_ptr<IUri> uri1;
+    CHECK_FAILURE(CreateUri(url1, Uri_CREATE_CANONICALIZE, 0, &uri1));
+    DWORD scheme1 = -1;
+    DWORD port1 = 0;
+    wil::unique_bstr host1;
+    CHECK_FAILURE(uri1->GetScheme(&scheme1));
+    CHECK_FAILURE(uri1->GetHost(&host1));
+    CHECK_FAILURE(uri1->GetPort(&port1));
+    wil::com_ptr<IUri> uri2;
+    CHECK_FAILURE(CreateUri(url2, Uri_CREATE_CANONICALIZE, 0, &uri2));
+    DWORD scheme2 = -1;
+    DWORD port2 = 0;
+    wil::unique_bstr host2;
+    CHECK_FAILURE(uri2->GetScheme(&scheme2));
+    CHECK_FAILURE(uri2->GetHost(&host2));
+    CHECK_FAILURE(uri2->GetPort(&port2));
+    return (scheme1 == scheme2) && (port1 == port2) && (wcscmp(host1.get(), host2.get()) == 0);
+}
+
+// App specific logic to decide whether the page is fully trusted.
+bool IsAppContentUri(PCWSTR pageUrl)
+{
+    return AreSitesSame(pageUrl, myTrustedSite.c_str());
+}
+
+// App specific logic to decide whether a site is the one it wants to embed.
+bool IsTargetSite(PCWSTR siteUrl)
+{
+    return AreSitesSame(siteUrl, siteToEmbed.c_str());
+}
+//! [AdditionalAllowedFrameAncestors_1]
+
 ScriptComponent::ScriptComponent(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
 {
@@ -55,6 +97,9 @@ bool ScriptComponent::HandleWindowMessage(
         case IDM_ADD_HOST_OBJECT:
             AddComObject();
             return true;
+        case IDM_INJECT_SITE_EMBEDDING_IFRAME:
+            AddSiteEmbeddingIFrame();
+            return true;
         case IDM_OPEN_DEVTOOLS_WINDOW:
             m_webView->OpenDevToolsWindow();
             return true;
@@ -64,10 +109,17 @@ bool ScriptComponent::HandleWindowMessage(
         case IDM_INJECT_SCRIPT_FRAME:
             InjectScriptInIFrame();
             return true;
+        case IDM_POST_WEB_MESSAGE_STRING_FRAME:
+            SendStringWebMessageIFrame();
+            return true;
+        case IDM_POST_WEB_MESSAGE_JSON_FRAME:
+            SendJsonWebMessageIFrame();
+            return true;
         }
     }
     return false;
 }
+
 //! [ExecuteScript]
 // Prompt the user for some script and then execute it.
 void ScriptComponent::InjectScript()
@@ -225,6 +277,51 @@ void ScriptComponent::SendJsonWebMessage()
     }
 }
 
+// Prompt the user for a string and then post it as a web message to the first iframe.
+void ScriptComponent::SendStringWebMessageIFrame()
+{
+    TextInputDialog dialog(
+        m_appWindow->GetMainWindow(), L"Post Web Message String IFrame", L"Web message string:",
+        L"Enter the web message as a string.");
+    if (dialog.confirmed)
+    {
+        if (!m_frames.empty())
+        {
+            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental =
+                m_frames[0].try_query<ICoreWebView2ExperimentalFrame2>();
+            if (frameExperimental)
+            {
+                frameExperimental->PostWebMessageAsString(dialog.input.c_str());
+            }
+        } else {
+            ShowFailure(S_OK, L"No iframes found");
+        }
+    }
+}
+
+// Prompt the user for some JSON and then post it as a web message to the first iframe.
+void ScriptComponent::SendJsonWebMessageIFrame()
+{
+    TextInputDialog dialog(
+        m_appWindow->GetMainWindow(), L"Post Web Message JSON IFrame", L"Web message JSON:",
+        L"Enter the web message as JSON.", L"{\"SetColor\":\"blue\"}");
+    if (dialog.confirmed)
+    {
+        if (!m_frames.empty())
+        {
+            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental =
+                m_frames[0].try_query<ICoreWebView2ExperimentalFrame2>();
+            if (frameExperimental)
+            {
+                frameExperimental->PostWebMessageAsJson(dialog.input.c_str());
+            }
+        }
+        else {
+            ShowFailure(S_OK, L"No iframes found");
+        }
+    }
+}
+
 //! [DevToolsProtocolEventReceived]
 // Prompt the user to name a CDP event, and then subscribe to that event.
 void ScriptComponent::SubscribeToCdpEvent()
@@ -360,6 +457,24 @@ void ScriptComponent::AddComObject()
     }
 }
 
+void ScriptComponent::AddSiteEmbeddingIFrame()
+{
+    // Prompt the user for which site to embed in the iframe.
+    TextInputDialog dialog(
+        m_appWindow->GetMainWindow(), L"Inject Site Embedding iframe", L"Enter iframe url:",
+        L"Enter the url for the injected iframe.", siteToEmbed.c_str());
+    if (dialog.confirmed)
+    {
+        std::wstring script =
+            L"(() => { const iframe = document.createElement('iframe'); iframe.src = '";
+        script += dialog.input;
+        script +=
+            L"'; iframe.name='my_site_embedding_frame'; document.body.appendChild(iframe); })()";
+        m_webView->ExecuteScript(script.c_str(), nullptr);
+    }
+}
+
+
 void ScriptComponent::HandleIFrames()
 {
     wil::com_ptr<ICoreWebView2_4> webview2_4 = m_webView.try_query<ICoreWebView2_4>();
@@ -367,8 +482,9 @@ void ScriptComponent::HandleIFrames()
     {
         CHECK_FAILURE(webview2_4->add_FrameCreated(
             Callback<ICoreWebView2FrameCreatedEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args)
-                    -> HRESULT {
+                [this](
+                    ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args) -> HRESULT
+                {
                     wil::com_ptr<ICoreWebView2Frame> webviewFrame;
                     CHECK_FAILURE(args->get_Frame(&webviewFrame));
 
@@ -376,7 +492,8 @@ void ScriptComponent::HandleIFrames()
 
                     webviewFrame->add_Destroyed(
                         Callback<ICoreWebView2FrameDestroyedEventHandler>(
-                            [this](ICoreWebView2Frame* sender, IUnknown* args) -> HRESULT {
+                            [this](ICoreWebView2Frame* sender, IUnknown* args) -> HRESULT
+                            {
                                 auto frame =
                                     std::find(m_frames.begin(), m_frames.end(), sender);
                                 if (frame != m_frames.end())
@@ -391,8 +508,82 @@ void ScriptComponent::HandleIFrames()
                 })
                 .Get(),
             NULL));
+
+        //! [AdditionalAllowedFrameAncestors_2]
+        // Set up the event listeners to handle site embedding scenario. The code will take effect
+        // when the site embedding page is navigated to and the embedding iframe navigates to the
+        // site that we want to embed.
+
+        // This part is trying to scope the API usage to the specific scenario where we are
+        // embedding a site. The result is recorded in m_siteEmbeddingIFrameCount.
+        CHECK_FAILURE(webview2_4->add_FrameCreated(
+            Callback<ICoreWebView2FrameCreatedEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args)
+                    -> HRESULT 
+                {
+                    wil::com_ptr<ICoreWebView2Frame> webviewFrame;
+                    CHECK_FAILURE(args->get_Frame(&webviewFrame));
+                    wil::unique_cotaskmem_string page_url;
+                    CHECK_FAILURE(m_webView->get_Source(&page_url));
+                    // IsAppContentUri verifies that page_url belongs to  the app.
+                    if (IsAppContentUri(page_url.get()))
+                    {
+                        // We are on trusted pages. Now check whether it is the iframe we plan
+                        // to embed arbitrary sites.
+                        wil::unique_cotaskmem_string frame_name;
+                        CHECK_FAILURE(webviewFrame->get_Name(&frame_name));
+                        if (siteEmbeddingFrameName == frame_name.get())
+                        {
+                            ++m_siteEmbeddingIFrameCount;
+                            CHECK_FAILURE(webviewFrame->add_Destroyed(
+                                Microsoft::WRL::Callback<
+                                    ICoreWebView2FrameDestroyedEventHandler>(
+                                    [this](
+                                        ICoreWebView2Frame* sender, IUnknown* args) -> HRESULT
+                                    {
+                                        --m_siteEmbeddingIFrameCount;
+                                        return S_OK;
+                                    })
+                                    .Get(),
+                                nullptr));
+                        }
+                    }
+                    return S_OK;
+                })
+                .Get(),
+            nullptr));
+
+        // Using FrameNavigationStarting event instead of NavigationStarting event of
+        // CoreWebViewFrame to cover all possible nested iframes inside the embedded site as
+        // CoreWebViewFrame object currently only support first level iframes in the top page.
+        CHECK_FAILURE(m_webView->add_FrameNavigationStarting(
+            Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
+                    -> HRESULT
+                {
+                    if (m_siteEmbeddingIFrameCount > 0)
+                    {
+                        wil::unique_cotaskmem_string navigationTargetUri;
+                        CHECK_FAILURE(args->get_Uri(&navigationTargetUri));
+                        if (IsTargetSite(navigationTargetUri.get()))
+                        {
+                            wil::com_ptr<ICoreWebView2ExperimentalNavigationStartingEventArgs>
+                                navigationStartArgs;
+                            if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&navigationStartArgs))))
+                            {
+                                navigationStartArgs->put_AdditionalAllowedFrameAncestors(
+                                    myTrustedSite.c_str());
+                            }
+                        }
+                    }
+                    return S_OK;
+                })
+                .Get(),
+            nullptr));
+    //! [AdditionalAllowedFrameAncestors_2]
     }
 }
+
 std::wstring ScriptComponent::IFramesToString()
 {
     std::wstring data;
