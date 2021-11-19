@@ -24,6 +24,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: ComVisible(false)]
 [assembly: AssemblyTitleAttribute("webview2_sample_uwp")]
-[assembly: AssemblyDescriptionAttribute("A WebView2 WinUI2 UWP test application")]
+[assembly: AssemblyDescriptionAttribute("A WebView2 WinUI 2 UWP test application")]
 [assembly: AssemblyCompanyAttribute("Microsoft")]
 [assembly: AssemblyCopyrightAttribute("Copyright © Microsoft Inc. 2021")]
