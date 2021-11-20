@@ -69,6 +69,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [NavigateWithWebResourceRequest](#NavigateWithWebResourceRequest)
     * [Client Certificate Requested](#ClientCertificateRequested)
     * [Clear Browsing Data](#ClearBrowsingData)
+    * [Single sign on](#SingleSignOn)
   * [Help](#Help)
     * [About ...](#about-)
   * [Miscellaneous](#Miscellaneous)
@@ -1060,28 +1061,36 @@ Test that demonstrates cookie management related APIs usage such as `GetCookies`
 13. Click `Cancel` in the dialog box.
 14. Expected: Dialog box is closed and server responds with 400 Bad Request (No required SSL Certificate was sent).
 
+#### SingleSignOn
+1. Set environment variable WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--enable-features=msSingleSignOnOSForPrimaryAccountIsShared
+2. Launch sample app
+3. Go to `Scenario -> WebView Event Monitor`
+4. From the opened app window turn on `WebResourceRequested` switch.
+5. Go to `https://www.osgwiki.com`
+6. Expected: Sign on screen shows the Windows account to sign in or automatically signed in.
+
 #### Clear Browsing Data
 
-Test that demonstrates the clear browsing data API. 
+Test that demonstrates the clear browsing data API.
 
 1. Launch the sample app.
 2. Load <https://www.facebook.com>.
 3. Go to **Scenario** > **Cookie Management**
-4. Select `Get Cookies` with no URI entered. 
-5. Verify that there are a non-zero amount of cookies returned. 
+4. Select `Get Cookies` with no URI entered.
+5. Verify that there are a non-zero amount of cookies returned.
 6. Click OK.
 7. Go to **Scenario** > **Clear Browsing Data** > **Cookies**
 8. Expected: Message Box that says `Succeeded`.
 9. Click OK.
-10. Repeat step 4. 
-11. Expected: Message Box that says `No cookies found.`. 
-12. Repeat steps 2-6. 
+10. Repeat step 4.
+11. Expected: Message Box that says `No cookies found.`.
+12. Repeat steps 2-6.
 13. Go to **Scenario** > **Clear Browsing Data** > **Download History**
 14. Expected: Message Box that says `Succeeded`.
 15. Click OK.
-16. Repeat step 4. 
-17. Expected: the same number of cookies that were returned in step 12 are returned here. 
-18. Click OK. 
+16. Repeat step 4.
+17. Expected: the same number of cookies that were returned in step 12 are returned here.
+18. Click OK.
 19. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
 20. Enter in any test information into the Profile Autofill section and click submit.
 21. Navigate to <https://rsolomakhin.github.io/autofill/>.
@@ -1091,10 +1100,10 @@ Test that demonstrates the clear browsing data API.
 25. Click `Refresh`.
 26. Click on the Name field.
 27. Expected: No drop down box appears.
-28. Repeat steps 19-23. 
+28. Repeat steps 19-23.
 29. Go to **Scenario** > **Clear Browsing Data** > **Password Autofill**.
 30. Click `Refresh`.
-31. Click on the Name field. 
+31. Click on the Name field.
 32. Expected: A drop down box with the saved profile information is shown.
 
 ### Help

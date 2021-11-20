@@ -99,7 +99,7 @@ ScenarioDOMContentLoaded::ScenarioDOMContentLoaded(AppWindow* appWindow)
                     return S_OK;
                 })
                 .Get(),
-            NULL));
+            &m_frameCreatedToken));
     }
     //! [ExecuteScriptFrame]
 
@@ -110,4 +110,9 @@ ScenarioDOMContentLoaded::~ScenarioDOMContentLoaded()
 {
     m_webView2->remove_DOMContentLoaded(m_DOMContentLoadedToken);
     m_webView->remove_ContentLoading(m_contentLoadingToken);
+    wil::com_ptr<ICoreWebView2_4> webview2_4 = m_webView.try_query<ICoreWebView2_4>();
+    if (webview2_4)
+    {
+        webview2_4->remove_FrameCreated(m_frameCreatedToken);
+    }
 }

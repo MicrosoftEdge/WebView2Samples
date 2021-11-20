@@ -38,10 +38,18 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
         // Always validate that the origin of the message is what you expect.
         if (uri.get() != m_sampleUri)
         {
+            // Ignore messages from untrusted sources.
             return S_OK;
         }
         wil::unique_cotaskmem_string messageRaw;
-        CHECK_FAILURE(args->TryGetWebMessageAsString(&messageRaw));
+        HRESULT hr = args->TryGetWebMessageAsString(&messageRaw);
+        if (hr == E_INVALIDARG)
+        {
+            // Was not a string message. Ignore.
+            return S_OK;
+        }
+        // Any other problems are fatal.
+        CHECK_FAILURE(hr);
         std::wstring message = messageRaw.get();
 
         if (message.compare(0, 13, L"SetTitleText ") == 0)
@@ -58,6 +66,13 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
                 + L"\\nBottom:" + std::to_wstring(bounds.bottom)
                 + L"\"}";
             CHECK_FAILURE(sender->PostWebMessageAsJson(reply.c_str()));
+        }
+        else
+        {
+            // Ignore unrecognized messages, but log for further investigation
+            // since it suggests a mismatch between the web content and the host.
+            OutputDebugString(
+                std::wstring(L"Unexpected message from main page:" + message).c_str());
         }
         return S_OK;
     }).Get(), &m_webMessageReceivedToken));
@@ -88,9 +103,77 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
                 [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args) -> HRESULT {
             wil::com_ptr<ICoreWebView2Frame> webviewFrame;
             CHECK_FAILURE(args->get_Frame(&webviewFrame));
+            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental =
+                webviewFrame.try_query<ICoreWebView2ExperimentalFrame2>();
+            if (!frameExperimental)
+            {
+                return S_OK;
+            }
+            //! [WebMessageReceivedIFrame]
+            // Setup the web message received event handler before navigating to
+            // ensure we don't miss any messages.
+            CHECK_FAILURE(frameExperimental->add_WebMessageReceived(
+                Microsoft::WRL::Callback<
+                    ICoreWebView2ExperimentalFrameWebMessageReceivedEventHandler>(
+                    [this](
+                        ICoreWebView2Frame* sender,
+                        ICoreWebView2WebMessageReceivedEventArgs* args) {
+                        wil::unique_cotaskmem_string uri;
+                        CHECK_FAILURE(args->get_Source(&uri));
+
+                        // Always validate that the origin of the message is what you expect.
+                        if (uri.get() != m_sampleUri)
+                        {
+                            // Ignore messages from untrusted sources.
+                            return S_OK;
+                        }
+                        wil::unique_cotaskmem_string messageRaw;
+                        HRESULT hr = args->TryGetWebMessageAsString(&messageRaw);
+                        if (hr == E_INVALIDARG)
+                        {
+                            // Was not a string message. Ignore.
+                            return S_OK;
+                        }
+                        // Any other problems are fatal.
+                        CHECK_FAILURE(hr);
+                        std::wstring message = messageRaw.get();
+
+                        if (message.compare(0, 13, L"SetTitleText ") == 0)
+                        {
+                            m_appWindow->SetDocumentTitle(message.substr(13).c_str());
+                        }
+                        else if (message.compare(L"GetWindowBounds") == 0)
+                        {
+                            RECT bounds = m_appWindow->GetWindowBounds();
+                            std::wstring reply = L"{\"WindowBounds\":\"Left:" +
+                                                 std::to_wstring(bounds.left) + L"\\nTop:" +
+                                                 std::to_wstring(bounds.top) + L"\\nRight:" +
+                                                 std::to_wstring(bounds.right) + L"\\nBottom:" +
+                                                 std::to_wstring(bounds.bottom) + L"\"}";
+                            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental;
+                            if (sender->QueryInterface(IID_PPV_ARGS(&frameExperimental)) ==
+                                S_OK)
+                            {
+                                CHECK_FAILURE(
+                                    frameExperimental->PostWebMessageAsJson(reply.c_str()));
+                            }
+                        }
+                        else
+                        {
+                            // Ignore unrecognized messages, but log for further investigation
+                            // since it suggests a mismatch between the web content and the host.
+                            OutputDebugString(
+                                std::wstring(L"Unexpected message from frame:" + message).c_str());
+                        }
+                        return S_OK;
+                    })
+                    .Get(),
+                NULL));
+            //! [WebMessageReceivedIFrame]
             return S_OK;
-        }).Get(), NULL));
+        }).Get(), &m_frameCreatedToken));
     }
+
     // Changes to ICoreWebView2Settings::IsWebMessageEnabled apply to the next document
     // to which we navigate.
     CHECK_FAILURE(m_webView->Navigate(m_sampleUri.c_str()));
@@ -100,4 +183,9 @@ ScenarioWebMessage::~ScenarioWebMessage()
 {
     m_webView->remove_WebMessageReceived(m_webMessageReceivedToken);
     m_webView->remove_ContentLoading(m_contentLoadingToken);
+    wil::com_ptr<ICoreWebView2_4> webview2_4 = m_webView.try_query<ICoreWebView2_4>();
+    if (webview2_4)
+    {
+        webview2_4->remove_FrameCreated(m_frameCreatedToken);
+    }
 }

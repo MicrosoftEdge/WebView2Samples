@@ -68,11 +68,15 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Post Message String",         IDM_POST_WEB_MESSAGE_STRING
         MENUITEM "Post Message JSON",           IDM_POST_WEB_MESSAGE_JSON
+        MENUITEM "Post Message String IFrame",  IDM_POST_WEB_MESSAGE_STRING_FRAME
+        MENUITEM "Post Message JSON IFrame",    IDM_POST_WEB_MESSAGE_JSON_FRAME
         MENUITEM SEPARATOR
         MENUITEM "Subscribe to CDP event",      IDM_SUBSCRIBE_TO_CDP_EVENT
         MENUITEM "Call CDP method",             IDM_CALL_CDP_METHOD
         MENUITEM SEPARATOR
         MENUITEM "Add COM object",              IDM_ADD_HOST_OBJECT
+        MENUITEM SEPARATOR
+        MENUITEM "Inject Site Embedding IFrame", IDM_INJECT_SITE_EMBEDDING_IFRAME
         MENUITEM SEPARATOR
         MENUITEM "Open DevTools Window",        IDM_OPEN_DEVTOOLS_WINDOW
         MENUITEM "Open Task Manager Window",    IDM_OPEN_TASK_MANAGER_WINDOW
@@ -105,6 +109,7 @@ BEGIN
         MENUITEM "Browser Process Info",        IDM_PROCESS_INFO
         MENUITEM "Crash Browser Process",       IDM_CRASH_PROCESS
         MENUITEM "Crash Render Process",        IDM_CRASH_RENDER_PROCESS
+        MENUITEM "Show Performance Info",       IDM_PERFORMANCE_INFO
     END
     POPUP "S&ettings"
     BEGIN

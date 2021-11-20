@@ -20,6 +20,7 @@ class ScriptComponent : public ComponentBase
 public:
     ScriptComponent(AppWindow* appWindow);
 
+private:
     bool HandleWindowMessage(
         HWND hWnd,
         UINT message,
@@ -37,14 +38,20 @@ public:
     void CallCdpMethod();
     void AddComObject();
     void OpenTaskManagerWindow();
+    void SendStringWebMessageIFrame();
+    void SendJsonWebMessageIFrame();
+
+    void AddSiteEmbeddingIFrame();
+
     ~ScriptComponent() override;
-private:
+
     void HandleIFrames();
     std::wstring IFramesToString();
     std::vector<wil::com_ptr<ICoreWebView2Frame>> m_frames;
 
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
+    int m_siteEmbeddingIFrameCount = 0;
 
     std::wstring m_lastInitializeScriptId;
     std::map<std::wstring, EventRegistrationToken> m_devToolsProtocolEventReceivedTokenMap;
