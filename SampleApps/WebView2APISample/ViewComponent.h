@@ -84,7 +84,7 @@ private:
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2Controller3> m_controller3;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2Experimental11> m_webViewExperimental11;
+    wil::com_ptr<ICoreWebView2_9> m_webView2_9;
 
     bool m_isDcompTargetMode;
     bool m_isVisible = true;

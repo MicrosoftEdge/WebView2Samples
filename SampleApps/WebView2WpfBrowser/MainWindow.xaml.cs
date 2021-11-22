@@ -35,6 +35,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand PrintToPdfCommand = new RoutedCommand();
         public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
         public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
+        public static RoutedCommand WebMessagesCommand = new RoutedCommand();
         public static RoutedCommand GetCookiesCommand = new RoutedCommand();
         public static RoutedCommand SuspendCommand = new RoutedCommand();
         public static RoutedCommand ResumeCommand = new RoutedCommand();
@@ -524,30 +525,109 @@ namespace WebView2WpfBrowser
             }
         }
 
+        void WebMessagesCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.WebMessageReceived += WebView_WebMessageReceived;
+            webView.CoreWebView2.FrameCreated += WebView_FrameCreatedWebMessages;
+            webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "appassets.example", "assets", CoreWebView2HostResourceAccessKind.DenyCors);
+            webView.Source = new Uri("https://appassets.example/webMessages.html");
+        }
+
+        String GetWindowBounds(CoreWebView2WebMessageReceivedEventArgs args)
+        {
+            if (args.Source != "https://appassets.example/webMessages.html")
+            {
+                // Ignore messages from untrusted sources.
+                return null;
+            }
+            string message;
+            try
+            {
+                message = args.TryGetWebMessageAsString();
+            }
+            catch (ArgumentException)
+            {
+                // Ignore messages that aren't strings, but log for further investigation
+                // since it suggests a mismatch between the web content and the host.
+                Debug.WriteLine($"Non-string message received");
+                return null;
+            }
+
+            if (message == "GetWindowBounds")
+            {
+                String reply = "{\"WindowBounds\":\"Left:" + 0 +
+                               "\\nTop:" + 0 +
+                               "\\nRight:" + webView.ActualWidth +
+                               "\\nBottom:" + webView.ActualHeight +
+                               "\"}";
+                return reply;
+            }
+            else
+            {
+                // Ignore unrecognized messages, but log them
+                // since it suggests a mismatch between the web content and the host.
+                Debug.WriteLine($"Unexpected message received: {message}");
+            }
+
+            return null;
+        }
+
+        void WebView_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs args)
+        {
+            String reply = GetWindowBounds(args);
+            if (!String.IsNullOrEmpty(reply))
+            {
+                webView.CoreWebView2.PostWebMessageAsJson(reply);
+            }
+        }
+
+        void WebView_FrameCreatedWebMessages(object sender, CoreWebView2FrameCreatedEventArgs args)
+        {
+            args.Frame.WebMessageReceived += (WebMessageReceivedSender, WebMessageReceivedArgs) =>
+            {
+                String reply = GetWindowBounds(WebMessageReceivedArgs);
+                if (!String.IsNullOrEmpty(reply))
+                {
+                    args.Frame.PostWebMessageAsJson(reply);
+                }
+            };
+        }
+
         void DOMContentLoadedCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            webView.CoreWebView2.DOMContentLoaded += (object sender, CoreWebView2DOMContentLoadedEventArgs arg) =>
-            {
-                _ = webView.ExecuteScriptAsync("let " +
-                                          "content=document.createElement(\"h2\");content.style.color=" +
-                                          "'blue';content.textContent= \"This text was added by the " +
-                                          "host app\";document.body.appendChild(content);");
-            };
-            webView.CoreWebView2.FrameCreated += (sender, args) =>
-            {
-                args.Frame.DOMContentLoaded += (frameSender, DOMContentLoadedArgs) =>
-                {
-                    args.Frame.ExecuteScriptAsync(
-                        "let content = document.createElement(\"h2\");" +
-                        "content.style.color = 'blue';" +
-                        "content.textContent = \"This text was added to the iframe by the host app\";" +
-                        "document.body.appendChild(content);");
-                };
-            };
+            webView.CoreWebView2.DOMContentLoaded += WebView_DOMContentLoaded;
+            webView.CoreWebView2.FrameCreated += WebView_FrameCreatedDOMContentLoaded;
             webView.NavigateToString(@"<!DOCTYPE html>" +
                                       "<h1>DOMContentLoaded sample page</h1>" +
                                       "<h2>The content to the iframe and below will be added after DOM content is loaded </h2>" +
                                       "<iframe style='height: 200px; width: 100%;'/>");
+            webView.CoreWebView2.NavigationCompleted += (sender, args) =>
+            {
+                webView.CoreWebView2.DOMContentLoaded -= WebView_DOMContentLoaded;
+                webView.CoreWebView2.FrameCreated -= WebView_FrameCreatedDOMContentLoaded;
+            };
+        }
+
+        void WebView_DOMContentLoaded(object sender, CoreWebView2DOMContentLoadedEventArgs arg)
+        {
+            _ = webView.ExecuteScriptAsync(
+                    "let content = document.createElement(\"h2\");" +
+                    "content.style.color = 'blue';" +
+                    "content.textContent = \"This text was added by the host app\";" +
+                    "document.body.appendChild(content);");
+        }
+
+        void WebView_FrameCreatedDOMContentLoaded(object sender, CoreWebView2FrameCreatedEventArgs args)
+        {
+            args.Frame.DOMContentLoaded += (frameSender, DOMContentLoadedArgs) =>
+            {
+                args.Frame.ExecuteScriptAsync(
+                    "let content = document.createElement(\"h2\");" +
+                    "content.style.color = 'blue';" +
+                    "content.textContent = \"This text was added to the iframe by the host app\";" +
+                    "document.body.appendChild(content);");
+            };
         }
 
         void PasswordAutosaveCmdExecuted(object target, ExecutedRoutedEventArgs e)

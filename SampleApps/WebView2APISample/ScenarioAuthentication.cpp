@@ -46,7 +46,7 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) :
         &m_webResourceResponseReceivedToken));
     //! [WebResourceResponseReceived]
 
-    //! [AuthRequested]
+    //! [BasicAuthenticationRequested]
     if (auto webViewExperimental10 = m_webView.try_query<ICoreWebView2Experimental10>())
     {
         CHECK_FAILURE(webViewExperimental10->add_BasicAuthenticationRequested(
@@ -67,7 +67,7 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) :
     else {
         FeatureNotAvailable();
     }
-    //! [AuthRequested]
+    //! [BasicAuthenticationRequested]
     CHECK_FAILURE(m_webView->Navigate(L"https://authenticationtest.com/HTTPAuth/"));
 }
 

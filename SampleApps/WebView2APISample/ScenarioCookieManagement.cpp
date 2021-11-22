@@ -20,7 +20,7 @@ ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow)
 {
     m_sampleUri = m_appWindow->GetLocalUri(c_samplePath);
 
-    ComPtr<ICoreWebView2Settings> settings;
+    wil::com_ptr<ICoreWebView2Settings> settings;
     CHECK_FAILURE(m_webView->get_Settings(&settings));
     CHECK_FAILURE(settings->put_IsWebMessageEnabled(TRUE));
 
@@ -30,6 +30,13 @@ ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow)
     CHECK_FAILURE(m_webview2->get_CookieManager(&m_cookieManager));
     //! [CookieManager]
 
+    SetupEventsOnWebview();
+
+    CHECK_FAILURE(m_webView->Navigate(m_sampleUri.c_str()));
+}
+
+void ScenarioCookieManagement::SetupEventsOnWebview()
+{
     // Setup the web message received event handler before navigating to
     // ensure we don't miss any messages.
     CHECK_FAILURE(m_webView->add_WebMessageReceived(
@@ -90,8 +97,6 @@ ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow)
             })
             .Get(),
         &m_contentLoadingToken));
-
-    CHECK_FAILURE(m_webView->Navigate(m_sampleUri.c_str()));
 }
 
 ScenarioCookieManagement::~ScenarioCookieManagement()

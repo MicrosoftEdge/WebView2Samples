@@ -21,8 +21,7 @@ public:
         LRESULT* result) override;
 
     void ToggleMuteState();
-    void UpdateTitleWithMuteState(
-        wil::com_ptr<ICoreWebView2Experimental9> webviewExperimental9);
+    void UpdateTitleWithMuteState(wil::com_ptr<ICoreWebView2_8> webview2_8);
 
     ~AudioComponent() override;
 

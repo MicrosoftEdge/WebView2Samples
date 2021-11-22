@@ -63,8 +63,8 @@ ScenarioWebViewEventMonitor::~ScenarioWebViewEventMonitor()
     EnableWebResourceResponseReceivedEvent(false);
 
     m_webviewEventView->remove_WebMessageReceived(m_eventViewWebMessageReceivedToken);
-    if (m_webViewEventSourceExperimental11) {
-        m_webViewEventSourceExperimental11->remove_IsDefaultDownloadDialogOpenChanged(
+    if (m_webViewEventSource9) {
+        m_webViewEventSource9->remove_IsDefaultDownloadDialogOpenChanged(
             m_isDefaultDownloadDialogOpenChangedToken);
     }
 
@@ -936,19 +936,18 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
             .Get(),
         &m_lostFocusToken);
 
-    m_webViewEventSourceExperimental11 =
-        m_webviewEventSource.try_query<ICoreWebView2Experimental11>();
-    if (m_webViewEventSourceExperimental11)
+    m_webViewEventSource9 = m_webviewEventSource.try_query<ICoreWebView2_9>();
+    if (m_webViewEventSource9)
     {
-        m_webViewEventSourceExperimental11->add_IsDefaultDownloadDialogOpenChanged(
-            Callback<ICoreWebView2ExperimentalIsDefaultDownloadDialogOpenChangedEventHandler>(
+        m_webViewEventSource9->add_IsDefaultDownloadDialogOpenChanged(
+            Callback<ICoreWebView2IsDefaultDownloadDialogOpenChangedEventHandler>(
                 [this](
                     ICoreWebView2* sender, IUnknown* args) -> HRESULT {
                     std::wstring message =
                         L"{ \"kind\": \"event\", \"name\": "
                         L"\"IsDefaultDownloadDialogOpenChanged\", \"args\": {";
                     BOOL isOpen;
-                    m_webViewEventSourceExperimental11->get_IsDefaultDownloadDialogOpen(&isOpen);
+                    m_webViewEventSource9->get_IsDefaultDownloadDialogOpen(&isOpen);
                     message += L"\"isDefaultDownloadDialogOpen\": " + BoolToString(isOpen);
                     message +=
                         L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
@@ -958,6 +957,25 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 .Get(),
             &m_isDefaultDownloadDialogOpenChangedToken);
     }
+
+    m_webviewEventSource->add_PermissionRequested(
+        Callback<ICoreWebView2PermissionRequestedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)
+                -> HRESULT {
+                wil::unique_cotaskmem_string uri;
+                CHECK_FAILURE(args->get_Uri(&uri));
+
+                std::wstring message =
+                    L"{ \"kind\": \"event\", \"name\": \"PermissionRequested\", \"args\": {"
+                    L"\"uri\": " + EncodeQuote(uri.get()) +
+                    L"}"
+                    + WebViewPropertiesToJsonString(m_webviewEventSource.get())
+                    + L"}";
+                PostEventMessage(message);
+                return S_OK;
+                })
+                .Get(),
+        &m_permissionRequestedToken);
 }
 
 void ScenarioWebViewEventMonitor::InitializeFrameEventView(

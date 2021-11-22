@@ -9,28 +9,30 @@
 
 using namespace Microsoft::WRL;
 
-//! [IsDocumentPlayingAudioChanged] [IsDocumentPlayingAudio] [ToggleIsMuted]
+//! [IsDocumentPlayingAudioChanged] [IsDocumentPlayingAudio] [IsMutedChanged] [ToggleIsMuted]
 AudioComponent::AudioComponent(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
 {
-    auto webviewExperimental9 = m_webView.try_query<ICoreWebView2Experimental9>();
-    if (webviewExperimental9)
+    auto webview2_8 = m_webView.try_query<ICoreWebView2_8>();
+    if (webview2_8)
     {
         // Register a handler for the IsDocumentPlayingAudioChanged event.
-        CHECK_FAILURE(webviewExperimental9->add_IsDocumentPlayingAudioChanged(
-            Callback<ICoreWebView2ExperimentalIsDocumentPlayingAudioChangedEventHandler>(
-                [this, webviewExperimental9](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                    UpdateTitleWithMuteState(webviewExperimental9);
+        CHECK_FAILURE(webview2_8->add_IsDocumentPlayingAudioChanged(
+            Callback<ICoreWebView2IsDocumentPlayingAudioChangedEventHandler>(
+                [this, webview2_8](ICoreWebView2* sender, IUnknown* args) -> HRESULT
+                {
+                    UpdateTitleWithMuteState(webview2_8);
                     return S_OK;
                 })
                 .Get(),
             &m_isDocumentPlayingAudioChangedToken));
 
         // Register a handler for the IsMutedChanged event.
-        CHECK_FAILURE(webviewExperimental9->add_IsMutedChanged(
-            Callback<ICoreWebView2ExperimentalIsMutedChangedEventHandler>(
-                [this, webviewExperimental9](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                    UpdateTitleWithMuteState(webviewExperimental9);
+        CHECK_FAILURE(webview2_8->add_IsMutedChanged(
+            Callback<ICoreWebView2IsMutedChangedEventHandler>(
+                [this, webview2_8](ICoreWebView2* sender, IUnknown* args) -> HRESULT
+                {
+                    UpdateTitleWithMuteState(webview2_8);
                     return S_OK;
                 })
                 .Get(),
@@ -56,23 +58,22 @@ bool AudioComponent::HandleWindowMessage(
 // Toggle the mute state of the current window and show a mute or unmute icon on the title bar
 void AudioComponent::ToggleMuteState()
 {
-    auto webviewExperimental9 = m_webView.try_query<ICoreWebView2Experimental9>();
-    if (webviewExperimental9)
+    auto webview2_8 = m_webView.try_query<ICoreWebView2_8>();
+    if (webview2_8)
      {
          BOOL isMuted;
-         CHECK_FAILURE(webviewExperimental9->get_IsMuted(&isMuted));
-         CHECK_FAILURE(webviewExperimental9->put_IsMuted(!isMuted));
+         CHECK_FAILURE(webview2_8->get_IsMuted(&isMuted));
+         CHECK_FAILURE(webview2_8->put_IsMuted(!isMuted));
      }
  }
 
- void AudioComponent::UpdateTitleWithMuteState(
-     wil::com_ptr<ICoreWebView2Experimental9> webviewExperimental9)
+ void AudioComponent::UpdateTitleWithMuteState(wil::com_ptr<ICoreWebView2_8> webview2_8)
  {
      BOOL isDocumentPlayingAudio;
-     CHECK_FAILURE(webviewExperimental9->get_IsDocumentPlayingAudio(&isDocumentPlayingAudio));
+     CHECK_FAILURE(webview2_8->get_IsDocumentPlayingAudio(&isDocumentPlayingAudio));
 
      BOOL isMuted;
-     CHECK_FAILURE(webviewExperimental9->get_IsMuted(&isMuted));
+     CHECK_FAILURE(webview2_8->get_IsMuted(&isMuted));
 
      wil::unique_cotaskmem_string title;
      CHECK_FAILURE(m_webView->get_DocumentTitle(&title));
@@ -96,15 +97,15 @@ void AudioComponent::ToggleMuteState()
 
      m_appWindow->SetDocumentTitle(result.c_str());
  }
- //! [IsDocumentPlayingAudioChanged] [IsDocumentPlayingAudio] [ToggleIsMuted]
+ //! [IsDocumentPlayingAudioChanged] [IsDocumentPlayingAudio] [IsMutedChanged] [ToggleIsMuted]
 
  AudioComponent::~AudioComponent()
  {
-     auto webviewExperimental9 = m_webView.try_query<ICoreWebView2Experimental9>();
-     if (webviewExperimental9)
+     auto webview2_8 = m_webView.try_query<ICoreWebView2_8>();
+     if (webview2_8)
      {
-         CHECK_FAILURE(webviewExperimental9->remove_IsDocumentPlayingAudioChanged(
+         CHECK_FAILURE(webview2_8->remove_IsDocumentPlayingAudioChanged(
              m_isDocumentPlayingAudioChangedToken));
-         CHECK_FAILURE(webviewExperimental9->remove_IsMutedChanged(m_isMutedChangedToken));
+         CHECK_FAILURE(webview2_8->remove_IsMutedChanged(m_isMutedChangedToken));
     }
 }

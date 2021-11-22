@@ -13,7 +13,6 @@ using namespace Microsoft::WRL;
 
 // Some utility functions
 static wil::unique_bstr GetDomainOfUri(PWSTR uri);
-static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
 
 SettingsComponent::SettingsComponent(
     AppWindow* appWindow, ICoreWebView2Environment* environment, SettingsComponent* old)
@@ -1265,25 +1264,7 @@ void SettingsComponent::CompleteScriptDialogDeferral()
     }
 }
 
-SettingsComponent::~SettingsComponent()
-{
-    m_webView->remove_NavigationStarting(m_navigationStartingToken);
-    m_webView->remove_FrameNavigationStarting(m_frameNavigationStartingToken);
-    m_webView->remove_WebResourceRequested(m_webResourceRequestedTokenForImageBlocking);
-    m_webView->remove_ScriptDialogOpening(m_scriptDialogOpeningToken);
-    m_webView->remove_PermissionRequested(m_permissionRequestedToken);
-}
-// Take advantage of urlmon's URI library to parse a URI
-static wil::unique_bstr GetDomainOfUri(PWSTR uri)
-{
-    wil::com_ptr<IUri> uriObject;
-    CreateUri(uri, Uri_CREATE_CANONICALIZE | Uri_CREATE_NO_DECODE_EXTRA_INFO, 0, &uriObject);
-    wil::unique_bstr domain;
-    uriObject->GetHost(&domain);
-    return domain;
-}
-
-static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind)
+PCWSTR SettingsComponent::NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind)
 {
     switch (kind)
     {
@@ -1302,4 +1283,22 @@ static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind)
     default:
         return L"Unknown resources";
     }
+}
+
+SettingsComponent::~SettingsComponent()
+{
+    m_webView->remove_NavigationStarting(m_navigationStartingToken);
+    m_webView->remove_FrameNavigationStarting(m_frameNavigationStartingToken);
+    m_webView->remove_WebResourceRequested(m_webResourceRequestedTokenForImageBlocking);
+    m_webView->remove_ScriptDialogOpening(m_scriptDialogOpeningToken);
+    m_webView->remove_PermissionRequested(m_permissionRequestedToken);
+}
+// Take advantage of urlmon's URI library to parse a URI
+static wil::unique_bstr GetDomainOfUri(PWSTR uri)
+{
+    wil::com_ptr<IUri> uriObject;
+    CreateUri(uri, Uri_CREATE_CANONICALIZE | Uri_CREATE_NO_DECODE_EXTRA_INFO, 0, &uriObject);
+    wil::unique_bstr domain;
+    uriObject->GetHost(&domain);
+    return domain;
 }
