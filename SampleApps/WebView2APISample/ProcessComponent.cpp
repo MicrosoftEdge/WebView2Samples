@@ -121,6 +121,27 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
             .Get(),
         &m_processFailedToken));
     //! [ProcessFailed]
+
+    m_webViewEnvironment = appWindow->GetWebViewEnvironment();
+    auto environment9 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment9>();
+    if (environment9)
+    {
+        CHECK_FAILURE(environment9->GetProcessInfos(&m_processCollection));
+        // Register a handler for the ProcessInfosChanged event.
+        //! [ProcessInfosChanged]
+        CHECK_FAILURE(environment9->add_ProcessInfosChanged(
+            Callback<ICoreWebView2ExperimentalProcessInfosChangedEventHandler>(
+                [this](ICoreWebView2Environment* sender, IUnknown* args) -> HRESULT {
+                    wil::com_ptr<ICoreWebView2ExperimentalEnvironment9> webviewEnvironment;
+                    sender->QueryInterface(IID_PPV_ARGS(&webviewEnvironment));
+                    CHECK_FAILURE(
+                        webviewEnvironment->GetProcessInfos(&m_processCollection));
+                    return S_OK;
+                })
+                .Get(),
+            &m_processInfosChangedToken));
+        //! [ProcessInfosChanged]
+    }
 }
 
 // static
@@ -156,10 +177,14 @@ bool ProcessComponent::HandleWindowMessage(
         case IDM_CRASH_RENDER_PROCESS:
             CrashRenderProcess();
             return true;
+        case IDM_PERFORMANCE_INFO:
+            PerformanceInfo();
+            return true;
         }
     }
     return false;
 }
+
 // Show the WebView's PID to the user.
 void ProcessComponent::ShowBrowserProcessInfo() {
     UINT32 processId;
@@ -220,6 +245,29 @@ std::wstring ProcessComponent::ProcessFailedReasonToString(
     return L"REASON: " + std::to_wstring(static_cast<uint32_t>(reason));
 }
 
+// Get a string for the process kind enum value.
+std::wstring ProcessComponent::ProcessKindToString(const COREWEBVIEW2_PROCESS_KIND kind)
+{
+    switch (kind)
+    {
+#define KIND_ENTRY(kindValue)                                                                  \
+    case kindValue:                                                                            \
+        return L#kindValue;
+
+        KIND_ENTRY(COREWEBVIEW2_PROCESS_KIND_BROWSER);
+        KIND_ENTRY(COREWEBVIEW2_PROCESS_KIND_RENDERER);
+        KIND_ENTRY(COREWEBVIEW2_PROCESS_KIND_UTILITY);
+        KIND_ENTRY(COREWEBVIEW2_PROCESS_KIND_SANDBOX_HELPER);
+        KIND_ENTRY(COREWEBVIEW2_PROCESS_KIND_GPU);
+        KIND_ENTRY(COREWEBVIEW2_PROCESS_KIND_PPAPI_PLUGIN);
+        KIND_ENTRY(COREWEBVIEW2_PROCESS_KIND_PPAPI_BROKER);
+
+#undef KIND_ENTRY
+    }
+
+    return L"PROCESS KIND: " + std::to_wstring(static_cast<uint32_t>(kind));
+}
+
 // Crash the browser's process on command, to test crash handlers.
 void ProcessComponent::CrashBrowserProcess()
 {
@@ -232,11 +280,52 @@ void ProcessComponent::CrashRenderProcess()
     m_webView->Navigate(L"edge://kill");
 }
 
-//! [ProcessInfoChanged]
+//! [ProcessInfosChanged]
 void ProcessComponent::PerformanceInfo()
 {
+    std::wstring result;
+    UINT processListCount;
+    CHECK_FAILURE(m_processCollection->get_Count(&processListCount));
+
+    if (processListCount == 0)
+    {
+        result += L"No process found.";
+    }
+    else
+    {
+        result += std::to_wstring(processListCount) + L" process(s) found";
+        result += L"\n\n";
+        for (UINT i = 0; i < processListCount; ++i)
+        {
+            wil::com_ptr<ICoreWebView2ExperimentalProcessInfo> processInfo;
+            CHECK_FAILURE(m_processCollection->GetValueAtIndex(i, &processInfo));
+
+            INT32 processId = 0;
+            COREWEBVIEW2_PROCESS_KIND kind;
+            CHECK_FAILURE(processInfo->get_ProcessId(&processId));
+            CHECK_FAILURE(processInfo->get_Kind(&kind));
+
+            WCHAR id[4096] = L"";
+            StringCchPrintf(id, ARRAYSIZE(id), L"Process ID: %u", processId);
+
+            HANDLE processHandle =
+                OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+            PROCESS_MEMORY_COUNTERS_EX pmc;
+            GetProcessMemoryInfo(
+                processHandle, reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&pmc), sizeof(pmc));
+            SIZE_T virtualMemUsed = pmc.PrivateUsage / 1024;
+            WCHAR memory[4096] = L"";
+            StringCchPrintf(memory, ARRAYSIZE(memory), L"Memory: %u", virtualMemUsed);
+            CloseHandle(processHandle);
+
+            result = result + id + L" | Process Kind: " + ProcessKindToString(kind) + L" | " +
+                     memory + L" KB\n";
+        }
+    }
+    MessageBox(nullptr, result.c_str(), L"Memory Usage", MB_OK);
 }
-//! [ProcessInfoChanged]
+//! [ProcessInfosChanged]
+
 /*static*/ void ProcessComponent::EnsureProcessIsClosed(UINT processId, int timeoutMs)
 {
     UINT exitCode = 1;
@@ -285,4 +374,9 @@ void ProcessComponent::ScheduleReloadIfSelectedByUser(
 ProcessComponent::~ProcessComponent()
 {
     m_webView->remove_ProcessFailed(m_processFailedToken);
+    auto environment9 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment9>();
+    if (environment9)
+    {
+        environment9->remove_ProcessInfosChanged(m_processInfosChangedToken);
+    }
 }

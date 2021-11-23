@@ -77,8 +77,9 @@ ViewComponent::ViewComponent(
                 CHECK_FAILURE(m_webView->get_Source(&oldUri));
 
                 std::wstring appStartPage = AppStartPage::GetUri(m_appWindow);
+                size_t queryIndex = appStartPage.find('?');
 
-                if (wcscmp(appStartPage.c_str(), newUri.get()) == 0)
+                if (appStartPage.compare(0, queryIndex, newUri.get(), queryIndex) == 0)
                 {
                     // When navigating to the app start page, make the background color
                     // transparent so the background image for WebView2 shows through.
@@ -89,7 +90,7 @@ ViewComponent::ViewComponent(
                     CHECK_FAILURE(controller2->get_DefaultBackgroundColor(&m_webViewColor));
                     CHECK_FAILURE(controller2->put_DefaultBackgroundColor(transparentColor));
                 }
-                else if (wcscmp(appStartPage.c_str(), oldUri.get()) == 0)
+                else if (appStartPage.compare(0, queryIndex, oldUri.get(), queryIndex) == 0)
                 {
                     // When navigating away from the app start page, set the background color
                     // back to the previous value. If the user changed the background color,
@@ -199,20 +200,19 @@ ViewComponent::ViewComponent(
         m_dropTarget->Init(
             m_appWindow->GetMainWindow(), this, compositionController3.get());
     }
-
-    m_webViewExperimental11 = m_webView.try_query<ICoreWebView2Experimental11>();
-    if (m_webViewExperimental11)
-    {
-        SetDefaultDownloadDialogPosition();
-    }
-
+    else if (m_dcompDevice
 #ifdef USE_WEBVIEW2_WIN10
-    else if (m_dcompDevice || m_wincompCompositor)
-#else
-    else if (m_dcompDevice)
+        || m_wincompCompositor
 #endif
+        )
     {
         FAIL_FAST();
+    }
+
+    m_webView2_9 = m_webView.try_query<ICoreWebView2_9>();
+    if (m_webView2_9)
+    {
+        SetDefaultDownloadDialogPosition();
     }
 
     ResizeWebView();
@@ -956,17 +956,17 @@ void ViewComponent::DestroyWinCompVisualTree()
 //! [ToggleDefaultDownloadDialog]
 void ViewComponent::ToggleDefaultDownloadDialog()
 {
-    if (m_webViewExperimental11)
+    if (m_webView2_9)
     {
         BOOL isOpen;
-        m_webViewExperimental11->get_IsDefaultDownloadDialogOpen(&isOpen);
+        m_webView2_9->get_IsDefaultDownloadDialogOpen(&isOpen);
         if (isOpen)
         {
-            m_webViewExperimental11->CloseDefaultDownloadDialog();
+            m_webView2_9->CloseDefaultDownloadDialog();
         }
         else
         {
-            m_webViewExperimental11->OpenDefaultDownloadDialog();
+            m_webView2_9->OpenDefaultDownloadDialog();
         }
     }
 }
@@ -980,17 +980,17 @@ void ViewComponent::SetDefaultDownloadDialogPosition()
     POINT margin = {m_downloadsButtonMargin,
         (m_downloadsButtonMargin + m_downloadsButtonHeight)};
     CHECK_FAILURE(
-        m_webViewExperimental11->put_DefaultDownloadDialogCornerAlignment(
+        m_webView2_9->put_DefaultDownloadDialogCornerAlignment(
         cornerAlignment));
     CHECK_FAILURE(
-        m_webViewExperimental11->put_DefaultDownloadDialogMargin(margin));
+        m_webView2_9->put_DefaultDownloadDialogMargin(margin));
 }
 //! [SetDefaultDownloadDialogPosition]
 
 
 void ViewComponent::ToggleDownloadsButton()
 {
-    if (!m_webViewExperimental11)
+    if (!m_webView2_9)
     {
         FeatureNotAvailable();
         return;
@@ -1022,11 +1022,11 @@ void ViewComponent::CreateDownloadsButton()
     // opening or closing. For example, if the dialog is anchored
     // to a button in the application, the button can change its appearance
     // depending on whether the dialog is opened or closed.
-    CHECK_FAILURE(m_webViewExperimental11->add_IsDefaultDownloadDialogOpenChanged(
-        Callback<ICoreWebView2ExperimentalIsDefaultDownloadDialogOpenChangedEventHandler>(
+    CHECK_FAILURE(m_webView2_9->add_IsDefaultDownloadDialogOpenChanged(
+        Callback<ICoreWebView2IsDefaultDownloadDialogOpenChangedEventHandler>(
             [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
             BOOL isOpen;
-            m_webViewExperimental11->get_IsDefaultDownloadDialogOpen(&isOpen);
+            m_webView2_9->get_IsDefaultDownloadDialogOpen(&isOpen);
             if (isOpen) {
               SetWindowText(m_downloadsButton, L"Opened");
             } else {
@@ -1041,9 +1041,9 @@ void ViewComponent::CreateDownloadsButton()
 ViewComponent::~ViewComponent()
 {
     m_webView->remove_NavigationStarting(m_navigationStartingToken);
-    if (m_webViewExperimental11)
+    if (m_webView2_9)
     {
-        m_webViewExperimental11->remove_IsDefaultDownloadDialogOpenChanged(
+        m_webView2_9->remove_IsDefaultDownloadDialogOpenChanged(
             m_isDefaultDownloadDialogOpenChangedToken);
     }
     if (m_downloadsButton) {

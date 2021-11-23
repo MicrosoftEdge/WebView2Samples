@@ -46,7 +46,7 @@ private:
     wil::com_ptr<ICoreWebView2Controller> m_controllerEventSource;
     wil::com_ptr<ICoreWebView2_2> m_webviewEventSource2;
     wil::com_ptr<ICoreWebView2_4> m_webviewEventSource4;
-    wil::com_ptr<ICoreWebView2Experimental11> m_webViewEventSourceExperimental11;
+    wil::com_ptr<ICoreWebView2_9> m_webViewEventSource9;
 
     // The events we register on the event sources
     EventRegistrationToken m_frameNavigationStartingToken = {};
@@ -70,6 +70,7 @@ private:
     EventRegistrationToken m_gotFocusToken = {};
     EventRegistrationToken m_lostFocusToken = {};
     EventRegistrationToken m_isDefaultDownloadDialogOpenChangedToken = {};
+    EventRegistrationToken m_permissionRequestedToken = {};
 
     // This event is registered with the event viewer so they
     // can communicate back to us for toggling the WebResourceRequested
