@@ -66,6 +66,7 @@ ViewComponent::ViewComponent(
                 &m_zoomFactorChangedToken));
     //! [ZoomFactorChanged]
 
+#ifdef USE_WEBVIEW2_WIN10
     CHECK_FAILURE(m_webView->add_NavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
@@ -101,6 +102,7 @@ ViewComponent::ViewComponent(
                 }
                 return S_OK;
             }).Get(), &m_navigationStartingToken));
+#endif
 
     m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
     if (m_controller3)
