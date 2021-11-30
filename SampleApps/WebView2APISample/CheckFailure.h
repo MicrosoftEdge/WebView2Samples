@@ -32,3 +32,6 @@ void FeatureNotAvailable();
 
 // Wraps the above in a conditional.
 #define CHECK_FEATURE_RETURN(feature) { if (!feature) { FeatureNotAvailable(); return true; } }
+
+// Returns nothing, which is different from CHECK_FEATURE_RETURN
+#define CHECK_FEATURE_RETURN_EMPTY(feature) { if (!feature) { FeatureNotAvailable(); return; } }

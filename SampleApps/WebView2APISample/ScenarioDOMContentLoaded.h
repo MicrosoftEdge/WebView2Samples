@@ -23,4 +23,5 @@ private:
     std::wstring m_sampleUri;
     EventRegistrationToken m_DOMContentLoadedToken = {};
     EventRegistrationToken m_contentLoadingToken = {};
+    EventRegistrationToken m_frameCreatedToken = {};
 };
