@@ -1,5 +1,5 @@
 ---
-description: "Demonstrate the features and usage patterns of WebView2 running in a UWP application using winui2."
+description: "Demonstrate the features and usage patterns of WebView2 running in a UWP application using WinUI 2."
 extendedZipContent:
   -
     path: SharedContent
@@ -14,7 +14,7 @@ products:
   - microsoft-edge
 urlFragment: WebView2_UWP
 ---
-# WebView2 UWP WinUi2 browser
+# WebView2 UWP WinUi 2 browser
 
 This is a hybrid application built with the [Microsoft Edge WebView2](https://aka.ms/webview2) control.
 
@@ -33,9 +33,9 @@ To learn more specifics about events and API Handlers in WebView2, you can refer
 - [Microsoft Edge (Chromium)](https://www.microsoftedgeinsider.com/download/) installed on a supported OS. Currently we recommend the latest version of the Edge Canary channel.
 - [Visual Studio](https://visualstudio.microsoft.com/vs/) with .NET support installed.
 - Latest pre-release version of our [WebView2 SDK](https://aka.ms/webviewnuget), which is included in this project.
-- Latest pre-release version of the [WinUI2 SDK](https://aka.ms/webviewnuget), which is included in this project
+- Latest pre-release version of the [WinUI 2 SDK](https://aka.ms/webviewnuget), which is included in this project
 
-## Build the WebView2 UWP WinUi2 browser
+## Build the WebView2 UWP WinUi 2 browser
 
 Clone the repository and open the solution in Visual Studio. WebView2 & WebUi2 are already included as a NuGet package* in this project.
 
@@ -46,7 +46,7 @@ Clone the repository and open the solution in Visual Studio. WebView2 & WebUi2 a
 
 That's it! Everything should be ready to just launch the app.
 
-*You can get the WebView2 & WinUI2 NugetPackage through the Visual Studio NuGet Package Manager.
+*You can get the WebView2 & WinUI 2 NugetPackage through the Visual Studio NuGet Package Manager.
 
 ## Code of Conduct
 
