@@ -179,11 +179,11 @@ void ScriptComponent::InjectScriptInIFrame()
             L"window.getComputedStyle(document.body).backgroundColor");
         if (dialogScript.confirmed)
         {
-            wil::com_ptr<ICoreWebView2ExperimentalFrame> frameExperimental =
-                m_frames[index].try_query<ICoreWebView2ExperimentalFrame>();
-            if (frameExperimental)
+            wil::com_ptr<ICoreWebView2Frame2> frame2 =
+                m_frames[index].try_query<ICoreWebView2Frame2>();
+            if (frame2)
             {
-                frameExperimental->ExecuteScript(
+                frame2->ExecuteScript(
                     dialogScript.input.c_str(),
                     Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
                         [](HRESULT error, PCWSTR result) -> HRESULT {
@@ -287,11 +287,11 @@ void ScriptComponent::SendStringWebMessageIFrame()
     {
         if (!m_frames.empty())
         {
-            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental =
-                m_frames[0].try_query<ICoreWebView2ExperimentalFrame2>();
-            if (frameExperimental)
+            wil::com_ptr<ICoreWebView2Frame2> frame2 =
+                m_frames[0].try_query<ICoreWebView2Frame2>();
+            if (frame2)
             {
-                frameExperimental->PostWebMessageAsString(dialog.input.c_str());
+                frame2->PostWebMessageAsString(dialog.input.c_str());
             }
         } else {
             ShowFailure(S_OK, L"No iframes found");
@@ -309,11 +309,11 @@ void ScriptComponent::SendJsonWebMessageIFrame()
     {
         if (!m_frames.empty())
         {
-            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental =
-                m_frames[0].try_query<ICoreWebView2ExperimentalFrame2>();
-            if (frameExperimental)
+            wil::com_ptr<ICoreWebView2Frame2> frame2 =
+                m_frames[0].try_query<ICoreWebView2Frame2>();
+            if (frame2)
             {
-                frameExperimental->PostWebMessageAsJson(dialog.input.c_str());
+                frame2->PostWebMessageAsJson(dialog.input.c_str());
             }
         }
         else {
@@ -567,7 +567,7 @@ void ScriptComponent::HandleIFrames()
                         CHECK_FAILURE(args->get_Uri(&navigationTargetUri));
                         if (IsTargetSite(navigationTargetUri.get()))
                         {
-                            wil::com_ptr<ICoreWebView2ExperimentalNavigationStartingEventArgs>
+                            wil::com_ptr<ICoreWebView2NavigationStartingEventArgs2>
                                 navigationStartArgs;
                             if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&navigationStartArgs))))
                             {

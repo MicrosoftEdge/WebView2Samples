@@ -994,12 +994,11 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
             .Get(),
         NULL);
 
-    wil::com_ptr<ICoreWebView2ExperimentalFrame> frameExperimental =
-        webviewFrame.try_query<ICoreWebView2ExperimentalFrame>();
-    if (frameExperimental)
+    wil::com_ptr<ICoreWebView2Frame2> frame2 = webviewFrame.try_query<ICoreWebView2Frame2>();
+    if (frame2)
     {
-        frameExperimental->add_NavigationStarting(
-            Callback<ICoreWebView2ExperimentalFrameNavigationStartingEventHandler>(
+        frame2->add_NavigationStarting(
+            Callback<ICoreWebView2FrameNavigationStartingEventHandler>(
                 [this](
                     ICoreWebView2Frame* sender,
                     ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
@@ -1013,8 +1012,8 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
                 .Get(),
             NULL);
 
-        frameExperimental->add_ContentLoading(
-            Callback<ICoreWebView2ExperimentalFrameContentLoadingEventHandler>(
+        frame2->add_ContentLoading(
+            Callback<ICoreWebView2FrameContentLoadingEventHandler>(
                 [this](ICoreWebView2Frame* sender, ICoreWebView2ContentLoadingEventArgs* args)
                     -> HRESULT {
                     std::wstring message = ContentLoadingArgsToJsonString(
@@ -1026,8 +1025,8 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
                 .Get(),
             NULL);
 
-        frameExperimental->add_NavigationCompleted(
-            Callback<ICoreWebView2ExperimentalFrameNavigationCompletedEventHandler>(
+        frame2->add_NavigationCompleted(
+            Callback<ICoreWebView2FrameNavigationCompletedEventHandler>(
                 [this](
                     ICoreWebView2Frame* sender,
                     ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
@@ -1041,8 +1040,8 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
                 .Get(),
             NULL);
 
-        frameExperimental->add_DOMContentLoaded(
-            Callback<ICoreWebView2ExperimentalFrameDOMContentLoadedEventHandler>(
+        frame2->add_DOMContentLoaded(
+            Callback<ICoreWebView2FrameDOMContentLoadedEventHandler>(
                 [this](ICoreWebView2Frame* sender, ICoreWebView2DOMContentLoadedEventArgs* args)
                     -> HRESULT {
                     std::wstring message = DOMContentLoadedArgsToJsonString(
