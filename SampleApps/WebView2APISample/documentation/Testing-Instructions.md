@@ -592,27 +592,27 @@ Test that enables/disables general autofill
 _General autofill is enabled by default._
 
 1. Launch the sample app.
-1. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
-1. Enter in any test information into the Profile Autofill section and click `Submit`.
-1. Repeat step 2.
-1. Click on the Name field.
-1. Expected: A drop down box with the saved profile information is shown.
-1. Click on the box.
-1. Expected: The profile information is autofilled.
-1. Go to `Settings -> Toggle General Autofill`
-1. Expected: Message Box that says `General autofill will be disabled after the next navigation.`
-1. Click `OK` inside the popup dialog and click `Reload`.
-1. Repeat step 5.
-1. Expected: No drop down box appears.
-1. Repeat steps 3-5.
-1. Expected: No drop down box appears.
-1. Go to `Settings -> Toggle General Autofill`
-1. Expected: Message Box that says `General autofill will be enabled after the next navigation.`
-1. Click `OK` inside the popup dialog and click `Reload`.
-1. Repeat step 5.
-1. Expected: A drop down box with the original saved profile information from step 3 is shown.
-1. Click on the box.
-1. Expected: The profile information is autofilled.
+2. Navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+3. Enter in any test information into the Profile Autofill section and click `Submit`.
+4. Repeat step 2.
+5. Click on the Name field.
+6. Expected: A drop down box with the saved profile information is shown.
+7. Click on the box.
+8. Expected: The profile information is autofilled.
+9. Go to `Settings -> Toggle General Autofill`
+10. Expected: Message Box that says `General autofill will be disabled after the next navigation.`
+11. Click `OK` inside the popup dialog and click `Reload`.
+12. Repeat step 5.
+13. Expected: No drop down box appears.
+14. Repeat steps 3-5.
+15. Expected: No drop down box appears.
+16. Go to `Settings -> Toggle General Autofill`
+17. Expected: Message Box that says `General autofill will be enabled after the next navigation.`
+18. Click `OK` inside the popup dialog and click `Reload`.
+19. Repeat step 5.
+20. Expected: A drop down box with the original saved profile information from step 3 is shown.
+21. Click on the box.
+22. Expected: The profile information is autofilled.
 
 ### Toggle password autosave enabled
 

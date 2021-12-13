@@ -65,19 +65,17 @@ ScenarioDOMContentLoaded::ScenarioDOMContentLoaded(AppWindow* appWindow)
                 [](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args) -> HRESULT {
                     wil::com_ptr<ICoreWebView2Frame> webviewFrame;
                     CHECK_FAILURE(args->get_Frame(&webviewFrame));
-                    wil::com_ptr<ICoreWebView2ExperimentalFrame> frameExperimental =
-                        webviewFrame.try_query<ICoreWebView2ExperimentalFrame>();
-                    if (frameExperimental)
+                    wil::com_ptr<ICoreWebView2Frame2> frame2 =
+                        webviewFrame.try_query<ICoreWebView2Frame2>();
+                    if (frame2)
                     {
-                        frameExperimental->add_DOMContentLoaded(
-                            Callback<
-                                ICoreWebView2ExperimentalFrameDOMContentLoadedEventHandler>(
+                        frame2->add_DOMContentLoaded(
+                            Callback<ICoreWebView2FrameDOMContentLoadedEventHandler>(
                                 [](ICoreWebView2Frame* frame,
                                    ICoreWebView2DOMContentLoadedEventArgs* args) -> HRESULT {
-                                    wil::com_ptr<ICoreWebView2ExperimentalFrame>
-                                        frameExperimental;
-                                    frame->QueryInterface(IID_PPV_ARGS(&frameExperimental));
-                                    frameExperimental->ExecuteScript(
+                                    wil::com_ptr<ICoreWebView2Frame2> frame2;
+                                    frame->QueryInterface(IID_PPV_ARGS(&frame2));
+                                    frame2->ExecuteScript(
                                         LR"~(
                                         let content = document.createElement("h2");
                                         content.style.color = 'blue';

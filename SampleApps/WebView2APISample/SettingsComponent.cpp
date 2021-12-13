@@ -908,7 +908,6 @@ bool SettingsComponent::HandleWindowMessage(
     }
     return false;
 }
-
 void SettingsComponent::AddMenuItems(
     HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> items)
 {

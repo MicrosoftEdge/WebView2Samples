@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -474,6 +474,9 @@
     <Image Include="WebView2APISample_Inprivate.ico" />
   </ItemGroup>
   <ItemGroup>
+    <CopyFileToFolders Include="assets/AppStartPageBackground.png">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
     <None Include="packages.config" />
     <CopyFileToFolders Include="assets\ScenarioJavaScriptDebugIndex.js">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
