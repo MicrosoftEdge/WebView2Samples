@@ -109,7 +109,6 @@ BEGIN
         MENUITEM "Browser Process Info",        IDM_PROCESS_INFO
         MENUITEM "Crash Browser Process",       IDM_CRASH_PROCESS
         MENUITEM "Crash Render Process",        IDM_CRASH_RENDER_PROCESS
-        MENUITEM "Show Performance Info",       IDM_PERFORMANCE_INFO
     END
     POPUP "S&ettings"
     BEGIN

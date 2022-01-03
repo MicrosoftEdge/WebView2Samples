@@ -18,7 +18,6 @@ public:
 
 private:
     void GetCookiesHelper(std::wstring uri);
-    void SetupEventsOnWebview();
 
     AppWindow* m_appWindow;
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
