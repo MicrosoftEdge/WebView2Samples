@@ -1034,7 +1034,6 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_wincompCompositor,
 #endif
             m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
-        NewComponent<AudioComponent>(this);
         NewComponent<ControlComponent>(this, &m_toolbar);
         m_webView3 = coreWebView2.try_query<ICoreWebView2_3>();
         if (m_webView3)
