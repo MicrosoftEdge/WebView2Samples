@@ -51,6 +51,8 @@ public:
 
     void UpdateDpiAndTextScale();
 
+    void SetPreferredColorScheme(COREWEBVIEW2_PREFERRED_COLOR_SCHEME value);
+
     ~ViewComponent() override;
 
 private:

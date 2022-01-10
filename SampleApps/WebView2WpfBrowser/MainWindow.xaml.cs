@@ -42,6 +42,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand CheckUpdateCommand = new RoutedCommand();
         public static RoutedCommand NewBrowserVersionCommand = new RoutedCommand();
         public static RoutedCommand PdfToolbarSaveCommand = new RoutedCommand();
+        public static RoutedCommand SetDefaultDownloadPathCommand = new RoutedCommand();
         public static RoutedCommand CreateDownloadsButtonCommand = new RoutedCommand();
         public static RoutedCommand CustomClientCertificateSelectionCommand = new RoutedCommand();
         public static RoutedCommand CustomContextMenuCommand = new RoutedCommand();
@@ -871,6 +872,28 @@ namespace WebView2WpfBrowser
             catch (NotImplementedException exception)
             {
                 MessageBox.Show(this, "DownloadStarting Failed: " + exception.Message, "Download Starting");
+            }
+        }
+
+        void SetDefaultDownloadPathCmdExecuted(object target,
+            ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                var dialog = new TextInputDialog(
+                    title: "Set Default Download Folder Path",
+                    description: "Enter the new default download folder path.",
+                    defaultInput: WebViewProfile.DefaultDownloadFolderPath);
+                if (dialog.ShowDialog() == true)
+                {
+                    WebViewProfile.DefaultDownloadFolderPath = dialog.Input.Text;
+                }
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this,
+                    "Set default download folder path failed: " +
+                    exception.Message, "Set Default Download Folder Path");
             }
         }
 

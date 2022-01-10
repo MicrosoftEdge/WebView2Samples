@@ -103,18 +103,17 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
                 [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args) -> HRESULT {
             wil::com_ptr<ICoreWebView2Frame> webviewFrame;
             CHECK_FAILURE(args->get_Frame(&webviewFrame));
-            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental =
-                webviewFrame.try_query<ICoreWebView2ExperimentalFrame2>();
-            if (!frameExperimental)
+            wil::com_ptr<ICoreWebView2Frame2> webviewFrame2 =
+                webviewFrame.try_query<ICoreWebView2Frame2>();
+            if (!webviewFrame2)
             {
                 return S_OK;
             }
             //! [WebMessageReceivedIFrame]
             // Setup the web message received event handler before navigating to
             // ensure we don't miss any messages.
-            CHECK_FAILURE(frameExperimental->add_WebMessageReceived(
-                Microsoft::WRL::Callback<
-                    ICoreWebView2ExperimentalFrameWebMessageReceivedEventHandler>(
+            CHECK_FAILURE(webviewFrame2->add_WebMessageReceived(
+                Microsoft::WRL::Callback<ICoreWebView2FrameWebMessageReceivedEventHandler>(
                     [this](
                         ICoreWebView2Frame* sender,
                         ICoreWebView2WebMessageReceivedEventArgs* args) {
@@ -150,12 +149,11 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
                                                  std::to_wstring(bounds.top) + L"\\nRight:" +
                                                  std::to_wstring(bounds.right) + L"\\nBottom:" +
                                                  std::to_wstring(bounds.bottom) + L"\"}";
-                            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental;
-                            if (sender->QueryInterface(IID_PPV_ARGS(&frameExperimental)) ==
-                                S_OK)
+                            wil::com_ptr<ICoreWebView2Frame2> webviewFrame2;
+                            if (sender->QueryInterface(IID_PPV_ARGS(&webviewFrame2)) == S_OK)
                             {
                                 CHECK_FAILURE(
-                                    frameExperimental->PostWebMessageAsJson(reply.c_str()));
+                                    webviewFrame2->PostWebMessageAsJson(reply.c_str()));
                             }
                         }
                         else

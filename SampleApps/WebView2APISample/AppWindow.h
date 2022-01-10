@@ -35,6 +35,7 @@ struct WebViewCreateOption
 {
     std::wstring profile;
     bool isInPrivate = false;
+    std::wstring downloadPath;
 
     // This value is inherited from the operated AppWindow
     WebViewCreateEntry entry = WebViewCreateEntry::OTHER;
@@ -42,8 +43,10 @@ struct WebViewCreateOption
     {
     }
 
-    WebViewCreateOption(const std::wstring& profile_, bool inPrivate, WebViewCreateEntry entry_)
-        : profile(profile_), isInPrivate(inPrivate), entry(entry_)
+    WebViewCreateOption(const std::wstring& profile_, bool inPrivate,
+        const std::wstring& downloadPath, WebViewCreateEntry entry_)
+        : profile(profile_), isInPrivate(inPrivate),
+          downloadPath(downloadPath), entry(entry_)
     {
     }
 
@@ -51,6 +54,7 @@ struct WebViewCreateOption
     {
         profile = opt.profile;
         isInPrivate = opt.isInPrivate;
+        downloadPath = opt.downloadPath;
         entry = opt.entry;
     }
 
