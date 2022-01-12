@@ -123,16 +123,16 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
     //! [ProcessFailed]
 
     m_webViewEnvironment = appWindow->GetWebViewEnvironment();
-    auto environment9 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment9>();
-    if (environment9)
+    auto environment8 = m_webViewEnvironment.try_query<ICoreWebView2Environment8>();
+    if (environment8)
     {
-        CHECK_FAILURE(environment9->GetProcessInfos(&m_processCollection));
+        CHECK_FAILURE(environment8->GetProcessInfos(&m_processCollection));
         // Register a handler for the ProcessInfosChanged event.
         //! [ProcessInfosChanged]
-        CHECK_FAILURE(environment9->add_ProcessInfosChanged(
-            Callback<ICoreWebView2ExperimentalProcessInfosChangedEventHandler>(
+        CHECK_FAILURE(environment8->add_ProcessInfosChanged(
+            Callback<ICoreWebView2ProcessInfosChangedEventHandler>(
                 [this](ICoreWebView2Environment* sender, IUnknown* args) -> HRESULT {
-                    wil::com_ptr<ICoreWebView2ExperimentalEnvironment9> webviewEnvironment;
+                    wil::com_ptr<ICoreWebView2Environment8> webviewEnvironment;
                     sender->QueryInterface(IID_PPV_ARGS(&webviewEnvironment));
                     CHECK_FAILURE(
                         webviewEnvironment->GetProcessInfos(&m_processCollection));
@@ -297,7 +297,7 @@ void ProcessComponent::PerformanceInfo()
         result += L"\n\n";
         for (UINT i = 0; i < processListCount; ++i)
         {
-            wil::com_ptr<ICoreWebView2ExperimentalProcessInfo> processInfo;
+            wil::com_ptr<ICoreWebView2ProcessInfo> processInfo;
             CHECK_FAILURE(m_processCollection->GetValueAtIndex(i, &processInfo));
 
             INT32 processId = 0;
@@ -374,9 +374,9 @@ void ProcessComponent::ScheduleReloadIfSelectedByUser(
 ProcessComponent::~ProcessComponent()
 {
     m_webView->remove_ProcessFailed(m_processFailedToken);
-    auto environment9 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment9>();
-    if (environment9)
+    auto environment8 = m_webViewEnvironment.try_query<ICoreWebView2Environment8>();
+    if (environment8)
     {
-        environment9->remove_ProcessInfosChanged(m_processInfosChangedToken);
+        environment8->remove_ProcessInfosChanged(m_processInfosChangedToken);
     }
 }

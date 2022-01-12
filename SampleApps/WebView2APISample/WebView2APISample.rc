@@ -183,6 +183,12 @@ BEGIN
             MENUITEM "Scale 1.25x"         IDM_SCALE_125
             MENUITEM "Scale 1.5x"          IDM_SCALE_150
         END
+        POPUP "WebView PreferredColorScheme"
+        BEGIN
+        MENUITEM "Auto PreferredColorScheme",  IDM_AUTO_PREFERRED_COLOR_SCHEME
+        MENUITEM "Light PreferredColorScheme", IDM_LIGHT_PREFERRED_COLOR_SCHEME
+        MENUITEM "Dark PreferredColorScheme",  IDM_DARK_PREFERRED_COLOR_SCHEME
+        END
         POPUP "WebView Transform"
         BEGIN
           MENUITEM "No transform"               IDM_TRANSFORM_NONE
@@ -207,6 +213,17 @@ BEGIN
     POPUP "S&cenario"
     BEGIN
         MENUITEM "Authentication",              IDM_SCENARIO_AUTHENTICATION
+        POPUP "Clear Browsing Data"
+        BEGIN
+            MENUITEM "All DOM Storage",         IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_DOM_STORAGE
+            MENUITEM "All Profile",             IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_PROFILE
+            MENUITEM "All Site",                IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_SITE
+            MENUITEM "Autofill",                IDM_SCENARIO_CLEAR_BROWSING_DATA_AUTOFILL
+            MENUITEM "Browsing History",        IDM_SCENARIO_CLEAR_BROWSING_DATA_BROWSING_HISTORY
+            MENUITEM "Cookies",                 IDM_SCENARIO_CLEAR_BROWSING_DATA_COOKIES
+            MENUITEM "Disk Cache",              IDM_SCENARIO_CLEAR_BROWSING_DATA_DISK_CACHE
+            MENUITEM "Download History",        IDM_SCENARIO_CLEAR_BROWSING_DATA_DOWNLOAD_HISTORY
+        END
         POPUP "Client Certificate Requested"
         BEGIN
             MENUITEM "Use Deferred Custom Client Certificate Selection Dialog", IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG
@@ -218,6 +235,7 @@ BEGIN
         END
         MENUITEM "DOM Content Loaded",          IDM_SCENARIO_DOM_CONTENT_LOADED
         MENUITEM "Host Objects",                IDM_SCENARIO_ADD_HOST_OBJECT
+        MENUITEM "IFrame Device Permission",    IDM_SCENARIO_IFRAME_DEVICE_PERMISSION
         MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
         POPUP "Script Debugging"
         BEGIN
@@ -279,7 +297,7 @@ BEGIN
     EDITTEXT        IDC_EDIT_INPUT,14,55,281,69,ES_MULTILINE | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,198,130,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,252,130,50,14
-    EDITTEXT        IDC_EDIT_DESCRIPTION,14,18,281,33,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_EDIT_DESCRIPTION,14,18,281,33,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY
 END
 
 IDD_CERTIFICATE_DIALOG DIALOGEX 0, 0, 375, 175
@@ -304,7 +322,9 @@ BEGIN
     GROUPBOX        "profile settings",IDC_STATIC,7,3,295,100
     LTEXT           "Profile:",IDC_STATIC,25,22,36,12
     EDITTEXT        IDC_EDIT_PROFILE,62,18,96,18,ES_AUTOHSCROLL
-    CONTROL         "  InPrivate",IDC_CHECK_INPRIVATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,46,74,16
+    LTEXT           "Download path:",IDC_STATIC,25,40,36,18
+    EDITTEXT        IDC_EDIT_DOWNLOAD_PATH,62,42,96,18,ES_AUTOHSCROLL
+    CONTROL         "  InPrivate",IDC_CHECK_INPRIVATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,61,74,16
     LTEXT           "Only allow alphabet characters (a-z, A-Z), digit characters (0-9) and '#', '@', '$', '(', ')', '+', '-', '_', '~', '.', ' ' (space).",IDC_STATIC,160,14,138,37
 END
 /////////////////////////////////////////////////////////////////////////////

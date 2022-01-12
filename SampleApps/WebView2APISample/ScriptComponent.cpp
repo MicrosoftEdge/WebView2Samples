@@ -5,6 +5,7 @@
 #include "stdafx.h"
 
 #include <algorithm>
+#include <sstream>
 
 #include "ProcessComponent.h"
 #include "ScriptComponent.h"
@@ -61,7 +62,6 @@ ScriptComponent::ScriptComponent(AppWindow* appWindow)
 {
     HandleIFrames();
 }
-
 bool ScriptComponent::HandleWindowMessage(
     HWND hWnd,
     UINT message,
@@ -119,7 +119,6 @@ bool ScriptComponent::HandleWindowMessage(
     }
     return false;
 }
-
 //! [ExecuteScript]
 // Prompt the user for some script and then execute it.
 void ScriptComponent::InjectScript()
@@ -179,11 +178,11 @@ void ScriptComponent::InjectScriptInIFrame()
             L"window.getComputedStyle(document.body).backgroundColor");
         if (dialogScript.confirmed)
         {
-            wil::com_ptr<ICoreWebView2ExperimentalFrame> frameExperimental =
-                m_frames[index].try_query<ICoreWebView2ExperimentalFrame>();
-            if (frameExperimental)
+            wil::com_ptr<ICoreWebView2Frame2> frame2 =
+                m_frames[index].try_query<ICoreWebView2Frame2>();
+            if (frame2)
             {
-                frameExperimental->ExecuteScript(
+                frame2->ExecuteScript(
                     dialogScript.input.c_str(),
                     Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
                         [](HRESULT error, PCWSTR result) -> HRESULT {
@@ -287,11 +286,11 @@ void ScriptComponent::SendStringWebMessageIFrame()
     {
         if (!m_frames.empty())
         {
-            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental =
-                m_frames[0].try_query<ICoreWebView2ExperimentalFrame2>();
-            if (frameExperimental)
+            wil::com_ptr<ICoreWebView2Frame2> frame2 =
+                m_frames[0].try_query<ICoreWebView2Frame2>();
+            if (frame2)
             {
-                frameExperimental->PostWebMessageAsString(dialog.input.c_str());
+                frame2->PostWebMessageAsString(dialog.input.c_str());
             }
         } else {
             ShowFailure(S_OK, L"No iframes found");
@@ -309,11 +308,11 @@ void ScriptComponent::SendJsonWebMessageIFrame()
     {
         if (!m_frames.empty())
         {
-            wil::com_ptr<ICoreWebView2ExperimentalFrame2> frameExperimental =
-                m_frames[0].try_query<ICoreWebView2ExperimentalFrame2>();
-            if (frameExperimental)
+            wil::com_ptr<ICoreWebView2Frame2> frame2 =
+                m_frames[0].try_query<ICoreWebView2Frame2>();
+            if (frame2)
             {
-                frameExperimental->PostWebMessageAsJson(dialog.input.c_str());
+                frame2->PostWebMessageAsJson(dialog.input.c_str());
             }
         }
         else {
@@ -322,7 +321,7 @@ void ScriptComponent::SendJsonWebMessageIFrame()
     }
 }
 
-//! [DevToolsProtocolEventReceived]
+    //! [DevToolsProtocolEventReceived]
 // Prompt the user to name a CDP event, and then subscribe to that event.
 void ScriptComponent::SubscribeToCdpEvent()
 {
@@ -351,14 +350,18 @@ void ScriptComponent::SubscribeToCdpEvent()
 
         CHECK_FAILURE(receiver->add_DevToolsProtocolEventReceived(
             Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
-                [eventName](
+                [this, eventName](
                     ICoreWebView2* sender,
-                    ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT {
+                    ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT 
+                {
                     wil::unique_cotaskmem_string parameterObjectAsJson;
                     CHECK_FAILURE(args->get_ParameterObjectAsJson(&parameterObjectAsJson));
-                    MessageBox(
-                        nullptr, parameterObjectAsJson.get(),
-                        (L"CDP Event Fired: " + eventName).c_str(), MB_OK);
+                    std::wstring title = eventName;
+                    std::wstring details = parameterObjectAsJson.get();
+                    // Use TextInputDialog to show the result for easy copy & paste.
+                    TextInputDialog resultDialog(
+                        m_appWindow->GetMainWindow(), L"CDP Event Fired", title.c_str(),
+                        details.c_str(), L"", true);
                     return S_OK;
                 })
                 .Get(),
@@ -366,7 +369,6 @@ void ScriptComponent::SubscribeToCdpEvent()
     }
 }
 //! [DevToolsProtocolEventReceived]
-
 //! [CallDevToolsProtocolMethod]
 // Prompt the user for the name and parameters of a CDP method, then call it.
 void ScriptComponent::CallCdpMethod()
@@ -391,9 +393,12 @@ void ScriptComponent::CallCdpMethod()
             methodName.c_str(),
             methodParams.c_str(),
             Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
-                [](HRESULT error, PCWSTR resultJson) -> HRESULT
+                [this](HRESULT error, PCWSTR resultJson) -> HRESULT
                 {
-                    MessageBox(nullptr, resultJson, L"CDP Method Result", MB_OK);
+                    // Use TextInputDialog to show the result for easy copy & paste.
+                    TextInputDialog resultDialog(
+                        m_appWindow->GetMainWindow(), L"CDP Method Call Result",
+                        L"CDP method Result:", resultJson, L"", true);
                     return S_OK;
                 }).Get());
     }
@@ -567,7 +572,7 @@ void ScriptComponent::HandleIFrames()
                         CHECK_FAILURE(args->get_Uri(&navigationTargetUri));
                         if (IsTargetSite(navigationTargetUri.get()))
                         {
-                            wil::com_ptr<ICoreWebView2ExperimentalNavigationStartingEventArgs>
+                            wil::com_ptr<ICoreWebView2NavigationStartingEventArgs2>
                                 navigationStartArgs;
                             if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&navigationStartArgs))))
                             {

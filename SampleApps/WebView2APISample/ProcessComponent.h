@@ -49,7 +49,7 @@ private:
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
 
     UINT m_browserProcessId = 0;
-    wil::com_ptr<ICoreWebView2ExperimentalProcessInfoCollection> m_processCollection;
+    wil::com_ptr<ICoreWebView2ProcessInfoCollection> m_processCollection;
 
     EventRegistrationToken m_processFailedToken = {};
     EventRegistrationToken m_processInfosChangedToken = {};

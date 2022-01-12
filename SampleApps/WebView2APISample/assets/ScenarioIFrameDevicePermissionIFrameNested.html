@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioIFrameDevicePermissionIFrame</title>
+</head>
+<body>
+    <h1>Location Test From Nested IFrame</h1>
+    <button onclick="testLocation()">Location Test</button>
+    <p id="locationResult">Location Result: </p>
+
+    <script>function testLocation() {
+            navigator.geolocation.getCurrentPosition(showPosition);
+        }
+
+        function showPosition(position) {
+            document.getElementById("locationResult").innerHTML =
+                "Location Result: " +
+                position.coords.latitude + " " + position.coords.longitude;
+        }</script>
+</body>
+</html>

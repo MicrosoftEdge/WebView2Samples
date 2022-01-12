@@ -66,7 +66,6 @@ ViewComponent::ViewComponent(
                 &m_zoomFactorChangedToken));
     //! [ZoomFactorChanged]
 
-#ifdef USE_WEBVIEW2_WIN10
     CHECK_FAILURE(m_webView->add_NavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
@@ -82,27 +81,39 @@ ViewComponent::ViewComponent(
 
                 if (appStartPage.compare(0, queryIndex, newUri.get(), queryIndex) == 0)
                 {
-                    // When navigating to the app start page, make the background color
-                    // transparent so the background image for WebView2 shows through.
-                    // Save the previous background color to restore when navigating away.
+                    // When navigating to the app start page, make the background of
+                    // the html be the WebView2 logo. On Win10, we do this by making
+                    // the background color transparent so the WebView2 logo in the AppWindow
+                    // shows through. On Win7, transparency is not supported, so we need to
+                    // enable a CSS style to add the WebView2 logo as the background image.
+#if USE_WEBVIEW2_WIN10
                     COREWEBVIEW2_COLOR transparentColor = { 0, 255, 255, 255 };
                     wil::com_ptr<ICoreWebView2Controller2> controller2 =
                         m_controller.query<ICoreWebView2Controller2>();
+                    // Save the previous background color to restore when navigating away.
                     CHECK_FAILURE(controller2->get_DefaultBackgroundColor(&m_webViewColor));
                     CHECK_FAILURE(controller2->put_DefaultBackgroundColor(transparentColor));
+#else
+                    std::wstring setBackgroundImageScript =
+                        L"document.addEventListener('DOMContentLoaded', () => {"
+                        L"  document.documentElement.classList.add('logo-background');"
+                        L"});";
+                    m_webView->ExecuteScript(setBackgroundImageScript.c_str(), nullptr);
+#endif
                 }
                 else if (appStartPage.compare(0, queryIndex, oldUri.get(), queryIndex) == 0)
                 {
+#if USE_WEBVIEW2_WIN10
                     // When navigating away from the app start page, set the background color
                     // back to the previous value. If the user changed the background color,
                     // m_webViewColor will have changed.
                     wil::com_ptr<ICoreWebView2Controller2> controller2 =
                         m_controller.query<ICoreWebView2Controller2>();
                     CHECK_FAILURE(controller2->put_DefaultBackgroundColor(m_webViewColor));
+#endif
                 }
                 return S_OK;
             }).Get(), &m_navigationStartingToken));
-#endif
 
     m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
     if (m_controller3)
@@ -337,6 +348,18 @@ bool ViewComponent::HandleWindowMessage(
         case IDM_TOGGLE_DOWNLOADS_BUTTON:
             ToggleDownloadsButton();
             return true;
+        case IDM_AUTO_PREFERRED_COLOR_SCHEME:
+            SetPreferredColorScheme(
+              COREWEBVIEW2_PREFERRED_COLOR_SCHEME_AUTO);
+            return true;
+        case IDM_LIGHT_PREFERRED_COLOR_SCHEME:
+            SetPreferredColorScheme(
+              COREWEBVIEW2_PREFERRED_COLOR_SCHEME_LIGHT);
+            return true;
+        case IDM_DARK_PREFERRED_COLOR_SCHEME:
+            SetPreferredColorScheme(
+              COREWEBVIEW2_PREFERRED_COLOR_SCHEME_DARK);
+            return true;
         }
     }
     //! [ToggleIsVisibleOnMinimize]
@@ -380,6 +403,27 @@ bool ViewComponent::HandleWindowMessage(
     //! [NotifyParentWindowPositionChanged]
     return false;
 }
+
+//! [SetPreferredColorScheme]
+void ViewComponent::SetPreferredColorScheme(COREWEBVIEW2_PREFERRED_COLOR_SCHEME value)
+{
+    wil::com_ptr<ICoreWebView2Experimental8> webViewExperimental8;
+    webViewExperimental8 = m_webView.try_query<ICoreWebView2Experimental8>();
+
+    if (webViewExperimental8)
+    {
+      wil::com_ptr<ICoreWebView2ExperimentalProfile> profile;
+      CHECK_FAILURE(webViewExperimental8->get_Profile(&profile));
+
+      auto profileExperimental2 =
+        profile.try_query<ICoreWebView2ExperimentalProfile2>();
+      if (profileExperimental2)
+      {
+        profileExperimental2->put_PreferredColorScheme(value);
+      }
+    }
+}
+//! [SetPreferredColorScheme]
 
 void ViewComponent::UpdateDpiAndTextScale()
 {

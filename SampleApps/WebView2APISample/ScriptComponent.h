@@ -40,7 +40,6 @@ private:
     void OpenTaskManagerWindow();
     void SendStringWebMessageIFrame();
     void SendJsonWebMessageIFrame();
-
     void AddSiteEmbeddingIFrame();
 
     ~ScriptComponent() override;
@@ -56,5 +55,4 @@ private:
     std::wstring m_lastInitializeScriptId;
     std::map<std::wstring, EventRegistrationToken> m_devToolsProtocolEventReceivedTokenMap;
 };
-
 #endif

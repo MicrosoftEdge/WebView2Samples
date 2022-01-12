@@ -232,58 +232,78 @@ SettingsComponent::SettingsComponent(
         Callback<ICoreWebView2PermissionRequestedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)
                 -> HRESULT {
-                wil::unique_cotaskmem_string uri;
-                COREWEBVIEW2_PERMISSION_KIND kind =
-                    COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
-                BOOL userInitiated = FALSE;
-
-                CHECK_FAILURE(args->get_Uri(&uri));
-                CHECK_FAILURE(args->get_PermissionKind(&kind));
-                CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
-                auto cached_key = std::tuple<std::wstring, COREWEBVIEW2_PERMISSION_KIND, BOOL>(
-                    std::wstring(uri.get()), kind, userInitiated);
-                auto cached_permission = m_cached_permissions.find(cached_key);
-                if (cached_permission != m_cached_permissions.end())
+                // We avoid potential reentrancy from running a message loop
+                // in the permission requested event handler by showing the
+                // dialog via lambda run asynchronously outside of this event
+                // handler.
+                auto showDialog = [this, args] 
                 {
-                    bool allow = cached_permission->second;
-                    if (allow)
+                    wil::unique_cotaskmem_string uri;
+                    COREWEBVIEW2_PERMISSION_KIND kind =
+                        COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
+                    BOOL userInitiated = FALSE;
+
+                    CHECK_FAILURE(args->get_Uri(&uri));
+                    CHECK_FAILURE(args->get_PermissionKind(&kind));
+                    CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
+                    auto cached_key =
+                        std::tuple<std::wstring, COREWEBVIEW2_PERMISSION_KIND, BOOL>(
+                            std::wstring(uri.get()), kind, userInitiated);
+                    auto cached_permission = m_cached_permissions.find(cached_key);
+                    if (cached_permission != m_cached_permissions.end())
                     {
-                        CHECK_FAILURE(args->put_State(COREWEBVIEW2_PERMISSION_STATE_ALLOW));
+                        bool allow = cached_permission->second;
+                        if (allow)
+                        {
+                            CHECK_FAILURE(args->put_State(COREWEBVIEW2_PERMISSION_STATE_ALLOW));
+                        }
+                        else
+                        {
+                            CHECK_FAILURE(args->put_State(COREWEBVIEW2_PERMISSION_STATE_DENY));
+                        }
+                        return S_OK;
                     }
-                    else
+
+                    std::wstring message = L"Do you want to grant permission for ";
+                    message += NameOfPermissionKind(kind);
+                    message += L" to the website at ";
+                    message += uri.get();
+                    message += L"?\n\n";
+                    message +=
+                        (userInitiated ? L"This request came from a user gesture."
+                                       : L"This request did not come from a user gesture.");
+                    
+                    int response = MessageBox(
+                        nullptr, message.c_str(), L"Permission Request",
+                        MB_YESNOCANCEL | MB_ICONWARNING);
+                    if (response == IDYES)
                     {
-                        CHECK_FAILURE(args->put_State(COREWEBVIEW2_PERMISSION_STATE_DENY));
+                        m_cached_permissions[cached_key] = true;
                     }
-                    return S_OK;
-                }
 
-                std::wstring message = L"Do you want to grant permission for ";
-                message += NameOfPermissionKind(kind);
-                message += L" to the website at ";
-                message += uri.get();
-                message += L"?\n\n";
-                message +=
-                    (userInitiated ? L"This request came from a user gesture."
-                                   : L"This request did not come from a user gesture.");
-
-                int response = MessageBox(
-                    nullptr, message.c_str(), L"Permission Request",
-                    MB_YESNOCANCEL | MB_ICONWARNING);
-                if (response == IDYES)
-                {
-                    m_cached_permissions[cached_key] = true;
-                }
-
-                if (response == IDNO)
-                {
-                    m_cached_permissions[cached_key] = false;
-                }
-                COREWEBVIEW2_PERMISSION_STATE state =
-                    response == IDYES
-                        ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
+                    if (response == IDNO)
+                    {
+                        m_cached_permissions[cached_key] = false;
+                    }
+                    COREWEBVIEW2_PERMISSION_STATE state =
+                        response == IDYES  ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
                         : response == IDNO ? COREWEBVIEW2_PERMISSION_STATE_DENY
                                            : COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
-                CHECK_FAILURE(args->put_State(state));
+                    CHECK_FAILURE(args->put_State(state));
+
+                    return S_OK;
+                };
+
+                // Obtain a deferral for the event so that the CoreWebView2
+                // doesn't examine the properties we set on the event args until
+                // after we call the Complete method asynchronously later.
+                wil::com_ptr<ICoreWebView2Deferral> deferral;
+                CHECK_FAILURE(args->GetDeferral(&deferral));
+
+                m_appWindow->RunAsync([deferral, showDialog]() {
+                    showDialog();
+                    CHECK_FAILURE(deferral->Complete());
+                });
 
                 return S_OK;
             })
@@ -908,7 +928,6 @@ bool SettingsComponent::HandleWindowMessage(
     }
     return false;
 }
-
 void SettingsComponent::AddMenuItems(
     HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> items)
 {
