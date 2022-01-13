@@ -487,7 +487,7 @@ _It is disabled by default._
 ![Download-Client-Certificate](screenshots/download-client-certificate.png)
 9. Click badssl.com-client.p12 from the list and confirm download has begun.
 10. Go to the badssl.com-client certificate from the downloads.
-11. Double click on the above downloaded badssl.com-client.p12 certificate.
+11. Double click on the above downloaded badssl.com-client.p12 certificate. (Note: Make sure to click on the latest download, and not an old copy of it, as that can result in installing an expired certificate.)
 12. Expected: Windows popup with title Certificate Import Wizard.\
 ![Install-Client-Certificate](screenshots/install-client-certificate.png)
 13. Select `Current User` from the store location in the popup and click `Next`.
