@@ -34,6 +34,7 @@ To learn more specifics about events and API Handlers in WebView2, you can refer
 - [Visual Studio](https://visualstudio.microsoft.com/vs/) with .NET support installed.
 - Latest pre-release version of our [WebView2 SDK](https://aka.ms/webviewnuget), which is included in this project.
 - Latest pre-release version of the [WinUI2 SDK](https://aka.ms/webviewnuget), which is included in this project
+- Install the [WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section) using [administrative privileges](https://github.com/MicrosoftEdge/WebView2Feedback/issues/2030).
 
 ## Build the WebView2 UWP WinUi2 browser
 
