@@ -393,6 +393,7 @@
     <ClInclude Include="ClientCertificateSelectionDialog.h" />
     <ClInclude Include="ComponentBase.h" />
     <ClInclude Include="ControlComponent.h" />
+    <ClInclude Include="CustomStatusBar.h" />
     <ClInclude Include="DCompTargetImpl.h" />
     <ClInclude Include="DpiUtil.h" />
     <ClInclude Include="DropTarget.h" />
@@ -428,6 +429,7 @@
     <ClCompile Include="CheckFailure.cpp" />
     <ClCompile Include="ClientCertificateSelectionDialog.cpp" />
     <ClCompile Include="ControlComponent.cpp" />
+    <ClCompile Include="CustomStatusBar.cpp" />
     <ClCompile Include="DCompTargetImpl.cpp" />
     <ClCompile Include="DpiUtil.cpp" />
     <ClCompile Include="DropTarget.cpp" />

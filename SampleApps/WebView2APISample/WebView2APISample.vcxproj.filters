@@ -108,6 +108,12 @@
     <ClCompile Include="AudioComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScenarioIFrameDevicePermission.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomStatusBar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -209,6 +215,12 @@
     <ClInclude Include="AudioComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ScenarioIFrameDevicePermission.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomStatusBar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc">
@@ -233,6 +245,12 @@
     <CopyFileToFolders Include="assets\AppStartPage.html" />
     <CopyFileToFolders Include="assets\AppStartPage.js" />
     <CopyFileToFolders Include="assets\ScenarioTestingFocus.html" />
+    <CopyFileToFolders Include="assets/AppStartPageBackground.png">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermission.html" />
+    <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermissionIFrame.html" />
+    <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermissionIFrameNested.html" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
