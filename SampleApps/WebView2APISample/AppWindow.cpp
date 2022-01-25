@@ -33,6 +33,7 @@
 #include "ScenarioCookieManagement.h"
 #include "ScenarioCustomDownloadExperience.h"
 #include "ScenarioDOMContentLoaded.h"
+#include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
 #include "ScenarioVirtualHostMappingForSW.h"
@@ -42,6 +43,7 @@
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
+
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -109,6 +111,8 @@ static INT_PTR CALLBACK DlgProcStatic(HWND hDlg, UINT message, WPARAM wParam, LP
         SetWindowLongPtr(hDlg, GWLP_USERDATA, (LONG_PTR)app);
 
         SetDlgItemText(hDlg, IDC_EDIT_PROFILE, app->GetWebViewOption().profile.c_str());
+        SetDlgItemText(hDlg, IDC_EDIT_DOWNLOAD_PATH,
+            app->GetWebViewOption().downloadPath.c_str());
         CheckDlgButton(hDlg, IDC_CHECK_INPRIVATE, app->GetWebViewOption().isInPrivate);
         return (INT_PTR)TRUE;
     }
@@ -121,7 +125,15 @@ static INT_PTR CALLBACK DlgProcStatic(HWND hDlg, UINT message, WPARAM wParam, LP
             GetDlgItemText(hDlg, IDC_EDIT_PROFILE, text, length + 1);
             bool inPrivate = IsDlgButtonChecked(hDlg, IDC_CHECK_INPRIVATE);
 
-            WebViewCreateOption opt(std::wstring(std::move(text)), inPrivate, WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU);
+            int downloadPathLength = GetWindowTextLength(
+                GetDlgItem(hDlg, IDC_EDIT_DOWNLOAD_PATH));
+            wchar_t downloadPath[MAX_PATH] = {};
+            GetDlgItemText(hDlg, IDC_EDIT_DOWNLOAD_PATH, downloadPath,
+                downloadPathLength + 1);
+
+            WebViewCreateOption opt(std::wstring(std::move(text)), inPrivate,
+                std::wstring(std::move(downloadPath)),
+                WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU);
 
             // create app window
             new AppWindow(app->GetCreationModeId(), opt);
@@ -558,6 +570,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         NewComponent<ScenarioVirtualHostMappingForPopUpWindow>(this);
         return true;
     }
+    case IDM_SCENARIO_IFRAME_DEVICE_PERMISSION:
+    {
+        NewComponent<ScenarioIFrameDevicePermission>(this);
+        return true;
+    }
     }
     return false;
 }
@@ -659,11 +676,72 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS:
         ToggleExclusiveUserDataFolderAccess();
         return true;
+    case IDM_SCENARIO_CLEAR_BROWSING_DATA_COOKIES:
+    {
+        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_COOKIES);
+    }
+    case IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_DOM_STORAGE:
+    {
+        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_ALL_DOM_STORAGE);
+    }
+    case IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_SITE:
+    {
+        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_ALL_SITE);
+    }
+    case IDM_SCENARIO_CLEAR_BROWSING_DATA_DISK_CACHE:
+    {
+        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_DISK_CACHE);
+    }
+    case IDM_SCENARIO_CLEAR_BROWSING_DATA_DOWNLOAD_HISTORY:
+    {
+        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_DOWNLOAD_HISTORY);
+    }
+    case IDM_SCENARIO_CLEAR_BROWSING_DATA_AUTOFILL:
+    {
+        return ClearBrowsingData(
+            (COREWEBVIEW2_BROWSING_DATA_KINDS)(COREWEBVIEW2_BROWSING_DATA_KINDS_GENERAL_AUTOFILL |
+            COREWEBVIEW2_BROWSING_DATA_KINDS_PASSWORD_AUTOSAVE));
+    }
+    case IDM_SCENARIO_CLEAR_BROWSING_DATA_BROWSING_HISTORY:
+    {
+        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_BROWSING_HISTORY);
+    }
+    case IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_PROFILE:
+    {
+        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_ALL_PROFILE);
+    }
     }
     return false;
 }
 //! [ClearBrowsingData]
+bool AppWindow::ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds)
+{
+    auto webView2Experimental8 =
+        m_webView.try_query<ICoreWebView2Experimental8>();
+    CHECK_FEATURE_RETURN(webView2Experimental8);
+    wil::com_ptr<ICoreWebView2ExperimentalProfile> webView2ExperimentalProfile;
+    CHECK_FAILURE(webView2Experimental8->get_Profile(&webView2ExperimentalProfile));
+    CHECK_FEATURE_RETURN(webView2ExperimentalProfile);
+    auto webView2ExperimentalProfile4 = webView2ExperimentalProfile.try_query<ICoreWebView2ExperimentalProfile4>();
+    CHECK_FEATURE_RETURN(webView2ExperimentalProfile4);
+    // Clear the browsing data from the last hour.
+    double endTime = (double)std::time(nullptr);
+    double startTime = endTime - 3600.0;
+    CHECK_FAILURE(webView2ExperimentalProfile4->ClearBrowsingDataInTimeRange(
+        dataKinds, startTime, endTime,
+        Callback<ICoreWebView2ExperimentalClearBrowsingDataCompletedHandler>(
+            [this](HRESULT error)
+                -> HRESULT {
+                RunAsync([this]() {
+                    MessageBox(nullptr, L"Completed", L"Clear Browsing Data", MB_OK);
+                });
+                return S_OK;
+            })
+            .Get()));
+    return true;
+}
 //! [ClearBrowsingData]
+
 // Prompt the user for a new language string
 void AppWindow::ChangeLanguage()
 {
@@ -1014,6 +1092,15 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_profileDirName = str.substr(str.find_last_of(L'\\') + 1);
             BOOL inPrivate = FALSE;
             CHECK_FAILURE(profile->get_IsInPrivateModeEnabled(&inPrivate));
+            if (!m_webviewOption.downloadPath.empty())
+            {
+                auto webView2ExperimentalProfile3 =
+                    profile.try_query<ICoreWebView2ExperimentalProfile3>();
+                CHECK_FAILURE(webView2ExperimentalProfile3->
+                    put_DefaultDownloadFolderPath(
+                        m_webviewOption.downloadPath.c_str()));
+            }
+
             // update window title with m_profileDirName
             UpdateAppTitle();
 
@@ -1036,6 +1123,7 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<AudioComponent>(this);
         NewComponent<ControlComponent>(this, &m_toolbar);
+
         m_webView3 = coreWebView2.try_query<ICoreWebView2_3>();
         if (m_webView3)
         {
@@ -1782,7 +1870,7 @@ void AppWindow::InstallComplete(int return_code)
         {
             RunAsync([this] {
                 InitializeWebView();
-                });
+            });
         }
         else if (return_code == 1)
         {

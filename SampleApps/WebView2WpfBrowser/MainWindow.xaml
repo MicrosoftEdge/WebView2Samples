@@ -43,6 +43,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.NewBrowserVersionCommand}" Executed="NewBrowserVersionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SwipeNavigationCommand}" Executed="SwipeNavigationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}" Executed="PdfToolbarSaveCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.SetDefaultDownloadPathCommand}" Executed="SetDefaultDownloadPathCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CreateDownloadsButtonCommand}" Executed="CreateDownloadsButtonCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ToggleMuteStateCommand}" Executed="ToggleMuteStateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPdfCommand}" Executed="PrintToPdfCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -95,13 +96,24 @@ found in the LICENSE file.
                 <MenuItem Header="_Web Messages" Command="{x:Static local:MainWindow.WebMessagesCommand}"/>
                 <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem x:Name="newVersionMenuItem" Header="New Browser _Version" Command="{x:Static local:MainWindow.NewBrowserVersionCommand}"/>
+                <MenuItem Header="_Clear Browsing Data">
+                    <MenuItem Header="All DOM Storage" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="DOM Storage"/>
+                    <MenuItem Header="All Profile" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Profile"/>
+                    <MenuItem Header="All Site" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Site"/>
+                    <MenuItem Header="Autofill" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Autofill"/>
+                    <MenuItem Header="Browsing History" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Browsing History"/>
+                    <MenuItem Header="Cookies" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Cookies"/>
+                    <MenuItem Header="Disk Cache" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Disk Cache"/>
+                    <MenuItem Header="Download History" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Download History"/>
+                </MenuItem>
                 <MenuItem Header="_Client Certificate Requested">
                     <MenuItem Header="_Custom Client Certificate Selection" Command="{x:Static local:MainWindow.CustomClientCertificateSelectionCommand}"/>
                     <MenuItem Header="_Deferred Custom Client Certificate Selection Dialog" Command="{x:Static local:MainWindow.DeferredCustomCertificateDialogCommand}"/>
                 </MenuItem>
                 <MenuItem Header="_Custom Context Menu" Command="{x:Static local:MainWindow.CustomContextMenuCommand}"/>
-                <MenuItem Header="D_ownload Starting">
+                <MenuItem Header="D_ownload">
                 <MenuItem Header="_Start Deferred Download" Command="{x:Static local:MainWindow.DownloadStartingCommand}"/>
+                <MenuItem Header="_Set Default Download Folder Path" Command="{x:Static local:MainWindow.SetDefaultDownloadPathCommand}"/>
                 </MenuItem>
                 <MenuItem Header="_Cookie Management">
                     <MenuItem Header="_Get Cookies" Command="{x:Static local:MainWindow.GetCookiesCommand}"/>

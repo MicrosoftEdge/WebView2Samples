@@ -78,7 +78,7 @@ RECT Toolbar::Resize(RECT availableBounds)
 {
     const int clientWidth = availableBounds.right - availableBounds.left;
     const int clientHeight = availableBounds.bottom - availableBounds.top;
-    const float dpiScale = float(m_appWindow->GetDpiScale());
+    const float dpiScale = m_appWindow? float(m_appWindow->GetDpiScale()) : 1.0f;
     const int clientLogicalWidth = int(float(clientWidth) / dpiScale);
     const int itemHeight = int(32 * dpiScale);
 
