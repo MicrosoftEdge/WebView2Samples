@@ -47,14 +47,14 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) :
     //! [WebResourceResponseReceived]
 
     //! [BasicAuthenticationRequested]
-    if (auto webView10 = m_webView.try_query<ICoreWebView2_10>())
+    if (auto webViewExperimental10 = m_webView.try_query<ICoreWebView2Experimental10>())
     {
-        CHECK_FAILURE(webView10->add_BasicAuthenticationRequested(
-            Callback<ICoreWebView2BasicAuthenticationRequestedEventHandler>(
+        CHECK_FAILURE(webViewExperimental10->add_BasicAuthenticationRequested(
+            Callback<ICoreWebView2ExperimentalBasicAuthenticationRequestedEventHandler>(
                 [this](
                     ICoreWebView2* sender,
-                    ICoreWebView2BasicAuthenticationRequestedEventArgs* args) {
-                    wil::com_ptr<ICoreWebView2BasicAuthenticationResponse> basicAuthenticationResponse;
+                    ICoreWebView2ExperimentalBasicAuthenticationRequestedEventArgs* args) {
+                    wil::com_ptr<ICoreWebView2ExperimentalBasicAuthenticationResponse> basicAuthenticationResponse;
                     CHECK_FAILURE(args->get_Response(&basicAuthenticationResponse));
                     CHECK_FAILURE(basicAuthenticationResponse->put_UserName(L"user"));
                     CHECK_FAILURE(basicAuthenticationResponse->put_Password(L"pass"));
@@ -74,9 +74,9 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) :
 ScenarioAuthentication::~ScenarioAuthentication() {
     CHECK_FAILURE(
         m_webView->remove_WebResourceResponseReceived(m_webResourceResponseReceivedToken));
-    if (auto webView10 = m_webView.try_query<ICoreWebView2_10>())
+    if (auto webViewExperimental10 = m_webView.try_query<ICoreWebView2Experimental10>())
     {
-        CHECK_FAILURE(webView10->remove_BasicAuthenticationRequested(
+        CHECK_FAILURE(webViewExperimental10->remove_BasicAuthenticationRequested(
             m_basicAuthenticationRequestedToken));
     }
 }

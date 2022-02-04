@@ -167,7 +167,6 @@ private:
     void ChangeLanguage();
     void UpdateCreationModeMenu();
     void ToggleAADSSO();
-    bool ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds);
     void UpdateAppTitle();
     void ToggleExclusiveUserDataFolderAccess();
 #ifdef USE_WEBVIEW2_WIN10
@@ -175,7 +174,6 @@ private:
         winrt::Windows::UI::ViewManagement::UISettings const& uiSettings,
         winrt::Windows::Foundation::IInspectable const& args);
 #endif
-
     std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
 

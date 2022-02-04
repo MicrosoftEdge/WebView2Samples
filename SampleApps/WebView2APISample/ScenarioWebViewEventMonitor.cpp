@@ -903,7 +903,6 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                     std::wstring message =
                         L"{ \"kind\": \"event\", \"name\": \"FrameCreated\", \"args\": {";
                     message += L"\"frame\": " + EncodeQuote(name.get());
-
                     message +=
                         L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
                     PostEventMessage(message);
@@ -1056,6 +1055,7 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
             NULL);
     }
 }
+
 void ScenarioWebViewEventMonitor::PostEventMessage(std::wstring message)
 {
     HRESULT hr = m_webviewEventView->PostWebMessageAsJson(message.c_str());

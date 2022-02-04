@@ -488,7 +488,7 @@ _It is disabled by default._
 ![Download-Client-Certificate](screenshots/download-client-certificate.png)
 9. Click badssl.com-client.p12 from the list and confirm download has begun.
 10. Go to the badssl.com-client certificate from the downloads.
-11. Double click on the above downloaded badssl.com-client.p12 certificate. (Note: Make sure to click on the latest download, and not an old copy of it, as that can result in installing an expired certificate.)
+11. Double click on the above downloaded badssl.com-client.p12 certificate.
 12. Expected: Windows popup with title Certificate Import Wizard.\
 ![Install-Client-Certificate](screenshots/install-client-certificate.png)
 13. Select `Current User` from the store location in the popup and click `Next`.
@@ -1081,13 +1081,13 @@ Test that demonstrates the clear browsing data API.
 5. Verify that there are a non-zero amount of cookies returned.
 6. Click OK.
 7. Go to **Scenario** > **Clear Browsing Data** > **Cookies**
-8. Expected: Message Box that says `Completed`.
+8. Expected: Message Box that says `Succeeded`.
 9. Click OK.
 10. Repeat step 4.
 11. Expected: Message Box that says `No cookies found.`.
 12. Repeat steps 2-6.
 13. Go to **Scenario** > **Clear Browsing Data** > **Download History**
-14. Expected: Message Box that says `Completed`.
+14. Expected: Message Box that says `Succeeded`.
 15. Click OK.
 16. Repeat step 4.
 17. Expected: the same number of cookies that were returned in step 12 are returned here.

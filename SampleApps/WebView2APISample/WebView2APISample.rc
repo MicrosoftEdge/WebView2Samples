@@ -213,17 +213,6 @@ BEGIN
     POPUP "S&cenario"
     BEGIN
         MENUITEM "Authentication",              IDM_SCENARIO_AUTHENTICATION
-        POPUP "Clear Browsing Data"
-        BEGIN
-            MENUITEM "All DOM Storage",         IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_DOM_STORAGE
-            MENUITEM "All Profile",             IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_PROFILE
-            MENUITEM "All Site",                IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_SITE
-            MENUITEM "Autofill",                IDM_SCENARIO_CLEAR_BROWSING_DATA_AUTOFILL
-            MENUITEM "Browsing History",        IDM_SCENARIO_CLEAR_BROWSING_DATA_BROWSING_HISTORY
-            MENUITEM "Cookies",                 IDM_SCENARIO_CLEAR_BROWSING_DATA_COOKIES
-            MENUITEM "Disk Cache",              IDM_SCENARIO_CLEAR_BROWSING_DATA_DISK_CACHE
-            MENUITEM "Download History",        IDM_SCENARIO_CLEAR_BROWSING_DATA_DOWNLOAD_HISTORY
-        END
         POPUP "Client Certificate Requested"
         BEGIN
             MENUITEM "Use Deferred Custom Client Certificate Selection Dialog", IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG

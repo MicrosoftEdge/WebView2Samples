@@ -676,72 +676,11 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS:
         ToggleExclusiveUserDataFolderAccess();
         return true;
-    case IDM_SCENARIO_CLEAR_BROWSING_DATA_COOKIES:
-    {
-        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_COOKIES);
-    }
-    case IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_DOM_STORAGE:
-    {
-        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_ALL_DOM_STORAGE);
-    }
-    case IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_SITE:
-    {
-        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_ALL_SITE);
-    }
-    case IDM_SCENARIO_CLEAR_BROWSING_DATA_DISK_CACHE:
-    {
-        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_DISK_CACHE);
-    }
-    case IDM_SCENARIO_CLEAR_BROWSING_DATA_DOWNLOAD_HISTORY:
-    {
-        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_DOWNLOAD_HISTORY);
-    }
-    case IDM_SCENARIO_CLEAR_BROWSING_DATA_AUTOFILL:
-    {
-        return ClearBrowsingData(
-            (COREWEBVIEW2_BROWSING_DATA_KINDS)(COREWEBVIEW2_BROWSING_DATA_KINDS_GENERAL_AUTOFILL |
-            COREWEBVIEW2_BROWSING_DATA_KINDS_PASSWORD_AUTOSAVE));
-    }
-    case IDM_SCENARIO_CLEAR_BROWSING_DATA_BROWSING_HISTORY:
-    {
-        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_BROWSING_HISTORY);
-    }
-    case IDM_SCENARIO_CLEAR_BROWSING_DATA_ALL_PROFILE:
-    {
-        return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_ALL_PROFILE);
-    }
     }
     return false;
 }
 //! [ClearBrowsingData]
-bool AppWindow::ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds)
-{
-    auto webView2Experimental8 =
-        m_webView.try_query<ICoreWebView2Experimental8>();
-    CHECK_FEATURE_RETURN(webView2Experimental8);
-    wil::com_ptr<ICoreWebView2ExperimentalProfile> webView2ExperimentalProfile;
-    CHECK_FAILURE(webView2Experimental8->get_Profile(&webView2ExperimentalProfile));
-    CHECK_FEATURE_RETURN(webView2ExperimentalProfile);
-    auto webView2ExperimentalProfile4 = webView2ExperimentalProfile.try_query<ICoreWebView2ExperimentalProfile4>();
-    CHECK_FEATURE_RETURN(webView2ExperimentalProfile4);
-    // Clear the browsing data from the last hour.
-    double endTime = (double)std::time(nullptr);
-    double startTime = endTime - 3600.0;
-    CHECK_FAILURE(webView2ExperimentalProfile4->ClearBrowsingDataInTimeRange(
-        dataKinds, startTime, endTime,
-        Callback<ICoreWebView2ExperimentalClearBrowsingDataCompletedHandler>(
-            [this](HRESULT error)
-                -> HRESULT {
-                RunAsync([this]() {
-                    MessageBox(nullptr, L"Completed", L"Clear Browsing Data", MB_OK);
-                });
-                return S_OK;
-            })
-            .Get()));
-    return true;
-}
 //! [ClearBrowsingData]
-
 // Prompt the user for a new language string
 void AppWindow::ChangeLanguage()
 {

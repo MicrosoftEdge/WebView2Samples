@@ -42,7 +42,6 @@ namespace WebView2WpfBrowser
         public static RoutedCommand CheckUpdateCommand = new RoutedCommand();
         public static RoutedCommand NewBrowserVersionCommand = new RoutedCommand();
         public static RoutedCommand PdfToolbarSaveCommand = new RoutedCommand();
-        public static RoutedCommand ClearBrowsingDataCommand = new RoutedCommand();
         public static RoutedCommand SetDefaultDownloadPathCommand = new RoutedCommand();
         public static RoutedCommand CreateDownloadsButtonCommand = new RoutedCommand();
         public static RoutedCommand CustomClientCertificateSelectionCommand = new RoutedCommand();
@@ -819,53 +818,6 @@ namespace WebView2WpfBrowser
                 MessageBox.Show("Save button on PDF toolbar is disabled after the next navigation.");
             }
         }
-
-        async void ClearBrowsingDataCmdExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-            string dataKindString = e.Parameter.ToString();
-            CoreWebView2BrowsingDataKinds dataKinds;
-            if (dataKindString == "Cookies")
-            {
-                dataKinds = CoreWebView2BrowsingDataKinds.Cookies;
-            }
-            else if (dataKindString == "DOM Storage")
-            {
-                dataKinds = CoreWebView2BrowsingDataKinds.AllDomStorage;
-            }
-            else if (dataKindString == "Site")
-            {
-                dataKinds = CoreWebView2BrowsingDataKinds.AllSite;
-            }
-            else if (dataKindString == "Disk Cache")
-            {
-                dataKinds = CoreWebView2BrowsingDataKinds.DiskCache;
-            }
-            else if (dataKindString == "Download History")
-            {
-                dataKinds = CoreWebView2BrowsingDataKinds.DownloadHistory;
-            }
-            else if (dataKindString == "Autofill")
-            {
-                dataKinds = (CoreWebView2BrowsingDataKinds)(CoreWebView2BrowsingDataKinds.GeneralAutofill | CoreWebView2BrowsingDataKinds.PasswordAutosave);
-            }
-            else if (dataKindString == "Browsing History")
-            {
-                dataKinds = CoreWebView2BrowsingDataKinds.BrowsingHistory;
-            }
-            else
-            {
-                dataKinds = CoreWebView2BrowsingDataKinds.AllProfile;
-            }
-            System.DateTime endTime = DateTime.Now;
-            System.DateTime startTime = DateTime.Now.AddHours(-1);
-
-            // Clear the browsing data from the last hour. 
-            await WebViewProfile.ClearBrowsingDataAsync(dataKinds, startTime, endTime);
-            MessageBox.Show(this,
-               "Completed",
-               "Clear Browsing Data");
-        }
-
         void NewBrowserVersionCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             foreach (Window window in Application.Current.Windows)

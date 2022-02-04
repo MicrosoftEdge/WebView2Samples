@@ -96,16 +96,6 @@ found in the LICENSE file.
                 <MenuItem Header="_Web Messages" Command="{x:Static local:MainWindow.WebMessagesCommand}"/>
                 <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem x:Name="newVersionMenuItem" Header="New Browser _Version" Command="{x:Static local:MainWindow.NewBrowserVersionCommand}"/>
-                <MenuItem Header="_Clear Browsing Data">
-                    <MenuItem Header="All DOM Storage" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="DOM Storage"/>
-                    <MenuItem Header="All Profile" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Profile"/>
-                    <MenuItem Header="All Site" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Site"/>
-                    <MenuItem Header="Autofill" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Autofill"/>
-                    <MenuItem Header="Browsing History" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Browsing History"/>
-                    <MenuItem Header="Cookies" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Cookies"/>
-                    <MenuItem Header="Disk Cache" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Disk Cache"/>
-                    <MenuItem Header="Download History" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Download History"/>
-                </MenuItem>
                 <MenuItem Header="_Client Certificate Requested">
                     <MenuItem Header="_Custom Client Certificate Selection" Command="{x:Static local:MainWindow.CustomClientCertificateSelectionCommand}"/>
                     <MenuItem Header="_Deferred Custom Client Certificate Selection Dialog" Command="{x:Static local:MainWindow.DeferredCustomCertificateDialogCommand}"/>
