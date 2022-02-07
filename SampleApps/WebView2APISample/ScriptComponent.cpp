@@ -57,11 +57,43 @@ bool IsTargetSite(PCWSTR siteUrl)
 }
 //! [AdditionalAllowedFrameAncestors_1]
 
+// Simple functions to retrieve fields from a JSON message.
+// For production code, you should use a real JSON parser library.
+const std::wstring GetJSONStringField(PCWSTR JsonMessage, PCWSTR fieldName)
+{
+    std::wstring message(JsonMessage);
+    std::wstring startSubStr = L"\"";
+    startSubStr.append(fieldName);
+    startSubStr.append(L"\":\"");
+    std::string::size_type start = message.find(startSubStr);
+    if (start == std::wstring::npos)
+        return std::wstring();
+    start += startSubStr.length();
+    std::string::size_type end = message.find(L'\"', start);
+    if (end == std::wstring::npos)
+        return std::wstring();
+    return message.substr(start, end - start);
+}
+const int64_t GetJSONIntegerField(PCWSTR JsonMessage, PCWSTR fieldName)
+{
+    std::wstring message(JsonMessage);
+    std::wstring startSubStr = L"\"";
+    startSubStr.append(fieldName);
+    startSubStr.append(L"\":");
+    std::string::size_type start = message.find(startSubStr);
+    if (start == std::wstring::npos)
+        return 0;
+    start += startSubStr.length();
+    return _wtoi64(message.substr(start).c_str());
+}
+
 ScriptComponent::ScriptComponent(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
 {
     HandleIFrames();
+    HandleCDPTargets();
 }
+
 bool ScriptComponent::HandleWindowMessage(
     HWND hWnd,
     UINT message,
@@ -94,6 +126,12 @@ bool ScriptComponent::HandleWindowMessage(
         case IDM_CALL_CDP_METHOD:
             CallCdpMethod();
             return true;
+        case IDM_CALL_CDP_METHOD_FOR_SESSION:
+            CallCdpMethodForSession();
+            return true;
+        case IDM_COLLECT_HEAP_MEMORY_VIA_CDP:
+            CollectHeapUsageViaCdp();
+            return true;
         case IDM_ADD_HOST_OBJECT:
             AddComObject();
             return true;
@@ -119,6 +157,7 @@ bool ScriptComponent::HandleWindowMessage(
     }
     return false;
 }
+
 //! [ExecuteScript]
 // Prompt the user for some script and then execute it.
 void ScriptComponent::InjectScript()
@@ -321,6 +360,240 @@ void ScriptComponent::SendJsonWebMessageIFrame()
     }
 }
 
+//! [DevToolsProtocolMethodMultiSession]
+void ScriptComponent::HandleCDPTargets()
+{
+    wil::com_ptr<ICoreWebView2DevToolsProtocolEventReceiver> receiver;
+    // Enable Runtime events to receive Runtime.consoleAPICalled events.
+    m_webView->CallDevToolsProtocolMethod(L"Runtime.enable", L"{}", nullptr);
+    CHECK_FAILURE(
+        m_webView->GetDevToolsProtocolEventReceiver(L"Runtime.consoleAPICalled", &receiver));
+    CHECK_FAILURE(receiver->add_DevToolsProtocolEventReceived(
+        Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT
+            {
+                // Get console.log message details and which target it comes from.
+                wil::unique_cotaskmem_string parameterObjectAsJson;
+                CHECK_FAILURE(args->get_ParameterObjectAsJson(&parameterObjectAsJson));
+                std::wstring eventSourceLabel;
+                std::wstring eventDetails = parameterObjectAsJson.get();
+                wil::com_ptr<ICoreWebView2ExperimentalDevToolsProtocolEventReceivedEventArgs>
+                    args2;
+                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))))
+                {
+                    wil::unique_cotaskmem_string sessionId;
+                    CHECK_FAILURE(args2->get_SessionId(&sessionId));
+                    if (sessionId.get() && *sessionId.get())
+                    {
+                        std::wstring targetId = m_devToolsSessionMap[sessionId.get()];
+                        eventSourceLabel = m_devToolsTargetLabelMap[targetId];
+                    }
+                }
+                // else, leave eventSourceLabel as empty string for the default target of top
+                // page.
+
+                // Log events to debug output, not using dialog as there could be a lot of
+                // console.log events.
+                std::wstring message = L"console.log Event: ";
+                if (!eventSourceLabel.empty())
+                {
+                    message = message + L"(from " + eventSourceLabel + L")";
+                }
+                message += eventDetails + L"\n";
+                OutputDebugString(message.c_str());
+                return S_OK;
+            })
+            .Get(),
+        &m_consoleAPICalledToken));
+    receiver.reset();
+    // Track Target and session info via CDP events.
+    CHECK_FAILURE(
+        m_webView->GetDevToolsProtocolEventReceiver(L"Target.attachedToTarget", &receiver));
+    CHECK_FAILURE(receiver->add_DevToolsProtocolEventReceived(
+        Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT
+            {
+                // A new target is attached, add its info to maps.
+                wil::unique_cotaskmem_string jsonMessage;
+                CHECK_FAILURE(args->get_ParameterObjectAsJson(&jsonMessage));
+                std::wstring sessionId = GetJSONStringField(jsonMessage.get(), L"sessionId");
+                std::wstring targetId = GetJSONStringField(jsonMessage.get(), L"targetId");
+                m_devToolsSessionMap[sessionId] = targetId;
+                std::wstring type = GetJSONStringField(jsonMessage.get(), L"type");
+                std::wstring url = GetJSONStringField(jsonMessage.get(), L"url");
+                m_devToolsTargetLabelMap.insert_or_assign(targetId, type + L"," + url);
+                wil::com_ptr<ICoreWebView2Experimental14> webview2 =
+                    m_webView.try_query<ICoreWebView2Experimental14>();
+                if (webview2)
+                {
+                    // Auto-attach to targets further created from this target (identified by
+                    // its session ID), like dedicated worker target created in the iframe.
+                    webview2->CallDevToolsProtocolMethodForSession(
+                        sessionId.c_str(), L"Target.setAutoAttach",
+                        LR"({"autoAttach":true,"waitForDebuggerOnStart":false,"flatten":true})",
+                        nullptr);
+                    // Also enable Runtime events to receive Runtime.consoleAPICalled from the
+                    // target.
+                    webview2->CallDevToolsProtocolMethodForSession(
+                        sessionId.c_str(), L"Runtime.enable", L"{}", nullptr);
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_targetAttachedToken));
+    receiver.reset();
+    CHECK_FAILURE(
+        m_webView->GetDevToolsProtocolEventReceiver(L"Target.detachedFromTarget", &receiver));
+    CHECK_FAILURE(receiver->add_DevToolsProtocolEventReceived(
+        Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT
+            {
+                // A target is detached, remove it from the maps.
+                wil::unique_cotaskmem_string jsonMessage;
+                CHECK_FAILURE(args->get_ParameterObjectAsJson(&jsonMessage));
+                std::wstring sessionId = GetJSONStringField(jsonMessage.get(), L"sessionId");
+                auto session = m_devToolsSessionMap.find(sessionId);
+                if (session != m_devToolsSessionMap.end())
+                {
+                    m_devToolsTargetLabelMap.erase(session->second);
+                    m_devToolsSessionMap.erase(session);
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_targetDetachedToken));
+    receiver.reset();
+    CHECK_FAILURE(
+        m_webView->GetDevToolsProtocolEventReceiver(L"Target.targetCreated", &receiver));
+    CHECK_FAILURE(receiver->add_DevToolsProtocolEventReceived(
+        Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT
+            {
+                // Shared worker targets are not auto attached. Have to attach it explicitly.
+                wil::unique_cotaskmem_string jsonMessage;
+                CHECK_FAILURE(args->get_ParameterObjectAsJson(&jsonMessage));
+                std::wstring type = GetJSONStringField(jsonMessage.get(), L"type");
+                if (type == L"shared_worker")
+                {
+                    std::wstring targetId = GetJSONStringField(jsonMessage.get(), L"targetId");
+                    std::wstring parameters =
+                        L"{\"targetId\":\"" + targetId + L"\",\"flatten\": true}";
+                    // Call Target.attachToTarget and ignore returned value, let
+                    // Target.attachedToTarget to handle the result.
+                    m_webView->CallDevToolsProtocolMethod(
+                        L"Target.attachToTarget", parameters.c_str(), nullptr);
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_targetCreatedToken));
+    receiver.reset();
+    CHECK_FAILURE(
+        m_webView->GetDevToolsProtocolEventReceiver(L"Target.targetInfoChanged", &receiver));
+    CHECK_FAILURE(receiver->add_DevToolsProtocolEventReceived(
+        Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT
+            {
+                // A target's info (such as its URL) has changed, so update its label in the
+                // target label map.
+                wil::unique_cotaskmem_string jsonMessage;
+                CHECK_FAILURE(args->get_ParameterObjectAsJson(&jsonMessage));
+                std::wstring targetId = GetJSONStringField(jsonMessage.get(), L"targetId");
+                if (m_devToolsTargetLabelMap.find(targetId) !=
+                    m_devToolsTargetLabelMap.end())
+                {
+                    // This is a target that we are interested in, update label.
+                    std::wstring type = GetJSONStringField(jsonMessage.get(), L"type");
+                    std::wstring url = GetJSONStringField(jsonMessage.get(), L"url");
+                    m_devToolsTargetLabelMap[targetId] = type + L"," + url;
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_targetInfoChangedToken));
+    // Setup CDP targets operation mode.
+    // Set auto attach to attach to dedicated worker target.
+    m_webView->CallDevToolsProtocolMethod(
+        L"Target.setAutoAttach",
+        LR"({"autoAttach":true,"waitForDebuggerOnStart":false,"flatten":true})", nullptr);
+    // Set setDiscoverTargets to get targetCreated event for shared worker target.
+    m_webView->CallDevToolsProtocolMethod(
+        L"Target.setDiscoverTargets", LR"({"discover":true})", nullptr);
+}
+//! [DevToolsProtocolMethodMultiSession]
+
+void ScriptComponent::CollectHeapUsageViaCdp()
+{
+    if (m_pendingHeapUsageCollectionCount)
+    {
+        // Already collecting, return
+        return;
+    }
+    wil::com_ptr<ICoreWebView2Experimental14> webview2 =
+        m_webView.try_query<ICoreWebView2Experimental14>();
+    CHECK_FEATURE_RETURN_EMPTY(webview2);
+    m_pendingHeapUsageCollectionCount = 0;
+    m_heapUsageResult.clear();
+    m_heapUsageResult.str(L"Heap Usage (KB)");
+    m_heapUsageResult << std::endl;
+    // Collect main target
+    ++m_pendingHeapUsageCollectionCount;
+    std::wstring main_targetInfo = L"Main Page";
+    m_webView->CallDevToolsProtocolMethod(
+        L"Runtime.getHeapUsage", L"{}",
+        Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
+            [this, main_targetInfo](HRESULT error, PCWSTR resultJson) -> HRESULT
+            {
+                HandleHeapUsageResult(main_targetInfo, resultJson);
+                return S_OK;
+            })
+            .Get());
+    // Collect heap usage for other targets.
+    for (auto& target : m_devToolsSessionMap)
+    {
+        ++m_pendingHeapUsageCollectionCount;
+        std::wstring targetLabel = m_devToolsTargetLabelMap[target.second];
+        webview2->CallDevToolsProtocolMethodForSession(
+            target.first.c_str(), L"Runtime.getHeapUsage", L"{}",
+            Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
+                [this, targetLabel](HRESULT error, PCWSTR resultJson) -> HRESULT
+                {
+                    HandleHeapUsageResult(targetLabel, resultJson);
+                    return S_OK;
+                })
+                .Get());
+    }
+}
+
+void ScriptComponent::HandleHeapUsageResult(std::wstring targetInfo, PCWSTR resultJson)
+{
+    int64_t totalSize = GetJSONIntegerField(resultJson, L"totalSize");
+    int64_t usedSize = GetJSONIntegerField(resultJson, L"usedSize");
+    m_heapUsageResult << L"total:";
+    m_heapUsageResult.width(8);
+    m_heapUsageResult << (totalSize / 1024);
+    m_heapUsageResult << L", used:";
+    m_heapUsageResult.width(8);
+    m_heapUsageResult << (usedSize / 1024);
+    m_heapUsageResult << L", ";
+    m_heapUsageResult << targetInfo;
+    m_heapUsageResult << std::endl;
+    if (--m_pendingHeapUsageCollectionCount == 0)
+    {
+        MessageBox(nullptr, m_heapUsageResult.str().c_str(), L"Heap Usage", MB_OK);
+    }
+}
+
     //! [DevToolsProtocolEventReceived]
 // Prompt the user to name a CDP event, and then subscribe to that event.
 void ScriptComponent::SubscribeToCdpEvent()
@@ -358,6 +631,24 @@ void ScriptComponent::SubscribeToCdpEvent()
                     CHECK_FAILURE(args->get_ParameterObjectAsJson(&parameterObjectAsJson));
                     std::wstring title = eventName;
                     std::wstring details = parameterObjectAsJson.get();
+                    //! [DevToolsProtocolEventReceivedSessionId]
+                    wil::com_ptr<
+                        ICoreWebView2ExperimentalDevToolsProtocolEventReceivedEventArgs>
+                        args2;
+                    if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))))
+                    {
+                        wil::unique_cotaskmem_string sessionId;
+                        CHECK_FAILURE(args2->get_SessionId(&sessionId));
+                        if (sessionId.get() && *sessionId.get())
+                        {
+                            title = eventName + L" (session:" + sessionId.get() + L")";
+                            std::wstring targetId = m_devToolsSessionMap[sessionId.get()];
+                            std::wstring targetLabel = m_devToolsTargetLabelMap[targetId];
+                            details = L"From " + targetLabel + L" (session:" + sessionId.get() +
+                                      L")\r\n" + details;
+                        }
+                    }
+                    //! [DevToolsProtocolEventReceivedSessionId]
                     // Use TextInputDialog to show the result for easy copy & paste.
                     TextInputDialog resultDialog(
                         m_appWindow->GetMainWindow(), L"CDP Event Fired", title.c_str(),
@@ -369,6 +660,7 @@ void ScriptComponent::SubscribeToCdpEvent()
     }
 }
 //! [DevToolsProtocolEventReceived]
+
 //! [CallDevToolsProtocolMethod]
 // Prompt the user for the name and parameters of a CDP method, then call it.
 void ScriptComponent::CallCdpMethod()
@@ -404,6 +696,56 @@ void ScriptComponent::CallCdpMethod()
     }
 }
 //! [CallDevToolsProtocolMethod]
+
+//! [CallDevToolsProtocolMethodForSession]
+// Prompt the user for the sessionid, name and parameters of a CDP method, then call it.
+void ScriptComponent::CallCdpMethodForSession()
+{
+    wil::com_ptr<ICoreWebView2Experimental14> webview2 = m_webView.try_query<ICoreWebView2Experimental14>();
+    CHECK_FEATURE_RETURN_EMPTY(webview2);
+    std::wstring sessionList = L"Sessions:";
+    for (auto& target : m_devToolsSessionMap)
+    {
+        sessionList += L"\r\n";
+        sessionList += target.first;
+        sessionList += L":";
+        sessionList += m_devToolsTargetLabelMap[target.second];
+    }
+    std::wstring description =
+        L"Enter the sessionId, CDP method name to call, and parameters in JSON format, "
+        L"separated by space,\r\n" +
+        sessionList;
+    TextInputDialog dialog(
+        m_appWindow->GetMainWindow(), L"Call CDP Method For Session", L"Parameters:",
+        description.c_str(),
+        L"<sessionId> Runtime.getHeapUsage {}");
+    if (dialog.confirmed)
+    {
+        size_t delimiter1Pos = dialog.input.find(L' ');
+        std::wstring sessionId = dialog.input.substr(0, delimiter1Pos);
+        size_t delimiter2Pos = dialog.input.find(L' ', delimiter1Pos+1);
+        std::wstring methodName =
+            dialog.input.substr(delimiter1Pos+1, delimiter2Pos - delimiter1Pos - 1);
+        std::wstring methodParams =
+            (delimiter2Pos < dialog.input.size() ? dialog.input.substr(delimiter2Pos + 1)
+                                                : L"{}");
+
+        webview2->CallDevToolsProtocolMethodForSession(
+            sessionId.c_str(), methodName.c_str(), methodParams.c_str(),
+            Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
+                [this](HRESULT error, PCWSTR resultJson) -> HRESULT
+                {
+                    // Use TextInputDialog to show the result for easy copy & paste.
+                    TextInputDialog resultDialog(
+                        m_appWindow->GetMainWindow(), L"CDP Method Call Result",
+                        L"CDP method Result:", resultJson, L"", true);
+                    return S_OK;
+                })
+                .Get());
+    }
+}
+//! [CallDevToolsProtocolMethodForSession]
+
 
 void ScriptComponent::AddComObject()
 {
@@ -622,5 +964,29 @@ ScriptComponent::~ScriptComponent()
         CHECK_FAILURE(
             m_webView->GetDevToolsProtocolEventReceiver(pair.first.c_str(), &receiver));
         receiver->remove_DevToolsProtocolEventReceived(pair.second);
+    }
+    wil::com_ptr<ICoreWebView2DevToolsProtocolEventReceiver> receiver;
+    // WebView could have been closed at this time, so only proceed if first
+    // GetDevToolsProtocolEventReceiver succeeded.
+    if (SUCCEEDED(
+            m_webView->GetDevToolsProtocolEventReceiver(L"Target.attachedToTarget", &receiver)))
+    {
+        receiver->remove_DevToolsProtocolEventReceived(m_targetAttachedToken);
+        receiver.reset();
+        CHECK_FAILURE(m_webView->GetDevToolsProtocolEventReceiver(
+            L"Target.detachedFromTarget", &receiver));
+        receiver->remove_DevToolsProtocolEventReceived(m_targetDetachedToken);
+        receiver.reset();
+        CHECK_FAILURE(
+            m_webView->GetDevToolsProtocolEventReceiver(L"Target.targetCreated", &receiver));
+        receiver->remove_DevToolsProtocolEventReceived(m_targetCreatedToken);
+        receiver.reset();
+        CHECK_FAILURE(m_webView->GetDevToolsProtocolEventReceiver(
+            L"Target.targetInfoChanged", &receiver));
+        receiver->remove_DevToolsProtocolEventReceived(m_targetInfoChangedToken);
+        receiver.reset();
+        CHECK_FAILURE(m_webView->GetDevToolsProtocolEventReceiver(
+            L"Runtime.consoleAPICalled", &receiver));
+        receiver->remove_DevToolsProtocolEventReceived(m_consoleAPICalledToken);
     }
 }

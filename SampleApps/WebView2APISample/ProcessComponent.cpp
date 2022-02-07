@@ -280,7 +280,7 @@ void ProcessComponent::CrashRenderProcess()
     m_webView->Navigate(L"edge://kill");
 }
 
-//! [ProcessInfosChanged]
+//! [ProcessInfosChanged1]
 void ProcessComponent::PerformanceInfo()
 {
     std::wstring result;
@@ -324,7 +324,7 @@ void ProcessComponent::PerformanceInfo()
     }
     MessageBox(nullptr, result.c_str(), L"Memory Usage", MB_OK);
 }
-//! [ProcessInfosChanged]
+//! [ProcessInfosChanged1]
 
 /*static*/ void ProcessComponent::EnsureProcessIsClosed(UINT processId, int timeoutMs)
 {

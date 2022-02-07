@@ -73,6 +73,8 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Subscribe to CDP event",      IDM_SUBSCRIBE_TO_CDP_EVENT
         MENUITEM "Call CDP method",             IDM_CALL_CDP_METHOD
+        MENUITEM "Call CDP method For Session", IDM_CALL_CDP_METHOD_FOR_SESSION
+        MENUITEM "Collect Heap Usage Via CDP",  IDM_COLLECT_HEAP_MEMORY_VIA_CDP
         MENUITEM SEPARATOR
         MENUITEM "Add COM object",              IDM_ADD_HOST_OBJECT
         MENUITEM SEPARATOR
