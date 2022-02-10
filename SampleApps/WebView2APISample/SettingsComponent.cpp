@@ -31,6 +31,7 @@ SettingsComponent::SettingsComponent(
     m_webView2_5 = m_webView.try_query<ICoreWebView2_5>();
     m_webViewExperimental5 = m_webView.try_query<ICoreWebView2Experimental5>();
     m_webViewExperimental6 = m_webView.try_query<ICoreWebView2Experimental6>();
+    m_webViewExperimental13 = m_webView.try_query<ICoreWebView2Experimental13>();
     // Copy old settings if desired
     if (old)
     {
@@ -310,6 +311,38 @@ SettingsComponent::SettingsComponent(
             .Get(),
         &m_permissionRequestedToken));
     //! [PermissionRequested]
+
+  if(m_webViewExperimental13) {
+    // ![StatusBarTextChanged]
+    m_statusBar.Initialize(appWindow);
+    // Registering a listener for status bar message changes
+    CHECK_FAILURE(m_webViewExperimental13->add_StatusBarTextChanged(
+        Microsoft::WRL::Callback<ICoreWebView2ExperimentalStatusBarTextChangedEventHandler>(
+            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                if (m_customStatusBar)
+                {
+                    wil::unique_cotaskmem_string value;
+                    Microsoft::WRL::ComPtr<ICoreWebView2Experimental13> wv;
+                    CHECK_FAILURE(sender->QueryInterface(IID_PPV_ARGS(&wv)));
+
+                    CHECK_FAILURE(wv->get_StatusBarText(&value));
+                    std::wstring valueString = value.get();
+                    if (valueString.length() != 0)
+                    {
+                        m_statusBar.Show(valueString);
+                    }
+                    else
+                    {
+                        m_statusBar.Hide();
+                    }
+                }
+
+                return S_OK;
+            })
+            .Get(),
+        &m_statusBarTextChangedToken));
+    // ![StatusBarTextChanged]
+  }
 }
 
 bool SettingsComponent::HandleWindowMessage(
@@ -1233,7 +1266,7 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
                     [this](
                         ICoreWebView2* sender,
                         ICoreWebView2ClientCertificateRequestedEventArgs* args) {
-                        wil::com_ptr<ICoreWebView2ClientCertificateCollection>
+                        wil::com_ptr<ICoreWebView2CertificateCollection>
                             certificateCollection;
                         CHECK_FAILURE(
                             args->get_MutuallyTrustedCertificates(&certificateCollection));
@@ -1241,7 +1274,7 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
                         UINT certificateCollectionCount = 0;
                         CHECK_FAILURE(
                             certificateCollection->get_Count(&certificateCollectionCount));
-                        wil::com_ptr<ICoreWebView2ClientCertificate> certificate = nullptr;
+                        wil::com_ptr<ICoreWebView2Certificate> certificate = nullptr;
 
                         if (certificateCollectionCount > 0)
                         {

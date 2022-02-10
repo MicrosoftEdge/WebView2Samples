@@ -12,6 +12,8 @@
 
 #include "AppWindow.h"
 #include "ComponentBase.h"
+#include "CustomStatusBar.h"
+
 // This component handles commands from the Settings menu.  It also handles the
 // NavigationStarting, FrameNavigationStarting, WebResourceRequested, ScriptDialogOpening,
 // and PermissionRequested events.
@@ -57,6 +59,7 @@ private:
     wil::com_ptr<ICoreWebView2Controller3> m_controller3;
     wil::com_ptr<ICoreWebView2Experimental5> m_webViewExperimental5;
     wil::com_ptr<ICoreWebView2Experimental6> m_webViewExperimental6;
+    wil::com_ptr<ICoreWebView2Experimental13> m_webViewExperimental13;
     wil::com_ptr<ICoreWebView2ExperimentalContextMenuItem> m_displayPageUrlContextSubMenuItem;
     bool m_blockImages = false;
     bool m_replaceImages = false;
@@ -71,6 +74,8 @@ private:
     std::vector<std::wstring> m_blockedSites;
     std::wstring m_overridingUserAgent;
     std::function<void()> m_completeDeferredDialog;
+    CustomStatusBar m_statusBar;
+    bool m_customStatusBar = false;
 
     EventRegistrationToken m_navigationStartingToken = {};
     EventRegistrationToken m_frameNavigationStartingToken = {};
@@ -81,4 +86,5 @@ private:
     EventRegistrationToken m_permissionRequestedToken = {};
     EventRegistrationToken m_ClientCertificateRequestedToken = {};
     EventRegistrationToken m_contextMenuRequestedToken = {};
+    EventRegistrationToken m_statusBarTextChangedToken = {};
 };

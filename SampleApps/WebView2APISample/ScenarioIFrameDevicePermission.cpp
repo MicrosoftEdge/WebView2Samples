@@ -29,13 +29,13 @@ ScenarioIFrameDevicePermission::ScenarioIFrameDevicePermission(AppWindow* appWin
                     wil::com_ptr<ICoreWebView2Frame> webviewFrame;
                     CHECK_FAILURE(args->get_Frame(&webviewFrame));
 
-                    m_experimentalFrame3 = webviewFrame.try_query<ICoreWebView2ExperimentalFrame3>();
-                    if (m_experimentalFrame3)
+                    m_frame3 = webviewFrame.try_query<ICoreWebView2Frame3>();
+                    if (m_frame3)
                     {
-                        CHECK_FAILURE(m_experimentalFrame3->add_PermissionRequested(
-                            Callback<ICoreWebView2ExperimentalFramePermissionRequestedEventHandler>(
+                        CHECK_FAILURE(m_frame3->add_PermissionRequested(
+                            Callback<ICoreWebView2FramePermissionRequestedEventHandler>(
                                 [this](ICoreWebView2Frame* sender,
-                                   ICoreWebView2ExperimentalPermissionRequestedEventArgs* args)
+                                   ICoreWebView2PermissionRequestedEventArgs2* args)
                                       -> HRESULT {
                                         // If we set Handled to true, then we will not fire the PermissionRequested
                                         // event off of the CoreWebView2.
@@ -154,9 +154,9 @@ ScenarioIFrameDevicePermission::ScenarioIFrameDevicePermission(AppWindow* appWin
 
 ScenarioIFrameDevicePermission::~ScenarioIFrameDevicePermission()
 {
-    if (m_experimentalFrame3)
+    if (m_frame3)
     {
-        CHECK_FAILURE(m_experimentalFrame3->remove_PermissionRequested(m_PermissionRequestedToken));
+        CHECK_FAILURE(m_frame3->remove_PermissionRequested(m_PermissionRequestedToken));
     }
     if (m_webView4)
     {

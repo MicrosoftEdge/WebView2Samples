@@ -36,10 +36,15 @@ private:
     void SendJsonWebMessage();
     void SubscribeToCdpEvent();
     void CallCdpMethod();
+    void HandleCDPTargets();
+    void CallCdpMethodForSession();
+    void CollectHeapUsageViaCdp();
+    void HandleHeapUsageResult(std::wstring targetInfo, PCWSTR resultJson);
     void AddComObject();
     void OpenTaskManagerWindow();
     void SendStringWebMessageIFrame();
     void SendJsonWebMessageIFrame();
+
     void AddSiteEmbeddingIFrame();
 
     ~ScriptComponent() override;
@@ -54,5 +59,17 @@ private:
 
     std::wstring m_lastInitializeScriptId;
     std::map<std::wstring, EventRegistrationToken> m_devToolsProtocolEventReceivedTokenMap;
+    EventRegistrationToken m_targetAttachedToken;
+    EventRegistrationToken m_targetDetachedToken;
+    EventRegistrationToken m_targetCreatedToken;
+    EventRegistrationToken m_targetInfoChangedToken;
+    EventRegistrationToken m_consoleAPICalledToken;
+    // SessionId to TargetId map
+    std::map<std::wstring, std::wstring> m_devToolsSessionMap;
+    // TargetId to description label map, where label is "<target type>,<target url>".
+    std::map<std::wstring, std::wstring> m_devToolsTargetLabelMap;
+    int m_pendingHeapUsageCollectionCount = 0;
+    std::wstringstream m_heapUsageResult;
 };
+
 #endif
