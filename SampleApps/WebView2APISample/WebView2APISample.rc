@@ -116,13 +116,6 @@ BEGIN
     POPUP "S&ettings"
     BEGIN
         MENUITEM "Blocked Domains",             ID_BLOCKEDSITES
-        POPUP "JavaScript Dialogs"
-        BEGIN
-            MENUITEM "Use Default Script Dialogs",  IDM_USE_DEFAULT_SCRIPT_DIALOGS
-            MENUITEM "Use Custom Script Dialogs",   IDM_USE_CUSTOM_SCRIPT_DIALOGS
-            MENUITEM "Use Deferred Script Dialogs", IDM_USE_DEFERRED_SCRIPT_DIALOGS
-            MENUITEM "Complete Deferred Script Dialog", IDM_COMPLETE_JAVASCRIPT_DIALOG
-        END
         MENUITEM "Set User Agent",              ID_SETTINGS_SETUSERAGENT
         MENUITEM "Toggle Allow External Drop",    ID_TOGGLE_ALLOW_EXTERNAL_DROP
         MENUITEM "Toggle Block Images",         ID_SETTINGS_BLOCKALLIMAGES
@@ -131,6 +124,7 @@ BEGIN
         MENUITEM "Toggle Client Certificate Requested", ID_TOGGLE_CLIENT_CERTIFICATE_REQUESTED
         MENUITEM "Toggle Context Menus Enabled", ID_SETTINGS_CONTEXT_MENUS_ENABLED
         MENUITEM "Toggle Custom Context Menu", ID_TOGGLE_CUSTOM_CONTEXT_MENU
+        MENUITEM "Toggle Default Script Dialogs", IDM_TOGGLE_DEFAULT_SCRIPT_DIALOGS
         MENUITEM "Toggle DevTools Enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
         MENUITEM "Toggle General Autofill",     ID_SETTINGS_GENERAL_AUTOFILL_ENABLED
         MENUITEM "Toggle Hide PDF Toolbar Items", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS

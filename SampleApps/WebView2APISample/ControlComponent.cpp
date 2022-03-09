@@ -119,10 +119,10 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                     // The web page can cancel its own iframe loads, so we'll ignore that.
                     if (webErrorStatus != COREWEBVIEW2_WEB_ERROR_STATUS_OPERATION_CANCELED)
                     {
-                        std::wstring error_msg = WebErrorStatusToString(webErrorStatus);
-                        MessageBox(nullptr,
-                           (std::wstring(L"IFrame navigation failed: ") + error_msg).c_str(),
-                           L"Navigation Failure", MB_OK);
+                        m_appWindow->AsyncMessageBox(
+                            L"Iframe navigation failed: "
+                                + WebErrorStatusToString(webErrorStatus),
+                            L"Navigation Failure");
                     }
                 }
                 return S_OK;
@@ -187,8 +187,8 @@ ControlComponent::ControlComponent(AppWindow* appWindow, Toolbar* toolbar)
                     UINT key;
                     CHECK_FAILURE(args->get_VirtualKey(&key));
                     // Check if the key is one we want to handle.
-                    if (std::function<void()> action =
-                            m_appWindow->GetAcceleratorKeyFunction(key))
+                    std::function<void()> action = m_appWindow->GetAcceleratorKeyFunction(key);
+                    if (action)
                     {
                         // Keep the browser from handling this key, whether it's autorepeated or
                         // not.

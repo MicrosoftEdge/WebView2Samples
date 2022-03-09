@@ -177,6 +177,11 @@ namespace WebView2WindowsFormsBrowser
             Color backgroundColor = Color.FromName(menuItem.Text);
             this.webView2Control.DefaultBackgroundColor = backgroundColor;
         }
+
+        private void allowExternalDropMenuItem_Click(object sender, EventArgs e)
+        {
+            this.webView2Control.AllowExternalDrop = this.allowExternalDropMenuItem.Checked;
+        }
         #endregion
 
         private void HandleResize()

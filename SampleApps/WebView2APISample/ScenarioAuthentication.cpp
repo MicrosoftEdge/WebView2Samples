@@ -33,9 +33,9 @@ ScenarioAuthentication::ScenarioAuthentication(AppWindow* appWindow) :
                     wil::unique_cotaskmem_string authHeaderValue;
                     if (requestHeaders->GetHeader(L"Authorization", &authHeaderValue) == S_OK)
                     {
-                        std::wstring message(L"Authorization: ");
-                        message += authHeaderValue.get();
-                        MessageBox(nullptr, message.c_str(), nullptr, MB_OK);
+                        m_appWindow->AsyncMessageBox(
+                            std::wstring(L"Authorization: ") + authHeaderValue.get(),
+                            L"Authentication result");
                         m_appWindow->DeleteComponent(this);
                     }
                 }

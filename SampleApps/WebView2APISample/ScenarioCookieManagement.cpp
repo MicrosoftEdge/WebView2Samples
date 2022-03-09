@@ -224,7 +224,7 @@ void ScenarioCookieManagement::GetCookiesHelper(std::wstring uri)
                         }
                         result += L"]";
                     }
-                    MessageBox(nullptr, result.c_str(), L"GetCookies Result", MB_OK);
+                    m_appWindow->AsyncMessageBox(std::move(result), L"GetCookies Result");
                     return S_OK;
                 })
                 .Get()));

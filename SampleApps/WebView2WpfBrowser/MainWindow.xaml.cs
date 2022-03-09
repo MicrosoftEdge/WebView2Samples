@@ -59,6 +59,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand PinchZoomCommand = new RoutedCommand();
         public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
         public static RoutedCommand ToggleMuteStateCommand = new RoutedCommand();
+        public static RoutedCommand AllowExternalDropCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         CoreWebView2Settings _webViewSettings;
@@ -199,6 +200,7 @@ namespace WebView2WpfBrowser
         {
             EnableCustomClientCertificateSelection();
         }
+
         void DeferredCustomCertificateDialogCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             DeferredCustomClientCertificateSelectionDialog();
@@ -1484,6 +1486,11 @@ namespace WebView2WpfBrowser
         void ToggleMuteStateCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             webView.CoreWebView2.IsMuted = !webView.CoreWebView2.IsMuted;
+        }
+
+        void AllowExternalDropCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.AllowExternalDrop = !webView.AllowExternalDrop;
         }
         void CreateDownloadsButtonCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
