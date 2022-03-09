@@ -64,8 +64,6 @@ void AudioComponent::ToggleMuteState()
          BOOL isMuted;
          CHECK_FAILURE(webview2_8->get_IsMuted(&isMuted));
          CHECK_FAILURE(webview2_8->put_IsMuted(!isMuted));
-         std::wstring result = !isMuted ? L"WebView is Now Muted" : L"WebView is Now Unmuted";
-         MessageBox(nullptr, result.c_str(), L"Mute State Changed", MB_OK);
      }
  }
 

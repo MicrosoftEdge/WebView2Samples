@@ -9,7 +9,7 @@
 
 using namespace Microsoft::WRL;
 
-static PCWSTR NameOfCertificateKind(COREWEBVIEW2_CERTIFICATE_KIND kind);
+static PCWSTR NameOfCertificateKind(COREWEBVIEW2_CLIENT_CERTIFICATE_KIND kind);
 
 ScenarioClientCertificateRequested::ScenarioClientCertificateRequested(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
@@ -29,7 +29,7 @@ ScenarioClientCertificateRequested::ScenarioClientCertificateRequested(AppWindow
                     ICoreWebView2* sender,
                     ICoreWebView2ClientCertificateRequestedEventArgs* args) {
                         auto showDialog = [this, args] {
-                            wil::com_ptr<ICoreWebView2CertificateCollection> certificateCollection;
+                            wil::com_ptr<ICoreWebView2ClientCertificateCollection> certificateCollection;
                             CHECK_FAILURE(args->get_MutuallyTrustedCertificates(&certificateCollection));
 
                             wil::unique_cotaskmem_string host;
@@ -41,7 +41,7 @@ ScenarioClientCertificateRequested::ScenarioClientCertificateRequested(AppWindow
                             UINT certificateCollectionCount;
                             CHECK_FAILURE(certificateCollection->get_Count(&certificateCollectionCount));
 
-                            wil::com_ptr<ICoreWebView2Certificate> certificate = nullptr;
+                            wil::com_ptr<ICoreWebView2ClientCertificate> certificate = nullptr;
 
                             if (certificateCollectionCount > 0)
                             {
@@ -57,7 +57,7 @@ ScenarioClientCertificateRequested::ScenarioClientCertificateRequested(AppWindow
 
                                     CHECK_FAILURE(certificate->get_Issuer(&clientCertificate.Issuer));
 
-                                    COREWEBVIEW2_CERTIFICATE_KIND Kind;
+                                    COREWEBVIEW2_CLIENT_CERTIFICATE_KIND Kind;
                                     CHECK_FAILURE(
                                         certificate->get_Kind(&Kind));
                                     clientCertificate.CertificateKind = NameOfCertificateKind(Kind);
@@ -123,13 +123,13 @@ ScenarioClientCertificateRequested::ScenarioClientCertificateRequested(AppWindow
     //! [ClientCertificateRequested2]
 }
 
-static PCWSTR NameOfCertificateKind(COREWEBVIEW2_CERTIFICATE_KIND kind)
+static PCWSTR NameOfCertificateKind(COREWEBVIEW2_CLIENT_CERTIFICATE_KIND kind)
 {
     switch (kind)
     {
-    case COREWEBVIEW2_CERTIFICATE_KIND_SMART_CARD:
+    case COREWEBVIEW2_CLIENT_CERTIFICATE_KIND_SMART_CARD:
         return L"Smart Card";
-    case COREWEBVIEW2_CERTIFICATE_KIND_PIN:
+    case COREWEBVIEW2_CLIENT_CERTIFICATE_KIND_PIN:
         return L"PIN";
     default:
         return L"Other";

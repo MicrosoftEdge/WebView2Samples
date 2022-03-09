@@ -1266,7 +1266,7 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
                     [this](
                         ICoreWebView2* sender,
                         ICoreWebView2ClientCertificateRequestedEventArgs* args) {
-                        wil::com_ptr<ICoreWebView2CertificateCollection>
+                        wil::com_ptr<ICoreWebView2ClientCertificateCollection>
                             certificateCollection;
                         CHECK_FAILURE(
                             args->get_MutuallyTrustedCertificates(&certificateCollection));
@@ -1274,7 +1274,7 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
                         UINT certificateCollectionCount = 0;
                         CHECK_FAILURE(
                             certificateCollection->get_Count(&certificateCollectionCount));
-                        wil::com_ptr<ICoreWebView2Certificate> certificate = nullptr;
+                        wil::com_ptr<ICoreWebView2ClientCertificate> certificate = nullptr;
 
                         if (certificateCollectionCount > 0)
                         {

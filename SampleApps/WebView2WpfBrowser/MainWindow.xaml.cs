@@ -1001,7 +1001,7 @@ namespace WebView2WpfBrowser
 
         void WebView_ClientCertificateRequested(object sender, CoreWebView2ClientCertificateRequestedEventArgs e)
         {
-            IReadOnlyList<CoreWebView2Certificate> certificateList = e.MutuallyTrustedCertificates;
+            IReadOnlyList<CoreWebView2ClientCertificate> certificateList = e.MutuallyTrustedCertificates;
             if (certificateList.Count() > 0)
             {
                 // There is no significance to the order, picking a certificate arbitrarily.
@@ -1040,7 +1040,7 @@ namespace WebView2WpfBrowser
                         {
                             using (deferral)
                             {
-                                IReadOnlyList<CoreWebView2Certificate> certificateList = args.MutuallyTrustedCertificates;
+                                IReadOnlyList<CoreWebView2ClientCertificate> certificateList = args.MutuallyTrustedCertificates;
                                 if (certificateList.Count() > 0)
                                 {
                                     // Display custom dialog box for the client certificate selection.
@@ -1052,7 +1052,7 @@ namespace WebView2WpfBrowser
                                     if (dialog.ShowDialog() == true)
                                     {
                                         // Continue with the selected certificate to respond to the server if `OK` is selected.
-                                        args.SelectedCertificate = (CoreWebView2Certificate)dialog.CertificateDataBinding.SelectedItem;
+                                        args.SelectedCertificate = (CoreWebView2ClientCertificate)dialog.CertificateDataBinding.SelectedItem;
                                     }
                                     // Continue without a certificate to respond to the server if `CANCEL` is selected.
                                     args.Handled = true;

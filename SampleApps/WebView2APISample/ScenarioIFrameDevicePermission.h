@@ -22,7 +22,7 @@ private:
     wil::com_ptr<ICoreWebView2_4> m_webView4;
     std::map<std::tuple<std::wstring, COREWEBVIEW2_PERMISSION_KIND, BOOL>, bool>
         m_cached_permissions;
-    wil::com_ptr<ICoreWebView2Frame3> m_frame3;
+    wil::com_ptr<ICoreWebView2ExperimentalFrame3> m_experimentalFrame3;
     std::wstring m_sampleUri;
     EventRegistrationToken m_FrameCreatedToken = {};
     EventRegistrationToken m_ContentLoadingToken = {};
