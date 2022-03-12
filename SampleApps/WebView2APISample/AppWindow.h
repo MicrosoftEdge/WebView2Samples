@@ -109,7 +109,17 @@ public:
 
     void DeleteComponent(ComponentBase* scenario);
 
+    // Runs a function by posting it to the event loop.  Use this to do things
+    // that shouldn't be done in event handlers, like show message boxes.
+    // If you use this in a component, capture a pointer to this AppWindow
+    // instead of the component, because the component could get deleted before
+    // the AppWindow.
     void RunAsync(std::function<void(void)> callback);
+
+    // Calls win32 MessageBox inside RunAsync.  Always uses MB_OK.  If you need
+    // to get the return value from MessageBox, you'll have to use RunAsync
+    // yourself.
+    void AsyncMessageBox(std::wstring message, std::wstring title);
 
     void InstallComplete(int return_code);
 

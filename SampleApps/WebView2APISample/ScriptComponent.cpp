@@ -172,12 +172,12 @@ void ScriptComponent::InjectScript()
     {
         m_webView->ExecuteScript(dialog.input.c_str(),
             Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
-                [](HRESULT error, PCWSTR result) -> HRESULT
+                [appWindow = m_appWindow](HRESULT error, PCWSTR result) -> HRESULT
         {
             if (error != S_OK) {
                 ShowFailure(error, L"ExecuteScript failed");
             }
-            MessageBox(nullptr, result, L"ExecuteScript Result", MB_OK);
+            appWindow->AsyncMessageBox(result, L"ExecuteScript Result");
             return S_OK;
         }).Get());
     }
@@ -224,12 +224,18 @@ void ScriptComponent::InjectScriptInIFrame()
                 frame2->ExecuteScript(
                     dialogScript.input.c_str(),
                     Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
-                        [](HRESULT error, PCWSTR result) -> HRESULT {
-                            if (error != S_OK)
+                        [this](HRESULT error, PCWSTR result) -> HRESULT {
+                            m_appWindow->RunAsync([error, result = std::wstring(result)]
                             {
-                                ShowFailure(error, L"ExecuteScript failed");
-                            }
-                            MessageBox(nullptr, result, L"ExecuteScript Result", MB_OK);
+                                if (error != S_OK)
+                                {
+                                    ShowFailure(error, L"ExecuteScript failed");
+                                }
+                                else
+                                {
+                                    MessageBox(nullptr, result.c_str(), L"ExecuteScript Result", MB_OK);
+                                }
+                            });
                             return S_OK;
                         })
                         .Get());
@@ -262,7 +268,8 @@ void ScriptComponent::AddInitializeScript()
                 [this](HRESULT error, PCWSTR id) -> HRESULT
         {
             m_lastInitializeScriptId = id;
-            MessageBox(nullptr, id, L"AddScriptToExecuteOnDocumentCreated Id", MB_OK);
+            m_appWindow->AsyncMessageBox(
+                m_lastInitializeScriptId, L"AddScriptToExecuteOnDocumentCreated Id");
             return S_OK;
         }).Get());
 
@@ -379,8 +386,7 @@ void ScriptComponent::HandleCDPTargets()
                 CHECK_FAILURE(args->get_ParameterObjectAsJson(&parameterObjectAsJson));
                 std::wstring eventSourceLabel;
                 std::wstring eventDetails = parameterObjectAsJson.get();
-                wil::com_ptr<ICoreWebView2ExperimentalDevToolsProtocolEventReceivedEventArgs>
-                    args2;
+                wil::com_ptr<ICoreWebView2DevToolsProtocolEventReceivedEventArgs2> args2;
                 if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))))
                 {
                     wil::unique_cotaskmem_string sessionId;
@@ -426,8 +432,8 @@ void ScriptComponent::HandleCDPTargets()
                 std::wstring type = GetJSONStringField(jsonMessage.get(), L"type");
                 std::wstring url = GetJSONStringField(jsonMessage.get(), L"url");
                 m_devToolsTargetLabelMap.insert_or_assign(targetId, type + L"," + url);
-                wil::com_ptr<ICoreWebView2Experimental14> webview2 =
-                    m_webView.try_query<ICoreWebView2Experimental14>();
+                wil::com_ptr<ICoreWebView2_11> webview2 =
+                    m_webView.try_query<ICoreWebView2_11>();
                 if (webview2)
                 {
                     // Auto-attach to targets further created from this target (identified by
@@ -539,8 +545,7 @@ void ScriptComponent::CollectHeapUsageViaCdp()
         // Already collecting, return
         return;
     }
-    wil::com_ptr<ICoreWebView2Experimental14> webview2 =
-        m_webView.try_query<ICoreWebView2Experimental14>();
+    wil::com_ptr<ICoreWebView2_11> webview2 = m_webView.try_query<ICoreWebView2_11>();
     CHECK_FEATURE_RETURN_EMPTY(webview2);
     m_pendingHeapUsageCollectionCount = 0;
     m_heapUsageResult.clear();
@@ -632,9 +637,7 @@ void ScriptComponent::SubscribeToCdpEvent()
                     std::wstring title = eventName;
                     std::wstring details = parameterObjectAsJson.get();
                     //! [DevToolsProtocolEventReceivedSessionId]
-                    wil::com_ptr<
-                        ICoreWebView2ExperimentalDevToolsProtocolEventReceivedEventArgs>
-                        args2;
+                    wil::com_ptr<ICoreWebView2DevToolsProtocolEventReceivedEventArgs2> args2;
                     if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))))
                     {
                         wil::unique_cotaskmem_string sessionId;
@@ -649,10 +652,7 @@ void ScriptComponent::SubscribeToCdpEvent()
                         }
                     }
                     //! [DevToolsProtocolEventReceivedSessionId]
-                    // Use TextInputDialog to show the result for easy copy & paste.
-                    TextInputDialog resultDialog(
-                        m_appWindow->GetMainWindow(), L"CDP Event Fired", title.c_str(),
-                        details.c_str(), L"", true);
+                    m_appWindow->AsyncMessageBox(details, L"CDP Event Fired: " + title);
                     return S_OK;
                 })
                 .Get(),
@@ -687,10 +687,7 @@ void ScriptComponent::CallCdpMethod()
             Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
                 [this](HRESULT error, PCWSTR resultJson) -> HRESULT
                 {
-                    // Use TextInputDialog to show the result for easy copy & paste.
-                    TextInputDialog resultDialog(
-                        m_appWindow->GetMainWindow(), L"CDP Method Call Result",
-                        L"CDP method Result:", resultJson, L"", true);
+                    m_appWindow->AsyncMessageBox(resultJson, L"CDP method call result");
                     return S_OK;
                 }).Get());
     }
@@ -701,7 +698,7 @@ void ScriptComponent::CallCdpMethod()
 // Prompt the user for the sessionid, name and parameters of a CDP method, then call it.
 void ScriptComponent::CallCdpMethodForSession()
 {
-    wil::com_ptr<ICoreWebView2Experimental14> webview2 = m_webView.try_query<ICoreWebView2Experimental14>();
+    wil::com_ptr<ICoreWebView2_11> webview2 = m_webView.try_query<ICoreWebView2_11>();
     CHECK_FEATURE_RETURN_EMPTY(webview2);
     std::wstring sessionList = L"Sessions:";
     for (auto& target : m_devToolsSessionMap)
@@ -735,10 +732,7 @@ void ScriptComponent::CallCdpMethodForSession()
             Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
                 [this](HRESULT error, PCWSTR resultJson) -> HRESULT
                 {
-                    // Use TextInputDialog to show the result for easy copy & paste.
-                    TextInputDialog resultDialog(
-                        m_appWindow->GetMainWindow(), L"CDP Method Call Result",
-                        L"CDP method Result:", resultJson, L"", true);
+                    m_appWindow->AsyncMessageBox(resultJson, L"CDP method call result");
                     return S_OK;
                 })
                 .Get());

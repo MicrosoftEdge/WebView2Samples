@@ -308,10 +308,16 @@ std::wstring WebViewPropertiesToJsonString(ICoreWebView2* webview)
     CHECK_FAILURE(webview->get_DocumentTitle(&documentTitle));
     wil::unique_cotaskmem_string source;
     CHECK_FAILURE(webview->get_Source(&source));
+    BOOL canGoBack = FALSE;
+    CHECK_FAILURE(webview->get_CanGoBack(&canGoBack));
+    BOOL canGoForward = FALSE;
+    CHECK_FAILURE(webview->get_CanGoForward(&canGoForward));
 
     std::wstring result = L", \"webview\": {"
         L"\"documentTitle\": " + EncodeQuote(documentTitle.get()) + L", "
-        + L"\"source\": " + EncodeQuote(source.get()) + L" "
+        + L"\"source\": " + EncodeQuote(source.get()) + L", "
+        + L"\"canGoBack\": " + BoolToString(canGoBack) + L", "
+        + L"\"canGoForward\": " + BoolToString(canGoForward)
         + L"}";
 
     return result;

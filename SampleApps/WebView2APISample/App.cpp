@@ -25,13 +25,11 @@ static int RunMessagePump();
 static DWORD WINAPI ThreadProc(void* pvParam);
 static void WaitForOtherThreads();
 
-#define NEXT_PARAM_CONTAINS(command) \
+#define NEXT_PARAM_CONTAINS(command)                                                           \
     _wcsnicmp(nextParam.c_str(), command, ARRAYSIZE(command) - 1) == 0
 
-int APIENTRY wWinMain(HINSTANCE hInstance,
-                      HINSTANCE hPrevInstance,
-                      PWSTR lpCmdLine,
-                      int nCmdShow)
+int APIENTRY
+wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
 {
     g_hInstance = hInstance;
     UNREFERENCED_PARAMETER(hPrevInstance);
@@ -39,10 +37,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
     // Default DPI awareness to PerMonitorV2. The commandline parameters can
     // override this.
-    DPI_AWARENESS_CONTEXT dpiAwarenessContext =
-        DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
+    DPI_AWARENESS_CONTEXT dpiAwarenessContext = DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2;
     std::wstring appId(L"EBWebView.SampleApp");
-    std::wstring userDirectoryFolder(L"");
+    std::wstring userDataFolder(L"");
     std::wstring initialUri;
     DWORD creationModeId = IDM_CREATION_MODE_WINDOWED;
 
@@ -92,9 +89,9 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
             {
                 initialUri = nextParam.substr(nextParam.find(L'=') + 1);
             }
-            else if (NEXT_PARAM_CONTAINS(L"userdirectoryfolder="))
+            else if (NEXT_PARAM_CONTAINS(L"userdatafolder="))
             {
-                userDirectoryFolder = nextParam.substr(nextParam.find(L'=') + 1);
+                userDataFolder = nextParam.substr(nextParam.find(L'=') + 1);
             }
             else if (NEXT_PARAM_CONTAINS(L"creationmode="))
             {
@@ -125,7 +122,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
     DpiUtil::SetProcessDpiAwarenessContext(dpiAwarenessContext);
 
-    new AppWindow(creationModeId, WebViewCreateOption(), initialUri, userDirectoryFolder, true);
+    new AppWindow(creationModeId, WebViewCreateOption(), initialUri, userDataFolder, true);
 
     int retVal = RunMessagePump();
 
@@ -137,8 +134,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 // Run the message pump for one thread.
 static int RunMessagePump()
 {
-    HACCEL hAccelTable =
-        LoadAccelerators(g_hInstance, MAKEINTRESOURCE(IDC_WEBVIEW2APISAMPLE));
+    HACCEL hAccelTable = LoadAccelerators(g_hInstance, MAKEINTRESOURCE(IDC_WEBVIEW2APISAMPLE));
 
     MSG msg;
 
@@ -206,8 +202,8 @@ static void WaitForOtherThreads()
 
         HANDLE* handleArray = threadHandles.data();
         DWORD dwIndex = MsgWaitForMultipleObjects(
-            static_cast<DWORD>(threadHandles.size()), threadHandles.data(), FALSE,
-            INFINITE, QS_ALLEVENTS);
+            static_cast<DWORD>(threadHandles.size()), threadHandles.data(), FALSE, INFINITE,
+            QS_ALLEVENTS);
 
         if (dwIndex == WAIT_OBJECT_0 + threadHandles.size())
         {

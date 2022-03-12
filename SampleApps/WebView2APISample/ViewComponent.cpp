@@ -385,14 +385,14 @@ bool ViewComponent::HandleWindowMessage(
     //! [ToggleIsVisibleOnMinimize]
     if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) || message == WM_MOUSELEAVE)
     {
-        OnMouseMessage(message, wParam, lParam);
+        return OnMouseMessage(message, wParam, lParam);
     }
     else if (
         message == WM_POINTERACTIVATE || message == WM_POINTERDOWN ||
         message == WM_POINTERENTER || message == WM_POINTERLEAVE || message == WM_POINTERUP ||
         message == WM_POINTERUPDATE)
     {
-        OnPointerMessage(message, wParam, lParam);
+        return OnPointerMessage(message, wParam, lParam);
     }
     //! [NotifyParentWindowPositionChanged]
     if (message == WM_MOVE || message == WM_MOVING)
@@ -461,13 +461,14 @@ void ViewComponent::Suspend()
     }
     HRESULT hr = webView->TrySuspend(
         Callback<ICoreWebView2TrySuspendCompletedHandler>(
-            [](HRESULT errorCode, BOOL isSuccessful) -> HRESULT {
+            [this](HRESULT errorCode, BOOL isSuccessful) -> HRESULT {
                 if ((errorCode != S_OK) || !isSuccessful)
                 {
                     std::wstringstream formattedMessage;
                     formattedMessage << "TrySuspend result (0x" << std::hex << errorCode
                                      << ") " << (isSuccessful ? "succeeded" : "failed");
-                    MessageBox(nullptr, formattedMessage.str().c_str(), nullptr, MB_OK);
+                    m_appWindow->AsyncMessageBox(
+                        std::move(formattedMessage.str()), L"TrySuspend result");
                 }
                 return S_OK;
             })

@@ -53,8 +53,9 @@ namespace WebView2WindowsFormsBrowser
             this.backgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.blueBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.redBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.whiteBackgroundColorMeuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.whiteBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.transparentBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.allowExternalDropMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.webViewLogoBitmap = new System.Drawing.Bitmap(@"assets\EdgeWebView2-80.jpg");
             this.webView2Control = new Microsoft.Web.WebView2.WinForms.WebView2();
             this.menuStrip1.SuspendLayout();
@@ -152,18 +153,27 @@ namespace WebView2WindowsFormsBrowser
             // controlToolStripMenuItem
             //
             this.controlToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.acceleratorKeysEnabledToolStripMenuItem});
+            this.acceleratorKeysEnabledToolStripMenuItem, this.allowExternalDropMenuItem});
             this.controlToolStripMenuItem.Name = "controlToolStripMenuItem";
             this.controlToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
             this.controlToolStripMenuItem.Text = "Control";
             //
-            // zoomToolStripMenuItem
+            // acceleratorKeysEnabledToolStripMenuItem
             //
             this.acceleratorKeysEnabledToolStripMenuItem.Name = "acceleratorKeysEnabledToolStripMenuItem";
             this.acceleratorKeysEnabledToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.acceleratorKeysEnabledToolStripMenuItem.Text = "AcceleratorKeys Enabled";
             this.acceleratorKeysEnabledToolStripMenuItem.Checked = true;
             this.acceleratorKeysEnabledToolStripMenuItem.CheckOnClick = true;
+            //
+            // allowExternalDropMenuItem
+            //
+            this.allowExternalDropMenuItem.Name = "allowExternalDropMenuItem";
+            this.allowExternalDropMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.allowExternalDropMenuItem.Text = "AllowExternalDrop Enabled";
+            this.allowExternalDropMenuItem.Checked = true;
+            this.allowExternalDropMenuItem.CheckOnClick = true;
+            this.allowExternalDropMenuItem.Click += new System.EventHandler(this.allowExternalDropMenuItem_Click);
             //
             // viewToolStripMenuItem
             //
@@ -215,7 +225,7 @@ namespace WebView2WindowsFormsBrowser
             // backgroundColorToolStripMenuItem
             //
             this.backgroundColorMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.whiteBackgroundColorMeuItem,
+                this.whiteBackgroundColorMenuItem,
                 this.redBackgroundColorMenuItem,
                 this.blueBackgroundColorMenuItem,
                 this.transparentBackgroundColorMenuItem});
@@ -225,10 +235,10 @@ namespace WebView2WindowsFormsBrowser
             //
             // whiteBackgroundColorMenuItem
             //
-            this.whiteBackgroundColorMeuItem.Name = "whiteBackgroundColorMenuItem";
-            this.whiteBackgroundColorMeuItem.Size = new System.Drawing.Size(359, 44);
-            this.whiteBackgroundColorMeuItem.Text = "White";
-            this.whiteBackgroundColorMeuItem.Click += new System.EventHandler(this.backgroundColorMenuItem_Click);
+            this.whiteBackgroundColorMenuItem.Name = "whiteBackgroundColorMenuItem";
+            this.whiteBackgroundColorMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.whiteBackgroundColorMenuItem.Text = "White";
+            this.whiteBackgroundColorMenuItem.Click += new System.EventHandler(this.backgroundColorMenuItem_Click);
             //
             // redBackgroundColorMenuItem
             //
@@ -306,9 +316,10 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem xToolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem xToolStripMenuItem3;
         private System.Windows.Forms.ToolStripMenuItem backgroundColorMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem whiteBackgroundColorMeuItem;
+        private System.Windows.Forms.ToolStripMenuItem whiteBackgroundColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem redBackgroundColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem blueBackgroundColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem transparentBackgroundColorMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem allowExternalDropMenuItem;
     }
 }

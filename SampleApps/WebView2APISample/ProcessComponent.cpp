@@ -110,11 +110,7 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
                             << L"Reason: "              << ProcessFailedReasonToString(reason) << L"\n"
                             << L"Exit code: "           << std::to_wstring(exitCode) << L"\n"
                             << L"Process description: " << processDescription.get() << std::endl;
-                    m_appWindow->RunAsync([this, message = message.str()]() {
-                        MessageBox(
-                            m_appWindow->GetMainWindow(), message.c_str(),
-                            L"Child process failed", MB_OK);
-                    });
+                    m_appWindow->AsyncMessageBox( std::move(message.str()), L"Child process failed");
                 }
                 return S_OK;
             })

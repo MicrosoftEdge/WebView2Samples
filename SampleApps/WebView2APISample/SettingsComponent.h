@@ -28,7 +28,7 @@ public:
         HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result) override;
 
     void AddMenuItems(
-        HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> items);
+        HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items);
 
     void ChangeBlockedSites();
     bool ShouldBlockUri(PWSTR uri);
@@ -37,14 +37,14 @@ public:
     void SetReplaceImages(bool replaceImages);
     void ChangeUserAgent();
     void SetUserAgent(const std::wstring& userAgent);
-    void CompleteScriptDialogDeferral();
     void EnableCustomClientCertificateSelection();
-
     static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
 
     ~SettingsComponent() override;
 
 private:
+    HRESULT OnPermissionRequested(
+        ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args);
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2> m_webView;
@@ -54,16 +54,16 @@ private:
     wil::com_ptr<ICoreWebView2Settings4> m_settings4;
     wil::com_ptr<ICoreWebView2Settings5> m_settings5;
     wil::com_ptr<ICoreWebView2Settings6> m_settings6;
+    wil::com_ptr<ICoreWebView2Settings7> m_settings7;
     wil::com_ptr<ICoreWebView2_5> m_webView2_5;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2Controller3> m_controller3;
     wil::com_ptr<ICoreWebView2Experimental5> m_webViewExperimental5;
-    wil::com_ptr<ICoreWebView2Experimental6> m_webViewExperimental6;
-    wil::com_ptr<ICoreWebView2Experimental13> m_webViewExperimental13;
-    wil::com_ptr<ICoreWebView2ExperimentalContextMenuItem> m_displayPageUrlContextSubMenuItem;
+    wil::com_ptr<ICoreWebView2_11> m_webView2_11;
+    wil::com_ptr<ICoreWebView2_12> m_webView2_12;
+    wil::com_ptr<ICoreWebView2ContextMenuItem> m_displayPageUrlContextSubMenuItem;
     bool m_blockImages = false;
     bool m_replaceImages = false;
-    bool m_deferScriptDialogs = false;
     bool m_changeUserAgent = false;
     bool m_isScriptEnabled = true;
     bool m_blockedSitesSet = false;
@@ -73,7 +73,6 @@ private:
         m_cached_permissions;
     std::vector<std::wstring> m_blockedSites;
     std::wstring m_overridingUserAgent;
-    std::function<void()> m_completeDeferredDialog;
     CustomStatusBar m_statusBar;
     bool m_customStatusBar = false;
 

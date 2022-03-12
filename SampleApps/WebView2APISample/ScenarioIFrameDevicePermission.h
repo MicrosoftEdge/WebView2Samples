@@ -17,6 +17,8 @@ public:
     ~ScenarioIFrameDevicePermission() override;
 
 private:
+    HRESULT OnPermissionRequested(
+        ICoreWebView2Frame* sender, ICoreWebView2PermissionRequestedEventArgs2* args);
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
     wil::com_ptr<ICoreWebView2_4> m_webView4;

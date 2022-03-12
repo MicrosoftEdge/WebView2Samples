@@ -19,7 +19,7 @@ ScenarioIFrameDevicePermission::ScenarioIFrameDevicePermission(AppWindow* appWin
 {
     m_sampleUri = m_appWindow->GetLocalUri(c_samplePath);
 
-    //! [PermissionRequested]
+    //! [PermissionRequested0]
     m_webView4 = m_webView.try_query<ICoreWebView2_4>();
     if (m_webView4)
     {
@@ -34,103 +34,23 @@ ScenarioIFrameDevicePermission::ScenarioIFrameDevicePermission(AppWindow* appWin
                     {
                         CHECK_FAILURE(m_frame3->add_PermissionRequested(
                             Callback<ICoreWebView2FramePermissionRequestedEventHandler>(
-                                [this](ICoreWebView2Frame* sender,
-                                   ICoreWebView2PermissionRequestedEventArgs2* args)
-                                      -> HRESULT {
-                                        // If we set Handled to true, then we will not fire the PermissionRequested
-                                        // event off of the CoreWebView2.
-                                        args->put_Handled(true);
-
-                                        auto showDialog = [this, args]
-                                        {
-                                          COREWEBVIEW2_PERMISSION_KIND kind =
-                                              COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
-                                          BOOL userInitiated = FALSE;
-                                          wil::unique_cotaskmem_string uri;
-
-                                          CHECK_FAILURE(args->get_PermissionKind(&kind));
-                                          CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
-                                          CHECK_FAILURE(args->get_Uri(&uri));
-
-                                          auto cached_key = std::make_tuple(
-                                              std::wstring(uri.get()), kind, userInitiated);
-
-                                          auto cached_permission =
-                                              m_cached_permissions.find(cached_key);
-                                          if (cached_permission != m_cached_permissions.end())
-                                          {
-                                              bool allow = cached_permission->second;
-                                              if (allow)
-                                              {
-                                                  CHECK_FAILURE(args->put_State(
-                                                      COREWEBVIEW2_PERMISSION_STATE_ALLOW));
-                                              }
-                                              else
-                                              {
-                                                  CHECK_FAILURE(args->put_State(
-                                                      COREWEBVIEW2_PERMISSION_STATE_DENY));
-                                              }
-                                              return S_OK;
-                                          }
-
-                                          std::wstring message =
-                                            L"An iframe has requested device permission for ";
-                                          message += SettingsComponent::NameOfPermissionKind(kind);
-                                          message += L" to the website at ";
-                                          message += uri.get();
-                                          message += L"?\n\n";
-                                          message += L"Do you want to grant permission?\n";
-                                          message +=
-                                              (userInitiated
-                                                  ? L"This request came from a user gesture."
-                                                  : L"This request did not come from a user "
-                                                    L"gesture.");
-
-                                          int response = MessageBox(
-                                              nullptr, message.c_str(), L"Permission Request",
-                                              MB_YESNOCANCEL | MB_ICONWARNING);
-
-                                          if (response == IDYES)
-                                          {
-                                              m_cached_permissions[cached_key] = true;
-                                          }
-
-                                          if (response == IDNO)
-                                          {
-                                              m_cached_permissions[cached_key] = false;
-                                          }
-
-                                          COREWEBVIEW2_PERMISSION_STATE state =
-                                              response == IDYES
-                                                  ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
-                                                  : response == IDNO ? COREWEBVIEW2_PERMISSION_STATE_DENY
-                                                                  : COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
-
-                                          CHECK_FAILURE(args->put_State(state));
-                                          return S_OK;
-                                        };
-
-                                        // Obtain a deferral for the event so that the CoreWebView2
-                                        // doesn't examine the properties we set on the event args until
-                                        // after we call the Complete method asynchronously later.
-                                        wil::com_ptr<ICoreWebView2Deferral> deferral;
-                                        CHECK_FAILURE(args->GetDeferral(&deferral));
-
-                                        m_appWindow->RunAsync([deferral, showDialog]() {
-                                            showDialog();
-                                            CHECK_FAILURE(deferral->Complete());
-                                        });
-
-                                        return S_OK;
-                            }).Get(),
+                                this, &ScenarioIFrameDevicePermission::OnPermissionRequested
+                            ).Get(),
                             &m_PermissionRequestedToken));
                     }
-
+                    else {
+                        m_appWindow->RunAsync([]{ FeatureNotAvailable(); });
+                    }
+                    m_webView4->remove_FrameCreated(m_FrameCreatedToken);
                     return S_OK;
             }).Get(),
             &m_FrameCreatedToken));
     }
-    //! [PermissionRequested]
+    else
+    {
+        FeatureNotAvailable();
+    }
+    //! [PermissionRequested0]
 
     // Turn off this scenario if we navigate away from the sample page
     CHECK_FAILURE(m_webView->add_ContentLoading(
@@ -149,8 +69,78 @@ ScenarioIFrameDevicePermission::ScenarioIFrameDevicePermission(AppWindow* appWin
         &m_ContentLoadingToken));
 
     CHECK_FAILURE(m_webView->Navigate(m_sampleUri.c_str()));
-
 }
+
+//! [PermissionRequested1]
+HRESULT ScenarioIFrameDevicePermission::OnPermissionRequested(
+    ICoreWebView2Frame* sender, ICoreWebView2PermissionRequestedEventArgs2* args)
+{
+    // If we set Handled to true, then we will not fire the PermissionRequested
+    // event off of the CoreWebView2.
+    args->put_Handled(true);
+
+    // Obtain a deferral for the event so that the CoreWebView2
+    // doesn't examine the properties we set on the event args until
+    // after we call the Complete method asynchronously later.
+    wil::com_ptr<ICoreWebView2Deferral> deferral;
+    CHECK_FAILURE(args->GetDeferral(&deferral));
+
+    // Do the rest asynchronously, to avoid calling MessageBox in an event handler.
+    m_appWindow->RunAsync([this, deferral, args]
+    {
+        COREWEBVIEW2_PERMISSION_KIND kind = COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
+        BOOL userInitiated = FALSE;
+        wil::unique_cotaskmem_string uri;
+        CHECK_FAILURE(args->get_PermissionKind(&kind));
+        CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
+        CHECK_FAILURE(args->get_Uri(&uri));
+
+        COREWEBVIEW2_PERMISSION_STATE state;
+
+        auto cached_key = std::make_tuple(std::wstring(uri.get()), kind, userInitiated);
+        auto cached_permission = m_cached_permissions.find(cached_key);
+        if (cached_permission != m_cached_permissions.end())
+        {
+            state = (cached_permission->second
+                ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
+                : COREWEBVIEW2_PERMISSION_STATE_DENY);
+        }
+        else
+        {
+            std::wstring message = L"An iframe has requested device permission for ";
+            message += SettingsComponent::NameOfPermissionKind(kind);
+            message += L" to the website at ";
+            message += uri.get();
+            message += L"?\n\n";
+            message += L"Do you want to grant permission?\n";
+            message += (userInitiated
+                ? L"This request came from a user gesture."
+                : L"This request did not come from a user gesture.");
+
+            int response = MessageBox(
+                nullptr, message.c_str(), L"Permission Request",
+                MB_YESNOCANCEL | MB_ICONWARNING);
+            switch (response) {
+                case IDYES:
+                    m_cached_permissions[cached_key] = true;
+                    state = COREWEBVIEW2_PERMISSION_STATE_ALLOW;
+                    break;
+                case IDNO:
+                    m_cached_permissions[cached_key] = false;
+                    state = COREWEBVIEW2_PERMISSION_STATE_DENY;
+                    break;
+                default:
+                    state = COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
+                    break;
+            }
+        }
+
+        CHECK_FAILURE(args->put_State(state));
+        CHECK_FAILURE(deferral->Complete());
+    });
+    return S_OK;
+}
+//! [PermissionRequested1]
 
 ScenarioIFrameDevicePermission::~ScenarioIFrameDevicePermission()
 {

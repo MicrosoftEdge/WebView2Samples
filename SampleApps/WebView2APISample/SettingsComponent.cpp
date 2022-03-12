@@ -26,12 +26,13 @@ SettingsComponent::SettingsComponent(
     m_settings4 = m_settings.try_query<ICoreWebView2Settings4>();
     m_settings5 = m_settings.try_query<ICoreWebView2Settings5>();
     m_settings6 = m_settings.try_query<ICoreWebView2Settings6>();
+    m_settings7 = m_settings.try_query<ICoreWebView2Settings7>();
     m_controller = m_appWindow->GetWebViewController();
     m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
     m_webView2_5 = m_webView.try_query<ICoreWebView2_5>();
     m_webViewExperimental5 = m_webView.try_query<ICoreWebView2Experimental5>();
-    m_webViewExperimental6 = m_webView.try_query<ICoreWebView2Experimental6>();
-    m_webViewExperimental13 = m_webView.try_query<ICoreWebView2Experimental13>();
+    m_webView2_11 = m_webView.try_query<ICoreWebView2_11>();
+    m_webView2_12 = m_webView.try_query<ICoreWebView2_12>();
     // Copy old settings if desired
     if (old)
     {
@@ -84,15 +85,19 @@ SettingsComponent::SettingsComponent(
             CHECK_FAILURE(old->m_settings6->get_IsSwipeNavigationEnabled(&setting));
             CHECK_FAILURE(m_settings6->put_IsSwipeNavigationEnabled(setting));
         }
+        if (old->m_settings7 && m_settings7)
+        {
+            COREWEBVIEW2_PDF_TOOLBAR_ITEMS hiddenPdfToolbarItems;
+            CHECK_FAILURE(old->m_settings7->get_HiddenPdfToolbarItems(&hiddenPdfToolbarItems));
+            CHECK_FAILURE(m_settings7->put_HiddenPdfToolbarItems(hiddenPdfToolbarItems));
+        }
         SetBlockImages(old->m_blockImages);
         SetReplaceImages(old->m_replaceImages);
-        m_deferScriptDialogs = old->m_deferScriptDialogs;
         m_isScriptEnabled = old->m_isScriptEnabled;
         m_blockedSitesSet = old->m_blockedSitesSet;
         m_blockedSites = std::move(old->m_blockedSites);
         EnableCustomClientCertificateSelection();
     }
-
     //! [NavigationStarting]
     // Register a handler for the NavigationStarting event.
     // This handler will check the domain being navigated to, and if the domain
@@ -175,14 +180,18 @@ SettingsComponent::SettingsComponent(
 
     //! [ScriptDialogOpening]
     // Register a handler for the ScriptDialogOpening event.
-    // This handler will set up a custom prompt dialog for the user,
-    // and may defer the event if the setting to defer dialogs is enabled.
+    // This handler will set up a custom prompt dialog for the user.  Because
+    // running a message loop inside of an event handler causes problems, we
+    // defer the event and handle it asynchronously.
     CHECK_FAILURE(m_webView->add_ScriptDialogOpening(
         Callback<ICoreWebView2ScriptDialogOpeningEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2ScriptDialogOpeningEventArgs* args)
                 -> HRESULT {
+                AppWindow* appWindow = m_appWindow;
                 wil::com_ptr<ICoreWebView2ScriptDialogOpeningEventArgs> eventArgs = args;
-                auto showDialog = [this, eventArgs] {
+                wil::com_ptr<ICoreWebView2Deferral> deferral;
+                CHECK_FAILURE(args->GetDeferral(&deferral));
+                appWindow->RunAsync([appWindow, eventArgs, deferral] {
                     wil::unique_cotaskmem_string uri;
                     COREWEBVIEW2_SCRIPT_DIALOG_KIND type;
                     wil::unique_cotaskmem_string message;
@@ -196,7 +205,7 @@ SettingsComponent::SettingsComponent(
                     std::wstring promptString =
                         std::wstring(L"The page at '") + uri.get() + L"' says:";
                     TextInputDialog dialog(
-                        m_appWindow->GetMainWindow(), L"Script Dialog", promptString.c_str(),
+                        appWindow->GetMainWindow(), L"Script Dialog", promptString.c_str(),
                         message.get(), defaultText.get(),
                         /* readonly */ type != COREWEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT);
                     if (dialog.confirmed)
@@ -204,146 +213,124 @@ SettingsComponent::SettingsComponent(
                         CHECK_FAILURE(eventArgs->put_ResultText(dialog.input.c_str()));
                         CHECK_FAILURE(eventArgs->Accept());
                     }
-                };
-
-                if (m_deferScriptDialogs)
-                {
-                    wil::com_ptr<ICoreWebView2Deferral> deferral;
-                    CHECK_FAILURE(args->GetDeferral(&deferral));
-                    m_completeDeferredDialog = [showDialog, deferral] {
-                        showDialog();
-                        CHECK_FAILURE(deferral->Complete());
-                    };
-                }
-                else
-                {
-                    showDialog();
-                }
-
+                    deferral->Complete();
+                });
                 return S_OK;
             })
             .Get(),
         &m_scriptDialogOpeningToken));
     //! [ScriptDialogOpening]
 
-    //! [PermissionRequested]
+    //! [PermissionRequested0]
     // Register a handler for the PermissionRequested event.
-    // This handler prompts the user to allow or deny the request.
+    // This handler prompts the user to allow or deny the request, and remembers
+    // the user's choice for later.
     CHECK_FAILURE(m_webView->add_PermissionRequested(
         Callback<ICoreWebView2PermissionRequestedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)
-                -> HRESULT {
-                // We avoid potential reentrancy from running a message loop
-                // in the permission requested event handler by showing the
-                // dialog via lambda run asynchronously outside of this event
-                // handler.
-                auto showDialog = [this, args] 
-                {
-                    wil::unique_cotaskmem_string uri;
-                    COREWEBVIEW2_PERMISSION_KIND kind =
-                        COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
-                    BOOL userInitiated = FALSE;
+            this, &SettingsComponent::OnPermissionRequested)
+            .Get(),
+        &m_permissionRequestedToken));
+    //! [PermissionRequested0]
 
-                    CHECK_FAILURE(args->get_Uri(&uri));
-                    CHECK_FAILURE(args->get_PermissionKind(&kind));
-                    CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
-                    auto cached_key =
-                        std::tuple<std::wstring, COREWEBVIEW2_PERMISSION_KIND, BOOL>(
-                            std::wstring(uri.get()), kind, userInitiated);
-                    auto cached_permission = m_cached_permissions.find(cached_key);
-                    if (cached_permission != m_cached_permissions.end())
+  if (m_webView2_12) {
+        //! [StatusBarTextChanged]
+        m_statusBar.Initialize(appWindow);
+        // Registering a listener for status bar message changes
+    CHECK_FAILURE(m_webView2_12->add_StatusBarTextChanged(
+        Microsoft::WRL::Callback<ICoreWebView2StatusBarTextChangedEventHandler>(
+                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                    if (m_customStatusBar)
                     {
-                        bool allow = cached_permission->second;
-                        if (allow)
+                        wil::unique_cotaskmem_string value;
+                    Microsoft::WRL::ComPtr<ICoreWebView2_12> wv;
+                        CHECK_FAILURE(sender->QueryInterface(IID_PPV_ARGS(&wv)));
+
+                        CHECK_FAILURE(wv->get_StatusBarText(&value));
+                        std::wstring valueString = value.get();
+                        if (valueString.length() != 0)
                         {
-                            CHECK_FAILURE(args->put_State(COREWEBVIEW2_PERMISSION_STATE_ALLOW));
+                            m_statusBar.Show(valueString);
                         }
                         else
                         {
-                            CHECK_FAILURE(args->put_State(COREWEBVIEW2_PERMISSION_STATE_DENY));
+                            m_statusBar.Hide();
                         }
-                        return S_OK;
                     }
-
-                    std::wstring message = L"Do you want to grant permission for ";
-                    message += NameOfPermissionKind(kind);
-                    message += L" to the website at ";
-                    message += uri.get();
-                    message += L"?\n\n";
-                    message +=
-                        (userInitiated ? L"This request came from a user gesture."
-                                       : L"This request did not come from a user gesture.");
-                    
-                    int response = MessageBox(
-                        nullptr, message.c_str(), L"Permission Request",
-                        MB_YESNOCANCEL | MB_ICONWARNING);
-                    if (response == IDYES)
-                    {
-                        m_cached_permissions[cached_key] = true;
-                    }
-
-                    if (response == IDNO)
-                    {
-                        m_cached_permissions[cached_key] = false;
-                    }
-                    COREWEBVIEW2_PERMISSION_STATE state =
-                        response == IDYES  ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
-                        : response == IDNO ? COREWEBVIEW2_PERMISSION_STATE_DENY
-                                           : COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
-                    CHECK_FAILURE(args->put_State(state));
 
                     return S_OK;
-                };
-
-                // Obtain a deferral for the event so that the CoreWebView2
-                // doesn't examine the properties we set on the event args until
-                // after we call the Complete method asynchronously later.
-                wil::com_ptr<ICoreWebView2Deferral> deferral;
-                CHECK_FAILURE(args->GetDeferral(&deferral));
-
-                m_appWindow->RunAsync([deferral, showDialog]() {
-                    showDialog();
-                    CHECK_FAILURE(deferral->Complete());
-                });
-
-                return S_OK;
-            })
-            .Get(),
-        &m_permissionRequestedToken));
-    //! [PermissionRequested]
-
-  if(m_webViewExperimental13) {
-    // ![StatusBarTextChanged]
-    m_statusBar.Initialize(appWindow);
-    // Registering a listener for status bar message changes
-    CHECK_FAILURE(m_webViewExperimental13->add_StatusBarTextChanged(
-        Microsoft::WRL::Callback<ICoreWebView2ExperimentalStatusBarTextChangedEventHandler>(
-            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                if (m_customStatusBar)
-                {
-                    wil::unique_cotaskmem_string value;
-                    Microsoft::WRL::ComPtr<ICoreWebView2Experimental13> wv;
-                    CHECK_FAILURE(sender->QueryInterface(IID_PPV_ARGS(&wv)));
-
-                    CHECK_FAILURE(wv->get_StatusBarText(&value));
-                    std::wstring valueString = value.get();
-                    if (valueString.length() != 0)
-                    {
-                        m_statusBar.Show(valueString);
-                    }
-                    else
-                    {
-                        m_statusBar.Hide();
-                    }
-                }
-
-                return S_OK;
-            })
-            .Get(),
-        &m_statusBarTextChangedToken));
-    // ![StatusBarTextChanged]
-  }
+                })
+                .Get(),
+            &m_statusBarTextChangedToken));
+        //! [StatusBarTextChanged]
+    }
 }
+
+//! [PermissionRequested1]
+HRESULT SettingsComponent::OnPermissionRequested(
+    ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)
+{
+    // Obtain a deferral for the event so that the CoreWebView2
+    // doesn't examine the properties we set on the event args until
+    // after we call the Complete method asynchronously later.
+    wil::com_ptr<ICoreWebView2Deferral> deferral;
+    CHECK_FAILURE(args->GetDeferral(&deferral));
+
+    // Do the rest asynchronously, to avoid calling MessageBox in an event handler.
+    m_appWindow->RunAsync([this, deferral, args] {
+        COREWEBVIEW2_PERMISSION_KIND kind = COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
+        BOOL userInitiated = FALSE;
+        wil::unique_cotaskmem_string uri;
+        CHECK_FAILURE(args->get_PermissionKind(&kind));
+        CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
+        CHECK_FAILURE(args->get_Uri(&uri));
+
+        COREWEBVIEW2_PERMISSION_STATE state;
+
+        auto cached_key = std::make_tuple(std::wstring(uri.get()), kind, userInitiated);
+        auto cached_permission = m_cached_permissions.find(cached_key);
+        if (cached_permission != m_cached_permissions.end())
+        {
+            state =
+                (cached_permission->second ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
+                                           : COREWEBVIEW2_PERMISSION_STATE_DENY);
+        }
+        else
+        {
+            std::wstring message = L"An iframe has requested device permission for ";
+            message += SettingsComponent::NameOfPermissionKind(kind);
+            message += L" to the website at ";
+            message += uri.get();
+            message += L"?\n\n";
+            message += L"Do you want to grant permission?\n";
+            message +=
+                (userInitiated ? L"This request came from a user gesture."
+                               : L"This request did not come from a user gesture.");
+
+            int response = MessageBox(
+                nullptr, message.c_str(), L"Permission Request",
+                MB_YESNOCANCEL | MB_ICONWARNING);
+            switch (response)
+            {
+            case IDYES:
+                m_cached_permissions[cached_key] = true;
+                state = COREWEBVIEW2_PERMISSION_STATE_ALLOW;
+                break;
+            case IDNO:
+                m_cached_permissions[cached_key] = false;
+                state = COREWEBVIEW2_PERMISSION_STATE_DENY;
+                break;
+            default:
+                state = COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
+                break;
+            }
+        }
+
+        CHECK_FAILURE(args->put_State(state));
+        CHECK_FAILURE(deferral->Complete());
+    });
+    return S_OK;
+}
+//! [PermissionRequested1]
 
 bool SettingsComponent::HandleWindowMessage(
     HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result)
@@ -418,68 +405,18 @@ bool SettingsComponent::HandleWindowMessage(
                 L"Settings change", MB_OK);
             return true;
         }
-        case IDM_USE_DEFAULT_SCRIPT_DIALOGS:
+        case IDM_TOGGLE_DEFAULT_SCRIPT_DIALOGS:
         {
-            BOOL defaultCurrentlyEnabled;
-            m_settings->get_AreDefaultScriptDialogsEnabled(&defaultCurrentlyEnabled);
-            if (!defaultCurrentlyEnabled)
-            {
-                m_settings->put_AreDefaultScriptDialogsEnabled(TRUE);
-                MessageBox(
-                    nullptr, L"Default script dialogs will be used after the next navigation.",
-                    L"Settings change", MB_OK);
-            }
-            return true;
-        }
-        case IDM_USE_CUSTOM_SCRIPT_DIALOGS:
-        {
-            BOOL defaultCurrentlyEnabled;
-            m_settings->get_AreDefaultScriptDialogsEnabled(&defaultCurrentlyEnabled);
-            if (defaultCurrentlyEnabled)
-            {
-                m_settings->put_AreDefaultScriptDialogsEnabled(FALSE);
-                m_deferScriptDialogs = false;
-                MessageBox(
-                    nullptr,
-                    L"Custom script dialogs without deferral will be used after the next "
-                    L"navigation.",
-                    L"Settings change", MB_OK);
-            }
-            else if (m_deferScriptDialogs)
-            {
-                m_deferScriptDialogs = false;
-                MessageBox(
-                    nullptr, L"Custom script dialogs without deferral will be used now.",
-                    L"Settings change", MB_OK);
-            }
-            return true;
-        }
-        case IDM_USE_DEFERRED_SCRIPT_DIALOGS:
-        {
-            BOOL defaultCurrentlyEnabled;
-            m_settings->get_AreDefaultScriptDialogsEnabled(&defaultCurrentlyEnabled);
-            if (defaultCurrentlyEnabled)
-            {
-                m_settings->put_AreDefaultScriptDialogsEnabled(FALSE);
-                m_deferScriptDialogs = true;
-                MessageBox(
-                    nullptr,
-                    L"Custom script dialogs with deferral will be used after the next "
-                    L"navigation.",
-                    L"Settings change", MB_OK);
-            }
-            else if (!m_deferScriptDialogs)
-            {
-                m_deferScriptDialogs = true;
-                MessageBox(
-                    nullptr, L"Custom script dialogs with deferral will be used now.",
-                    L"Settings change", MB_OK);
-            }
-            return true;
-        }
-        case IDM_COMPLETE_JAVASCRIPT_DIALOG:
-        {
-            CompleteScriptDialogDeferral();
+            BOOL currentlyEnabled;
+            m_settings->get_AreDefaultScriptDialogsEnabled(&currentlyEnabled);
+            m_settings->put_AreDefaultScriptDialogsEnabled(!currentlyEnabled);
+            MessageBox(
+                nullptr,
+                (std::wstring(L"Default script dialogs will be") +
+                 (!currentlyEnabled ? L"enabled" : L"disabled") +
+                 L" after the next navigation.")
+                    .c_str(),
+                L"Settings change", MB_OK);
             return true;
         }
         case ID_SETTINGS_BLOCKALLIMAGES:
@@ -532,19 +469,19 @@ bool SettingsComponent::HandleWindowMessage(
             //! [EnableCustomMenu]
             if (m_allowCustomMenus)
             {
-                m_webViewExperimental6->add_ContextMenuRequested(
-                    Callback<ICoreWebView2ExperimentalContextMenuRequestedEventHandler>(
+                m_webView2_11->add_ContextMenuRequested(
+                    Callback<ICoreWebView2ContextMenuRequestedEventHandler>(
                         [this](
                             ICoreWebView2* sender,
-                            ICoreWebView2ExperimentalContextMenuRequestedEventArgs* eventArgs) {
-                            wil::com_ptr<ICoreWebView2ExperimentalContextMenuRequestedEventArgs>
-                                args = eventArgs;
-                            wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> items;
+                            ICoreWebView2ContextMenuRequestedEventArgs* eventArgs) {
+                            wil::com_ptr<ICoreWebView2ContextMenuRequestedEventArgs> args =
+                                eventArgs;
+                            wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items;
                             CHECK_FAILURE(args->get_MenuItems(&items));
                             UINT32 itemsCount;
                             CHECK_FAILURE(items->get_Count(&itemsCount));
 
-                            wil::com_ptr<ICoreWebView2ExperimentalContextMenuTarget> target;
+                            wil::com_ptr<ICoreWebView2ContextMenuTarget> target;
                             CHECK_FAILURE(args->get_ContextMenuTarget(&target));
 
                             COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND targetKind;
@@ -593,7 +530,7 @@ bool SettingsComponent::HandleWindowMessage(
                             else if (targetKind == COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND_IMAGE)
                             {
                                 UINT32 removeIndex = itemsCount;
-                                wil::com_ptr<ICoreWebView2ExperimentalContextMenuItem> current;
+                                wil::com_ptr<ICoreWebView2ContextMenuItem> current;
                                 for (UINT32 i = 0; i < itemsCount; i++)
                                 {
                                     CHECK_FAILURE(items->GetValueAtIndex(i, &current));
@@ -609,19 +546,18 @@ bool SettingsComponent::HandleWindowMessage(
                                     CHECK_FAILURE(items->RemoveValueAtIndex(removeIndex));
                                 }
                             }
-                            // Adding a custom context menu item for the page that will display the
-                            // page's URI.
+                            // Adding a custom context menu item for the page that will display
+                            // the page's URI.
                             else if (targetKind == COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND_PAGE)
                             {
                                 // Custom items should be reused whenever possible.
                                 if (!m_displayPageUrlContextSubMenuItem)
                                 {
-                                    wil::com_ptr<ICoreWebView2ExperimentalEnvironment6>
-                                        webviewEnvironment;
+                                    wil::com_ptr<ICoreWebView2Environment9> webviewEnvironment;
                                     CHECK_FAILURE(
                                         m_appWindow->GetWebViewEnvironment()->QueryInterface(
                                             IID_PPV_ARGS(&webviewEnvironment)));
-                                    wil::com_ptr<ICoreWebView2ExperimentalContextMenuItem>
+                                    wil::com_ptr<ICoreWebView2ContextMenuItem>
                                         displayPageUrlItem;
                                     wil::com_ptr<IStream> iconStream;
                                     CHECK_FAILURE(SHCreateStreamOnFileEx(
@@ -632,23 +568,14 @@ bool SettingsComponent::HandleWindowMessage(
                                         COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_COMMAND,
                                         &displayPageUrlItem));
                                     CHECK_FAILURE(displayPageUrlItem->add_CustomItemSelected(
-                                        Callback<
-                                            ICoreWebView2ExperimentalCustomItemSelectedEventHandler>(
-                                            [this, target](
-                                                ICoreWebView2ExperimentalContextMenuItem*
-                                                    sender,
-                                                IUnknown* args)
-                                            {
+                                        Callback<ICoreWebView2CustomItemSelectedEventHandler>(
+                                            [appWindow = m_appWindow, target](
+                                                ICoreWebView2ContextMenuItem* sender,
+                                                IUnknown* args) {
                                                 wil::unique_cotaskmem_string pageUri;
                                                 CHECK_FAILURE(target->get_PageUri(&pageUri));
-                                                std::wstring pageString = pageUri.get();
-                                                m_appWindow->RunAsync(
-                                                    [this, pageString]() {
-                                                        MessageBox(
-                                                            m_appWindow->GetMainWindow(),
-                                                            pageString.c_str(),
-                                                            L"Display Page Uri", MB_OK);
-                                                    });
+                                                appWindow->AsyncMessageBox(
+                                                    pageUri.get(), L"Display Page Uri");
                                                 return S_OK;
                                             })
                                             .Get(),
@@ -657,15 +584,13 @@ bool SettingsComponent::HandleWindowMessage(
                                         L"New Submenu", nullptr,
                                         COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_SUBMENU,
                                         &m_displayPageUrlContextSubMenuItem));
-                                    wil::com_ptr<
-                                        ICoreWebView2ExperimentalContextMenuItemCollection>
+                                    wil::com_ptr<ICoreWebView2ContextMenuItemCollection>
                                         m_displayPageUrlContextSubMenuItemChildren;
                                     CHECK_FAILURE(
                                         m_displayPageUrlContextSubMenuItem->get_Children(
-                                        &m_displayPageUrlContextSubMenuItemChildren));
+                                            &m_displayPageUrlContextSubMenuItemChildren));
                                     m_displayPageUrlContextSubMenuItemChildren
-                                        ->InsertValueAtIndex(
-                                        0, displayPageUrlItem.get());
+                                        ->InsertValueAtIndex(0, displayPageUrlItem.get());
                                 }
 
                                 CHECK_FAILURE(items->InsertValueAtIndex(
@@ -684,7 +609,7 @@ bool SettingsComponent::HandleWindowMessage(
             }
             else
             {
-                m_webViewExperimental6->remove_ContextMenuRequested(m_contextMenuRequestedToken);
+                m_webView2_11->remove_ContextMenuRequested(m_contextMenuRequestedToken);
                 MessageBox(
                     nullptr, L"Custom Context menus are now disabled.", L"Settings change",
                     MB_OK);
@@ -897,17 +822,14 @@ bool SettingsComponent::HandleWindowMessage(
         case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS:
         {
             //! [ToggleHidePdfToolbarItems]
-            wil::com_ptr<ICoreWebView2ExperimentalSettings6> experimentalSettings6;
-            experimentalSettings6 = m_settings.try_query<ICoreWebView2ExperimentalSettings6>();
-            CHECK_FEATURE_RETURN(experimentalSettings6);
+            CHECK_FEATURE_RETURN(m_settings7);
 
             COREWEBVIEW2_PDF_TOOLBAR_ITEMS hiddenPdfToolbarItems;
-            CHECK_FAILURE(
-                experimentalSettings6->get_HiddenPdfToolbarItems(&hiddenPdfToolbarItems));
+            CHECK_FAILURE(m_settings7->get_HiddenPdfToolbarItems(&hiddenPdfToolbarItems));
             if (hiddenPdfToolbarItems ==
                 COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_NONE)
             {
-                CHECK_FAILURE(experimentalSettings6->put_HiddenPdfToolbarItems(
+                CHECK_FAILURE(m_settings7->put_HiddenPdfToolbarItems(
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE));
                 MessageBox(
@@ -917,7 +839,7 @@ bool SettingsComponent::HandleWindowMessage(
             }
             else
             {
-                CHECK_FAILURE(experimentalSettings6->put_HiddenPdfToolbarItems(
+                CHECK_FAILURE(m_settings7->put_HiddenPdfToolbarItems(
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_NONE));
                 MessageBox(
                     nullptr,
@@ -932,26 +854,25 @@ bool SettingsComponent::HandleWindowMessage(
             //! [ToggleAllowExternalDrop]
             wil::com_ptr<ICoreWebView2Controller> controller =
                 m_appWindow->GetWebViewController();
-            wil::com_ptr<ICoreWebView2ExperimentalController2> controllerExperimental =
-                controller.try_query<ICoreWebView2ExperimentalController2>();
-            if (controllerExperimental)
+            wil::com_ptr<ICoreWebView2Controller4> controller4 =
+                controller.try_query<ICoreWebView2Controller4>();
+            if (controller4)
             {
                 BOOL allowExternalDrop;
-                CHECK_FAILURE(
-                    controllerExperimental->get_AllowExternalDrop(&allowExternalDrop));
+                CHECK_FAILURE(controller4->get_AllowExternalDrop(&allowExternalDrop));
                 if (allowExternalDrop)
                 {
-                    CHECK_FAILURE(controllerExperimental->put_AllowExternalDrop(FALSE));
+                    CHECK_FAILURE(controller4->put_AllowExternalDrop(FALSE));
                     MessageBox(
                         nullptr, L"WebView disallows dropping files now.",
-                        L"WebView AllowDrop property changed", MB_OK);
+                        L"WebView AllowExternalDrop property changed", MB_OK);
                 }
                 else
                 {
-                    CHECK_FAILURE(controllerExperimental->put_AllowExternalDrop(TRUE));
+                    CHECK_FAILURE(controller4->put_AllowExternalDrop(TRUE));
                     MessageBox(
                         nullptr, L"WebView allows dropping files now.",
-                        L"WebView AllowDrop property changed", MB_OK);
+                        L"WebView AllowExternalDrop property changed", MB_OK);
                 }
             }
             //! [ToggleAllowExternalDrop]
@@ -962,9 +883,9 @@ bool SettingsComponent::HandleWindowMessage(
     return false;
 }
 void SettingsComponent::AddMenuItems(
-    HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> items)
+    HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items)
 {
-    wil::com_ptr<ICoreWebView2ExperimentalContextMenuItem> current;
+    wil::com_ptr<ICoreWebView2ContextMenuItem> current;
     UINT32 itemsCount;
     CHECK_FAILURE(items->get_Count(&itemsCount));
     for (UINT32 i = 0; i < itemsCount; i++)
@@ -996,7 +917,7 @@ void SettingsComponent::AddMenuItems(
         else if (kind == COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_SUBMENU)
         {
             HMENU newMenu = CreateMenu();
-            wil::com_ptr<ICoreWebView2ExperimentalContextMenuItemCollection> submenuItems;
+            wil::com_ptr<ICoreWebView2ContextMenuItemCollection> submenuItems;
             CHECK_FAILURE(current->get_Children(&submenuItems));
             AddMenuItems(newMenu, submenuItems);
             AppendMenu(hPopupMenu, MF_POPUP, (UINT_PTR)newMenu, labelString.c_str());
@@ -1266,8 +1187,7 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
                     [this](
                         ICoreWebView2* sender,
                         ICoreWebView2ClientCertificateRequestedEventArgs* args) {
-                        wil::com_ptr<ICoreWebView2CertificateCollection>
-                            certificateCollection;
+                        wil::com_ptr<ICoreWebView2CertificateCollection> certificateCollection;
                         CHECK_FAILURE(
                             args->get_MutuallyTrustedCertificates(&certificateCollection));
 
@@ -1306,15 +1226,6 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
     }
 }
 //! [ClientCertificateRequested1]
-
-void SettingsComponent::CompleteScriptDialogDeferral()
-{
-    if (m_completeDeferredDialog)
-    {
-        m_completeDeferredDialog();
-        m_completeDeferredDialog = nullptr;
-    }
-}
 
 PCWSTR SettingsComponent::NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind)
 {

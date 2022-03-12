@@ -82,15 +82,12 @@ void FileComponent::SaveScreenshot()
             defaultName, STGM_READWRITE | STGM_CREATE, FILE_ATTRIBUTE_NORMAL, TRUE, nullptr,
             &stream));
 
-        HWND mainWindow = m_appWindow->GetMainWindow();
-
         CHECK_FAILURE(m_webView->CapturePreview(
             COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_PNG, stream.get(),
             Callback<ICoreWebView2CapturePreviewCompletedHandler>(
-                [mainWindow](HRESULT error_code) -> HRESULT {
+                [appWindow{m_appWindow}](HRESULT error_code) -> HRESULT {
                     CHECK_FAILURE(error_code);
-
-                    MessageBox(mainWindow, L"Preview Captured", L"Preview Captured", MB_OK);
+                    appWindow->AsyncMessageBox(L"Preview Captured", L"Preview Captured");
                     return S_OK;
                 })
                 .Get()));
@@ -133,14 +130,10 @@ void FileComponent::PrintToPdf(bool enableLandscape)
                     [this](HRESULT errorCode, BOOL isSuccessful) -> HRESULT {
                         CHECK_FAILURE(errorCode);
                         m_printToPdfInProgress = false;
-                        auto showDialog = [isSuccessful] {
-                            MessageBox(
-                                nullptr,
-                                (isSuccessful) ? L"Print to PDF succeeded"
-                                               : L"Print to PDF failed",
-                                L"Print to PDF Completed", MB_OK);
-                        };
-                        m_appWindow->RunAsync([showDialog]() { showDialog(); });
+                        m_appWindow->AsyncMessageBox(
+                            (isSuccessful) ? L"Print to PDF succeeded"
+                                           : L"Print to PDF failed",
+                            L"Print to PDF Completed");
                         return S_OK;
                     })
                     .Get()));

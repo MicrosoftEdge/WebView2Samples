@@ -55,6 +55,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.SuspendCommand}" Executed="SuspendCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ResumeCommand}" Executed="ResumeCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CheckUpdateCommand}" Executed="CheckUpdateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.AllowExternalDropCommand}" Executed="AllowExternalDropCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -87,6 +88,7 @@ found in the LICENSE file.
                 <MenuItem Header="Disable Swipe to Navigate" Command="{x:Static local:MainWindow.SwipeNavigationCommand}"/>
                 <MenuItem Header="Toggle PDF toolbar save button" Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}"/>
                 <MenuItem Header="WebView _muted" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.ToggleMuteStateCommand}"/>
+                <MenuItem Header="Allow External Drop" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.AllowExternalDropCommand}"/>
             </MenuItem>
             <MenuItem Header="S_cenario">
                 <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>

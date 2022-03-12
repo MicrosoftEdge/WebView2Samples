@@ -613,7 +613,7 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
         CHECK_FEATURE_RETURN(experimentalEnvironment3);
         HRESULT hr = experimentalEnvironment3->UpdateRuntime(
             Callback<ICoreWebView2ExperimentalUpdateRuntimeCompletedHandler>(
-                [](HRESULT errorCode,
+                [this](HRESULT errorCode,
                    ICoreWebView2ExperimentalUpdateRuntimeResult* result) -> HRESULT {
                     HRESULT updateError = E_FAIL;
                     COREWEBVIEW2_UPDATE_RUNTIME_STATUS status =
@@ -627,12 +627,12 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
                     formattedMessage << "UpdateRuntime result (0x" << std::hex << errorCode
                                      << "), status(" << status << "), extendedError("
                                      << updateError << ")";
-                    MessageBox(nullptr, formattedMessage.str().c_str(), nullptr, MB_OK);
+                    AsyncMessageBox(std::move(formattedMessage.str()), L"UpdateRuntimeResult");
                     return S_OK;
                 })
                 .Get());
         if (FAILED(hr))
-            ShowFailure(hr, L"Call to TryUpdateRuntime failed");
+            ShowFailure(hr, L"Call to UpdateRuntime failed");
         //! [UpdateRuntime]
         return true;
     }
@@ -730,11 +730,8 @@ bool AppWindow::ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds)
     CHECK_FAILURE(webView2ExperimentalProfile4->ClearBrowsingDataInTimeRange(
         dataKinds, startTime, endTime,
         Callback<ICoreWebView2ExperimentalClearBrowsingDataCompletedHandler>(
-            [this](HRESULT error)
-                -> HRESULT {
-                RunAsync([this]() {
-                    MessageBox(nullptr, L"Completed", L"Clear Browsing Data", MB_OK);
-                });
+            [this](HRESULT error) -> HRESULT {
+                AsyncMessageBox(L"Completed", L"Clear Browsing Data");
                 return S_OK;
             })
             .Get()));
@@ -877,7 +874,7 @@ void AppWindow::InitializeWebView()
     }
 #endif
     //! [CreateCoreWebView2EnvironmentWithOptions]
-    auto options = Microsoft::WRL::Make<CoreWebView2ExperimentalEnvironmentOptions>();
+    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
     CHECK_FAILURE(
         options->put_AllowSingleSignOnUsingOSPrimaryAccount(
         m_AADSSOEnabled ? TRUE : FALSE));
@@ -1153,6 +1150,11 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             CHECK_FAILURE(m_webView->Navigate(initialUri.c_str()));
         }
     }
+    else if (result == E_ABORT)
+    {
+        // Webview creation was aborted because the user closed this window.
+        // No need to report this as an error.
+    }
     else
     {
         ShowFailure(result, L"Failed to create webview");
@@ -1349,29 +1351,33 @@ void AppWindow::RegisterEventHandlers()
     CHECK_FAILURE(m_webViewEnvironment->add_NewBrowserVersionAvailable(
         Callback<ICoreWebView2NewBrowserVersionAvailableEventHandler>(
             [this](ICoreWebView2Environment* sender, IUnknown* args) -> HRESULT {
-                std::wstring message = L"We detected there is a new version for the browser.";
-                if (m_webView)
+                 // Don't block the event handler with a message box
+                RunAsync([this]
                 {
-                    message += L"Do you want to restart the app? \n\n";
-                    message += L"Click No if you only want to re-create the webviews. \n";
-                    message += L"Click Cancel for no action. \n";
-                }
-                int response = MessageBox(
-                    m_mainWindow, message.c_str(), L"New available version",
-                    m_webView ? MB_YESNOCANCEL : MB_OK);
+                    std::wstring message = L"We detected there is a new version for the browser.";
+                    if (m_webView)
+                    {
+                        message += L"Do you want to restart the app? \n\n";
+                        message += L"Click No if you only want to re-create the webviews. \n";
+                        message += L"Click Cancel for no action. \n";
+                    }
+                    int response = MessageBox(
+                        m_mainWindow, message.c_str(), L"New available version",
+                        m_webView ? MB_YESNOCANCEL : MB_OK);
 
-                if (response == IDYES)
-                {
-                    RestartApp();
-                }
-                else if (response == IDNO)
-                {
-                    ReinitializeWebViewWithNewBrowser();
-                }
-                else
-                {
-                    // do nothing
-                }
+                    if (response == IDYES)
+                    {
+                        RestartApp();
+                    }
+                    else if (response == IDNO)
+                    {
+                        ReinitializeWebViewWithNewBrowser();
+                    }
+                    else
+                    {
+                        // do nothing
+                    }
+                });
 
                 return S_OK;
             })
@@ -1466,12 +1472,9 @@ bool AppWindow::CloseWebView(bool cleanupUserDataFolder)
                         // The exiting process is not the last in use. Do not attempt cleanup
                         // as we might still have a webview open over the user data folder.
                         // Do not block from event handler.
-                        RunAsync([this]() {
-                            MessageBox(
-                                m_mainWindow,
-                                L"A new browser process prevented cleanup of the user data folder.",
-                                L"Cleanup User Data Folder", MB_OK);
-                        });
+                        AsyncMessageBox(
+                            L"A new browser process prevented cleanup of the user data folder.",
+                            L"Cleanup User Data Folder");
                     }
 
                     return S_OK;
@@ -1690,6 +1693,14 @@ void AppWindow::RunAsync(std::function<void()> callback)
 {
     auto* task = new std::function<void()>(std::move(callback));
     PostMessage(m_mainWindow, s_runAsyncWindowMessage, reinterpret_cast<WPARAM>(task), 0);
+}
+
+void AppWindow::AsyncMessageBox(std::wstring message, std::wstring title)
+{
+    RunAsync([this, message = std::move(message), title = std::move(title)]
+    {
+        MessageBox(m_mainWindow, message.c_str(), title.c_str(), MB_OK);
+    });
 }
 
 void AppWindow::EnterFullScreen()
