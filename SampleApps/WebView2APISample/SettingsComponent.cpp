@@ -98,6 +98,7 @@ SettingsComponent::SettingsComponent(
         m_blockedSites = std::move(old->m_blockedSites);
         EnableCustomClientCertificateSelection();
     }
+
     //! [NavigationStarting]
     // Register a handler for the NavigationStarting event.
     // This handler will check the domain being navigated to, and if the domain
@@ -233,36 +234,36 @@ SettingsComponent::SettingsComponent(
     //! [PermissionRequested0]
 
   if (m_webView2_12) {
-        //! [StatusBarTextChanged]
-        m_statusBar.Initialize(appWindow);
-        // Registering a listener for status bar message changes
-    CHECK_FAILURE(m_webView2_12->add_StatusBarTextChanged(
-        Microsoft::WRL::Callback<ICoreWebView2StatusBarTextChangedEventHandler>(
-                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                    if (m_customStatusBar)
-                    {
-                        wil::unique_cotaskmem_string value;
-                    Microsoft::WRL::ComPtr<ICoreWebView2_12> wv;
-                        CHECK_FAILURE(sender->QueryInterface(IID_PPV_ARGS(&wv)));
+      //! [StatusBarTextChanged]
+      m_statusBar.Initialize(appWindow);
+      // Registering a listener for status bar message changes
+      CHECK_FAILURE(m_webView2_12->add_StatusBarTextChanged(
+          Microsoft::WRL::Callback<ICoreWebView2StatusBarTextChangedEventHandler>(
+              [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                  if (m_customStatusBar)
+                  {
+                      wil::unique_cotaskmem_string value;
+                      Microsoft::WRL::ComPtr<ICoreWebView2_12> wv;
+                      CHECK_FAILURE(sender->QueryInterface(IID_PPV_ARGS(&wv)));
 
-                        CHECK_FAILURE(wv->get_StatusBarText(&value));
-                        std::wstring valueString = value.get();
-                        if (valueString.length() != 0)
-                        {
-                            m_statusBar.Show(valueString);
-                        }
-                        else
-                        {
-                            m_statusBar.Hide();
-                        }
-                    }
+                      CHECK_FAILURE(wv->get_StatusBarText(&value));
+                      std::wstring valueString = value.get();
+                      if (valueString.length() != 0)
+                      {
+                          m_statusBar.Show(valueString);
+                      }
+                      else
+                      {
+                          m_statusBar.Hide();
+                      }
+                  }
 
-                    return S_OK;
-                })
-                .Get(),
-            &m_statusBarTextChangedToken));
-        //! [StatusBarTextChanged]
-    }
+                  return S_OK;
+              })
+              .Get(),
+          &m_statusBarTextChangedToken));
+      //! [StatusBarTextChanged]
+  }
 }
 
 //! [PermissionRequested1]
@@ -1187,14 +1188,15 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
                     [this](
                         ICoreWebView2* sender,
                         ICoreWebView2ClientCertificateRequestedEventArgs* args) {
-                        wil::com_ptr<ICoreWebView2CertificateCollection> certificateCollection;
+                        wil::com_ptr<ICoreWebView2ClientCertificateCollection>
+                            certificateCollection;
                         CHECK_FAILURE(
                             args->get_MutuallyTrustedCertificates(&certificateCollection));
 
                         UINT certificateCollectionCount = 0;
                         CHECK_FAILURE(
                             certificateCollection->get_Count(&certificateCollectionCount));
-                        wil::com_ptr<ICoreWebView2Certificate> certificate = nullptr;
+                        wil::com_ptr<ICoreWebView2ClientCertificate> certificate = nullptr;
 
                         if (certificateCollectionCount > 0)
                         {

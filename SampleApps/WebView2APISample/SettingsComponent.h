@@ -38,6 +38,7 @@ public:
     void ChangeUserAgent();
     void SetUserAgent(const std::wstring& userAgent);
     void EnableCustomClientCertificateSelection();
+
     static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
 
     ~SettingsComponent() override;

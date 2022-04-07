@@ -385,14 +385,14 @@ bool ViewComponent::HandleWindowMessage(
     //! [ToggleIsVisibleOnMinimize]
     if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) || message == WM_MOUSELEAVE)
     {
-        return OnMouseMessage(message, wParam, lParam);
+        OnMouseMessage(message, wParam, lParam);
     }
     else if (
         message == WM_POINTERACTIVATE || message == WM_POINTERDOWN ||
         message == WM_POINTERENTER || message == WM_POINTERLEAVE || message == WM_POINTERUP ||
         message == WM_POINTERUPDATE)
     {
-        return OnPointerMessage(message, wParam, lParam);
+        OnPointerMessage(message, wParam, lParam);
     }
     //! [NotifyParentWindowPositionChanged]
     if (message == WM_MOVE || message == WM_MOVING)
