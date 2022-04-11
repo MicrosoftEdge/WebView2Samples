@@ -124,6 +124,8 @@ BEGIN
         MENUITEM "Toggle Client Certificate Requested", ID_TOGGLE_CLIENT_CERTIFICATE_REQUESTED
         MENUITEM "Toggle Context Menus Enabled", ID_SETTINGS_CONTEXT_MENUS_ENABLED
         MENUITEM "Toggle Custom Context Menu", ID_TOGGLE_CUSTOM_CONTEXT_MENU
+        MENUITEM "Toggle Favicon Changed Listener", ID_SETTINGS_TOGGLE_POST_FAVICON_CHANGED
+        MENUITEM "Toggle Custom Status Bar",    ID_SETTINGS_TOGGLE_POST_STATUS_BAR_ACTIVITY
         MENUITEM "Toggle Default Script Dialogs", IDM_TOGGLE_DEFAULT_SCRIPT_DIALOGS
         MENUITEM "Toggle DevTools Enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
         MENUITEM "Toggle General Autofill",     ID_SETTINGS_GENERAL_AUTOFILL_ENABLED
@@ -133,6 +135,11 @@ BEGIN
         MENUITEM "Toggle Password Autosave",    ID_SETTINGS_PASSWORD_AUTOSAVE_ENABLED
         MENUITEM "Toggle Pinch Zoom Enabled",   ID_SETTINGS_PINCH_ZOOM_ENABLED
         MENUITEM "Toggle Replace Images",       ID_SETTINGS_REPLACEALLIMAGES
+        POPUP "Server Certificate Error"
+        BEGIN
+            MENUITEM "Toggle Custom Server Certificate Support", ID_TOGGLE_CUSTOM_SERVER_CERTIFICATE_SUPPORT 
+            MENUITEM "Clear Server Certificate Error Actions", ID_CLEAR_SERVER_CERTIFICATE_ERROR_ACTIONS
+        END
         MENUITEM "Toggle Status Bar Enabled",   ID_SETTINGS_STATUS_BAR_ENABLED
         MENUITEM "Toggle Swipe navigation Enabled",   ID_SETTINGS_SWIPE_NAVIGATION_ENABLED
         MENUITEM "Toggle Web Messaging",        IDM_TOGGLE_WEB_MESSAGING

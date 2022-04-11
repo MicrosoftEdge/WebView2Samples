@@ -25,6 +25,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Close WebView](#Close-WebView)
     * [Create WebView](#Create-WebView)
     * [Create New Window](#Create-New-Window)
+    * [Create New Window With Options](#Create-New-Window-With-Options)
     * [Create New Thread](#Create-New-Thread)
   * [Process](#Process)
     * [Browser Process Info](#Browser-Process-Info)
@@ -51,6 +52,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle Swipe Navigation enabled](#Toggle-Swipe-Navigation-enabled)
     * [Toggle Hidden PDF toolbar items](#Toggle-hide-PDF-toolbar-items)
     * [Toggle Allow External Drop](#Toggle-Allow-External-Drop)
+    * [Toggle Server Certificate Error](#Toggle-Custom-Server-Certificate-Support)
   * [View](#View)
     * [Toggle Visibility](#Toggle-Visibility)
     * [WebView Bounds Reference](#WebView-Bounds-Reference)
@@ -265,6 +267,21 @@ Test that creates new window
 1. Launch the sample app.
 2. Go to `Window -> Create New Window`
 3. Expected: A new app window opened on the same thread
+
+### Create New Window With Options
+
+Test that creates new window with options
+
+1. Launch the sample app.
+2. Go to `Window -> Create New Window With Option`.
+3. Type in profile name and uncheck InPrivate, then click `OK`.
+4. Expected: A new app window opened with profile name in its title bar.
+5. In sample app, repeat step 2.
+6. Type in a different profile name as typed in step 3 and check InPrivate, then click OK.
+7. Expected: A new app window opened with the different profile name in its title bar.
+8. In sample app, repeat step 2.
+9. Type in the same profile name as typed in step 3 but check InPrivate, then click OK.
+10. Expected: A new window opened with the same profile name in its title bar and the app icon should be different that can indicate it's in private mode.
 
 #### Create New Thread
 
@@ -716,6 +733,25 @@ Test that enables or disables dragging and dropping files into webview.
 1. Go to `Settings -> Toggle Allow External Drop`
 1. Drag and drop the file into the sample app again
 1. Expected: A new window with this text file opened is launched
+
+#### Toggle Server Certificate Error
+
+Test that turns off TLS error page.
+
+1. Launch the sample app.
+1. Navigate to <https://self-signed.badssl.com>.
+1. Expected: WebView2 displays SSL error page to the user.
+1. Go to `Settings -> Server Certificate Error -> Toogle Server Certificate Error Support`.
+1. Expected: Message Box that says `Custom server certificate error support been enabled`.
+1. Click `OK` inside the popup dialog.
+1. Refresh the page.
+1. Expected: Web page is loaded without any errors. 
+1. Go to `Settings -> Server Certificate Error -> Toogle Server Certificate Error Support`.
+1. Expected: Message Box that says `Custom server certificate error support been disbaled`.
+1. Go to `Settings -> Server Certificate Error -> Clear Server Certificate Error Actions`.
+1. Expected: Message Box that says `Clear server certificate error actions are succeeded.`
+1. Refresh the page.
+1. Expected: WebView2 displays SSL error page to the user.
 
 ### View
 
