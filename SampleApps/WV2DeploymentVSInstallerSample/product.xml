@@ -32,6 +32,7 @@
   <!-- Check for RegKey to make sure only install if WebView Run time are not installed -->
   <InstallChecks>
     <RegistryCheck Property="EdgeRuntimeVersionInstalled" Key="HKLM\SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Value="pv"/>
+    <RegistryCheck Property="EdgeRuntimeVersionInstalled" Key="HKCU\SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Value="pv"/>
   </InstallChecks>
 
   <!-- Defines how to run the Setup package. -->
