@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -406,6 +406,7 @@
     <ClInclude Include="ScenarioClientCertificateRequested.h" />
     <ClInclude Include="ScenarioCookieManagement.h" />
     <ClInclude Include="ScenarioCustomDownloadExperience.h" />
+    <ClInclude Include="ScenarioCustomScheme.h" />
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
     <ClInclude Include="ScenarioIFrameDevicePermission.h" />
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
@@ -441,6 +442,7 @@
     <ClCompile Include="ScenarioClientCertificateRequested.cpp" />
     <ClCompile Include="ScenarioCookieManagement.cpp" />
     <ClCompile Include="ScenarioCustomDownloadExperience.cpp" />
+    <ClCompile Include="ScenarioCustomScheme.cpp" />
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
     <ClCompile Include="ScenarioIFrameDevicePermission.cpp" />
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
@@ -479,6 +481,9 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="assets/AppStartPageBackground.png">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioCustomScheme.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermission.html">

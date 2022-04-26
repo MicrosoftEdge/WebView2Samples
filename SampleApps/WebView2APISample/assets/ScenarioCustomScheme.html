@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioCustomScheme</title>
+</head>
+<body>
+    <h2>Since https://appassets.example is in the allowed origins of custom-scheme, it can load the following iframe:</h2>
+    <iframe src="custom-scheme://AppStartPage.html" style='height: 200px; width: 100%;' />
+    <h2>Even though there is a WebResourceRequested event handler for it</h2>
+    <h2>since https://appassets.example is not in the allowed origins of custom-scheme2, it cannot load the following iframe.</h2>
+    <h2>In fact the WebResourceRequested event won't fire for 'custom-scheme2':</h2>
+    <iframe src="custom-scheme2://AppStartPage.html" style='height: 200px; width: 100%;' />
+</body>
+</html>
