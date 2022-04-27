@@ -14,7 +14,7 @@ namespace WebView2WpfBrowser
             string title = null,
             string host = null,
             int port = 0,
-            IReadOnlyList<CoreWebView2Certificate> client_cert_list = null)
+            IReadOnlyList<CoreWebView2ClientCertificate> client_cert_list = null)
         {
             InitializeComponent();
             if (title != null)
