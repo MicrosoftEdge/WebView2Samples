@@ -11,4 +11,4 @@ urlFragment: webview2-wpf-getting-started
 
 This sample relates to the [Getting started with WebView2 in WPF](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/wpf) doc.
 
-![sample snapshot](https://raw.githubusercontent.com/MicrosoftDocs/edge-developer/master/microsoft-edge/webview2/get-started/media/wpf-getting-started-app.png)
+![sample snapshot](https://raw.githubusercontent.com/MicrosoftDocs/edge-developer/main/microsoft-edge/webview2/get-started/media/wpf-getting-started-app.png)

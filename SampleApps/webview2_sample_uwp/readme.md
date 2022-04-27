@@ -18,7 +18,7 @@ urlFragment: WebView2_UWP
 
 This is a hybrid application built with the [Microsoft Edge WebView2](https://aka.ms/webview2) control.
 
-![Sample App Snapshot](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Samples/master/SampleApps/WebView2WpfBrowser/screenshots/wpf-browser-screenshot.png)
+![Sample App Snapshot](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Samples/main/SampleApps/WebView2WpfBrowser/screenshots/wpf-browser-screenshot.png)
 
 The WebView2 UWP is an example of an application that embeds a WebView within a UWP application. It is built as a UWP [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) project and makes use of both cpp and HTML/CSS/JavaScript in the WebView2 environment.
 

@@ -19,7 +19,7 @@ Please leave feedback in our [our feedback repo](https://aka.ms/webviewfeedback)
 
 Start with the [Win32 WebView2 getting-started guide](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32) to learn how to setup a WebView within a Win32 application.
 
-This will require downloading the [Getting Started Guide](https://github.com/MicrosoftEdge/WebView2Samples/tree/master/GettingStartedGuide) directory.
+This will require downloading the [Getting Started Guide](https://github.com/MicrosoftEdge/WebView2Samples/tree/main/GettingStartedGuide) directory.
 
 #### Comprehensive API Sample
 
