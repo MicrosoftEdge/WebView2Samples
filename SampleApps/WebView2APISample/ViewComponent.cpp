@@ -407,20 +407,14 @@ bool ViewComponent::HandleWindowMessage(
 //! [SetPreferredColorScheme]
 void ViewComponent::SetPreferredColorScheme(COREWEBVIEW2_PREFERRED_COLOR_SCHEME value)
 {
-    wil::com_ptr<ICoreWebView2Experimental8> webViewExperimental8;
-    webViewExperimental8 = m_webView.try_query<ICoreWebView2Experimental8>();
+    wil::com_ptr<ICoreWebView2_12> webView2_12;
+    webView2_12 = m_webView.try_query<ICoreWebView2_12>();
 
-    if (webViewExperimental8)
+    if (webView2_12)
     {
-      wil::com_ptr<ICoreWebView2ExperimentalProfile> profile;
-      CHECK_FAILURE(webViewExperimental8->get_Profile(&profile));
-
-      auto profileExperimental2 =
-        profile.try_query<ICoreWebView2ExperimentalProfile2>();
-      if (profileExperimental2)
-      {
-        profileExperimental2->put_PreferredColorScheme(value);
-      }
+        wil::com_ptr<ICoreWebView2Profile> profile;
+        CHECK_FAILURE(webView2_12->get_Profile(&profile));
+        profile->put_PreferredColorScheme(value);
     }
 }
 //! [SetPreferredColorScheme]

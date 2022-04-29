@@ -25,9 +25,9 @@ ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow)
     CHECK_FAILURE(settings->put_IsWebMessageEnabled(TRUE));
 
     //! [CookieManager]
-    wil::com_ptr<ICoreWebView2_2> m_webview2;
-    CHECK_FAILURE(m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&m_webview2)));
-    CHECK_FAILURE(m_webview2->get_CookieManager(&m_cookieManager));
+    auto webview2_2 = m_webView.try_query<ICoreWebView2_2>();
+    CHECK_FEATURE_RETURN_EMPTY(webview2_2);
+    CHECK_FAILURE(webview2_2->get_CookieManager(&m_cookieManager));
     //! [CookieManager]
 
     SetupEventsOnWebview();

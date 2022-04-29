@@ -43,7 +43,6 @@
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
-
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -525,7 +524,6 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_AUTHENTICATION:
     {
         NewComponent<ScenarioAuthentication>(this);
-
         return true;
     }
     case IDM_SCENARIO_COOKIE_MANAGEMENT:
@@ -716,20 +714,19 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
 //! [ClearBrowsingData]
 bool AppWindow::ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds)
 {
-    auto webView2Experimental8 =
-        m_webView.try_query<ICoreWebView2Experimental8>();
-    CHECK_FEATURE_RETURN(webView2Experimental8);
-    wil::com_ptr<ICoreWebView2ExperimentalProfile> webView2ExperimentalProfile;
-    CHECK_FAILURE(webView2Experimental8->get_Profile(&webView2ExperimentalProfile));
-    CHECK_FEATURE_RETURN(webView2ExperimentalProfile);
-    auto webView2ExperimentalProfile4 = webView2ExperimentalProfile.try_query<ICoreWebView2ExperimentalProfile4>();
-    CHECK_FEATURE_RETURN(webView2ExperimentalProfile4);
+    auto webView2_12 = m_webView.try_query<ICoreWebView2_12>();
+    CHECK_FEATURE_RETURN(webView2_12);
+    wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+    CHECK_FAILURE(webView2_12->get_Profile(&webView2Profile));
+    CHECK_FEATURE_RETURN(webView2Profile);
+    auto webView2Profile2 = webView2Profile.try_query<ICoreWebView2Profile2>();
+    CHECK_FEATURE_RETURN(webView2Profile2);
     // Clear the browsing data from the last hour.
     double endTime = (double)std::time(nullptr);
     double startTime = endTime - 3600.0;
-    CHECK_FAILURE(webView2ExperimentalProfile4->ClearBrowsingDataInTimeRange(
+    CHECK_FAILURE(webView2Profile2->ClearBrowsingDataInTimeRange(
         dataKinds, startTime, endTime,
-        Callback<ICoreWebView2ExperimentalClearBrowsingDataCompletedHandler>(
+        Callback<ICoreWebView2ClearBrowsingDataCompletedHandler>(
             [this](HRESULT error) -> HRESULT {
                 AsyncMessageBox(L"Completed", L"Clear Browsing Data");
                 return S_OK;
@@ -874,6 +871,7 @@ void AppWindow::InitializeWebView()
     }
 #endif
     //! [CreateCoreWebView2EnvironmentWithOptions]
+
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
     CHECK_FAILURE(
         options->put_AllowSingleSignOnUsingOSPrimaryAccount(
@@ -978,17 +976,16 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
 HRESULT AppWindow::CreateControllerWithOptions()
 {
     //! [CreateControllerWithOptions]
-    auto webViewEnvironment8 =
-        m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment8>();
-    if (!webViewEnvironment8)
+    auto webViewEnvironment10 = m_webViewEnvironment.try_query<ICoreWebView2Environment10>();
+    if (!webViewEnvironment10)
     {
         FeatureNotAvailable();
         return S_OK;
     }
 
-    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalControllerOptions> options;
-    HRESULT hr = webViewEnvironment8->CreateCoreWebView2ControllerOptions(
-        m_webviewOption.profile.c_str(), m_webviewOption.isInPrivate, options.GetAddressOf());
+    wil::com_ptr<ICoreWebView2ControllerOptions> options;
+    // The validation of parameters occurs when setting the properties.
+    HRESULT hr = webViewEnvironment10->CreateCoreWebView2ControllerOptions(&options);
     if (hr == E_INVALIDARG)
     {
         ShowFailure(hr, L"Unable to create WebView2 due to an invalid profile name.");
@@ -998,14 +995,19 @@ HRESULT AppWindow::CreateControllerWithOptions()
     CHECK_FAILURE(hr);
     //! [CreateControllerWithOptions]
 
+    // If call 'put_ProfileName' with an invalid profile name, the 'E_INVALIDARG' returned
+    // immediately. ProfileName could be reused.
+    CHECK_FAILURE(options->put_ProfileName(m_webviewOption.profile.c_str()));
+    CHECK_FAILURE(options->put_IsInPrivateModeEnabled(m_webviewOption.isInPrivate));
+
 #ifdef USE_WEBVIEW2_WIN10
     if (m_dcompDevice || m_wincompCompositor)
 #else
     if (m_dcompDevice)
 #endif
     {
-        CHECK_FAILURE(webViewEnvironment8->CreateCoreWebView2CompositionControllerWithOptions(
-            m_mainWindow, options.Get(),
+        CHECK_FAILURE(webViewEnvironment10->CreateCoreWebView2CompositionControllerWithOptions(
+            m_mainWindow, options.get(),
             Callback<ICoreWebView2CreateCoreWebView2CompositionControllerCompletedHandler>(
                 [this](
                     HRESULT result,
@@ -1019,8 +1021,8 @@ HRESULT AppWindow::CreateControllerWithOptions()
     }
     else
     {
-        CHECK_FAILURE(webViewEnvironment8->CreateCoreWebView2ControllerWithOptions(
-            m_mainWindow, options.Get(),
+        CHECK_FAILURE(webViewEnvironment10->CreateCoreWebView2ControllerWithOptions(
+            m_mainWindow, options.get(),
             Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
                 this, &AppWindow::OnCreateCoreWebView2ControllerCompleted)
                 .Get()));
@@ -1078,27 +1080,23 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
         // available.
         CHECK_FAILURE(m_webView->get_BrowserProcessId(&m_newestBrowserPid));
         //! [CoreWebView2Profile]
-        auto webview2Experimental8 = coreWebView2.try_query<ICoreWebView2Experimental8>();
-        if (webview2Experimental8)
+        auto webView2_12 = coreWebView2.try_query<ICoreWebView2_12>();
+        if (webView2_12)
         {
-            wil::com_ptr<ICoreWebView2ExperimentalProfile> profile;
-            CHECK_FAILURE(webview2Experimental8->get_Profile(&profile));
-            wil::unique_cotaskmem_string profile_path;
-            CHECK_FAILURE(profile->get_ProfilePath(&profile_path));
-            std::wstring str(profile_path.get());
-            m_profileDirName = str.substr(str.find_last_of(L'\\') + 1);
+            wil::com_ptr<ICoreWebView2Profile> profile;
+            CHECK_FAILURE(webView2_12->get_Profile(&profile));
+            wil::unique_cotaskmem_string profile_name;
+            CHECK_FAILURE(profile->get_ProfileName(&profile_name));
+            m_profileName = profile_name.get();
             BOOL inPrivate = FALSE;
             CHECK_FAILURE(profile->get_IsInPrivateModeEnabled(&inPrivate));
             if (!m_webviewOption.downloadPath.empty())
             {
-                auto webView2ExperimentalProfile3 =
-                    profile.try_query<ICoreWebView2ExperimentalProfile3>();
-                CHECK_FAILURE(webView2ExperimentalProfile3->
-                    put_DefaultDownloadFolderPath(
-                        m_webviewOption.downloadPath.c_str()));
+                CHECK_FAILURE(profile->put_DefaultDownloadFolderPath(
+                    m_webviewOption.downloadPath.c_str()));
             }
 
-            // update window title with m_profileDirName
+            // update window title with m_profileName
             UpdateAppTitle();
 
             // update window icon
@@ -1513,7 +1511,7 @@ bool AppWindow::CloseWebView(bool cleanupUserDataFolder)
     }
 
     // reset profile name
-    m_profileDirName = L"";
+    m_profileName = L"";
     m_documentTitle = L"";
     return true;
 }
@@ -1631,9 +1629,9 @@ std::wstring AppWindow::GetDocumentTitle()
 
 void AppWindow::UpdateAppTitle() {
     std::wstring str(m_appTitle);
-    if (!m_profileDirName.empty())
+    if (!m_profileName.empty())
     {
-        str += L" - " + m_profileDirName;
+        str += L" - " + m_profileName;
     }
     if (!m_documentTitle.empty())
     {
