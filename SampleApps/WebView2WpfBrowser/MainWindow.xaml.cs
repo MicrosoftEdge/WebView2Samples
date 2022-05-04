@@ -42,6 +42,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand CheckUpdateCommand = new RoutedCommand();
         public static RoutedCommand NewBrowserVersionCommand = new RoutedCommand();
         public static RoutedCommand PdfToolbarSaveCommand = new RoutedCommand();
+        public static RoutedCommand AuthenticationCommand = new RoutedCommand();
         public static RoutedCommand ClearBrowsingDataCommand = new RoutedCommand();
         public static RoutedCommand SetDefaultDownloadPathCommand = new RoutedCommand();
         public static RoutedCommand CreateDownloadsButtonCommand = new RoutedCommand();
@@ -60,6 +61,8 @@ namespace WebView2WpfBrowser
         public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
         public static RoutedCommand ToggleMuteStateCommand = new RoutedCommand();
         public static RoutedCommand AllowExternalDropCommand = new RoutedCommand();
+        public static RoutedCommand CustomServerCertificateSupportCommand = new RoutedCommand();
+        public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         CoreWebView2Settings _webViewSettings;
@@ -204,6 +207,16 @@ namespace WebView2WpfBrowser
         void DeferredCustomCertificateDialogCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             DeferredCustomClientCertificateSelectionDialog();
+        }
+
+        void CustomServerCertificateSupportCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            ToggleCustomServerCertificateSupport();
+        }
+
+        void ClearServerCertificateErrorActionsCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            ClearServerCertificateErrorActions();
         }
 
         private bool _isControlInVisualTree = true;
@@ -788,6 +801,18 @@ namespace WebView2WpfBrowser
                 cm.Items.Add(newItem);
             }
         }
+
+        void AuthenticationCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.BasicAuthenticationRequested += delegate (object sender, CoreWebView2BasicAuthenticationRequestedEventArgs args)
+            {
+                // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Demo credentials in https://authenticationtest.com")]
+                args.Response.UserName = "user";
+                // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Demo credentials in https://authenticationtest.com")]
+                args.Response.Password = "pass";
+            };
+            webView.CoreWebView2.Navigate("https://authenticationtest.com/HTTPAuth");
+        }
         void PinchZoomCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             WebViewSettings.IsPinchZoomEnabled = !WebViewSettings.IsPinchZoomEnabled;
@@ -1003,7 +1028,7 @@ namespace WebView2WpfBrowser
 
         void WebView_ClientCertificateRequested(object sender, CoreWebView2ClientCertificateRequestedEventArgs e)
         {
-            IReadOnlyList<CoreWebView2Certificate> certificateList = e.MutuallyTrustedCertificates;
+            IReadOnlyList<CoreWebView2ClientCertificate> certificateList = e.MutuallyTrustedCertificates;
             if (certificateList.Count() > 0)
             {
                 // There is no significance to the order, picking a certificate arbitrarily.
@@ -1042,7 +1067,7 @@ namespace WebView2WpfBrowser
                         {
                             using (deferral)
                             {
-                                IReadOnlyList<CoreWebView2Certificate> certificateList = args.MutuallyTrustedCertificates;
+                                IReadOnlyList<CoreWebView2ClientCertificate> certificateList = args.MutuallyTrustedCertificates;
                                 if (certificateList.Count() > 0)
                                 {
                                     // Display custom dialog box for the client certificate selection.
@@ -1054,7 +1079,7 @@ namespace WebView2WpfBrowser
                                     if (dialog.ShowDialog() == true)
                                     {
                                         // Continue with the selected certificate to respond to the server if `OK` is selected.
-                                        args.SelectedCertificate = (CoreWebView2Certificate)dialog.CertificateDataBinding.SelectedItem;
+                                        args.SelectedCertificate = (CoreWebView2ClientCertificate)dialog.CertificateDataBinding.SelectedItem;
                                     }
                                     // Continue without a certificate to respond to the server if `CANCEL` is selected.
                                     args.Handled = true;
@@ -1077,6 +1102,78 @@ namespace WebView2WpfBrowser
             {
                 MessageBox.Show(this, "Custom client certificate selection dialog Failed: " + exception.Message, "Client certificate selection");
             }
+        }
+
+        // When WebView2 doesn't trust a TLS certificate but host app does, this example bypasses
+        // the default TLS interstitial page using the ServerCertificateErrorDetected event handler and
+        // continues the request to a server. Otherwise, cancel the request.
+        private bool _isServerCertificateError = false;
+        void ToggleCustomServerCertificateSupport()
+        {
+            // Safeguarding the handler when unsupported runtime is used.
+            try
+            {
+                if (!_isServerCertificateError)
+                {
+                    webView.CoreWebView2.ServerCertificateErrorDetected += WebView_ServerCertificateErrorDetected;
+                }
+                else
+                {
+                    webView.CoreWebView2.ServerCertificateErrorDetected -= WebView_ServerCertificateErrorDetected;
+                }
+                _isServerCertificateError = !_isServerCertificateError;
+
+                MessageBox.Show(this, "Custom server certificate support has been" + 
+                    (_isServerCertificateError ? "enabled" : "disabled"),
+                    "Custom server certificate support");
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Custom server certificate support failed: " + exception.Message, "Custom server certificate support");
+            }
+        }
+
+        void WebView_ServerCertificateErrorDetected(object sender, CoreWebView2ServerCertificateErrorDetectedEventArgs e)
+        {
+           CoreWebView2Certificate certificate = e.ServerCertificate;
+
+            // Continues the request to a server with a TLS certificate if the error status 
+            // is of type `COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID`
+            // and trusted by the host app.
+            if (e.ErrorStatus == CoreWebView2WebErrorStatus.CertificateIsInvalid &&
+                            ValidateServerCertificate(certificate))
+            {
+                e.Action = CoreWebView2ServerCertificateErrorAction.AlwaysAllow;
+            }
+            else
+            {
+                // Cancel the request for other TLS certificate error types or if untrusted by the host app.
+                e.Action = CoreWebView2ServerCertificateErrorAction.Cancel;
+            }
+        }
+
+        // Function to validate the server certificate for untrusted root or self-signed certificate.
+        // You may also choose to defer server certificate validation.
+        bool ValidateServerCertificate(CoreWebView2Certificate certificate)
+        {
+           // You may want to validate certificates in different ways depending on your app and
+           // scenario. One way might be the following: 
+           // First, get the list of host app trusted certificates and its thumbprint. 
+           // 
+           // Then get the last chain element using `ICoreWebView2Certificate::get_PemEncodedIssuerCertificateChain` 
+           // that contains the raw data of the untrusted root CA/self-signed certificate. Get the untrusted 
+           // root CA/self signed certificate thumbprint from the raw certificate data and validate the thumbprint
+           // against the host app trusted certificate list. 
+           // 
+           // Finally, return true if it exists in the host app's certificate trusted list, or otherwise return false.
+           return true;
+        }
+
+        // This example clears `AlwaysAllow` response that are added for proceeding with TLS certificate errors.
+        async void ClearServerCertificateErrorActions()
+        {
+            await webView.CoreWebView2.ClearServerCertificateErrorActionsAsync();
+            MessageBox.Show(this, "message", "Clear server certificate error actions are succeeded");
         }
 
         void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)

@@ -222,7 +222,7 @@ private:
     std::vector<std::unique_ptr<ComponentBase>> m_components;
     // options for creation of webview controller
     WebViewCreateOption m_webviewOption;
-    std::wstring m_profileDirName;
+    std::wstring m_profileName;
 
     std::unique_ptr<SettingsComponent> m_oldSettingsComponent;
 
