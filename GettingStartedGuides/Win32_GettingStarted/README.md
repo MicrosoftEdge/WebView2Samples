@@ -11,4 +11,4 @@ urlFragment: webview2-win32-getting-started
 
 This sample relates to the [Getting started with WebView2 for Win32 apps](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32) doc.
 
-![sample snapshot](https://raw.githubusercontent.com/MicrosoftDocs/edge-developer/master/microsoft-edge/webview2/media/bing-window.png)
+![sample snapshot](https://raw.githubusercontent.com/MicrosoftDocs/edge-developer/main/microsoft-edge/webview2/media/bing-window.png)
