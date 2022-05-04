@@ -44,7 +44,6 @@
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
-
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -716,20 +715,19 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
 //! [ClearBrowsingData]
 bool AppWindow::ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds)
 {
-    auto webView2_12 = m_webView.try_query<ICoreWebView2_12>();
-    CHECK_FEATURE_RETURN(webView2_12);
+    auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+    CHECK_FEATURE_RETURN(webView2_13);
     wil::com_ptr<ICoreWebView2Profile> webView2Profile;
-    CHECK_FAILURE(webView2_12->get_Profile(&webView2Profile));
+    CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
     CHECK_FEATURE_RETURN(webView2Profile);
-    auto webView2ExperimentalProfile4 =
-        webView2Profile.try_query<ICoreWebView2ExperimentalProfile4>();
-    CHECK_FEATURE_RETURN(webView2ExperimentalProfile4);
+    auto webView2Profile2 = webView2Profile.try_query<ICoreWebView2Profile2>();
+    CHECK_FEATURE_RETURN(webView2Profile2);
     // Clear the browsing data from the last hour.
     double endTime = (double)std::time(nullptr);
     double startTime = endTime - 3600.0;
-    CHECK_FAILURE(webView2ExperimentalProfile4->ClearBrowsingDataInTimeRange(
+    CHECK_FAILURE(webView2Profile2->ClearBrowsingDataInTimeRange(
         dataKinds, startTime, endTime,
-        Callback<ICoreWebView2ExperimentalClearBrowsingDataCompletedHandler>(
+        Callback<ICoreWebView2ClearBrowsingDataCompletedHandler>(
             [this](HRESULT error) -> HRESULT {
                 AsyncMessageBox(L"Completed", L"Clear Browsing Data");
                 return S_OK;
@@ -874,6 +872,7 @@ void AppWindow::InitializeWebView()
     }
 #endif
     //! [CreateCoreWebView2EnvironmentWithOptions]
+
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
     CHECK_FAILURE(
         options->put_AllowSingleSignOnUsingOSPrimaryAccount(
@@ -1082,11 +1081,11 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
         // available.
         CHECK_FAILURE(m_webView->get_BrowserProcessId(&m_newestBrowserPid));
         //! [CoreWebView2Profile]
-        auto webView2_12 = coreWebView2.try_query<ICoreWebView2_12>();
-        if (webView2_12)
+        auto webView2_13 = coreWebView2.try_query<ICoreWebView2_13>();
+        if (webView2_13)
         {
             wil::com_ptr<ICoreWebView2Profile> profile;
-            CHECK_FAILURE(webView2_12->get_Profile(&profile));
+            CHECK_FAILURE(webView2_13->get_Profile(&profile));
             wil::unique_cotaskmem_string profile_name;
             CHECK_FAILURE(profile->get_ProfileName(&profile_name));
             m_profileName = profile_name.get();

@@ -34,9 +34,10 @@ SettingsComponent::SettingsComponent(
     m_webView2_5 = m_webView.try_query<ICoreWebView2_5>();
     m_webView2_11 = m_webView.try_query<ICoreWebView2_11>();
     m_webView2_12 = m_webView.try_query<ICoreWebView2_12>();
+    m_webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+    m_webView2_14 = m_webView.try_query<ICoreWebView2_14>();
     m_webViewExperimental5 = m_webView.try_query<ICoreWebView2Experimental5>();
     m_webViewExperimental12 = m_webView.try_query<ICoreWebView2Experimental12>();
-    m_webViewExperimental15 = m_webView.try_query<ICoreWebView2Experimental15>();
     // Copy old settings if desired
     if (old)
     {
@@ -978,12 +979,11 @@ bool SettingsComponent::HandleWindowMessage(
         }
         case ID_CLEAR_SERVER_CERTIFICATE_ERROR_ACTIONS:
         {
-            CHECK_FEATURE_RETURN(m_webViewExperimental15);
+            CHECK_FEATURE_RETURN(m_webView2_14);
             // This example clears `AlwaysAllow` response that are added for proceeding with TLS
             // certificate errors.
-            CHECK_FAILURE(m_webViewExperimental15->ClearServerCertificateErrorActions(
-                Callback<
-                    ICoreWebView2ExperimentalClearServerCertificateErrorActionsCompletedHandler>(
+            CHECK_FAILURE(m_webView2_14->ClearServerCertificateErrorActions(
+                Callback<ICoreWebView2ClearServerCertificateErrorActionsCompletedHandler>(
                     [this](HRESULT result) -> HRESULT {
                         auto showDialog = [result] {
                             MessageBox(
@@ -1353,7 +1353,7 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
 
 // Function to validate the server certificate for untrusted root or self-signed certificate.
 // You may also choose to defer server certificate validation.
-static bool ValidateServerCertificate(ICoreWebView2ExperimentalCertificate* certificate)
+static bool ValidateServerCertificate(ICoreWebView2Certificate* certificate)
 {
     // You may want to validate certificates in different ways depending on your app and
     // scenario. One way might be the following:
@@ -1376,20 +1376,19 @@ static bool ValidateServerCertificate(ICoreWebView2ExperimentalCertificate* cert
 // continues the request to a server. Otherwise, cancel the request.
 void SettingsComponent::ToggleCustomServerCertificateSupport()
 {
-    if (m_webViewExperimental15)
+    if (m_webView2_14)
     {
         if (m_ServerCertificateErrorToken.value == 0)
         {
-            CHECK_FAILURE(m_webViewExperimental15->add_ServerCertificateErrorDetected(
-                Callback<ICoreWebView2ExperimentalServerCertificateErrorDetectedEventHandler>(
+            CHECK_FAILURE(m_webView2_14->add_ServerCertificateErrorDetected(
+                Callback<ICoreWebView2ServerCertificateErrorDetectedEventHandler>(
                     [this](
                         ICoreWebView2* sender,
-                        ICoreWebView2ExperimentalServerCertificateErrorDetectedEventArgs* args) {
+                        ICoreWebView2ServerCertificateErrorDetectedEventArgs* args) {
                         COREWEBVIEW2_WEB_ERROR_STATUS errorStatus;
                         CHECK_FAILURE(args->get_ErrorStatus(&errorStatus));
 
-                        wil::com_ptr<ICoreWebView2ExperimentalCertificate> certificate =
-                            nullptr;
+                        wil::com_ptr<ICoreWebView2Certificate> certificate = nullptr;
                         CHECK_FAILURE(args->get_ServerCertificate(&certificate));
 
                         // Continues the request to a server with a TLS certificate if the error
@@ -1417,7 +1416,7 @@ void SettingsComponent::ToggleCustomServerCertificateSupport()
         }
         else
         {
-            CHECK_FAILURE(m_webViewExperimental15->remove_ServerCertificateErrorDetected(
+            CHECK_FAILURE(m_webView2_14->remove_ServerCertificateErrorDetected(
                 m_ServerCertificateErrorToken));
             m_ServerCertificateErrorToken.value = 0;
         }

@@ -52,6 +52,8 @@ private:
     wil::com_ptr<ICoreWebView2_5> m_webView2_5;
     wil::com_ptr<ICoreWebView2_11> m_webView2_11;
     wil::com_ptr<ICoreWebView2_12> m_webView2_12;
+    wil::com_ptr<ICoreWebView2_13> m_webView2_13;
+    wil::com_ptr<ICoreWebView2_14> m_webView2_14;
     wil::com_ptr<ICoreWebView2Settings> m_settings;
     wil::com_ptr<ICoreWebView2Settings2> m_settings2;
     wil::com_ptr<ICoreWebView2Settings3> m_settings3;
@@ -64,7 +66,6 @@ private:
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2Experimental5> m_webViewExperimental5;
     wil::com_ptr<ICoreWebView2Experimental12> m_webViewExperimental12;
-    wil::com_ptr<ICoreWebView2Experimental15> m_webViewExperimental15;
     wil::com_ptr<ICoreWebView2ContextMenuItem> m_displayPageUrlContextSubMenuItem;
 
     bool m_blockImages = false;

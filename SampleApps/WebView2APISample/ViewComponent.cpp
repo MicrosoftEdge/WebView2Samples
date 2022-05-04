@@ -407,13 +407,13 @@ bool ViewComponent::HandleWindowMessage(
 //! [SetPreferredColorScheme]
 void ViewComponent::SetPreferredColorScheme(COREWEBVIEW2_PREFERRED_COLOR_SCHEME value)
 {
-    wil::com_ptr<ICoreWebView2_12> webView2_12;
-    webView2_12 = m_webView.try_query<ICoreWebView2_12>();
+    wil::com_ptr<ICoreWebView2_13> webView2_13;
+    webView2_13 = m_webView.try_query<ICoreWebView2_13>();
 
-    if (webView2_12)
+    if (webView2_13)
     {
         wil::com_ptr<ICoreWebView2Profile> profile;
-        CHECK_FAILURE(webView2_12->get_Profile(&profile));
+        CHECK_FAILURE(webView2_13->get_Profile(&profile));
         profile->put_PreferredColorScheme(value);
     }
 }
