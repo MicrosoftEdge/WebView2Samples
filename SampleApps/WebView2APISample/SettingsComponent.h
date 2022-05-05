@@ -38,6 +38,8 @@ public:
     void ChangeUserAgent();
     void SetUserAgent(const std::wstring& userAgent);
     void EnableCustomClientCertificateSelection();
+    void ToggleCustomServerCertificateSupport();
+
     static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
 
     ~SettingsComponent() override;
@@ -46,8 +48,11 @@ private:
     HRESULT OnPermissionRequested(
         ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args);
     AppWindow* m_appWindow = nullptr;
-    wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2> m_webView;
+    wil::com_ptr<ICoreWebView2_5> m_webView2_5;
+    wil::com_ptr<ICoreWebView2_11> m_webView2_11;
+    wil::com_ptr<ICoreWebView2_12> m_webView2_12;
+    wil::com_ptr<ICoreWebView2_13> m_webView2_13;
     wil::com_ptr<ICoreWebView2Settings> m_settings;
     wil::com_ptr<ICoreWebView2Settings2> m_settings2;
     wil::com_ptr<ICoreWebView2Settings3> m_settings3;
@@ -55,13 +60,14 @@ private:
     wil::com_ptr<ICoreWebView2Settings5> m_settings5;
     wil::com_ptr<ICoreWebView2Settings6> m_settings6;
     wil::com_ptr<ICoreWebView2Settings7> m_settings7;
-    wil::com_ptr<ICoreWebView2_5> m_webView2_5;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2Controller3> m_controller3;
+    wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2Experimental5> m_webViewExperimental5;
-    wil::com_ptr<ICoreWebView2_11> m_webView2_11;
-    wil::com_ptr<ICoreWebView2_12> m_webView2_12;
+    wil::com_ptr<ICoreWebView2Experimental12> m_webViewExperimental12;
+    wil::com_ptr<ICoreWebView2Experimental15> m_webViewExperimental15;
     wil::com_ptr<ICoreWebView2ContextMenuItem> m_displayPageUrlContextSubMenuItem;
+
     bool m_blockImages = false;
     bool m_replaceImages = false;
     bool m_changeUserAgent = false;
@@ -73,8 +79,12 @@ private:
         m_cached_permissions;
     std::vector<std::wstring> m_blockedSites;
     std::wstring m_overridingUserAgent;
+    ULONG_PTR gdiplusToken_;
+    bool m_faviconChanged = false;
+    wil::unique_hicon m_favicon;
     CustomStatusBar m_statusBar;
     bool m_customStatusBar = false;
+    bool m_raiseServerCertificateError = false;
 
     EventRegistrationToken m_navigationStartingToken = {};
     EventRegistrationToken m_frameNavigationStartingToken = {};
@@ -85,5 +95,7 @@ private:
     EventRegistrationToken m_permissionRequestedToken = {};
     EventRegistrationToken m_ClientCertificateRequestedToken = {};
     EventRegistrationToken m_contextMenuRequestedToken = {};
+    EventRegistrationToken m_faviconChangedToken = {};
     EventRegistrationToken m_statusBarTextChangedToken = {};
+    EventRegistrationToken m_ServerCertificateErrorToken = {};
 };

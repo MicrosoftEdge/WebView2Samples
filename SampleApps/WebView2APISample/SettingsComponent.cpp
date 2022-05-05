@@ -8,7 +8,9 @@
 
 #include "CheckFailure.h"
 #include "TextInputDialog.h"
+#include <gdiplus.h>
 #include <shlwapi.h>
+
 using namespace Microsoft::WRL;
 
 // Some utility functions
@@ -30,9 +32,12 @@ SettingsComponent::SettingsComponent(
     m_controller = m_appWindow->GetWebViewController();
     m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
     m_webView2_5 = m_webView.try_query<ICoreWebView2_5>();
-    m_webViewExperimental5 = m_webView.try_query<ICoreWebView2Experimental5>();
     m_webView2_11 = m_webView.try_query<ICoreWebView2_11>();
     m_webView2_12 = m_webView.try_query<ICoreWebView2_12>();
+    m_webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+    m_webViewExperimental5 = m_webView.try_query<ICoreWebView2Experimental5>();
+    m_webViewExperimental12 = m_webView.try_query<ICoreWebView2Experimental12>();
+    m_webViewExperimental15 = m_webView.try_query<ICoreWebView2Experimental15>();
     // Copy old settings if desired
     if (old)
     {
@@ -97,7 +102,9 @@ SettingsComponent::SettingsComponent(
         m_blockedSitesSet = old->m_blockedSitesSet;
         m_blockedSites = std::move(old->m_blockedSites);
         EnableCustomClientCertificateSelection();
+        ToggleCustomServerCertificateSupport();
     }
+
     //! [NavigationStarting]
     // Register a handler for the NavigationStarting event.
     // This handler will check the domain being navigated to, and if the domain
@@ -178,6 +185,65 @@ SettingsComponent::SettingsComponent(
         &m_frameNavigationStartingToken));
     //! [FrameNavigationStarting]
 
+    //! [FaviconChanged]
+    // Register a handler for the FaviconUriChanged event.
+    // This will provided the current favicon of the page, as well
+    // as any changes that occour during the page lifetime
+    if (m_webViewExperimental12)
+    {
+        Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+
+        // Initialize GDI+.
+        Gdiplus::GdiplusStartup(&gdiplusToken_, &gdiplusStartupInput, NULL);
+        CHECK_FAILURE(m_webViewExperimental12->add_FaviconChanged(
+            Callback<ICoreWebView2ExperimentalFaviconChangedEventHandler>(
+                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                    if (m_faviconChanged)
+                    {
+                        wil::unique_cotaskmem_string url;
+                        Microsoft::WRL::ComPtr<ICoreWebView2Experimental12>
+                            webview2Experimental;
+                        CHECK_FAILURE(
+                            sender->QueryInterface(IID_PPV_ARGS(&webview2Experimental)));
+
+                        CHECK_FAILURE(webview2Experimental->get_FaviconUri(&url));
+                        std::wstring strUrl(url.get());
+
+                        webview2Experimental->GetFavicon(
+                            COREWEBVIEW2_FAVICON_IMAGE_FORMAT_PNG,
+                            Callback<ICoreWebView2ExperimentalGetFaviconCompletedHandler>(
+                                [this,
+                                 strUrl](HRESULT errorCode, IStream* iconStream) -> HRESULT {
+                                    CHECK_FAILURE(errorCode);
+                                    Gdiplus::Bitmap iconBitmap(iconStream);
+                                    wil::unique_hicon icon;
+                                    if (iconBitmap.GetHICON(&icon) == Gdiplus::Status::Ok)
+                                    {
+                                        m_favicon = std::move(icon);
+                                        SendMessage(
+                                            m_appWindow->GetMainWindow(), WM_SETICON,
+                                            ICON_SMALL, (LPARAM)m_favicon.get());
+                                        m_statusBar.Show(strUrl);
+                                    }
+                                    else
+                                    {
+                                        SendMessage(
+                                            m_appWindow->GetMainWindow(), WM_SETICON,
+                                            ICON_SMALL, (LPARAM)IDC_NO);
+                                        m_statusBar.Show(L"No Icon");
+                                    }
+
+                                    return S_OK;
+                                })
+                                .Get());
+                    }
+                    return S_OK;
+                })
+                .Get(),
+            &m_faviconChangedToken));
+    }
+    //! [FaviconChanged]
+
     //! [ScriptDialogOpening]
     // Register a handler for the ScriptDialogOpening event.
     // This handler will set up a custom prompt dialog for the user.  Because
@@ -232,17 +298,18 @@ SettingsComponent::SettingsComponent(
         &m_permissionRequestedToken));
     //! [PermissionRequested0]
 
-  if (m_webView2_12) {
+    if (m_webView2_12)
+    {
         //! [StatusBarTextChanged]
         m_statusBar.Initialize(appWindow);
         // Registering a listener for status bar message changes
-    CHECK_FAILURE(m_webView2_12->add_StatusBarTextChanged(
-        Microsoft::WRL::Callback<ICoreWebView2StatusBarTextChangedEventHandler>(
+        CHECK_FAILURE(m_webView2_12->add_StatusBarTextChanged(
+            Microsoft::WRL::Callback<ICoreWebView2StatusBarTextChangedEventHandler>(
                 [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
                     if (m_customStatusBar)
                     {
                         wil::unique_cotaskmem_string value;
-                    Microsoft::WRL::ComPtr<ICoreWebView2_12> wv;
+                        Microsoft::WRL::ComPtr<ICoreWebView2_12> wv;
                         CHECK_FAILURE(sender->QueryInterface(IID_PPV_ARGS(&wv)));
 
                         CHECK_FAILURE(wv->get_StatusBarText(&value));
@@ -391,6 +458,16 @@ bool SettingsComponent::HandleWindowMessage(
                 L"Settings change", MB_OK);
             return true;
         }
+        case ID_SETTINGS_TOGGLE_POST_STATUS_BAR_ACTIVITY:
+        {
+            m_customStatusBar = !m_customStatusBar;
+            return true;
+        }
+        case ID_SETTINGS_TOGGLE_POST_FAVICON_CHANGED:
+        {
+            m_faviconChanged = !m_faviconChanged;
+            return true;
+        }
         case ID_SETTINGS_DEV_TOOLS_ENABLED:
         {
             BOOL areDevToolsEnabled = FALSE;
@@ -478,6 +555,7 @@ bool SettingsComponent::HandleWindowMessage(
                                 eventArgs;
                             wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items;
                             CHECK_FAILURE(args->get_MenuItems(&items));
+
                             UINT32 itemsCount;
                             CHECK_FAILURE(items->get_Count(&itemsCount));
 
@@ -831,7 +909,17 @@ bool SettingsComponent::HandleWindowMessage(
             {
                 CHECK_FAILURE(m_settings7->put_HiddenPdfToolbarItems(
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE));
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_BOOKMARKS |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FIT_PAGE |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_LAYOUT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ROTATE |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SEARCH |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_IN |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_OUT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE_AS |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_SELECTOR));
                 MessageBox(
                     nullptr,
                     L"PDF toolbar print and save buttons are hidden after the next navigation.",
@@ -878,10 +966,46 @@ bool SettingsComponent::HandleWindowMessage(
             //! [ToggleAllowExternalDrop]
             return true;
         }
+        case ID_TOGGLE_CUSTOM_SERVER_CERTIFICATE_SUPPORT:
+        {
+            ToggleCustomServerCertificateSupport();
+            MessageBox(
+                nullptr,
+                (std::wstring(L"Custom server certificate support has been ") +
+                 (m_ServerCertificateErrorToken.value != 0 ? L"enabled." : L"disabled."))
+                    .c_str(),
+                L"Custom server certificate support", MB_OK);
+            return true;
+        }
+        case ID_CLEAR_SERVER_CERTIFICATE_ERROR_ACTIONS:
+        {
+            CHECK_FEATURE_RETURN(m_webViewExperimental15);
+            // This example clears `AlwaysAllow` response that are added for proceeding with TLS
+            // certificate errors.
+            CHECK_FAILURE(m_webViewExperimental15->ClearServerCertificateErrorActions(
+                Callback<
+                    ICoreWebView2ExperimentalClearServerCertificateErrorActionsCompletedHandler>(
+                    [this](HRESULT result) -> HRESULT {
+                        auto showDialog = [result] {
+                            MessageBox(
+                                nullptr,
+                                (result == S_OK)
+                                    ? L"Clear server certificate error actions are succeeded."
+                                    : L"Clear server certificate error actions are failed.",
+                                L"Clear server certificate error actions", MB_OK);
+                        };
+                        m_appWindow->RunAsync([showDialog]() { showDialog(); });
+
+                        return S_OK;
+                    })
+                    .Get()));
+            return true;
+        }
         }
     }
     return false;
 }
+
 void SettingsComponent::AddMenuItems(
     HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items)
 {
@@ -1187,14 +1311,15 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
                     [this](
                         ICoreWebView2* sender,
                         ICoreWebView2ClientCertificateRequestedEventArgs* args) {
-                        wil::com_ptr<ICoreWebView2CertificateCollection> certificateCollection;
+                        wil::com_ptr<ICoreWebView2ClientCertificateCollection>
+                            certificateCollection;
                         CHECK_FAILURE(
                             args->get_MutuallyTrustedCertificates(&certificateCollection));
 
                         UINT certificateCollectionCount = 0;
                         CHECK_FAILURE(
                             certificateCollection->get_Count(&certificateCollectionCount));
-                        wil::com_ptr<ICoreWebView2Certificate> certificate = nullptr;
+                        wil::com_ptr<ICoreWebView2ClientCertificate> certificate = nullptr;
 
                         if (certificateCollectionCount > 0)
                         {
@@ -1226,6 +1351,84 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
     }
 }
 //! [ClientCertificateRequested1]
+
+// Function to validate the server certificate for untrusted root or self-signed certificate.
+// You may also choose to defer server certificate validation.
+static bool ValidateServerCertificate(ICoreWebView2ExperimentalCertificate* certificate)
+{
+    // You may want to validate certificates in different ways depending on your app and
+    // scenario. One way might be the following:
+    // First, get the list of host app trusted certificates and its thumbprint.
+    //
+    // Then get the last chain element using
+    // `ICoreWebView2Certificate::get_PemEncodedIssuerCertificateChain` that contains the raw
+    // data of the untrusted root CA/self-signed certificate. Get the untrusted root CA/self
+    // signed certificate thumbprint from the raw certificate data and validate the thumbprint
+    // against the host app trusted certificate list.
+    //
+    // Finally, return true if it exists in the host app's certificate trusted list, or
+    // otherwise return false.
+    return true;
+}
+
+//! [ServerCertificateErrorDetected1]
+// When WebView2 doesn't trust a TLS certificate but host app does, this example bypasses
+// the default TLS interstitial page using the ServerCertificateErrorDetected event handler and
+// continues the request to a server. Otherwise, cancel the request.
+void SettingsComponent::ToggleCustomServerCertificateSupport()
+{
+    if (m_webViewExperimental15)
+    {
+        if (m_ServerCertificateErrorToken.value == 0)
+        {
+            CHECK_FAILURE(m_webViewExperimental15->add_ServerCertificateErrorDetected(
+                Callback<ICoreWebView2ExperimentalServerCertificateErrorDetectedEventHandler>(
+                    [this](
+                        ICoreWebView2* sender,
+                        ICoreWebView2ExperimentalServerCertificateErrorDetectedEventArgs* args) {
+                        COREWEBVIEW2_WEB_ERROR_STATUS errorStatus;
+                        CHECK_FAILURE(args->get_ErrorStatus(&errorStatus));
+
+                        wil::com_ptr<ICoreWebView2ExperimentalCertificate> certificate =
+                            nullptr;
+                        CHECK_FAILURE(args->get_ServerCertificate(&certificate));
+
+                        // Continues the request to a server with a TLS certificate if the error
+                        // status is of type
+                        // `COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID` and trusted by
+                        // the host app.
+                        if (errorStatus ==
+                                COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID &&
+                            ValidateServerCertificate(certificate.get()))
+                        {
+                            CHECK_FAILURE(args->put_Action(
+                                COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION_ALWAYS_ALLOW));
+                        }
+                        else
+                        {
+                            // Cancel the request for other TLS certificate error types or if
+                            // untrusted by the host app.
+                            CHECK_FAILURE(args->put_Action(
+                                COREWEBVIEW2_SERVER_CERTIFICATE_ERROR_ACTION_CANCEL));
+                        }
+                        return S_OK;
+                    })
+                    .Get(),
+                &m_ServerCertificateErrorToken));
+        }
+        else
+        {
+            CHECK_FAILURE(m_webViewExperimental15->remove_ServerCertificateErrorDetected(
+                m_ServerCertificateErrorToken));
+            m_ServerCertificateErrorToken.value = 0;
+        }
+    }
+    else
+    {
+        FeatureNotAvailable();
+    }
+}
+//! [ServerCertificateErrorDetected1]
 
 PCWSTR SettingsComponent::NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind)
 {
