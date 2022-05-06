@@ -1,6 +1,6 @@
 # WebView2 Samples
 
-This repository contains getting started apps as well as sample apps that demonstrate the features and usage patterns of [WebView2](https://aka.ms/webview2). As we add more features to WebView2, we will regularly update our samples.
+This repository contains getting started apps as well as sample apps that demonstrate the features and usage patterns of [WebView2](https://docs.microsoft.com/microsoft-edge/webview2/). As we add more features to WebView2, we will regularly update our samples.
 
 In the ``GettingStarted`` folder you will find the starter code for its respective guide listed below:
 - [Win32 Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32)
