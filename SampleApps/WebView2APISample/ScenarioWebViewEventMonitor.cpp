@@ -415,6 +415,21 @@ std::wstring DOMContentLoadedArgsToJsonString(
     return message;
 }
 
+std::wstring WebResourceRequestedToJsonString(
+    ICoreWebView2WebResourceRequest* webResourceRequest,
+    const std::wstring& source = std::wstring())
+{
+    std::wstring message = L"{ \"kind\": \"event\", \"name\": "
+                           L"\"WebResourceRequested\", \"args\": {"
+                           L"\"request\": " +
+                           RequestToJsonString(webResourceRequest) +
+                           L", "
+                           L"\"response\": null" +
+                           source + L"}";
+
+    return message;
+}
+
 void ScenarioWebViewEventMonitor::EnableWebResourceResponseReceivedEvent(bool enable) {
     if (!enable && m_webResourceResponseReceivedToken.value != 0)
     {
@@ -482,13 +497,8 @@ void ScenarioWebViewEventMonitor::EnableWebResourceRequestedEvent(bool enable)
                     CHECK_FAILURE(args->get_Request(&webResourceRequest));
                     wil::com_ptr<ICoreWebView2WebResourceResponse> webResourceResponse;
                     CHECK_FAILURE(args->get_Response(&webResourceResponse));
-
-                    std::wstring message = L"{ \"kind\": \"event\", \"name\": "
-                                           L"\"WebResourceRequested\", \"args\": {"
-                        L"\"request\": " + RequestToJsonString(webResourceRequest.get()) + L", "
-                        L"\"response\": null"
-                        L"}";
-
+                    std::wstring message =
+                        WebResourceRequestedToJsonString(webResourceRequest.get());
                     message += WebViewPropertiesToJsonString(m_webviewEventSource.get());
                     message += L"}";
                     PostEventMessage(message);
