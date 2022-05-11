@@ -1,4 +1,4 @@
-// Copyright (C) Microsoft Corporation. All rights reserved.
+﻿// Copyright (C) Microsoft Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -98,7 +98,9 @@ namespace WebView2WpfBrowser
             {
                 if (_webViewProfile == null && webView?.CoreWebView2 != null)
                 {
+                    // <Profile>
                     _webViewProfile = webView.CoreWebView2.Profile;
+                    // </Profile>
                 }
                 return _webViewProfile;
             }
@@ -115,8 +117,12 @@ namespace WebView2WpfBrowser
 
         void AttachControlEventHandlers(WebView2 control)
         {
+            // <NavigationStarting>
             control.NavigationStarting += WebView_NavigationStarting;
+            // </NavigationStarting>
+            // <NavigationCompleted>
             control.NavigationCompleted += WebView_NavigationCompleted;
+            // </NavigationCompleted>
             control.CoreWebView2InitializationCompleted += WebView_CoreWebView2InitializationCompleted;
             control.KeyDown += WebView_KeyDown;
         }
@@ -415,12 +421,15 @@ namespace WebView2WpfBrowser
 
         void BackgroundColorCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <DefaultBackgroundColor>
             System.Drawing.Color backgroundColor = System.Drawing.Color.FromName(e.Parameter.ToString());
             webView.DefaultBackgroundColor = backgroundColor;
+            // </DefaultBackgroundColor>
         }
 
         async void InjectScriptCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <ExecuteScript>
             var dialog = new TextInputDialog(
                 title: "Inject Script",
                 description: "Enter some JavaScript to be executed in the context of this page.",
@@ -430,10 +439,12 @@ namespace WebView2WpfBrowser
                 string scriptResult = await webView.ExecuteScriptAsync(dialog.Input.Text);
                 MessageBox.Show(this, scriptResult, "Script Result");
             }
+            // </ExecuteScript>
         }
 
         async void InjectScriptIFrameCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <ExecuteScriptFrame>
             string iframesData = WebViewFrames_ToString();
             string iframesInfo = "Enter iframe to run the JavaScript code in.\r\nAvailable iframes: " + iframesData;
             var dialogIFrames = new TextInputDialog(
@@ -464,6 +475,7 @@ namespace WebView2WpfBrowser
                     }
                 }
             }
+            // </ExecuteScriptFrame>
         }
 
         private bool _isPrintToPdfInProgress = false;
@@ -476,6 +488,7 @@ namespace WebView2WpfBrowser
             }
             try
             {
+                // <PrintToPdf>
                 CoreWebView2PrintSettings printSettings = null;
                 string orientationString = e.Parameter.ToString();
                 if (orientationString == "Landscape")
@@ -499,6 +512,7 @@ namespace WebView2WpfBrowser
                         "Print to PDF succeeded" : "Print to PDF failed";
                     MessageBox.Show(this, message, "Print To PDF Completed");
                 }
+                // </PrintToPdf>
             }
             catch (NotImplementedException exception)
             {
@@ -509,6 +523,7 @@ namespace WebView2WpfBrowser
 
         async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <GetCookies>
             List<CoreWebView2Cookie> cookieList = await webView.CoreWebView2.CookieManager.GetCookiesAsync("https://www.bing.com");
             StringBuilder cookieResult = new StringBuilder(cookieList.Count + " cookie(s) received from https://www.bing.com\n");
             for (int i = 0; i < cookieList.Count; ++i)
@@ -517,12 +532,15 @@ namespace WebView2WpfBrowser
                 cookieResult.Append($"\n{cookie.Name} {cookie.Value} {(cookie.IsSession ? "[session cookie]" : cookie.Expires.ToString("G"))}");
             }
             MessageBox.Show(this, cookieResult.ToString(), "GetCookiesAsync");
+            // </GetCookies>
         }
 
         void AddOrUpdateCookieCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <AddOrUpdateCookie>
             CoreWebView2Cookie cookie = webView.CoreWebView2.CookieManager.CreateCookie("CookieName", "CookieValue", ".bing.com", "/");
             webView.CoreWebView2.CookieManager.AddOrUpdateCookie(cookie);
+            // </AddOrUpdateCookie>
         }
 
         void DeleteAllCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -542,7 +560,9 @@ namespace WebView2WpfBrowser
                 description: "Enter UserAgent");
             if (dialog.ShowDialog() == true)
             {
+                // <SetUserAgent>
                 WebViewSettings.UserAgent = dialog.Input.Text;
+                // </SetUserAgent>
             }
         }
 
@@ -603,6 +623,7 @@ namespace WebView2WpfBrowser
             }
         }
 
+        // <WebMessageReceivedIFrame>
         void WebView_FrameCreatedWebMessages(object sender, CoreWebView2FrameCreatedEventArgs args)
         {
             args.Frame.WebMessageReceived += (WebMessageReceivedSender, WebMessageReceivedArgs) =>
@@ -614,7 +635,9 @@ namespace WebView2WpfBrowser
                 }
             };
         }
+        // </WebMessageReceivedIFrame>
 
+        // <DOMContentLoaded>
         void DOMContentLoadedCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             webView.CoreWebView2.DOMContentLoaded += WebView_DOMContentLoaded;
@@ -638,6 +661,7 @@ namespace WebView2WpfBrowser
                     "content.textContent = \"This text was added by the host app\";" +
                     "document.body.appendChild(content);");
         }
+        // </DOMContentLoaded>
 
         void WebView_FrameCreatedDOMContentLoaded(object sender, CoreWebView2FrameCreatedEventArgs args)
         {
@@ -653,15 +677,20 @@ namespace WebView2WpfBrowser
 
         void PasswordAutosaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <PasswordAutosaveEnabled>
             WebViewSettings.IsPasswordAutosaveEnabled = !WebViewSettings.IsPasswordAutosaveEnabled;
+            // </PasswordAutosaveEnabled>
         }
         void GeneralAutofillCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <GeneralAutofillEnabled>
             WebViewSettings.IsGeneralAutofillEnabled = !WebViewSettings.IsGeneralAutofillEnabled;
+            // </GeneralAutofillEnabled>
         }
 
         void NavigateWithWebResourceRequestCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <NavigateWithWebResourceRequest>
             // Prepare post data as UTF-8 byte array and convert it to stream
             // as required by the application/x-www-form-urlencoded Content-Type
             var dialog = new TextInputDialog(
@@ -684,6 +713,7 @@ namespace WebView2WpfBrowser
                     "Content-Type: application/x-www-form-urlencoded\r\n");
                 webView.CoreWebView2.NavigateWithWebResourceRequest(webResourceRequest);
             }
+            // </NavigateWithWebResourceRequest>
         }
 
         private bool _isCustomContextMenu = false;
@@ -718,6 +748,7 @@ namespace WebView2WpfBrowser
 
         private CoreWebView2ContextMenuItem displayUriParentContextMenuItem = null;
 
+        // <CustomContextMenu>
         void WebView_ContextMenuRequested(
               object sender,
               CoreWebView2ContextMenuRequestedEventArgs args)
@@ -767,6 +798,7 @@ namespace WebView2WpfBrowser
                 menuList.Insert(menuList.Count, displayUriParentContextMenuItem);
             }
         }
+        // </CustomContextMenu>
 
         void PopulateContextMenu(CoreWebView2ContextMenuRequestedEventArgs args,
                                 IList<CoreWebView2ContextMenuItem> menuList,
@@ -808,6 +840,7 @@ namespace WebView2WpfBrowser
 
         void AuthenticationCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <BasicAuthenticationRequested-Short>
             webView.CoreWebView2.BasicAuthenticationRequested += delegate (object sender, CoreWebView2BasicAuthenticationRequestedEventArgs args)
             {
                 // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Demo credentials in https://authenticationtest.com")]
@@ -816,6 +849,7 @@ namespace WebView2WpfBrowser
                 args.Response.Password = "pass";
             };
             webView.CoreWebView2.Navigate("https://authenticationtest.com/HTTPAuth");
+            // </BasicAuthenticationRequested-Short>
         }
 
         private bool _isFaviconChanged = false;
@@ -859,7 +893,9 @@ namespace WebView2WpfBrowser
 
         void PinchZoomCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <TogglePinchZoomEnabled>
             WebViewSettings.IsPinchZoomEnabled = !WebViewSettings.IsPinchZoomEnabled;
+            // </TogglePinchZoomEnabled>
             MessageBox.Show("Pinch Zoom is" + (WebViewSettings.IsPinchZoomEnabled ? " enabled " : " disabled ") + "after the next navigation.");
         }
 
@@ -868,7 +904,9 @@ namespace WebView2WpfBrowser
             // Safeguarding the handler when unsupported runtime is used.
             try
             {
+                // <ToggleSwipeNavigationEnabled>
                 WebViewSettings.IsSwipeNavigationEnabled = !WebViewSettings.IsSwipeNavigationEnabled;
+                // </ToggleSwipeNavigationEnabled>
                 MessageBox.Show("Swipe to navigate is" + (WebViewSettings.IsSwipeNavigationEnabled ? " enabled " : " disabled ") + "after the next navigation.");
             }
             catch (NotImplementedException exception)
@@ -879,6 +917,7 @@ namespace WebView2WpfBrowser
 
         void PdfToolbarSaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <ToggleHiddenPdfToolbarItems>
             if (WebViewSettings.HiddenPdfToolbarItems.HasFlag(CoreWebView2PdfToolbarItems.Save))
             {
                 WebViewSettings.HiddenPdfToolbarItems = CoreWebView2PdfToolbarItems.None;
@@ -889,10 +928,12 @@ namespace WebView2WpfBrowser
                 WebViewSettings.HiddenPdfToolbarItems = CoreWebView2PdfToolbarItems.Save;
                 MessageBox.Show("Save button on PDF toolbar is disabled after the next navigation.");
             }
+            // </ToggleHiddenPdfToolbarItems>
         }
 
         async void ClearBrowsingDataCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <ClearBrowsingData>
             string dataKindString = e.Parameter.ToString();
             CoreWebView2BrowsingDataKinds dataKinds;
             if (dataKindString == "Cookies")
@@ -935,6 +976,7 @@ namespace WebView2WpfBrowser
             MessageBox.Show(this,
                "Completed",
                "Clear Browsing Data");
+            // </ClearBrowsingData>
         }
 
         void NewBrowserVersionCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -953,6 +995,7 @@ namespace WebView2WpfBrowser
         {
             try
             {
+                // <DownloadStarting>
                 webView.CoreWebView2.DownloadStarting += delegate (
                   object sender, CoreWebView2DownloadStartingEventArgs args)
                 {
@@ -987,6 +1030,7 @@ namespace WebView2WpfBrowser
                     }, null);
                 };
                 webView.CoreWebView2.Navigate("https://demo.smartscreen.msft.net/");
+                // </DownloadStarting>
             }
             catch (NotImplementedException exception)
             {
@@ -1019,12 +1063,15 @@ namespace WebView2WpfBrowser
         // Update download progress
         void UpdateProgress(CoreWebView2DownloadOperation download)
         {
+            // <BytesReceivedChanged>
             download.BytesReceivedChanged += delegate (object sender, Object e)
             {
                 // Here developer can update download dialog to show progress of a
                 // download using `download.BytesReceived` and `download.TotalBytesToReceive`
             };
+            // </BytesReceivedChanged>
 
+            // <StateChanged>
             download.StateChanged += delegate (object sender, Object e)
             {
                 switch (download.State)
@@ -1039,8 +1086,10 @@ namespace WebView2WpfBrowser
                         break;
                 }
             };
+            // </StateChanged>
         }
 
+        // <ClientCertificateRequested1>
         // Turn off client certificate selection dialog using ClientCertificateRequested event handler
         // that disables the dialog. This example hides the default client certificate dialog and
         // always chooses the last certificate without prompting the user.
@@ -1086,7 +1135,9 @@ namespace WebView2WpfBrowser
                 e.Handled = true;
             }
         }
+        // </ClientCertificateRequested1>
 
+        // <ClientCertificateRequested2>
         // This example hides the default client certificate dialog and shows a custom dialog instead.
         // The dialog box displays mutually trusted certificates list and allows the user to select a certificate.
         // Selecting `OK` will continue the request with a certificate.
@@ -1147,7 +1198,9 @@ namespace WebView2WpfBrowser
                 MessageBox.Show(this, "Custom client certificate selection dialog Failed: " + exception.Message, "Client certificate selection");
             }
         }
+        // </ClientCertificateRequested2>
 
+        // <ServerCertificateErrorDetected>
         // When WebView2 doesn't trust a TLS certificate but host app does, this example bypasses
         // the default TLS interstitial page using the ServerCertificateErrorDetected event handler and
         // continues the request to a server. Otherwise, cancel the request.
@@ -1219,6 +1272,7 @@ namespace WebView2WpfBrowser
             await webView.CoreWebView2.ClearServerCertificateErrorActionsAsync();
             MessageBox.Show(this, "message", "Clear server certificate error actions are succeeded");
         }
+        // </ServerCertificateErrorDetected>
 
         void GoToPageCmdCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
@@ -1248,19 +1302,23 @@ namespace WebView2WpfBrowser
                     String.Join("+", Uri.EscapeDataString(rawUrl).Split(new string[] { "%20" }, StringSplitOptions.RemoveEmptyEntries)));
             }
 
+            // <Navigate>
             // Setting webView.Source will not trigger a navigation if the Source is the same
             // as the previous Source.  CoreWebView.Navigate() will always trigger a navigation.
             webView.CoreWebView2.Navigate(uri.ToString());
+            // </Navigate>
         }
 
         async void SuspendCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             try
             {
+                // <TrySuspend>
                 bool isSuccessful = await webView.CoreWebView2.TrySuspendAsync();
                 MessageBox.Show(this,
                     (isSuccessful) ? "TrySuspendAsync succeeded" : "TrySuspendAsync failed",
                     "TrySuspendAsync");
+                // </TrySuspend>
             }
             catch (System.Runtime.InteropServices.COMException exception)
             {
@@ -1271,8 +1329,10 @@ namespace WebView2WpfBrowser
         {
             try
             {
+                // <Resume>
                 webView.CoreWebView2.Resume();
                 MessageBox.Show(this, "Resume Succeeded", "Resume");
+                // </Resume>
             }
             catch (System.Runtime.InteropServices.COMException exception)
             {
@@ -1284,9 +1344,11 @@ namespace WebView2WpfBrowser
         {
             try
             {
+                // <UpdateRuntime>
                 CoreWebView2UpdateRuntimeResult result = await webView.CoreWebView2.Environment.UpdateRuntimeAsync();
                 string update_result = "status: " + result.Status + ", extended error:" + result.ExtendedError;
                 MessageBox.Show(this, update_result, "UpdateRuntimeAsync result");
+                // </UpdateRuntime>
             }
             catch (System.Runtime.InteropServices.COMException exception)
             {
@@ -1301,6 +1363,7 @@ namespace WebView2WpfBrowser
             get => _allowWebViewShortcutKeys;
             set
             {
+                // <AllowWebViewShortcutKeys>
                 _allowWebViewShortcutKeys = value;
                 if (webView.CoreWebView2 != null)
                 {
@@ -1317,6 +1380,7 @@ namespace WebView2WpfBrowser
                         }
                     };
                 }
+                // </AllowWebViewShortcutKeys>
             }
         }
 
@@ -1356,10 +1420,18 @@ namespace WebView2WpfBrowser
         {
             if (e.IsSuccess)
             {
+                // <ProcessFailed>
                 webView.CoreWebView2.ProcessFailed += WebView_ProcessFailed;
+                // </ProcessFailed>
+                // <DocumentTitleChanged>
                 webView.CoreWebView2.DocumentTitleChanged += WebView_DocumentTitleChanged;
+                // </DocumentTitleChanged>
+                // <IsDocumentPlayingAudioChanged>
                 webView.CoreWebView2.IsDocumentPlayingAudioChanged += WebView_IsDocumentPlayingAudioChanged;
+                // </IsDocumentPlayingAudioChanged>
+                // <IsMutedChanged>
                 webView.CoreWebView2.IsMutedChanged += WebView_IsMutedChanged;
+                // </IsMutedChanged>
 
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
@@ -1368,8 +1440,15 @@ namespace WebView2WpfBrowser
                 {
                     try
                     {
+                        // <SubscribeToBrowserProcessExited>
                         WebViewEnvironment.BrowserProcessExited += Environment_BrowserProcessExited;
+                        // </SubscribeToBrowserProcessExited>
+                        // <SubscribeToNewBrowserVersionAvailable>
                         WebViewEnvironment.NewBrowserVersionAvailable += Environment_NewBrowserVersionAvailable;
+                        // </SubscribeToNewBrowserVersionAvailable>
+                        // <ProcessInfosChanged>
+                        WebViewEnvironment.ProcessInfosChanged += WebView_ProcessInfosChanged;
+                        // </ProcessInfosChanged>
                     }
                     catch (NotImplementedException)
                     {
@@ -1391,6 +1470,7 @@ namespace WebView2WpfBrowser
         {
             try
             {
+                // <SetDefaultDownloadDialogPosition>
                 const int defaultMarginX = 75, defaultMarginY = 0;
                 CoreWebView2DefaultDownloadDialogCornerAlignment cornerAlignment
                     = CoreWebView2DefaultDownloadDialogCornerAlignment.TopLeft;
@@ -1399,10 +1479,12 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.DefaultDownloadDialogCornerAlignment =
                     cornerAlignment;
                 webView.CoreWebView2.DefaultDownloadDialogMargin = margin;
+                // </SetDefaultDownloadDialogPosition>
             }
             catch (NotImplementedException) {}
         }
 
+        // <BrowserProcessExited>
         private bool shouldAttemptReinitOnBrowserExit = false;
 
         void Environment_BrowserProcessExited(object sender, CoreWebView2BrowserProcessExitedEventArgs e)
@@ -1420,6 +1502,7 @@ namespace WebView2WpfBrowser
                 shouldAttemptReinitOnBrowserExit = false;
             }
         }
+        // </BrowserProcessExited>
 
         void WebView_HandleIFrames(object sender, CoreWebView2FrameCreatedEventArgs args)
         {
@@ -1444,6 +1527,7 @@ namespace WebView2WpfBrowser
             return string.IsNullOrEmpty(result) ? "no iframes available." : result;
         }
 
+        // <NewBrowserVersionAvailable>
         // A new version of the WebView2 Runtime is available, our handler gets called.
         // We close our WebView and set a handler to reinitialize it once the WebView2
         // Runtime collection of processes are gone, so we get the new version of the
@@ -1461,6 +1545,7 @@ namespace WebView2WpfBrowser
                 UpdateIfSelectedByUser();
             }, null);
         }
+        // </NewBrowserVersionAvailable>
 
         void UpdateIfSelectedByUser()
         {
@@ -1527,6 +1612,7 @@ namespace WebView2WpfBrowser
 
         async void CoreWebView2_WebResourceResponseReceived(object sender, CoreWebView2WebResourceResponseReceivedEventArgs e)
         {
+            // <WebResourceResponseReceived>
             ShowNextWebResponse = false;
 
             CoreWebView2WebResourceRequest request = e.Request;
@@ -1570,6 +1656,7 @@ namespace WebView2WpfBrowser
             }
 
             MessageBox.Show(messageBuilder.ToString(), caption);
+            // </WebResourceResponseReceived>
         }
 
         void RequeryCommands()
@@ -1592,11 +1679,14 @@ namespace WebView2WpfBrowser
 
         void WebView_DocumentTitleChanged(object sender, object e)
         {
+            // <DocumentTitle>
             this.Title = webView.CoreWebView2.DocumentTitle;
+            // </DocumentTitle>
         }
 
         void UpdateTitleWithMuteState()
         {
+            // <UpdateTitleWithMuteState>
             bool isDocumentPlayingAudio = webView.CoreWebView2.IsDocumentPlayingAudio;
             bool isMuted = webView.CoreWebView2.IsMuted;
             string currentDocumentTitle = webView.CoreWebView2.DocumentTitle;
@@ -1615,6 +1705,7 @@ namespace WebView2WpfBrowser
             {
                 this.Title = currentDocumentTitle;
             }
+            // </UpdateTitleWithMuteState>
         }
         void WebView_IsMutedChanged(object sender, object e)
         {
@@ -1627,12 +1718,16 @@ namespace WebView2WpfBrowser
 
         void ToggleMuteStateCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <ToggleIsMuted>
             webView.CoreWebView2.IsMuted = !webView.CoreWebView2.IsMuted;
+            // </ToggleIsMuted>
         }
 
         void AllowExternalDropCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            // <ToggleAllowExternalDrop>
             webView.AllowExternalDrop = !webView.AllowExternalDrop;
+            // </ToggleAllowExternalDrop>
         }
 
         // <GetProcessInfos>
@@ -1705,6 +1800,7 @@ namespace WebView2WpfBrowser
         {
             try
             {
+                // <ToggleDefaultDownloadDialog>
                 if (webView.CoreWebView2.IsDefaultDownloadDialogOpen)
                 {
                     webView.CoreWebView2.CloseDefaultDownloadDialog();
@@ -1713,6 +1809,7 @@ namespace WebView2WpfBrowser
                 {
                     webView.CoreWebView2.OpenDefaultDownloadDialog();
                 }
+                // </ToggleDefaultDownloadDialog>
             }
             catch (NotImplementedException exception)
             {
