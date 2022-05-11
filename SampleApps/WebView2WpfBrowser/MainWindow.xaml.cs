@@ -1,4 +1,4 @@
-﻿// Copyright (C) Microsoft Corporation. All rights reserved.
+// Copyright (C) Microsoft Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -43,6 +43,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand NewBrowserVersionCommand = new RoutedCommand();
         public static RoutedCommand PdfToolbarSaveCommand = new RoutedCommand();
         public static RoutedCommand AuthenticationCommand = new RoutedCommand();
+        public static RoutedCommand FaviconChangedCommand = new RoutedCommand();
         public static RoutedCommand ClearBrowsingDataCommand = new RoutedCommand();
         public static RoutedCommand SetDefaultDownloadPathCommand = new RoutedCommand();
         public static RoutedCommand CreateDownloadsButtonCommand = new RoutedCommand();
@@ -61,6 +62,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
         public static RoutedCommand ToggleMuteStateCommand = new RoutedCommand();
         public static RoutedCommand AllowExternalDropCommand = new RoutedCommand();
+        public static RoutedCommand PerfInfoCommand = new RoutedCommand();
         public static RoutedCommand CustomServerCertificateSupportCommand = new RoutedCommand();
         public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
         bool _isNavigating = false;
@@ -103,6 +105,8 @@ namespace WebView2WpfBrowser
         }
 
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
+        IReadOnlyList<CoreWebView2ProcessInfo> _processList = new List<CoreWebView2ProcessInfo>();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -325,7 +329,7 @@ namespace WebView2WpfBrowser
             bool IsAppContentUri(Uri source)
             {
                 // Sample virtual host name for the app's content.
-                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://docs.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
+                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://docs.microsoft.com/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
                 return source.Host == "appassets.example";
             }
 
@@ -813,6 +817,46 @@ namespace WebView2WpfBrowser
             };
             webView.CoreWebView2.Navigate("https://authenticationtest.com/HTTPAuth");
         }
+
+        private bool _isFaviconChanged = false;
+        void FaviconChangedCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                if (!_isFaviconChanged)
+                {
+                    webView.CoreWebView2.FaviconChanged +=
+                        Webview2_FaviconChanged;
+                }
+                else
+                {
+                    webView.CoreWebView2.FaviconChanged -=
+                        Webview2_FaviconChanged;
+                }
+                _isFaviconChanged = !_isFaviconChanged;
+                MessageBox.Show(this,
+                                _isFaviconChanged
+                                    ? "Favicon Changed Listeners have been enabled"
+                                    : "Favicon Changed Listeners have been disabled",
+                                "Favicon Changed Listeners");
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Favicon Changed Listeners: " + exception.Message,
+                                "Favicon Changed Listeners");
+            }
+        }
+
+        async void Webview2_FaviconChanged(object sender,object args) {
+            string value = webView.CoreWebView2.FaviconUri;
+            System.IO.Stream stream = await webView.CoreWebView2.GetFaviconAsync(
+              CoreWebView2FaviconImageFormat.Png);
+            if (stream == null || stream.Length == 0)
+                this.Icon = null;
+            else
+                this.Icon = BitmapFrame.Create(stream);
+        }
+
         void PinchZoomCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             WebViewSettings.IsPinchZoomEnabled = !WebViewSettings.IsPinchZoomEnabled;
@@ -835,7 +879,7 @@ namespace WebView2WpfBrowser
 
         void PdfToolbarSaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            if(WebViewSettings.HiddenPdfToolbarItems.HasFlag(CoreWebView2PdfToolbarItems.Save))
+            if (WebViewSettings.HiddenPdfToolbarItems.HasFlag(CoreWebView2PdfToolbarItems.Save))
             {
                 WebViewSettings.HiddenPdfToolbarItems = CoreWebView2PdfToolbarItems.None;
                 MessageBox.Show("Save button on PDF toolbar is enabled after the next navigation.");
@@ -886,7 +930,7 @@ namespace WebView2WpfBrowser
             System.DateTime endTime = DateTime.Now;
             System.DateTime startTime = DateTime.Now.AddHours(-1);
 
-            // Clear the browsing data from the last hour. 
+            // Clear the browsing data from the last hour.
             await WebViewProfile.ClearBrowsingDataAsync(dataKinds, startTime, endTime);
             MessageBox.Show(this,
                "Completed",
@@ -912,35 +956,35 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.DownloadStarting += delegate (
                   object sender, CoreWebView2DownloadStartingEventArgs args)
                 {
-            // Developer can obtain a deferral for the event so that the CoreWebView2
-            // doesn't examine the properties we set on the event args until
-            // after the deferral completes asynchronously.
-            CoreWebView2Deferral deferral = args.GetDeferral();
+                    // Developer can obtain a deferral for the event so that the CoreWebView2
+                    // doesn't examine the properties we set on the event args until
+                    // after the deferral completes asynchronously.
+                    CoreWebView2Deferral deferral = args.GetDeferral();
 
-            // We avoid potential reentrancy from running a message loop in the download
-            // starting event handler by showing our download dialog later when we
-            // complete the deferral asynchronously.
-            System.Threading.SynchronizationContext.Current.Post((_) =>
-            {
-                              using (deferral)
-                              {
-                          // Hide the default download dialog.
-                          args.Handled = true;
-                                  var dialog = new TextInputDialog(
-                                      title: "Download Starting",
-                                      description: "Enter new result file path or select OK to keep default path. Select cancel to cancel the download.",
-                                      defaultInput: args.ResultFilePath);
-                                  if (dialog.ShowDialog() == true)
-                                  {
-                                      args.ResultFilePath = dialog.Input.Text;
-                                      UpdateProgress(args.DownloadOperation);
-                                  }
-                                  else
-                                  {
-                                      args.Cancel = true;
-                                  }
-                              }
-                          }, null);
+                    // We avoid potential reentrancy from running a message loop in the download
+                    // starting event handler by showing our download dialog later when we
+                    // complete the deferral asynchronously.
+                    System.Threading.SynchronizationContext.Current.Post((_) =>
+                    {
+                        using (deferral)
+                        {
+                            // Hide the default download dialog.
+                            args.Handled = true;
+                            var dialog = new TextInputDialog(
+                                title: "Download Starting",
+                                description: "Enter new result file path or select OK to keep default path. Select cancel to cancel the download.",
+                                defaultInput: args.ResultFilePath);
+                            if (dialog.ShowDialog() == true)
+                            {
+                                args.ResultFilePath = dialog.Input.Text;
+                                UpdateProgress(args.DownloadOperation);
+                            }
+                            else
+                            {
+                                args.Cancel = true;
+                            }
+                        }
+                    }, null);
                 };
                 webView.CoreWebView2.Navigate("https://demo.smartscreen.msft.net/");
             }
@@ -977,9 +1021,9 @@ namespace WebView2WpfBrowser
         {
             download.BytesReceivedChanged += delegate (object sender, Object e)
             {
-          // Here developer can update download dialog to show progress of a
-          // download using `download.BytesReceived` and `download.TotalBytesToReceive`
-      };
+                // Here developer can update download dialog to show progress of a
+                // download using `download.BytesReceived` and `download.TotalBytesToReceive`
+            };
 
             download.StateChanged += delegate (object sender, Object e)
             {
@@ -988,9 +1032,9 @@ namespace WebView2WpfBrowser
                     case CoreWebView2DownloadState.InProgress:
                         break;
                     case CoreWebView2DownloadState.Interrupted:
-                  // Here developer can take different actions based on `download.InterruptReason`.
-                  // For example, show an error message to the end user.
-                  break;
+                    // Here developer can take different actions based on `download.InterruptReason`.
+                    // For example, show an error message to the end user.
+                    break;
                     case CoreWebView2DownloadState.Completed:
                         break;
                 }
@@ -1157,14 +1201,14 @@ namespace WebView2WpfBrowser
         bool ValidateServerCertificate(CoreWebView2Certificate certificate)
         {
            // You may want to validate certificates in different ways depending on your app and
-           // scenario. One way might be the following: 
-           // First, get the list of host app trusted certificates and its thumbprint. 
-           // 
-           // Then get the last chain element using `ICoreWebView2Certificate::get_PemEncodedIssuerCertificateChain` 
-           // that contains the raw data of the untrusted root CA/self-signed certificate. Get the untrusted 
+           // scenario. One way might be the following:
+           // First, get the list of host app trusted certificates and its thumbprint.
+           //
+           // Then get the last chain element using `ICoreWebView2Certificate::get_PemEncodedIssuerCertificateChain`
+           // that contains the raw data of the untrusted root CA/self-signed certificate. Get the untrusted
            // root CA/self signed certificate thumbprint from the raw certificate data and validate the thumbprint
-           // against the host app trusted certificate list. 
-           // 
+           // against the host app trusted certificate list.
+           //
            // Finally, return true if it exists in the host app's certificate trusted list, or otherwise return false.
            return true;
         }
@@ -1333,6 +1377,7 @@ namespace WebView2WpfBrowser
                     }
                     shouldAttachEnvironmentEventHandlers = false;
                 }
+
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
@@ -1589,6 +1634,40 @@ namespace WebView2WpfBrowser
         {
             webView.AllowExternalDrop = !webView.AllowExternalDrop;
         }
+
+        // <GetProcessInfos>
+        void WebView_ProcessInfosChanged(object sender, object e)
+        {
+            _processList = WebViewEnvironment.GetProcessInfos();
+        }
+
+        void PerfInfoCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            string result;
+            int processListCount = _processList.Count;
+            if (processListCount == 0)
+            {
+                result = "No process found.";
+            }
+            else
+            {
+                result = $"{processListCount} child process(s) found\n\n";
+                for (int i = 0; i < processListCount; ++i)
+                {
+                    int processId = _processList[i].ProcessId;
+                    CoreWebView2ProcessKind kind = _processList[i].Kind;
+
+                    var proc = Process.GetProcessById(processId);
+                    var memoryInBytes = proc.PrivateMemorySize64;
+                    var b2kb = memoryInBytes / 1024;
+                    result = result + $"Process ID: {processId} | Process Kind: {kind} | Memory: {b2kb} KB\n";
+                }
+            }
+
+            MessageBox.Show(this, result, "Process List");
+        }
+        // </GetProcessInfos>
+
         void CreateDownloadsButtonCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             Button downloadsButton = new Button();

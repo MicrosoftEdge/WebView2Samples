@@ -44,6 +44,8 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.SwipeNavigationCommand}" Executed="SwipeNavigationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}" Executed="PdfToolbarSaveCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AuthenticationCommand}" Executed="AuthenticationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" Executed="ClearBrowsingDataCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.FaviconChangedCommand}" Executed="FaviconChangedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CustomServerCertificateSupportCommand}" Executed="CustomServerCertificateSupportCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ClearServerCertificateErrorActionsCommand}" Executed="ClearServerCertificateErrorActionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SetDefaultDownloadPathCommand}" Executed="SetDefaultDownloadPathCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -59,6 +61,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.ResumeCommand}" Executed="ResumeCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CheckUpdateCommand}" Executed="CheckUpdateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AllowExternalDropCommand}" Executed="AllowExternalDropCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PerfInfoCommand}" Executed="PerfInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -102,6 +105,7 @@ found in the LICENSE file.
                 <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem x:Name="newVersionMenuItem" Header="New Browser _Version" Command="{x:Static local:MainWindow.NewBrowserVersionCommand}"/>
                 <MenuItem Header="Au_thentication" Command="{x:Static local:MainWindow.AuthenticationCommand}"/>
+                <MenuItem Header="_Favicon Changed Listener" Command="{x:Static local:MainWindow.FaviconChangedCommand}"/>
                 <MenuItem Header="_Clear Browsing Data">
                     <MenuItem Header="All DOM Storage" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="DOM Storage"/>
                     <MenuItem Header="All Profile" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Profile"/>
@@ -128,6 +132,7 @@ found in the LICENSE file.
                     <MenuItem Header="D_elete All Cookies" Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}"/>
                 </MenuItem>
                 <MenuItem Header="Intercept _Response" IsCheckable="True" IsChecked="{Binding ElementName=MyWindow, Path=ShowNextWebResponse, Mode=TwoWay}"/>
+                <MenuItem Header="_Performance Counter Info" Command="{x:Static local:MainWindow.PerfInfoCommand}"/>
                 <MenuItem Header="_Server Certificate Error">
                     <MenuItem Header="_Toggle Custom Server Certificate Support" Command="{x:Static local:MainWindow.CustomServerCertificateSupportCommand}"/>
                     <MenuItem Header="_Clear Server Certificate Error Actions" Command="{x:Static local:MainWindow.ClearServerCertificateErrorActionsCommand}"/>
