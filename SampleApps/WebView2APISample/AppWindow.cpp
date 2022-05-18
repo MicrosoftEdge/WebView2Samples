@@ -32,7 +32,6 @@
 #include "ScenarioClientCertificateRequested.h"
 #include "ScenarioCookieManagement.h"
 #include "ScenarioCustomDownloadExperience.h"
-#include "ScenarioCustomScheme.h"
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
