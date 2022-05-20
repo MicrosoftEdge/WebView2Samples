@@ -745,7 +745,7 @@ Test that turns off TLS error page.
 1. Expected: Message Box that says `Custom server certificate error support been enabled`.
 1. Click `OK` inside the popup dialog.
 1. Refresh the page.
-1. Expected: Web page is loaded without any errors. 
+1. Expected: Web page is loaded without any errors.
 1. Go to `Settings -> Server Certificate Error -> Toogle Server Certificate Error Support`.
 1. Expected: Message Box that says `Custom server certificate error support been disbaled`.
 1. Go to `Settings -> Server Certificate Error -> Clear Server Certificate Error Actions`.
@@ -1218,9 +1218,9 @@ Verify that we don't offer saving password.
 Verify that the `NewWindowRequested` event is fired when opening a link in new window from PDF.
 
 1. Launch the sample app.
-2. Load <https://www.adobe.com/content/dam/acom/en/devnet/pdf/pdfs/PDF32000_2008.pdf>.
+2. Navigate to <https://appassets.example/SamplePDFWithLink.pdf>.
 3. Go to `Scenario -> WebView Event Monitor` to begin tracking events.
-4. Scroll to the second page of the PDF and right click on the first link to open the context menu.
+4. Right click on the link in the PDF to open the context menu.
 5. Click on 'Open link in new window'.
 6. Expected: Event Monitor displays `NewWindowRequested`.
 

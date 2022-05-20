@@ -65,6 +65,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand PerfInfoCommand = new RoutedCommand();
         public static RoutedCommand CustomServerCertificateSupportCommand = new RoutedCommand();
         public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
+        public static RoutedCommand NewWindowWithOptionsCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         CoreWebView2Settings _webViewSettings;
@@ -109,8 +110,19 @@ namespace WebView2WpfBrowser
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
         IReadOnlyList<CoreWebView2ProcessInfo> _processList = new List<CoreWebView2ProcessInfo>();
 
+        public CoreWebView2CreationProperties CreationProperties { get; set; } = null;
+
         public MainWindow()
         {
+            DataContext = this;
+            InitializeComponent();
+            AttachControlEventHandlers(webView);
+        }
+
+        public MainWindow(CoreWebView2CreationProperties creationProperties = null)
+        {
+            this.CreationProperties = creationProperties;
+            DataContext = this;
             InitializeComponent();
             AttachControlEventHandlers(webView);
         }
@@ -1815,6 +1827,15 @@ namespace WebView2WpfBrowser
             {
                 MessageBox.Show(this, "Toggle download dialog: " + exception.Message,
                     "Download Dialog");
+            }
+        }
+
+        void NewWindowWithOptionsCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            var dialog = new NewWindowOptionsDialog();
+            if (dialog.ShowDialog() == true)
+            {
+                new MainWindow(dialog.CreationProperties).Show();
             }
         }
     }

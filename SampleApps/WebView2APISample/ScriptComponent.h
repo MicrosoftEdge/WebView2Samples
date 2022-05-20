@@ -46,7 +46,6 @@ private:
     void SendJsonWebMessageIFrame();
 
     void AddSiteEmbeddingIFrame();
-
     ~ScriptComponent() override;
 
     void HandleIFrames();

@@ -157,7 +157,6 @@ bool ScriptComponent::HandleWindowMessage(
     }
     return false;
 }
-
 //! [ExecuteScript]
 // Prompt the user for some script and then execute it.
 void ScriptComponent::InjectScript()
@@ -814,7 +813,6 @@ void ScriptComponent::AddSiteEmbeddingIFrame()
         m_webView->ExecuteScript(script.c_str(), nullptr);
     }
 }
-
 
 void ScriptComponent::HandleIFrames()
 {
