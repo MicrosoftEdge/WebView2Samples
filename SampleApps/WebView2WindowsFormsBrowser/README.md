@@ -18,7 +18,7 @@ urlFragment: WebView2WindowsFormsBrowser
 
 This is a hybrid application built with the [Microsoft Edge WebView2](https://aka.ms/webview2) control.
 
-![Sample App Snapshot](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Samples/main/SampleApps/WebView2WindowsFormsBrowser/screenshots/winforms-browser-screenshot.png)
+![Sample App Snapshot](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Samples/master/SampleApps/WebView2WindowsFormsBrowser/screenshots/winforms-browser-screenshot.png)
 
 The WebView2WindowsFormsBrowser is an example of an application that embeds a WebView within a Windows Forms application. It is built as a Windows Forms [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) project and makes use of both C# and HTML/CSS/JavaScript in the WebView2 environment.
 

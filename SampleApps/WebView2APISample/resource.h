@@ -116,7 +116,6 @@
 #define IDM_CALL_CDP_METHOD_FOR_SESSION 243
 #define IDM_COLLECT_HEAP_MEMORY_VIA_CDP 244
 #define IDM_TOGGLE_TOPMOST_WINDOW       300
-
 #define IDE_ADDRESSBAR                  1000
 #define IDE_ADDRESSBAR_GO               1001
 #define IDE_BACK                        1002
