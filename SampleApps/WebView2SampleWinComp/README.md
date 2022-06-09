@@ -17,6 +17,7 @@ To learn more specifics about events and API Handlers in WebView2, you can refer
 - [Microsoft Edge (Chromium)](https://www.microsoftedgeinsider.com/download/) installed on a supported OS. Currently we recommend the latest version of the Edge Canary channel.
 - [Visual Studio](https://visualstudio.microsoft.com/vs/) with C++ support installed.
 - Latest pre-release version of our [WebView2 SDK](https://aka.ms/webviewnuget), which is included in this project.
+- By default this sample app will use the latest Window 10 SDK version. However, there is an issue with Windows 10 SDK, version 2004 (10.0.19041.0) that will stop this sample app from building. When running into this issue, either install the later version (Windows 10 SDK version 2104 (10.0.20348.0)) or retarget the project to an older version of Windows SDK (Windows 10 SDK, version 1903 (10.0.18362.1)). Windows 10 SDK version 2104 (10.0.20348.0) and Windows 10 SDK, version 1903 (10.0.18362.1) can be downloaded [here](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/)). 
 
 ## Build the WebView2 Sample WinComp
 
