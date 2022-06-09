@@ -4,6 +4,7 @@
 
 #include "pch.h"
 
+#include <winrt/Windows.Foundation.Collections.h>
 #include "CheckFailure.h"
 #include "CompositionHost.h"
 #include <d2d1_1.h>
