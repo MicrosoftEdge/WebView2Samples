@@ -62,11 +62,13 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.CheckUpdateCommand}" Executed="CheckUpdateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AllowExternalDropCommand}" Executed="AllowExternalDropCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PerfInfoCommand}" Executed="PerfInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}" Executed="NewWindowWithOptionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New Window" Command="ApplicationCommands.New"/>
+                <MenuItem Header="_New Window With Options" Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}"/>
                 <MenuItem Header="_Close" Command="ApplicationCommands.Close"/>
                 <MenuItem Header="_Inject Script..." Command="{x:Static local:MainWindow.InjectScriptCommand}"/>
                 <MenuItem Header="_Inject Script Into IFrame..." Command="{x:Static local:MainWindow.InjectScriptIFrameCommand}"/>
