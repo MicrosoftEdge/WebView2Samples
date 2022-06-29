@@ -1006,6 +1006,7 @@ HRESULT AppWindow::CreateControllerWithOptions()
     if (m_dcompDevice)
 #endif
     {
+        //! [OnCreateCoreWebView2ControllerCompleted]
         CHECK_FAILURE(webViewEnvironment10->CreateCoreWebView2CompositionControllerWithOptions(
             m_mainWindow, options.get(),
             Callback<ICoreWebView2CreateCoreWebView2CompositionControllerCompletedHandler>(
@@ -1018,6 +1019,7 @@ HRESULT AppWindow::CreateControllerWithOptions()
                     return OnCreateCoreWebView2ControllerCompleted(result, controller.get());
                 })
                 .Get()));
+        //! [OnCreateCoreWebView2ControllerCompleted]
     }
     else
     {
