@@ -852,7 +852,7 @@ namespace WebView2WpfBrowser
 
         void AuthenticationCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            // <BasicAuthenticationRequested-Short>
+            // <BasicAuthenticationRequested>
             webView.CoreWebView2.BasicAuthenticationRequested += delegate (object sender, CoreWebView2BasicAuthenticationRequestedEventArgs args)
             {
                 // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Demo credentials in https://authenticationtest.com")]
@@ -861,7 +861,7 @@ namespace WebView2WpfBrowser
                 args.Response.Password = "pass";
             };
             webView.CoreWebView2.Navigate("https://authenticationtest.com/HTTPAuth");
-            // </BasicAuthenticationRequested-Short>
+            // </BasicAuthenticationRequested>
         }
 
         private bool _isFaviconChanged = false;
