@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.Web.WebView2.Core;
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -19,23 +20,51 @@ namespace webview2_sample_uwp
         public MainPage()
         {
             this.InitializeComponent();
-            AddressBar.Text = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
-            WebView2.Source = new Uri(AddressBar.Text);
 
-            WebView2.NavigationCompleted += WebView2_NavigationCompleted;
+            InitializeWebView2Async();
 
             StatusUpdate("Ready");
+        }
+
+        private async void InitializeWebView2Async()
+        {
+            await WebView2.EnsureCoreWebView2Async();
+
+            var dispatchAdapter = new WinRTAdapter.DispatchAdapter();
+            WebView2.CoreWebView2.AddHostObjectToScript("Windows", dispatchAdapter.WrapNamedObject("Windows", dispatchAdapter));
+            WebView2.CoreWebView2.AddHostObjectToScript("CsRuntimeComponent", dispatchAdapter.WrapNamedObject("CsRuntimeComponent", dispatchAdapter));
+
+            await WebView2.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
+                "(() => {" +
+                        "if (chrome && chrome.webview) {" +
+                            "console.log('Setting up WinRT projection options');" +
+                            "chrome.webview.hostObjects.options.defaultSyncProxy = true;" +
+                            "chrome.webview.hostObjects.options.forceAsyncMethodMatches = [/Async$/];" +
+                            "chrome.webview.hostObjects.options.ignoreMemberNotFoundError = true;" +
+                            "window.Windows = chrome.webview.hostObjects.sync.Windows;" +
+                            "window.CsRuntimeComponent = chrome.webview.hostObjects.sync.CsRuntimeComponent;" +
+                        "}" +
+                    "})();");
+
+            WebView2.CoreWebView2.NavigateToString(
+                "<h1>Example WinRT Event</h1><button id='button'>Raise Event</button><br/>Result: <span id='result'></span>" +
+                "<script>" +
+                "document.getElementById('button').addEventListener('click', () => {" +
+                "   let csRuntimeClass = new CsRuntimeComponent.CsRuntimeClass();" +
+                "   csRuntimeClass.stringProperty = 'stringProperty value';" +
+                "   csRuntimeClass.addEventListener('exampleEvent', eventArg => {" +
+                "       console.log('event raised');" +
+                "       document.getElementById('result').textContent = eventArg;" +
+                "   });" +
+                "   csRuntimeClass.async().invokeExampleEvent();" +
+                "});" +
+                "</script>");
         }
 
         private void StatusUpdate(string message)
         {
             StatusBar.Text = message;
             Debug.WriteLine(message);
-        }
-
-        private void WebView2_NavigationCompleted(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
-        {
-            StatusUpdate("Navigation complete");
         }
 
         private bool TryCreateUri(String potentialUri, out Uri result)

@@ -12,3 +12,4 @@ packages/
 # Make sure script debug config is checked in for vendor testing
 !.vscode
 
+*/Generated Files/
