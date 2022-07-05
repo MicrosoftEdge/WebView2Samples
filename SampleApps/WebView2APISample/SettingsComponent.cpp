@@ -36,8 +36,8 @@ SettingsComponent::SettingsComponent(
     m_webView2_12 = m_webView.try_query<ICoreWebView2_12>();
     m_webView2_13 = m_webView.try_query<ICoreWebView2_13>();
     m_webView2_14 = m_webView.try_query<ICoreWebView2_14>();
+    m_webView2_15 = m_webView.try_query<ICoreWebView2_15>();
     m_webViewExperimental5 = m_webView.try_query<ICoreWebView2Experimental5>();
-    m_webViewExperimental12 = m_webView.try_query<ICoreWebView2Experimental12>();
     // Copy old settings if desired
     if (old)
     {
@@ -189,31 +189,31 @@ SettingsComponent::SettingsComponent(
     // Register a handler for the FaviconUriChanged event.
     // This will provided the current favicon of the page, as well
     // as any changes that occour during the page lifetime
-    if (m_webViewExperimental12)
+    if (m_webView2_15)
     {
         Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 
         // Initialize GDI+.
         Gdiplus::GdiplusStartup(&gdiplusToken_, &gdiplusStartupInput, NULL);
-        CHECK_FAILURE(m_webViewExperimental12->add_FaviconChanged(
-            Callback<ICoreWebView2ExperimentalFaviconChangedEventHandler>(
-                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+        CHECK_FAILURE(m_webView2_15->add_FaviconChanged(
+            Callback<ICoreWebView2FaviconChangedEventHandler>(
+                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT
+                {
                     if (m_faviconChanged)
                     {
                         wil::unique_cotaskmem_string url;
-                        Microsoft::WRL::ComPtr<ICoreWebView2Experimental12>
-                            webview2Experimental;
-                        CHECK_FAILURE(
-                            sender->QueryInterface(IID_PPV_ARGS(&webview2Experimental)));
+                        Microsoft::WRL::ComPtr<ICoreWebView2_15> webview2;
+                        CHECK_FAILURE(sender->QueryInterface(IID_PPV_ARGS(&webview2)));
 
-                        CHECK_FAILURE(webview2Experimental->get_FaviconUri(&url));
+                        CHECK_FAILURE(webview2->get_FaviconUri(&url));
                         std::wstring strUrl(url.get());
 
-                        webview2Experimental->GetFavicon(
+                        webview2->GetFavicon(
                             COREWEBVIEW2_FAVICON_IMAGE_FORMAT_PNG,
-                            Callback<ICoreWebView2ExperimentalGetFaviconCompletedHandler>(
+                            Callback<ICoreWebView2GetFaviconCompletedHandler>(
                                 [this,
-                                 strUrl](HRESULT errorCode, IStream* iconStream) -> HRESULT {
+                                 strUrl](HRESULT errorCode, IStream* iconStream) -> HRESULT
+                                {
                                     CHECK_FAILURE(errorCode);
                                     Gdiplus::Bitmap iconBitmap(iconStream);
                                     wil::unique_hicon icon;

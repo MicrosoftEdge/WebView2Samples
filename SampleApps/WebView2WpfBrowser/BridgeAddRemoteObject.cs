@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Reflection;
 using System;
+using System.Threading.Tasks;
 
 namespace WebView2WpfBrowser
 {
@@ -37,16 +38,37 @@ namespace WebView2WpfBrowser
             return "BridgeAddRemoteObject.Func(" + param + ")";
         }
 
+        public async Task<string> FuncAsync(int msDelay)
+        {
+            if (msDelay > 0)
+            {
+                await Task.Delay(msDelay);
+            }
+            return $"BridgeAddRemoteObject.FuncAsync({msDelay})";
+        }
+
         // Sample function that takes no parameters.
         public string Func2()
         {
             return "BridgeAddRemoteObject.Func2()";
         }
 
+        public async Task<string> Func2Async()
+        {
+            await Task.Delay(500);
+            return "BridgeAddRemoteObject.Func2Async()";
+        }
+
         // Get type of an object.
         public string GetObjectType(object obj)
         {
             return obj.GetType().Name;
+        }
+
+        public async Task<string> GetObjectTypeAsync(object obj)
+        {
+            await Task.Delay(500);
+            return GetObjectType(obj);
         }
 
         // Sample property.
