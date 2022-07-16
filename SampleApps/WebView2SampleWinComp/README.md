@@ -1,35 +1,27 @@
-# WebView2 Sample WinComp
+---
+description: "Demonstrates the features and usage patterns of WebView2 in a Win32 app with Visual layer composition."
+extendedZipContent:
+  -
+    path: SharedContent
+    target: SharedContent
+  -
+    path: LICENSE
+    target: LICENSE
+languages:
+  - cpp
+page_type: sample
+products:
+  - microsoft-edge
+urlFragment: WebView2SampleWinComp
+---
+# Win32 sample app with Visual Composition
 
-This is a hybrid application built with the [Microsoft Edge WebView2](https://aka.ms/webview2) control.
+<!-- only enough info to differentiate this sample vs the others; what is different about this sample compared to the sibling samples? -->
+This sample, **WebView2SampleWinComp**, is an example of an application that embeds a WebView within a Win32 native application.  It is built as a Win32 Visual Studio 2019 project.  It uses C++ and HTML/CSS/JavaScript in the WebView2 environment.
 
-![Sample App Snapshot](./screenshots/WinComp-Sample-App-Screenshot.png)
+<!-- key distinction -->
+This sample uses Windows Runtime Composition APIs (also called the Visual layer) to take advantage of the latest Windows 10 UI features and create better look, feel, and functionality in C++ Win32 applications.
 
-The WebView2SampleWinComp is an example of an application that embeds a WebView within a Win32 native application. It is built as a Win32 [Visual Studio 2019](https://visualstudio.microsoft.com/vs/) project and makes use of both C++ and HTML/CSS/JavaScript in the WebView2 environment. It also uses [Windows Runtime Composition APIs](https://docs.microsoft.com/uwp/api/windows.ui.composition?view=winrt-19041) (also called the Visual layer) to take avantage of the latest Windows 10 UI features and create better look, feel, and functionality in C++ Win32 applications.
+To use this sample, see [Win32 sample app with Visual Composition](https://docs.microsoft.com/microsoft-edge/webview2/samples/webview2samplewincomp).
 
-The API Sample showcases a selection of WebView2's event handlers and API methods that allow a native Win32 application to directly interact with a WebView and vice versa.
-
-If this is your first time using WebView, we recommend first following the [Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32) guide, which goes over how to create a WebView2 and walks through some basic WebView2 functionality.
-
-To learn more specifics about events and API Handlers in WebView2, you can refer to the [WebView2 Reference Documentation](https://docs.microsoft.com/microsoft-edge/webview2/webview2-api-reference).
-
-## Prerequisites
-
-- [Microsoft Edge (Chromium)](https://www.microsoftedgeinsider.com/download/) installed on a supported OS. Currently we recommend the latest version of the Edge Canary channel.
-- [Visual Studio](https://visualstudio.microsoft.com/vs/) with C++ support installed.
-- Latest pre-release version of our [WebView2 SDK](https://aka.ms/webviewnuget), which is included in this project.
-- By default this sample app will use the latest Window 10 SDK version. However, there is an issue with Windows 10 SDK, version 2004 (10.0.19041.0) that will stop this sample app from building. When running into this issue, either install the later version (Windows 10 SDK version 2104 (10.0.20348.0)) or retarget the project to an older version of Windows SDK (Windows 10 SDK, version 1903 (10.0.18362.1)). Windows 10 SDK version 2104 (10.0.20348.0) and Windows 10 SDK, version 1903 (10.0.18362.1) can be downloaded [here](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/)). 
-
-## Build the WebView2 Sample WinComp
-
-Clone the repository and open the solution in Visual Studio. WebView2 is already included as a NuGet package* in this project.
-
-- Clone this repository
-- Open the solution in Visual Studio 2019**
-- Set the target you want to build (Debug/Release, x86/x64/ARM64)
-- Build the project file: _WebView2SampleWinComp.vcxproj_
-
-That's it! Everything should be ready to just launch the app.
-
-*You can get the WebView2 NugetPackage through the Visual Studio NuGet Package Manager.
-
-**You can also use Visual Studio 2017 by changing the project's Platform Toolset in Project Properties/Configuration properties/General/Platform Toolset. You might also need to change the Windows SDK to the latest version available to you.
+![The WebView2SampleWinComp sample app running](screenshots/wincomp-sample-app-running.png)

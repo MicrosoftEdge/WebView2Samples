@@ -1,8 +1,7 @@
-# WebView2 Samples
+# Sample apps and Deployment samples
 
-This repo contains several types of samples for WebView2:
-
-*  Getting Started tutorial projects - Completed Visual Studio projects that result from following the steps in the [Getting Started tutorials](https://docs.microsoft.com/microsoft-edge/webview2/get-started/get-started).
+<!-- only enough info to differentiate this dir level vs the others; what is different about this dir compared to the sibling dirs? -->
+This directory contains:
 
 *  Sample apps - WebView2 sample apps for various frameworks and platforms, as Visual Studio projects.  For more information, see [Sample apps](https://docs.microsoft.com/microsoft-edge/webview2/code-samples-links).
 

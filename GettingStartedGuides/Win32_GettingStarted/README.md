@@ -1,14 +1,13 @@
 ---
-description: "Getting started with WebView2 for Win32 apps doc"
+description: "Completed Visual Studio project from the tutorial Get started with WebView2 in Win32 apps."
 languages: 
   - cpp
 page_type: sample
 products: 
   - microsoft-edge
-urlFragment: webview2-win32-getting-started
+urlFragment: Win32_GettingStarted
 ---
-# Getting Started with WebView2 for Win32 apps
+# Get started with WebView2 in Win32 apps
 
-This sample relates to the [Getting started with WebView2 for Win32 apps](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32) doc.
-
-![sample snapshot](https://raw.githubusercontent.com/MicrosoftDocs/edge-developer/main/microsoft-edge/webview2/media/bing-window.png)
+<!-- only enough info to differentiate this sample vs the others; what is different about this sample compared to the sibling samples? -->
+This sample, **Win32_GettingStarted**, is the completed Visual Studio project that results from following the steps in the tutorial [Get started with WebView2 in Win32 apps](https://docs.microsoft.com/microsoft-edge/webview2/get-started/win32).
