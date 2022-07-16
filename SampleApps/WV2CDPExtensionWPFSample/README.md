@@ -21,4 +21,4 @@ This sample, **WV2CDPExtensionWPFSample**, is built with the WebView2 CDP Extens
 
 To use this sample, see [WPF sample app with CDP extension](https://docs.microsoft.com/microsoft-edge/webview2/samples/wv2cdpextensionwpfsample).
 
-![CDP Extension sample app running](screenshots/cdp-extension-sample-app-running.png)
+![CDP Extension sample app running](screenshots/wv2cdpextensionwpfsample-app-running.png)

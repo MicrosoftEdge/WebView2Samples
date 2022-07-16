@@ -20,3 +20,5 @@ urlFragment: WebView2WpfBrowser
 This sample, **WebView2WpfBrowser**, embeds a WebView2 control within a WPF application.  This sample is built as a WPF Visual Studio 2019 project.  It uses C# and HTML/CSS/JavaScript in the WebView2 environment.
 
 For more information, see [WPF sample app](https://docs.microsoft.com/microsoft-edge/webview2/samples/webview2wpfbrowser).
+
+![The WPF sample app running](screenshots/wpf-browser-screenshot.png)

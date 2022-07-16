@@ -11,3 +11,5 @@ urlFragment: Win32_GettingStarted
 
 <!-- only enough info to differentiate this sample vs the others; what is different about this sample compared to the sibling samples? -->
 This sample, **Win32_GettingStarted**, is the completed Visual Studio project that results from following the steps in the tutorial [Get started with WebView2 in Win32 apps](https://docs.microsoft.com/microsoft-edge/webview2/get-started/win32).
+
+![The running app from the finished Win32 tutorial](screenshots/bing-window.png)

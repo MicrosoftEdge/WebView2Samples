@@ -24,4 +24,4 @@ The solution file for this sample is in the parent directory: `SampleApps/WebVie
 
 To use this sample, see [Win32 sample app](https://docs.microsoft.com/microsoft-edge/webview2/samples/webview2apissample).
 
-![Screenshot of WebView2APISample app, with many menus](https://raw.githubusercontent.com/MicrosoftEdge/WebView2Samples/master/SampleApps/WebView2APISample/documentation/screenshots/sample-app-screenshot.png)
+![Screenshot of WebView2APISample app, with many menus](documentation/screenshots/sample-app-screenshot.png)

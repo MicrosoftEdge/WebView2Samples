@@ -20,3 +20,5 @@ urlFragment: WebView2WindowsFormsBrowser
 This sample, **WebView2WindowsFormsBrowser**, is an example of an application that embeds a WebView within a Windows Forms application.  This sample is built as a Windows Forms Visual Studio project.  It uses C# and HTML/CSS/JavaScript in the WebView2 environment.
 
 For more information, see [WinForms sample app](https://docs.microsoft.com/microsoft-edge/webview2/samples/webview2windowsformsbrowser).
+
+![The WinForms sample app running](screenshots/winforms-browser-screenshot.png)

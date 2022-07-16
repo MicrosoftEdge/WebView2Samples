@@ -20,3 +20,5 @@ urlFragment: webview2_sample_uwp
 This sample, **webview2_sample_uwp**, embeds a WebView2 control within a WinUI 2 (UWP) app.  This sample is built as a UWP Visual Studio 2019 project.  It uses C++ and HTML/CSS/JavaScript in the WebView2 environment.
 
 For more information, see [WinUI 2 (UWP) sample app](https://docs.microsoft.com/microsoft-edge/webview2/samples/webview2_sample_uwp).
+
+![The running WinUI 2 (UWP) sample app](screenshots/winui2-getting-started-webview2-with-content.png)
