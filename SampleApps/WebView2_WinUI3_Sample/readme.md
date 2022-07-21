@@ -1,7 +1,7 @@
 # Introduction
 This sample shows off using a WebView2 control in a WinUI 3 Windows SDK Packaged application.
 
-It also optionaly shows how you would update the application to ship with a fixed WebView2 version instead of using the version installed and running on the Windows computer.
+This sample also shows how to optionally update the application to ship packaged together with a fixed version of the WebView2 Runtime, instead of using the version of the WebView2 Runtime that's installed on the user's computer.
 
 # Relevant directories
 
