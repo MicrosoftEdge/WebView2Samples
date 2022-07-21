@@ -18,7 +18,7 @@ If you want to ship a fixed version of the WebView2 Runtime packaged with your a
 
 Instructions can be found at: https://docs.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution
 
-The following assume you are using runtime version 95.0.1020.53, you will change this number to whatever version you are using.
+The following instructions assume you are using WebView2 Runtime version 95.0.1020.53.  You'll change this number to whatever version you are using.
 
 You will need to:
 1 Include the fixed WebView2 runtime in the package project
