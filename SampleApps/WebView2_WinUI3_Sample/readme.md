@@ -27,7 +27,9 @@ You will need to:
 
 2. Update the package project `wapproj` file for the version you're using:
 
-<pre> < Content Include="FixedRuntime\95.0.1020.53\\**\*.*" > </pre>
+
+   `< Content Include="FixedRuntime\95.0.1020.53\\**\*.*" >`
+
 3 Uncomment the code in app.xaml.cs to enable the runtime override
 <pre>
 public App()
