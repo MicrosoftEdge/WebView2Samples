@@ -21,7 +21,8 @@ Instructions can be found at: https://docs.microsoft.com/en-us/microsoft-edge/we
 The following instructions assume you are using WebView2 Runtime version 95.0.1020.53.  You'll change this number to whatever version you are using.
 
 You will need to:
-1 Include the fixed WebView2 runtime in the package project
+1. Include the fixed version of the WebView2 Runtime in the package project:
+
 <pre>\WebView2_WinUI3_Sample\WebView2_WinUI3_Sample (Package)\FixedRuntime\95.0.1020.53\</pre>
 2 Update the package project wapproj file for the version your using
 <pre> < Content Include="FixedRuntime\95.0.1020.53\\**\*.*" > </pre>
