@@ -30,7 +30,7 @@ You will need to:
 
    `< Content Include="FixedRuntime\95.0.1020.53\\**\*.*" >`
 
-3 Uncomment the code in app.xaml.cs to enable the runtime override
+3. Uncomment the code in `app.xaml.cs` to enable the runtime override:
 <pre>
 public App()
 {
