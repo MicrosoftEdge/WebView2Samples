@@ -23,7 +23,7 @@ The following instructions assume you are using WebView2 Runtime version 95.0.10
 You will need to:
 1. Include the fixed version of the WebView2 Runtime in the package project:
 
-<pre>\WebView2_WinUI3_Sample\WebView2_WinUI3_Sample (Package)\FixedRuntime\95.0.1020.53\</pre>
+   `\WebView2_WinUI3_Sample\WebView2_WinUI3_Sample (Package)\FixedRuntime\95.0.1020.53\`
 2 Update the package project wapproj file for the version your using
 <pre> < Content Include="FixedRuntime\95.0.1020.53\\**\*.*" > </pre>
 3 Uncomment the code in app.xaml.cs to enable the runtime override
