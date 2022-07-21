@@ -36,7 +36,7 @@ public App()
 {
     this.InitializeComponent();
     // If you are shipping a fixed version WebView2 SDK with your application you will need
-    // to use the following code (update the runtime version to what you are shipping.
+    // to use the following code (update the runtime version to what you are shipping).
     StorageFolder localFolder = Windows.ApplicationModel.Package.Current.InstalledLocation;
     String fixedPath = Path.Combine(localFolder.Path, "FixedRuntime\\95.0.1020.53");
     Debug.WriteLine($"Launch path [{localFolder.Path}]");
