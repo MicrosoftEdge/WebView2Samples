@@ -16,7 +16,7 @@ This sample also shows how to optionally update the application to ship packaged
 # Fixed version usage
 If you want to ship a fixed version of the WebView2 Runtime packaged with your application, you will need to include the WebView2 Runtime in your project.
 
-Instructions can be found at: https://docs.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution
+Instructions can be found at: https://docs.microsoft.com/microsoft-edge/webview2/concepts/distribution
 
 The following instructions assume you are using WebView2 Runtime version 95.0.1020.53.  You'll change this number to whatever version you are using.
 
