@@ -47,9 +47,7 @@ public App()
 
 4. Update the version information for the appropriate version:
 
-<pre> 
-String fixedPath = Path.Combine(localFolder.Path, "FixedRuntime\\95.0.1020.53");
-</pre>
+   `String fixedPath = Path.Combine(localFolder.Path, "FixedRuntime\\95.0.1020.53");`
 
 
 
