@@ -135,6 +135,7 @@ int CALLBACK WinMain(
 						// Schedule an async task to navigate to Bing
 						webview->Navigate(L"https://www.bing.com/");
 
+						// <Step4>
 						// Step 4 - Navigation events
 						// register an ICoreWebView2NavigationStartingEventHandler to cancel any non-https navigation
 						EventRegistrationToken token;
@@ -148,7 +149,9 @@ int CALLBACK WinMain(
 								}
 								return S_OK;
 							}).Get(), &token);
+						// <Step4>
 
+						// <Step5>
 						// Step 5 - Scripting
 						// Schedule an async task to add initialization script that freezes the Object object
 						webview->AddScriptToExecuteOnDocumentCreated(L"Object.freeze(Object);", nullptr);
@@ -159,7 +162,9 @@ int CALLBACK WinMain(
 								//doSomethingWithURL(URL);
 								return S_OK;
 							}).Get());
+						// <Step5>
 
+						// <Step6>
 						// Step 6 - Communication between host and web content
 						// Set an event handler for the host to return received message back to the web content
 						webview->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>(
@@ -171,6 +176,7 @@ int CALLBACK WinMain(
 								CoTaskMemFree(message);
 								return S_OK;
 							}).Get(), &token);
+						// <Step6>
 
 						// Schedule an async task to add initialization script that
 						// 1) Add an listener to print message from the host
