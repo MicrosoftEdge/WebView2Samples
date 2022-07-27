@@ -169,11 +169,10 @@ int CALLBACK WinMain(
 						// Set an event handler for the host to return received message back to the web content
 						webview->add_WebMessageReceived(Callback<ICoreWebView2WebMessageReceivedEventHandler>(
 							[](ICoreWebView2* webview, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
-								PWSTR message;
+								wil::unique_cotaskmem_string message;
 								args->TryGetWebMessageAsString(&message);
 								// processMessage(&message);
-								webview->PostWebMessageAsString(message);
-								CoTaskMemFree(message);
+								webview->PostWebMessageAsString(message.get());
 								return S_OK;
 							}).Get(), &token);
 						// <Step6>
