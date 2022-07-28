@@ -24,6 +24,9 @@ This sample, **WebView2APISample**, embeds a WebView2 control within a Win32 app
 <!-- distinctive project type and language: -->
 This sample is built as a Win32 Visual Studio 2019 project.  It uses C++ and HTML/CSS/JavaScript in the WebView2 environment.
 
+<!-- link to regular docs: -->
+To use this sample, see [Win32 sample app](https://docs.microsoft.com/microsoft-edge/webview2/samples/webview2apissample).
+
 <!-- special notes about this particular sample: -->
 The solution file for this sample is in the parent directory: `SampleApps/WebView2Samples.sln`.  The solution file includes a copy of some of the other, sibling samples for other frameworks or platforms.  
 
@@ -31,6 +34,3 @@ The solution file for this sample is in the parent directory: `SampleApps/WebVie
 This is the main WebView2 sample.  The running **WebView2APISample** app window shows the WebView2 SDK version and also the WebView2 Runtime version and path.  The **WebView2APISample** app has several menus containing many menuitems that demonstrate a broad range of WebView2 APIs:
 
 ![Screenshot of WebView2APISample app, with many menus](documentation/screenshots/sample-app-screenshot.png)
-
-<!-- link to regular docs: -->
-To use this sample, see [Win32 sample app](https://docs.microsoft.com/microsoft-edge/webview2/samples/webview2apissample).
