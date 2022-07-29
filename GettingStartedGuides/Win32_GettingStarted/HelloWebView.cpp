@@ -177,7 +177,6 @@ int CALLBACK WinMain(
 								webview->PostWebMessageAsString(message.get());
 								return S_OK;
 							}).Get(), &token);
-						// </CommunicationHostWeb>
 
 						// Schedule an async task to add initialization script that
 						// 1) Add an listener to print message from the host
@@ -186,6 +185,7 @@ int CALLBACK WinMain(
 							L"window.chrome.webview.addEventListener(\'message\', event => alert(event.data));" \
 							L"window.chrome.webview.postMessage(window.document.URL);",
 							nullptr);
+						// </CommunicationHostWeb>
 
 						return S_OK;
 					}).Get());
