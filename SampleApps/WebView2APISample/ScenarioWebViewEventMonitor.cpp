@@ -20,6 +20,21 @@ using namespace std;
 
 static constexpr wchar_t c_samplePath[] = L"ScenarioWebViewEventMonitor.html";
 
+std::wstring WebResourceSourceToString(COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS source)
+{
+    switch (source)
+    {
+    case COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_DOCUMENT:
+        return L"\"main\"";
+    case COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_SHARED_WORKER:
+        return L"\"shared_worker\"";
+    case COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_SERVICE_WORKER:
+        return L"\"service_worker\"";
+    default:
+        return L"\"unknown_source\"";
+    }
+}
+
 ScenarioWebViewEventMonitor::ScenarioWebViewEventMonitor(AppWindow* appWindowEventSource)
     : m_appWindowEventSource(appWindowEventSource),
       m_webviewEventSource(appWindowEventSource->GetWebView()),
@@ -489,6 +504,16 @@ void ScenarioWebViewEventMonitor::EnableWebResourceRequestedEvent(bool enable)
     {
         m_webviewEventSource->AddWebResourceRequestedFilter(
             L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+
+        auto webViewExperimental16 =
+            m_webviewEventSource.try_query<ICoreWebView2Experimental16>();
+        if (webViewExperimental16)
+        {
+            webViewExperimental16->AddWebResourceRequestedFilterWithRequestSourceKinds(
+                L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL,
+                COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_ALL);
+        }
+
         m_webviewEventSource->add_WebResourceRequested(
             Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                 [this](ICoreWebView2* webview, ICoreWebView2WebResourceRequestedEventArgs* args)
@@ -497,8 +522,30 @@ void ScenarioWebViewEventMonitor::EnableWebResourceRequestedEvent(bool enable)
                     CHECK_FAILURE(args->get_Request(&webResourceRequest));
                     wil::com_ptr<ICoreWebView2WebResourceResponse> webResourceResponse;
                     CHECK_FAILURE(args->get_Response(&webResourceResponse));
+
                     std::wstring message =
                         WebResourceRequestedToJsonString(webResourceRequest.get());
+
+                    wil::com_ptr<ICoreWebView2WebResourceRequestedEventArgs> argsPtr = args;
+                    wil::com_ptr<ICoreWebView2ExperimentalWebResourceRequestedEventArgs>
+                        webResourceRequestArgs = argsPtr.try_query<
+                            ICoreWebView2ExperimentalWebResourceRequestedEventArgs>();
+                    if (webResourceRequestArgs)
+                    {
+                        COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS requestedSourceKind =
+                            COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_ALL;
+                        CHECK_FAILURE(webResourceRequestArgs->get_RequestedSourceKind(
+                            &requestedSourceKind));
+                        if (requestedSourceKind !=
+                            COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_ALL)
+                        {
+                            std::wstring source = L", \"source\": " + WebResourceSourceToString(
+                                                                          requestedSourceKind);
+
+                            message = WebResourceRequestedToJsonString(
+                                webResourceRequest.get(), source);
+                        }
+                    }
                     message += WebViewPropertiesToJsonString(m_webviewEventSource.get());
                     message += L"}";
                     PostEventMessage(message);

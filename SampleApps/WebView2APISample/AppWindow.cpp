@@ -32,9 +32,12 @@
 #include "ScenarioClientCertificateRequested.h"
 #include "ScenarioCookieManagement.h"
 #include "ScenarioCustomDownloadExperience.h"
+#include "ScenarioCustomScheme.h"
+#include "ScenarioCustomSchemeNavigate.h"
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
+#include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
 #include "ScenarioVirtualHostMappingForSW.h"
 #include "ScenarioWebMessage.h"
@@ -43,6 +46,7 @@
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
+
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -529,6 +533,21 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_COOKIE_MANAGEMENT:
     {
         NewComponent<ScenarioCookieManagement>(this);
+        return true;
+    }
+    case IDM_SCENARIO_CUSTOM_SCHEME:
+    {
+        NewComponent<ScenarioCustomScheme>(this);
+        return true;
+    }
+    case IDM_SCENARIO_CUSTOM_SCHEME_NAVIGATE:
+    {
+        NewComponent<ScenarioCustomSchemeNavigate>(this);
+        return true;
+    }
+    case IDM_SCENARIO_SHARED_WORKER:
+    {
+        NewComponent<ScenarioSharedWorkerWRR>(this);
         return true;
     }
     case IDM_SCENARIO_DOM_CONTENT_LOADED:

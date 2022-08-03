@@ -38,6 +38,7 @@ private:
     void CallCdpMethod();
     void HandleCDPTargets();
     void CallCdpMethodForSession();
+    HRESULT CDPMethodCallback(HRESULT error, PCWSTR resultJson);
     void CollectHeapUsageViaCdp();
     void HandleHeapUsageResult(std::wstring targetInfo, PCWSTR resultJson);
     void AddComObject();
