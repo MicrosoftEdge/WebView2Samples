@@ -232,6 +232,9 @@ BEGIN
             MENUITEM "Use Deferred Custom Client Certificate Selection Dialog", IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG
         END
         MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
+        MENUITEM "Custom scheme WebResourceRequested CORS", IDM_SCENARIO_CUSTOM_SCHEME
+        MENUITEM "Navigate to custom scheme via WebResourceRequested",   IDM_SCENARIO_CUSTOM_SCHEME_NAVIGATE
+        MENUITEM "Shared worker WebResourceRequested",   IDM_SCENARIO_SHARED_WORKER
         POPUP "Custom Download Experience"
         BEGIN
             MENUITEM "Use Deferred Download Dialog",  IDM_SCENARIO_USE_DEFERRED_DOWNLOAD
