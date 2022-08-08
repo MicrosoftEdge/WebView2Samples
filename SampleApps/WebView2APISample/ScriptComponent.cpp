@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <string>
 
 #include "ProcessComponent.h"
 #include "ScriptComponent.h"
@@ -681,14 +682,10 @@ void ScriptComponent::CallCdpMethod()
                 : L"{}");
 
         m_webView->CallDevToolsProtocolMethod(
-            methodName.c_str(),
-            methodParams.c_str(),
+            methodName.c_str(), methodParams.c_str(),
             Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
-                [this](HRESULT error, PCWSTR resultJson) -> HRESULT
-                {
-                    m_appWindow->AsyncMessageBox(resultJson, L"CDP method call result");
-                    return S_OK;
-                }).Get());
+                this, &ScriptComponent::CDPMethodCallback)
+                .Get());
     }
 }
 //! [CallDevToolsProtocolMethod]
@@ -729,16 +726,26 @@ void ScriptComponent::CallCdpMethodForSession()
         webview2->CallDevToolsProtocolMethodForSession(
             sessionId.c_str(), methodName.c_str(), methodParams.c_str(),
             Callback<ICoreWebView2CallDevToolsProtocolMethodCompletedHandler>(
-                [this](HRESULT error, PCWSTR resultJson) -> HRESULT
-                {
-                    m_appWindow->AsyncMessageBox(resultJson, L"CDP method call result");
-                    return S_OK;
-                })
+                this, &ScriptComponent::CDPMethodCallback)
                 .Get());
     }
 }
 //! [CallDevToolsProtocolMethodForSession]
 
+HRESULT ScriptComponent::CDPMethodCallback(HRESULT error, PCWSTR resultJson)
+{
+    std::wostringstream message;
+    if (SUCCEEDED(error))
+    {
+        message << "Success!\nResult = " << resultJson;
+    }
+    else
+    {
+        message << "Error!\nHRESULT = 0x" << std::hex << error << "\nResult = " << resultJson;
+    }
+    m_appWindow->AsyncMessageBox(message.str(), L"CDP method call result");
+    return S_OK;
+}
 
 void ScriptComponent::AddComObject()
 {

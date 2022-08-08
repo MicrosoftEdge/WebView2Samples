@@ -41,9 +41,6 @@ private:
     // Returns the hosting HWND.
     HWND GetHWND() { return m_window; }
 
-    wil::com_ptr<IDropTargetHelper> DropHelper();
-    wil::com_ptr<IDropTargetHelper> m_dropTargetHelper;
-
     // The HWND of the source. This HWND is used to determine coordinates for
     // mouse events that are sent to the renderer notifying various drag states.
     HWND m_window;

@@ -102,7 +102,7 @@ private:
     const int m_downloadsButtonMargin = 50;
     const int m_downloadsButtonWidth = 120;
     const int m_downloadsButtonHeight = 80;
-    HWND m_downloadsButton;
+    HWND m_downloadsButton = nullptr;
 
     EventRegistrationToken m_zoomFactorChangedToken = {};
     EventRegistrationToken m_rasterizationScaleChangedToken = {};

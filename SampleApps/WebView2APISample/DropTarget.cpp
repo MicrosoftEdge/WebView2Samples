@@ -25,29 +25,11 @@ void DropTarget::Init(
     ::RegisterDragDrop(m_window, this);
 }
 
-wil::com_ptr<IDropTargetHelper> DropTarget::DropHelper() {
-    if (!m_dropTargetHelper)
-    {
-        CoCreateInstance(
-            CLSID_DragDropHelper, 0, CLSCTX_INPROC_SERVER, IID_IDropTargetHelper,
-            reinterpret_cast<void**>(&m_dropTargetHelper));
-    }
-    return m_dropTargetHelper;
-}
-
 //! [DragEnter]
 HRESULT DropTarget::DragEnter(
     IDataObject* dataObject, DWORD keyState, POINTL cursorPosition, DWORD* effect)
 {
-    POINT point = { cursorPosition.x, cursorPosition.y};
-    // Tell the helper that we entered so it can update the drag image and get
-    // the correct effect.
-    wil::com_ptr<IDropTargetHelper> dropHelper = DropHelper();
-    if (dropHelper)
-    {
-        dropHelper->DragEnter(GetHWND(), dataObject, &point, *effect);
-    }
-
+    POINT point = {cursorPosition.x, cursorPosition.y};
     // Convert the screen point to client coordinates add the WebView's offset.
     m_viewComponent->OffsetPointToWebView(&point);
     return m_webViewExperimentalCompositionController3->DragEnter(
@@ -58,15 +40,7 @@ HRESULT DropTarget::DragEnter(
 //! [DragOver]
 HRESULT DropTarget::DragOver(DWORD keyState, POINTL cursorPosition, DWORD* effect)
 {
-    POINT point = { cursorPosition.x, cursorPosition.y};
-    // Tell the helper that we moved over it so it can update the drag image
-    // and get the correct effect.
-    wil::com_ptr<IDropTargetHelper> dropHelper = DropHelper();
-    if (dropHelper)
-    {
-        dropHelper->DragOver(&point, *effect);
-    }
-
+    POINT point = {cursorPosition.x, cursorPosition.y};
     // Convert the screen point to client coordinates add the WebView's offset.
     // This returns whether the resultant point is over the WebView visual.
     m_viewComponent->OffsetPointToWebView(&point);
@@ -78,13 +52,6 @@ HRESULT DropTarget::DragOver(DWORD keyState, POINTL cursorPosition, DWORD* effec
 //! [DragLeave]
 HRESULT DropTarget::DragLeave()
 {
-    // Tell the helper that we moved out of it so it can update the drag image.
-    wil::com_ptr<IDropTargetHelper> dropHelper = DropHelper();
-    if (dropHelper)
-    {
-        dropHelper->DragLeave();
-    }
-
     return m_webViewExperimentalCompositionController3->DragLeave();
 }
 //! [DragLeave]
@@ -93,15 +60,7 @@ HRESULT DropTarget::DragLeave()
 HRESULT DropTarget::Drop(
     IDataObject* dataObject, DWORD keyState, POINTL cursorPosition, DWORD* effect)
 {
-    POINT point = { cursorPosition.x, cursorPosition.y};
-    // Tell the helper that we dropped onto it so it can update the drag image and
-    // get the correct effect.
-    wil::com_ptr<IDropTargetHelper> dropHelper = DropHelper();
-    if (dropHelper)
-    {
-        dropHelper->Drop(dataObject, &point, *effect);
-    }
-
+    POINT point = {cursorPosition.x, cursorPosition.y};
     // Convert the screen point to client coordinates add the WebView's offset.
     // This returns whether the resultant point is over the WebView visual.
     m_viewComponent->OffsetPointToWebView(&point);
