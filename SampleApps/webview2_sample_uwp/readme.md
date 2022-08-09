@@ -32,8 +32,8 @@ To learn more specifics about events and API Handlers in WebView2, you can refer
 
 - [Microsoft Edge (Chromium)](https://www.microsoftedgeinsider.com/download/) installed on a supported OS. Currently we recommend the latest version of the Edge Canary channel.
 - [Visual Studio](https://visualstudio.microsoft.com/vs/) with .NET support installed.
-- Latest pre-release version of our [WebView2 SDK](https://aka.ms/webviewnuget), which is included in this project.
-- Latest pre-release version of the [WinUI2 SDK](https://aka.ms/webviewnuget), which is included in this project
+- Latest release version of our [WebView2 SDK](https://aka.ms/webviewnuget), which is included in this project.
+- Latest release version of the [WinUI2 SDK](https://aka.ms/webviewnuget), which is included in this project
 
 ## Build the WebView2 UWP WinUi2 browser
 
@@ -47,6 +47,11 @@ Clone the repository and open the solution in Visual Studio. WebView2 & WebUi2 a
 That's it! Everything should be ready to just launch the app.
 
 *You can get the WebView2 & WinUI2 NugetPackage through the Visual Studio NuGet Package Manager.
+
+## Run the WebView2 UWP WinUi2 browser on other machines
+This application depends on WebView2 to be available to the WinUI2 application. So any computer that runs the application should install the [WebView2 Runtime](https://go.microsoft.com/fwlink/p/?LinkId=2124703).
+
+**IMPORTANT:** WinUI2 applications run in a sandbox environment and cannot access the local registry. When the WebView2 Runtime is installed in *per-user* mode (which is the default), then WebView2 is **not** available to the application. It is important that the WebView2 runtime is installed using administrator privileges to ensure a system-wide installations. MS [mentioned to address this issue](https://github.com/MicrosoftEdge/WebView2Feedback/issues/2030#issuecomment-1208589915). Note that during the installation of Visual Studio the WebView2 runtime is often installed globally, so you won't encounter this issue on your development machine. It will pop up once you deploy the application (i.e. via the Microsoft store) to other users.
 
 ## Code of Conduct
 
