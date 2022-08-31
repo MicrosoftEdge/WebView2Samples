@@ -900,6 +900,30 @@ void AppWindow::InitializeWebView()
     if (!m_language.empty())
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
 
+    //! [CoreWebView2CustomSchemeRegistration]
+    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions> optionsExperimental;
+    if (options.As(&optionsExperimental) == S_OK)
+    {
+        const WCHAR* allowedOrigins[1] = {L"https://*.example.com"};
+
+        auto customSchemeRegistration =
+            Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(L"custom-scheme");
+        customSchemeRegistration->SetAllowedOrigins(1, allowedOrigins);
+        auto customSchemeRegistration2 =
+            Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(L"wv2rocks");
+        customSchemeRegistration2->put_TreatAsSecure(TRUE);
+        customSchemeRegistration2->SetAllowedOrigins(1, allowedOrigins);
+        auto customSchemeRegistration3 =
+            Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(
+                L"custom-scheme-not-in-allowed-origins");
+        ICoreWebView2ExperimentalCustomSchemeRegistration* registrations[3] = {
+            customSchemeRegistration.Get(), customSchemeRegistration2.Get(),
+            customSchemeRegistration3.Get()};
+        optionsExperimental->SetCustomSchemeRegistrations(
+            2, static_cast<ICoreWebView2ExperimentalCustomSchemeRegistration**>(registrations));
+    }
+    //! [CoreWebView2CustomSchemeRegistration]
+
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
         subFolder, m_userDataFolder.c_str(), options.Get(),
         Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(

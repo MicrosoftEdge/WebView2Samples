@@ -63,21 +63,49 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.AllowExternalDropCommand}" Executed="AllowExternalDropCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PerfInfoCommand}" Executed="PerfInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}" Executed="NewWindowWithOptionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.AboutCommand}" Executed="AboutCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem Header="_New Window" Command="ApplicationCommands.New"/>
-                <MenuItem Header="_New Window With Options" Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}"/>
-                <MenuItem Header="_Close" Command="ApplicationCommands.Close"/>
-                <MenuItem Header="_Inject Script..." Command="{x:Static local:MainWindow.InjectScriptCommand}"/>
-                <MenuItem Header="_Inject Script Into IFrame..." Command="{x:Static local:MainWindow.InjectScriptIFrameCommand}"/>
                 <MenuItem Header="_Print to PDF">
                     <MenuItem Header="Portrait" Command="{x:Static local:MainWindow.PrintToPdfCommand}" CommandParameter="Portrait"/>
                     <MenuItem Header="Landscape" Command="{x:Static local:MainWindow.PrintToPdfCommand}" CommandParameter="Landscape"/>
                 </MenuItem>
+                <MenuItem x:Name="newVersionMenuItem" Header="New Browser _Version" Command="{x:Static local:MainWindow.NewBrowserVersionCommand}"/>
+                <MenuItem Header="_Exit" Command="ApplicationCommands.Close"/>
+            </MenuItem>
+            <MenuItem Header="_Script">
+                <MenuItem Header="_Inject Script..." Command="{x:Static local:MainWindow.InjectScriptCommand}"/>
+                <MenuItem Header="_Inject Script Into IFrame..." Command="{x:Static local:MainWindow.InjectScriptIFrameCommand}"/>
+                <!--TODO-->
+            </MenuItem>
+            <MenuItem Header="_Window">
+                <MenuItem Header="_New Window" Command="ApplicationCommands.New"/>
+                <MenuItem Header="_New Window With Options" Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}"/>
+                <!---TODO-->
+            </MenuItem>
+            <MenuItem Header="_Process">
+                <MenuItem Header="Show _Performance Info" Command="{x:Static local:MainWindow.PerfInfoCommand}"/>
+                <!---TODO-->
+            </MenuItem>
+            <MenuItem Header="S_ettings">
+                <MenuItem Header="_Server Certificate Error">
+                    <MenuItem Header="_Toggle Custom Server Certificate Support" Command="{x:Static local:MainWindow.CustomServerCertificateSupportCommand}"/>
+                    <MenuItem Header="_Clear Server Certificate Error Actions" Command="{x:Static local:MainWindow.ClearServerCertificateErrorActionsCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Set _UserAgent" Command="{x:Static local:MainWindow.SetUserAgentCommand}"/>
+                <MenuItem Header="Toggle Allow External Drop" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.AllowExternalDropCommand}"/>
+                <MenuItem Header="Toggle Autofill" Name ="generalAutofillEnabled" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.GeneralAutofillCommand}"/>
+                <MenuItem Header="Toggle Swipe Navigation Enabled" Command="{x:Static local:MainWindow.SwipeNavigationCommand}"/>
+                <MenuItem Header="Toggle Password Autosave" Name="passwordAutosaveEnabled" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.PasswordAutosaveCommand}"/>
+                <MenuItem Header="Toggle Pinch Zoom Enabled" Command="{x:Static local:MainWindow.PinchZoomCommand}"/>
+                <MenuItem Header="Toggle PDF toolbar save button" Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">
+                <MenuItem Header="Toggle _Visibility" Name="webViewVisible" IsCheckable="True" IsChecked="True"/>
+                <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>
+                <MenuItem Header="Resume" Command="{x:Static local:MainWindow.ResumeCommand}"/>
                 <MenuItem Header="_Increase Zoom" Command="NavigationCommands.IncreaseZoom"/>
                 <MenuItem Header="_Decrease Zoom" Command="NavigationCommands.DecreaseZoom"/>
                 <MenuItem Header="_BackgroundColor">
@@ -88,26 +116,9 @@ found in the LICENSE file.
                 </MenuItem>
                 <MenuItem Header="_Create Downloads Button" Command="{x:Static local:MainWindow.CreateDownloadsButtonCommand}"/>
             </MenuItem>
-            <MenuItem Header="S_ettings">
-                <MenuItem Header="WebView _userAgent" Command="{x:Static local:MainWindow.SetUserAgentCommand}"/>
-                <MenuItem Header="Password _autosave enabled" Name="passwordAutosaveEnabled" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.PasswordAutosaveCommand}"/>
-                <MenuItem Header="General _autofill enabled" Name ="generalAutofillEnabled" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.GeneralAutofillCommand}"/>
-                <MenuItem Header="Disable Pinch Zoom" Command="{x:Static local:MainWindow.PinchZoomCommand}"/>
-                <MenuItem Header="Disable Swipe to Navigate" Command="{x:Static local:MainWindow.SwipeNavigationCommand}"/>
-                <MenuItem Header="Toggle PDF toolbar save button" Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}"/>
-                <MenuItem Header="WebView _muted" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.ToggleMuteStateCommand}"/>
-                <MenuItem Header="Allow External Drop" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.AllowExternalDropCommand}"/>
-            </MenuItem>
             <MenuItem Header="S_cenario">
-                <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>
-                <MenuItem Header="Resume" Command="{x:Static local:MainWindow.ResumeCommand}"/>
-                <MenuItem Header="Check Update" Command="{x:Static local:MainWindow.CheckUpdateCommand}"/>
-                <MenuItem Header="_DOM Content Loaded" Command="{x:Static local:MainWindow.DOMContentLoadedCommand}"/>
-                <MenuItem Header="_Web Messages" Command="{x:Static local:MainWindow.WebMessagesCommand}"/>
-                <MenuItem Header="_NavigateWithWebResourceRequest" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
-                <MenuItem x:Name="newVersionMenuItem" Header="New Browser _Version" Command="{x:Static local:MainWindow.NewBrowserVersionCommand}"/>
                 <MenuItem Header="Au_thentication" Command="{x:Static local:MainWindow.AuthenticationCommand}"/>
-                <MenuItem Header="_Favicon Changed Listener" Command="{x:Static local:MainWindow.FaviconChangedCommand}"/>
+                <MenuItem Header="Check Update" Command="{x:Static local:MainWindow.CheckUpdateCommand}"/>
                 <MenuItem Header="_Clear Browsing Data">
                     <MenuItem Header="All DOM Storage" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="DOM Storage"/>
                     <MenuItem Header="All Profile" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Profile"/>
@@ -122,30 +133,35 @@ found in the LICENSE file.
                     <MenuItem Header="_Custom Client Certificate Selection" Command="{x:Static local:MainWindow.CustomClientCertificateSelectionCommand}"/>
                     <MenuItem Header="_Deferred Custom Client Certificate Selection Dialog" Command="{x:Static local:MainWindow.DeferredCustomCertificateDialogCommand}"/>
                 </MenuItem>
-                <MenuItem Header="_Custom Context Menu" Command="{x:Static local:MainWindow.CustomContextMenuCommand}"/>
-                <MenuItem Header="D_ownload">
-                <MenuItem Header="_Start Deferred Download" Command="{x:Static local:MainWindow.DownloadStartingCommand}"/>
-                <MenuItem Header="_Set Default Download Folder Path" Command="{x:Static local:MainWindow.SetDefaultDownloadPathCommand}"/>
-                </MenuItem>
                 <MenuItem Header="_Cookie Management">
                     <MenuItem Header="_Get Cookies" Command="{x:Static local:MainWindow.GetCookiesCommand}"/>
                     <MenuItem Header="_Add Or Update Cookie" Command="{x:Static local:MainWindow.AddOrUpdateCookieCommand}"/>
                     <MenuItem Header="_Delete Cookie" Command="{x:Static local:MainWindow.DeleteCookiesCommand}"/>
                     <MenuItem Header="D_elete All Cookies" Command="{x:Static local:MainWindow.DeleteAllCookiesCommand}"/>
                 </MenuItem>
-                <MenuItem Header="Intercept _Response" IsCheckable="True" IsChecked="{Binding ElementName=MyWindow, Path=ShowNextWebResponse, Mode=TwoWay}"/>
-                <MenuItem Header="_Performance Counter Info" Command="{x:Static local:MainWindow.PerfInfoCommand}"/>
-                <MenuItem Header="_Server Certificate Error">
-                    <MenuItem Header="_Toggle Custom Server Certificate Support" Command="{x:Static local:MainWindow.CustomServerCertificateSupportCommand}"/>
-                    <MenuItem Header="_Clear Server Certificate Error Actions" Command="{x:Static local:MainWindow.ClearServerCertificateErrorActionsCommand}"/>
+                <MenuItem Header="_Custom Context Menu" Command="{x:Static local:MainWindow.CustomContextMenuCommand}"/>
+                <MenuItem Header="Custom Download Experience">
+                    <MenuItem Header="_Start Deferred Download" Command="{x:Static local:MainWindow.DownloadStartingCommand}"/>
+                    <MenuItem Header="_Set Default Download Folder Path" Command="{x:Static local:MainWindow.SetDefaultDownloadPathCommand}"/>
                 </MenuItem>
+                <MenuItem Header="_DOM Content Loaded" Command="{x:Static local:MainWindow.DOMContentLoadedCommand}"/>
+                <MenuItem Header="_Favicon Changed Listener" Command="{x:Static local:MainWindow.FaviconChangedCommand}"/>
+                <MenuItem Header="Intercept _Response" IsCheckable="True" IsChecked="{Binding ElementName=MyWindow, Path=ShowNextWebResponse, Mode=TwoWay}"/>
+                <MenuItem Header="_Navigate With Web Resource Request" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
+                <MenuItem Header="_Web Messages" Command="{x:Static local:MainWindow.WebMessagesCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Audio">
+                <MenuItem Header="Toggle Mute State" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.ToggleMuteStateCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="About..." Command="{x:Static local:MainWindow.AboutCommand}"/>
             </MenuItem>
         </Menu>
         <DockPanel Name="dockPanel" DockPanel.Dock="Top">
             <Button DockPanel.Dock="Left" Command="NavigationCommands.BrowseBack">Back</Button>
             <Button DockPanel.Dock="Left" Command="NavigationCommands.BrowseForward">Forward</Button>
-            <Button DockPanel.Dock="Left" Command="NavigationCommands.Refresh">Refresh</Button>
-            <Button DockPanel.Dock="Left" Command="NavigationCommands.BrowseStop">Stop</Button>
+            <Button DockPanel.Dock="Left" Command="NavigationCommands.Refresh">Reload</Button>
+            <Button DockPanel.Dock="Left" Command="NavigationCommands.BrowseStop">Cancel</Button>
             <Button DockPanel.Dock="Right" Command="NavigationCommands.GoToPage" CommandParameter="{Binding ElementName=url,Path=Text}">Go</Button>
             <!-- We want the address bar to update based on the WebView's Source, but we don't want the WebView to navigate just from the user typing into the address bar.   Therefore we use the OneWay binding mode. -->
             <TextBox x:Name="url" Text="{Binding ElementName=webView,Path=Source,Mode=OneWay}">
@@ -156,7 +172,7 @@ found in the LICENSE file.
         </DockPanel>
         <Grid x:Name="Layout">
             <Grid.Background>
-                <ImageBrush ImageSource="/assets/EdgeWebView2-80.jpg"></ImageBrush>
+                <ImageBrush ImageSource="/assets/AppStartPageBackground.png" />
             </Grid.Background>
 
             <!-- If you want to use a specific version of WebView2 Runtime change EvergreenWebView2CreationProperties
