@@ -207,8 +207,8 @@ ViewComponent::ViewComponent(
             &m_cursorChangedToken));
         //! [CursorChanged]
 
-        wil::com_ptr<ICoreWebView2ExperimentalCompositionController3> compositionController3 =
-            m_controller.query<ICoreWebView2ExperimentalCompositionController3>();
+        wil::com_ptr<ICoreWebView2CompositionController3> compositionController3 =
+            m_controller.query<ICoreWebView2CompositionController3>();
         m_dropTarget = Make<DropTarget>();
         m_dropTarget->Init(
             m_appWindow->GetMainWindow(), this, compositionController3.get());

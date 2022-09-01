@@ -19,7 +19,7 @@ public:
     // Initialize the drop target by associating it with the given HWND.
     void Init(
         HWND window, ViewComponent* viewComponent,
-        ICoreWebView2ExperimentalCompositionController3* webViewExperimentalCompositionController3);
+        ICoreWebView2CompositionController3* webViewCompositionController3);
 
     // IDropTarget implementation:
     HRESULT __stdcall DragEnter(IDataObject* dataObject,
@@ -45,6 +45,5 @@ private:
     // mouse events that are sent to the renderer notifying various drag states.
     HWND m_window;
 
-    wil::com_ptr<ICoreWebView2ExperimentalCompositionController3>
-        m_webViewExperimentalCompositionController3;
+    wil::com_ptr<ICoreWebView2CompositionController3> m_webViewCompositionController3;
 };
