@@ -66,6 +66,8 @@ namespace WebView2WpfBrowser
         public static RoutedCommand CustomServerCertificateSupportCommand = new RoutedCommand();
         public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
         public static RoutedCommand NewWindowWithOptionsCommand = new RoutedCommand();
+        // Commands(V2)
+        public static RoutedCommand AboutCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         CoreWebView2Settings _webViewSettings;
@@ -117,6 +119,8 @@ namespace WebView2WpfBrowser
             DataContext = this;
             InitializeComponent();
             AttachControlEventHandlers(webView);
+            // Set background transparent
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         public MainWindow(CoreWebView2CreationProperties creationProperties = null)
@@ -125,6 +129,8 @@ namespace WebView2WpfBrowser
             DataContext = this;
             InitializeComponent();
             AttachControlEventHandlers(webView);
+            // Set background transparent
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         void AttachControlEventHandlers(WebView2 control)
@@ -852,7 +858,7 @@ namespace WebView2WpfBrowser
 
         void AuthenticationCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            // <BasicAuthenticationRequested>
+            // <BasicAuthenticationRequested-Short>
             webView.CoreWebView2.BasicAuthenticationRequested += delegate (object sender, CoreWebView2BasicAuthenticationRequestedEventArgs args)
             {
                 // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Demo credentials in https://authenticationtest.com")]
@@ -861,7 +867,7 @@ namespace WebView2WpfBrowser
                 args.Response.Password = "pass";
             };
             webView.CoreWebView2.Navigate("https://authenticationtest.com/HTTPAuth");
-            // </BasicAuthenticationRequested>
+            // </BasicAuthenticationRequested-Short>
         }
 
         private bool _isFaviconChanged = false;
@@ -1232,7 +1238,7 @@ namespace WebView2WpfBrowser
                 }
                 _isServerCertificateError = !_isServerCertificateError;
 
-                MessageBox.Show(this, "Custom server certificate support has been" + 
+                MessageBox.Show(this, "Custom server certificate support has been" +
                     (_isServerCertificateError ? "enabled" : "disabled"),
                     "Custom server certificate support");
             }
@@ -1246,7 +1252,7 @@ namespace WebView2WpfBrowser
         {
            CoreWebView2Certificate certificate = e.ServerCertificate;
 
-            // Continues the request to a server with a TLS certificate if the error status 
+            // Continues the request to a server with a TLS certificate if the error status
             // is of type `COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID`
             // and trusted by the host app.
             if (e.ErrorStatus == CoreWebView2WebErrorStatus.CertificateIsInvalid &&
@@ -1428,10 +1434,75 @@ namespace WebView2WpfBrowser
 
         private bool shouldAttachEnvironmentEventHandlers = true;
 
+        private string GetSdkBuildVersion()
+        {
+            CoreWebView2EnvironmentOptions options = new CoreWebView2EnvironmentOptions();
+
+            // The full version string A.B.C.D
+            var targetVersionMajorAndRest = options.TargetCompatibleBrowserVersion;
+            var versionList = targetVersionMajorAndRest.Split('.');
+            if (versionList.Length != 4)
+            {
+                return "Invalid SDK build version";
+            }
+            // Keep C.D
+            return versionList[2] + "." + versionList[3];
+        }
+
+        private string GetRuntimeVersion(CoreWebView2 webView2)
+        {
+            return webView2.Environment.BrowserVersionString;
+        }
+
+        private string GetAppPath()
+        {
+            return System.AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+        }
+
+        private string GetRuntimePath(CoreWebView2 webView2)
+        {
+            int processId = (int)webView2.BrowserProcessId;
+            try
+            {
+                Process process = System.Diagnostics.Process.GetProcessById(processId);
+                var fileName = process.MainModule.FileName;
+                return System.IO.Path.GetDirectoryName(fileName);
+            }
+            catch (ArgumentException e)
+            {
+                return e.Message;
+            }
+            catch (InvalidOperationException e)
+            {
+                return e.Message;
+            }
+        }
+
+        private string GetStartPageUri(CoreWebView2 webView2)
+        {
+            string uri = "https://appassets.example/AppStartPage.html";
+            if (webView2 == null)
+            {
+                return uri;
+            }
+            String sdkBuildVersion = GetSdkBuildVersion(),
+                   runtimeVersion = GetRuntimeVersion(webView2),
+                   appPath = GetAppPath(),
+                   runtimePath = GetRuntimePath(webView2);
+            String newUri = $"{uri}?sdkBuild={sdkBuildVersion}&runtimeVersion={runtimeVersion}" +
+                $"&appPath={appPath}&runtimePath={runtimePath}";
+            return newUri;
+        }
+
         void WebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             if (e.IsSuccess)
             {
+                // Setup host resource mapping for local files
+                webView.CoreWebView2.SetVirtualHostNameToFolderMapping("appassets.example", "assets", CoreWebView2HostResourceAccessKind.DenyCors);
+                // Set StartPage Uri
+                webView.Source = new Uri(GetStartPageUri(webView.CoreWebView2));
+
                 // <ProcessFailed>
                 webView.CoreWebView2.ProcessFailed += WebView_ProcessFailed;
                 // </ProcessFailed>
@@ -1837,6 +1908,12 @@ namespace WebView2WpfBrowser
             {
                 new MainWindow(dialog.CreationProperties).Show();
             }
+        }
+        
+        // Commands(V2)
+        void AboutCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show(this, "WebView2WpfBrowser, Version 1.0\nCopyright(C) 2022", "About WebView2WpfBrowser");
         }
     }
 }
