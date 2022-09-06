@@ -25,6 +25,21 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="assets\AppStartPageBackground.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\AppStartPage.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\AppStartPage.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1369-prerelease" />
   </ItemGroup>
 </Project>

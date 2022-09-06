@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html class="sans-serif-font borderless fill border-box-model center-parent">
+<head>
+    <meta charset="UTF-8">
+    <title>WebView2WpfBrowser - Microsoft Edge WebView2</title>
+    <style>
+      .sans-serif-font {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      /*
+          This style is used when the app cannot make the background transparent.
+          It will enable this style by executing script.
+      */
+      .logo-background {
+          background: url("AppStartPageBackground.png") no-repeat;
+          background-size: cover;
+      }
+
+      .border-box-model {
+        box-sizing: border-box;
+      }
+
+      .fill, .container > div {
+        width: 100%;
+        height: 100%;
+      }
+
+      .mostly-fill {
+        width: calc(100% - 200px);
+        height: calc(100% - 200px);
+      }
+
+      .borderless, h1, h2 {
+        border: 0;
+        margin: 0;
+        padding: 0;
+      }
+
+      .center-parent, .container > div {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .acrylic-background, .container > div {
+        backdrop-filter: blur(20px) saturate(125%);
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .center {
+        text-align: center;
+        vertical-align: middle;
+      }
+
+      @media only screen
+        and (min-width : 1001px) {
+          .container {
+            display: grid;
+            grid-template-areas:
+              'header header header'
+              'box1 box1 box2'
+              'box3 box4 box5'
+              'box6 . .';
+            grid-gap: 20px;
+          }
+      }
+
+      @media only screen
+        and (max-width : 1000px) {
+          .container {
+            display: grid;
+            grid-template-areas:
+              'header header '
+              'box1 box1'
+              'box2 box3'
+              'box4 box5'
+              'box6 . ';
+            grid-gap: 20px;
+          }
+      }
+
+      .header { grid-area: header; }
+      .box1 { grid-area: box1; }
+      .box2 { grid-area: box2; }
+      .box3 { grid-area: box3; }
+      .box4 { grid-area: box4; }
+      .box5 { grid-area: box5; }
+      .box6 { grid-area: box6; }
+    </style>
+</head>
+<body class="mostly-fill container borderless">
+    <div class="header">
+        <h1 class="center">Microsoft Edge WebView2</h1>
+    </div>
+
+    <div class="box1">
+      <div>
+        <dl>
+        <dt>SDK build</dt><dd id="sdkBuild">...</dd>
+        <dt>Runtime version</dt><dd id="runtimeVersion">...</dd>
+        <dt>App path</dt><dd id="appPath">...</dd>
+        <dt>Runtime path</dt><dd id="runtimePath">...</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="box2">
+      <div>
+        <h2>Issues</h2>
+        <form action="https://github.com/MicrosoftEdge/WebViewFeedback/issues"><label>Query </label><input type="text" name="q" value="is:issue is:open "/></label><button>Search</button></form>
+        <a href="https://github.com/MicrosoftEdge/WebViewFeedback/issues/new/choose">New issue</a>
+      </div>
+    </div>
+
+    <div class="box3">
+      <div>
+        <h2>Documentation</h2>
+        <form action="https://docs.microsoft.com/search/"><label>Query <input type="text" name="terms" value="WebView2 "/><button>Search</button></label></form>
+        <a href="https://docs.microsoft.com/microsoft-edge/webview2/">WebView2 documentation</a>
+      </div>
+    </div>
+
+    <div class="box4">
+      <div>
+        <h2>SDK releases</h2>
+        <ul id="sdkReleases">
+        </ul>
+      </div>
+    </div>
+
+    <div class="box5">
+      <div>
+        <h2>Runtime</h2>
+        <ul>
+          <li><a href="https://developer.microsoft.com/microsoft-edge/webview2/">WebView2 Runtime</a></li>
+          <li><a href="https://developer.microsoft.com/microsoft-edge/webview2/">WebView2 Fixed Version Runtime</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="box6">
+      <div>
+        <h2>Release Notes</h2>
+        <ul>
+          <li><a href="https://docs.microsoft.com/microsoft-edge/webview2/releasenotes">WebView2 SDK</a></li>
+          <li><a href="https://docs.microsoft.com/deployedge/microsoft-edge-relnote-stable-channel">Edge Stable channel</a></li>
+          <li><a href="https://docs.microsoft.com/deployedge/microsoft-edge-relnote-beta-channel">Edge Beta channel</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="AppStartPage.js"></script>
+</body>
+</html>
