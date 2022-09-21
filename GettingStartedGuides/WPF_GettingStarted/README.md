@@ -1,14 +1,15 @@
 ---
-description: "Getting started with WebView2 in WPF doc"
+description: "Completed Visual Studio project from the tutorial Get started with WebView2 in WPF apps."
 languages: 
   - csharp
 page_type: sample
 products: 
   - microsoft-edge
-urlFragment: webview2-wpf-getting-started
+urlFragment: WPF_GettingStarted
 ---
-# Getting Started with WebView2 in WPF
+# Get started with WebView2 in WPF apps
 
-This sample relates to the [Getting started with WebView2 in WPF](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/wpf) doc.
+<!-- only enough info to differentiate this sample vs the others; what is different about this sample compared to the sibling samples? -->
+This sample, **WPF_GettingStarted**, is the completed Visual Studio project that results from following the steps in the tutorial [Get started with WebView2 in WPF apps](https://docs.microsoft.com/microsoft-edge/webview2/get-started/wpf).
 
-![sample snapshot](https://raw.githubusercontent.com/MicrosoftDocs/edge-developer/main/microsoft-edge/webview2/get-started/media/wpf-getting-started-app.png)
+![The running app from the finished WinUI 3 (Windows App SDK) tutorial](screenshots/wpf-getting-started-bing.png)

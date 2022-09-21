@@ -1,63 +1,33 @@
 # WebView2 Samples
 
-This repository contains getting started apps as well as sample apps that demonstrate the features and usage patterns of [WebView2](https://docs.microsoft.com/microsoft-edge/webview2/). As we add more features to WebView2, we will regularly update our samples.
+Welcome to the WebView2Samples repo.  This repo contains several types of samples for [WebView2](https://docs.microsoft.com/microsoft-edge/webview2/):
 
-In the [GettingStarted](./GettingStartedGuides/) folder you will find the starter code for its respective guide listed below:
-- [Win32 Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32)
-- [WPF Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/wpf)
-- [WinForms Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/winforms)
-- [WinUI Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/winui)
+*  Getting Started tutorial projects - Completed Visual Studio projects that result from following the steps in the [Getting Started tutorials](https://docs.microsoft.com/microsoft-edge/webview2/get-started/get-started).  These are like Hello World basic apps.
 
-In the [SampleApps](./SampleApps/) folder you will find:
-- [WebView2Samples.sln](SampleApps/WebView2Samples.sln) - a collective solution that includes [WebView2APISample.vcxproj](SampleApps/WebView2APISample/WebView2APISample.vcxproj), [WebView2SampleWinComp.vcxproj](SampleApps/WebView2SampleWinComp/WebView2SampleWinComp.vcxproj), [WebView2WpfBrowser.csproj](SampleApps/WebView2WpfBrowser/WebView2WpfBrowser.csproj), [WebView2WindowsFormsBrowser.csproj](SampleApps/WebView2WindowsFormsBrowser/WebView2WindowsFormsBrowser.csproj), [WV2DeploymentWiXCustomActionSample](/SampleApps/WV2DeploymentWiXCustomActionSample/README.md), and [WV2DeploymentWiXBurnBundleSample](/SampleApps/WV2DeploymentWiXBurnBundleSample/README.md).
+*  Sample apps - WebView2 sample apps for various frameworks and platforms, as Visual Studio projects.  These samples have menus and demonstrate various APIs.  For more information, see [Sample apps](https://docs.microsoft.com/microsoft-edge/webview2/code-samples-links).
 
-Share feedback in the [WebView2 Feedback repo](https://aka.ms/webviewfeedback).
+*  Deployment samples - Samples that demonstrate deploying the WebView2 Runtime.  For more information, see [Deployment samples](https://docs.microsoft.com/microsoft-edge/webview2/samples/deployment-samples).
 
-## Win32 C/C++
 
-#### Getting Started
+## Contributing
 
-Start with the [Win32 WebView2 getting-started guide](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/win32) to learn how to setup a WebView within a Win32 application.
+This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
+the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
 
-This guide uses the [Win32_GettingStarted](./GettingStartedGuides/Win32_GettingStarted) sample code from the [GettingStartedGuides](./GettingStartedGuides/) directory.
+When you submit a pull request, a CLA bot will automatically determine whether you need to provide
+a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
+provided by the bot. You will only need to do this once across all repos using our CLA.
 
-#### Comprehensive API Sample
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
+contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-The **Win32 C++ Sample** is in the [WebView2APISample](./SampleApps/WebView2APISample) directory and [WebView2SampleWinComp](./SampleApps/WebView2SampleWinComp) directory.
 
-#### Multiple WebViews Sample
+## Trademarks
 
-The [WebView2Browser](https://github.com/MicrosoftEdge/WebView2Browser) is an additional Win32 WebView2 sample project that uses multiple WebViews in a single application. Clone this project by running `git clone https://github.com/MicrosoftEdge/WebView2Browser.git`.
-
-Follow the [WebView2Browser guide](https://github.com/MicrosoftEdge/WebView2Browser) to learn how to build an application that utilizes multiple WebViews.
-
-## .NET (WPF and Windows Forms)
-
-#### Getting Started
-
-* Read the [WPF getting started guide](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/wpf) for WebView2 in WPF applications.
-
-* See the [Windows Forms getting started guide](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/winforms) for WebView2 in WinForms applications.
-
-#### Comprehensive API Sample
-
-* The **WPF Sample** is in the [WebView2WpfBrowser](./SampleApps/WebView2WpfBrowser) directory.
-* The **Windows Forms Sample** is in the [WebView2WindowsFormsBrowser](./SampleApps/WebView2WindowsFormsBrowser) directory.
-
-## UWP/WinUI
-
-The **UWP WinUI Sample** is in the [WinUI Controls Gallery](https://github.com/microsoft/Xaml-Controls-Gallery/tree/winui3preview) directory.
-
-## WebView2 Deployment
-
-To help developers understand how to [deploy Evergreen WebView2 Runtime](https://docs.microsoft.com/microsoft-edge/webview2/concepts/distribution#deploying-the-evergreen-webview2-runtime) with your applications, see the following samples:
-
-* [WV2DeploymentWiXCustomActionSample](/SampleApps/WV2DeploymentWiXCustomActionSample/README.md) creates a [WiX](https://wixtoolset.org/) installer for [WebView2APISample](./SampleApps/WebView2APISample/README.md) and uses [WiX Custom Action](https://wixtoolset.org/documentation/manual/v3/wixdev/extensions/authoring_custom_actions.html) to chain-install the Evergreen WebView2 Runtime.
-* [WV2DeploymentWiXBurnBundleSample](/SampleApps/WV2DeploymentWiXBurnBundleSample/README.md) creates a [WiX](https://wixtoolset.org/) installer for [WebView2APISample](./SampleApps/WebView2APISample/README.md) and uses [WiX Burn Bundle](https://wixtoolset.org/documentation/manual/v3/bundle/) to chain-install the Evergreen WebView2 Runtime.
-* [WV2DeploymentVSInstallerSample](/SampleApps/WV2DeploymentVSInstallerSample/README.md) uses the [Microsoft Visual Studio Installer Projects](https://marketplace.visualstudio.com/items?itemName=visualstudioclient.MicrosoftVisualStudio2017InstallerProjects) to create an installer for [WebView2APISample](./SampleApps/WebView2APISample/README.md) and chain-install the Evergreen WebView2 Runtime.
-
-## Next Steps
-
-* See [Introduction to Microsoft Edge WebView2](https://aka.ms/webview) to learn more about WebView2.
-* To submit an issue specifically about this repo, see [Issues | MicrosoftEdge\/WebView2Samples](https://github.com/MicrosoftEdge/WebView2Samples/issues).
-* Share feedback about the WebView2 control in the [WebView2 Feedback repo](https://aka.ms/webviewfeedback).
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
+trademarks or logos is subject to and must follow 
+[Microsoft Trademark and Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
+Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
+Any use of third-party trademarks or logos are subject to those third-party's policies.

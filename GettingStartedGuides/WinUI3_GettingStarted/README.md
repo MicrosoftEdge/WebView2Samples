@@ -1,14 +1,15 @@
 ---
-description: "Getting started with WebView2 in WinUI3 doc"
+description: "Completed Visual Studio project from the tutorial Get started with WebView2 in WinUI 3 (Windows App SDK) apps."
 languages: 
   - csharp
 page_type: sample
 products: 
   - microsoft-edge
-urlFragment: webview2-winui3-getting-started
+urlFragment: WinUI3_GettingStarted
 ---
-# Getting Started with WebView2 in WinUI3
+# Get started with WebView2 in WinUI 3 (Windows App SDK) apps
 
-This sample relates to the [Getting started with WebView2 in WinUI3](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/winui) doc.
+<!-- only enough info to differentiate this sample vs the others; what is different about this sample compared to the sibling samples? -->
+This sample, **WinUI3_GettingStarted**, is the completed Visual Studio project that results from following the steps in the tutorial [Get started with WebView2 in WinUI 3 (Windows App SDK) apps](https://docs.microsoft.com/microsoft-edge/webview2/get-started/winui).
 
-![sample snapshot](https://raw.githubusercontent.com/MicrosoftDocs/edge-developer/main/microsoft-edge/webview2/get-started/media/winui-getting-started-part-3.png)
+![The running app from the finished WinUI 3 (Windows App SDK) tutorial](screenshots/getting-started-part-3.png)
