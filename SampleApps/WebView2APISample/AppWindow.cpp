@@ -35,6 +35,7 @@
 #include "ScenarioCustomScheme.h"
 #include "ScenarioCustomSchemeNavigate.h"
 #include "ScenarioDOMContentLoaded.h"
+#include "ScenarioExtensionsManagement.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioSharedWorkerWRR.h"
