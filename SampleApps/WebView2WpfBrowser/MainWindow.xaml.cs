@@ -42,6 +42,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand CheckUpdateCommand = new RoutedCommand();
         public static RoutedCommand NewBrowserVersionCommand = new RoutedCommand();
         public static RoutedCommand PdfToolbarSaveCommand = new RoutedCommand();
+        public static RoutedCommand SmartScreenEnabledCommand = new RoutedCommand();
         public static RoutedCommand AuthenticationCommand = new RoutedCommand();
         public static RoutedCommand FaviconChangedCommand = new RoutedCommand();
         public static RoutedCommand ClearBrowsingDataCommand = new RoutedCommand();
@@ -66,8 +67,13 @@ namespace WebView2WpfBrowser
         public static RoutedCommand CustomServerCertificateSupportCommand = new RoutedCommand();
         public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
         public static RoutedCommand NewWindowWithOptionsCommand = new RoutedCommand();
+        public static RoutedCommand PrintDialogCommand = new RoutedCommand();
+        public static RoutedCommand PrintToDefaultPrinterCommand = new RoutedCommand();
+        public static RoutedCommand PrintToPrinterCommand = new RoutedCommand();
+        public static RoutedCommand PrintToPdfStreamCommand = new RoutedCommand();
         // Commands(V2)
         public static RoutedCommand AboutCommand = new RoutedCommand();
+        public static RoutedCommand GetDocumentTitleCommand = new RoutedCommand();
         bool _isNavigating = false;
 
         CoreWebView2Settings _webViewSettings;
@@ -245,6 +251,26 @@ namespace WebView2WpfBrowser
         void ClearServerCertificateErrorActionsCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             ClearServerCertificateErrorActions();
+        }
+
+        void PrintDialogCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            ShowPrintUI(target, e);
+        }
+
+        void PrintToDefaultPrinterCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            PrintToDefaultPrinter();
+        }
+
+        void PrintToPrinterCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            PrintToPrinter();
+        }
+
+        void PrintToPdfStreamCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            PrintToPdfStream();
         }
 
         private bool _isControlInVisualTree = true;
@@ -537,6 +563,163 @@ namespace WebView2WpfBrowser
                 MessageBox.Show(this, "Print to PDF Failed: " + exception.Message,
                    "Print to PDF");
             }
+        }
+
+        // Shows the user a print dialog. If `printDialogKind` is browser print preview, 
+        // opens a browser print preview dialog, CoreWebView2PrintDialogKind.System opens a system print dialog.
+        void ShowPrintUI(object target, ExecutedRoutedEventArgs e)
+        {
+            string printDialog = e.Parameter.ToString();
+            if (printDialog == "Browser")
+            {
+                // Opens the browser print preview dialog.
+                webView.CoreWebView2.ShowPrintUI();
+            }
+            else
+            {
+                // Opens the system print dialog.
+                webView.CoreWebView2.ShowPrintUI(CoreWebView2PrintDialogKind.System);
+            }
+        }
+
+        // This example prints the current web page without a print dialog to default printer.
+        async void PrintToDefaultPrinter ()
+        {
+            string title = webView.CoreWebView2.DocumentTitle;
+
+            try
+            {
+                // Passing null for `PrintSettings` results in default print settings used.
+                // Prints current web page with the default page and printer settings.
+                CoreWebView2PrintStatus printStatus = await webView.CoreWebView2.PrintAsync(null);
+
+                if (printStatus == CoreWebView2PrintStatus.Succeeded)
+                {
+                    MessageBox.Show(this, "Printing " + title + " document to printer is succeeded", "Print");
+                }
+                else if (printStatus == CoreWebView2PrintStatus.PrinterUnavailable)
+                {
+                    MessageBox.Show(this, "Printer is not available, offline or error state", "Print");
+                }
+                else 
+                {
+                    MessageBox.Show(this, "Printing " + title + " document to printer is failed",
+                        "Print");
+                }
+            }
+            catch (Exception)
+            {
+               MessageBox.Show(this, "Printing " + title + " document already in progress",
+                        "Print");
+            }
+        }
+
+        // Function to get printer name by displaying printer text input dialog to the user.
+        // User has to specify the desired printer name by querying the installed printers list on the
+        // OS to print the web page.
+        // You may also choose to display printers list to the user and return user selected printer.
+        string GetPrinterName()
+        {
+            string printerName = "";
+
+            var dialog = new TextInputDialog(
+                        title: "Printer Name",
+                        description: "Specify a printer name from the installed printers list on the OS.",
+                        defaultInput: "");
+            if (dialog.ShowDialog() == true)
+            {
+                printerName = dialog.Input.Text;
+            }
+            return printerName;
+
+            // or
+            // 
+            // Use GetPrintQueues() of LocalPrintServer from System.Printing to get list of locally installed printers.
+            // Display the printer list to the user and get the desired printer to print.
+            // Return the user selected printer name.
+        }
+
+        // Function to get print settings for the selected printer.
+        // You may also choose get the capabilties from the native printer API, display to the user to get 
+        // the print settings for the current web page and for the selected printer.
+        CoreWebView2PrintSettings GetSelectedPrinterPrintSettings(string printerName)
+        {
+            CoreWebView2PrintSettings printSettings = null;
+            printSettings = WebViewEnvironment.CreatePrintSettings();
+            printSettings.ShouldPrintBackgrounds = true;
+            printSettings.ShouldPrintHeaderAndFooter = true;
+
+            return printSettings;
+
+            // or
+            //  
+            // Get PrintQueue for the selected printer and use GetPrintCapabilities() of PrintQueue from System.Printing
+            // to get the capabilities of the selected printer.
+            // Display the printer capabilities to the user along with the page settings.
+            // Return the user selected settings.
+        }
+
+        // This example prints the current web page to the specified printer with the settings.
+        async void PrintToPrinter()
+        {
+            string printerName = GetPrinterName();
+            CoreWebView2PrintSettings printSettings = GetSelectedPrinterPrintSettings(printerName);
+            string title = webView.CoreWebView2.DocumentTitle;
+            try
+            {
+                CoreWebView2PrintStatus printStatus = await webView.CoreWebView2.PrintAsync(printSettings);
+
+                if (printStatus == CoreWebView2PrintStatus.Succeeded)
+                {
+                    MessageBox.Show(this, "Printing " + title + " document to printer is succeeded", "Print to printer");
+                }
+                else if (printStatus == CoreWebView2PrintStatus.PrinterUnavailable)
+                {
+                    MessageBox.Show(this, "Selected printer is not found, not available, offline or error state", "Print to printer");
+                }
+                else
+                {
+                    MessageBox.Show(this, "Printing " + title + " document to printer is failed",
+                        "Print");
+                }
+            }
+            catch(ArgumentException)
+            {
+                MessageBox.Show(this, "Invalid settings provided for the specified printer",
+                    "Print");
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(this, "Printing " + title + " document already in progress",
+                        "Print");
+
+            }
+        }
+
+        // This example prints the Pdf data of the current web page to a stream.
+        async void PrintToPdfStream()
+        {
+            try
+            {
+                string title = webView.CoreWebView2.DocumentTitle;
+             
+                // Passing null for `PrintSettings` results in default print settings used.
+                System.IO.Stream stream = await webView.CoreWebView2.PrintToPdfStreamAsync(null);
+
+                DisplayPdfDataInPrintDialog(stream);
+                MessageBox.Show(this, "Printing" + title + " document to PDF Stream " + ((stream != null) ? "succeeded" : "failed"), "Print To PDF Stream");
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(this, "Printing to PDF Stream failed: " + exception.Message,
+                   "Print to PDF Stream");
+            }
+        }
+
+        // Function to display current page pdf data in a custom print preview dialog.
+        void DisplayPdfDataInPrintDialog(Stream pdfData)
+        {
+            // You can display the printable pdf data in a custom print preview dialog to the end user.
         }
 
         async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -1909,11 +2092,23 @@ namespace WebView2WpfBrowser
                 new MainWindow(dialog.CreationProperties).Show();
             }
         }
-        
         // Commands(V2)
         void AboutCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
             MessageBox.Show(this, "WebView2WpfBrowser, Version 1.0\nCopyright(C) 2022", "About WebView2WpfBrowser");
+        }
+
+        private void SmartScreenEnabledExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            // <ToggleSmartScreenEnabled>
+            WebViewSettings.IsReputationCheckingRequired = !WebViewSettings.IsReputationCheckingRequired;
+            // </ToggleSmartScreenEnabled>
+            MessageBox.Show("SmartScreen is" + (WebViewSettings.IsReputationCheckingRequired ? " enabled " : " disabled ") + "after the next navigation.");
+        }
+
+        void GetDocumentTitleCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show(webView.CoreWebView2.DocumentTitle, "Document Title");
         }
     }
 }

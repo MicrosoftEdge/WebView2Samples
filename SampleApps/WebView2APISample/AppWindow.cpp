@@ -35,6 +35,7 @@
 #include "ScenarioCustomScheme.h"
 #include "ScenarioCustomSchemeNavigate.h"
 #include "ScenarioDOMContentLoaded.h"
+#include "ScenarioExtensionsManagement.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioSharedWorkerWRR.h"
@@ -46,7 +47,6 @@
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
-
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -472,6 +472,18 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         //! [GetUserDataFolder]
         return true;
     }
+    case IDM_GET_FAILURE_REPORT_FOLDER:
+    {
+        //! [GetFailureReportFolder]
+        auto experimental_environment =
+            m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment>();
+        CHECK_FEATURE_RETURN(experimental_environment);
+        wil::unique_cotaskmem_string failureReportFolder;
+        experimental_environment->get_FailureReportFolderPath(&failureReportFolder);
+        MessageBox(m_mainWindow, failureReportFolder.get(), L"Failure Report Folder", MB_OK);
+        //! [GetFailureReportFolder]
+        return true;
+    }
     case IDM_CLOSE_WEBVIEW:
     {
         CloseWebView();
@@ -592,6 +604,26 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         NewComponent<ScenarioIFrameDevicePermission>(this);
         return true;
     }
+    case IDM_SCENARIO_BROWSER_PRINT_PREVIEW:
+    {
+        return ShowPrintUI(COREWEBVIEW2_PRINT_DIALOG_KIND_BROWSER);
+    }
+    case IDM_SCENARIO_SYSTEM_PRINT:
+    {
+        return ShowPrintUI(COREWEBVIEW2_PRINT_DIALOG_KIND_SYSTEM);
+    }
+    case IDM_SCENARIO_PRINT_TO_DEFAULT_PRINTER:
+    {
+        return PrintToDefaultPrinter();
+    }
+    case IDM_SCENARIO_PRINT_TO_PRINTER:
+    {
+        return PrintToPrinter();
+    }
+    case IDM_SCENARIO_PRINT_TO_PDF_STREAM:
+    {
+        return PrintToPdfStream();
+    }
     }
     return false;
 }
@@ -692,6 +724,9 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     }
     case IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS:
         ToggleExclusiveUserDataFolderAccess();
+        return true;
+    case IDM_TOGGLE_CUSTOM_CRASH_REPORTING:
+        ToggleCustomCrashReporting();
         return true;
     case IDM_SCENARIO_CLEAR_BROWSING_DATA_COOKIES:
     {
@@ -794,6 +829,249 @@ void AppWindow::ToggleExclusiveUserDataFolderAccess()
             L"for new WebView created after all webviews are closed.",
         L"Exclusive User Data Folder Access change", MB_OK);
 }
+
+void AppWindow::ToggleCustomCrashReporting()
+{
+    m_CustomCrashReportingEnabled = !m_CustomCrashReportingEnabled;
+    MessageBox(
+        nullptr,
+        m_CustomCrashReportingEnabled ? L"Crash reporting will be disabled for new WebView "
+                                        L"created after all webviews are closed."
+                                      : L"Crash reporting will be enabled for new WebView "
+                                        L"created after all webviews are closed.",
+        L"Custom Crash Reporting", MB_OK);
+}
+
+//! [ShowPrintUI]
+// Shows the user a print dialog. If `printDialogKind` is
+// COREWEBVIEW2_PRINT_DIALOG_KIND_BROWSER, opens a browser print preview dialog,
+// COREWEBVIEW2_PRINT_DIALOG_KIND_SYSTEM opens a system print dialog.
+bool AppWindow::ShowPrintUI(COREWEBVIEW2_PRINT_DIALOG_KIND printDialogKind)
+{
+    auto webView2Experimental17 = m_webView.try_query<ICoreWebView2Experimental17>();
+    CHECK_FEATURE_RETURN(webView2Experimental17);
+    CHECK_FAILURE(webView2Experimental17->ShowPrintUI(printDialogKind));
+    return true;
+}
+//! [ShowPrintUI]
+
+// This example prints the current web page without a print dialog to default printer
+// with the default print settings.
+bool AppWindow::PrintToDefaultPrinter()
+{
+    wil::com_ptr<ICoreWebView2Experimental17> webView2Experimental17;
+    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webView2Experimental17)));
+
+    wil::unique_cotaskmem_string title;
+    CHECK_FAILURE(m_webView->get_DocumentTitle(&title));
+
+    // Passing nullptr for `ICoreWebView2PrintSettings` results in default print settings used.
+    // Prints current web page with the default page and printer settings.
+    CHECK_FAILURE(webView2Experimental17->Print(
+        nullptr, Callback<ICoreWebView2ExperimentalPrintCompletedHandler>(
+                     [title = std::move(title),
+                      this](HRESULT errorCode, COREWEBVIEW2_PRINT_STATUS printStatus) -> HRESULT
+                     {
+                         std::wstring message = L"";
+                         if (errorCode == S_OK &&
+                             printStatus == COREWEBVIEW2_PRINT_STATUS_SUCCEEDED)
+                         {
+                             message = L"Printing " + std::wstring(title.get()) +
+                                       L" document to printer is succedded";
+                         }
+                         else if (
+                             errorCode == S_OK &&
+                             printStatus == COREWEBVIEW2_PRINT_STATUS_PRINTER_UNAVAILABLE)
+                         {
+                             message = L"Printer is not available, offline or error state";
+                         }
+                         else if (errorCode == E_ABORT)
+                         {
+                             message = L"Printing " + std::wstring(title.get()) +
+                                       L" document is in progress";
+                         }
+                         else
+                         {
+                             message = L"Printing " + std::wstring(title.get()) +
+                                       L" document to printer is failed";
+                         }
+
+                         AsyncMessageBox(message, L"Print to default printer");
+
+                         return S_OK;
+                     })
+                     .Get()));
+    return true;
+}
+
+// Function to get printer name by displaying printer text input dialog to the user.
+// User has to specify the desired printer name by querying the installed printers list on the
+// OS to print the web page. You may also choose to display printers list to the user and return
+// user selected printer.
+std::wstring AppWindow::GetPrinterName()
+{
+    std::wstring printerName;
+
+    TextInputDialog dialog(
+        GetMainWindow(), L"Printer Name", L"Printer Name:",
+        L"Specify a printer name from the installed printers list on the OS.", L"");
+
+    if (dialog.confirmed)
+    {
+        printerName = (dialog.input).c_str();
+    }
+    return printerName;
+
+    // or
+    //
+    // Use win32 EnumPrinters function to get locally installed printers.
+    // Display the printer list to the user and get the user desired printer to print.
+    // Return the user selected printer name.
+}
+
+// Function to get print settings for the selected printer.
+// You may also choose get the capabilties from the native printer API, display to the user to
+// get the print settings for the current web page and for the selected printer.
+SamplePrintSettings AppWindow::GetSelectedPrinterPrintSettings(std::wstring printerName)
+{
+    SamplePrintSettings samplePrintSettings;
+    samplePrintSettings.PrintBackgrounds = true;
+    samplePrintSettings.HeaderAndFooter = true;
+
+    return samplePrintSettings;
+
+    // or
+    //
+    // Use win32 DeviceCapabilitiesA function to get the capabilities of the selected printer.
+    // Display the printer capabilities to the user along with the page settings.
+    // Return the user selected settings.
+}
+
+//! [PrintToPrinter]
+// This example prints the current web page to a specified printer with the settings.
+bool AppWindow::PrintToPrinter()
+{
+    std::wstring printerName = GetPrinterName();
+    // Host apps custom print settings based on the user selection.
+    SamplePrintSettings samplePrintSettings = GetSelectedPrinterPrintSettings(printerName);
+
+    wil::com_ptr<ICoreWebView2Experimental17> webView2Experimental17;
+    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webView2Experimental17)));
+
+    wil::com_ptr<ICoreWebView2Environment6> webviewEnvironment6;
+    CHECK_FAILURE(m_webViewEnvironment->QueryInterface(IID_PPV_ARGS(&webviewEnvironment6)));
+
+    wil::com_ptr<ICoreWebView2PrintSettings> printSettings;
+    CHECK_FAILURE(webviewEnvironment6->CreatePrintSettings(&printSettings));
+
+    wil::com_ptr<ICoreWebView2ExperimentalPrintSettings2> printSettings2;
+    CHECK_FAILURE(printSettings->QueryInterface(IID_PPV_ARGS(&printSettings2)));
+
+    CHECK_FAILURE(printSettings->put_Orientation(samplePrintSettings.Orientation));
+    CHECK_FAILURE(printSettings2->put_Copies(samplePrintSettings.Copies));
+    CHECK_FAILURE(printSettings2->put_PagesPerSide(samplePrintSettings.PagesPerSide));
+    CHECK_FAILURE(printSettings2->put_PageRanges(samplePrintSettings.Pages.c_str()));
+    if (samplePrintSettings.Media == COREWEBVIEW2_PRINT_MEDIA_SIZE_CUSTOM)
+    {
+        CHECK_FAILURE(printSettings->put_PageWidth(samplePrintSettings.PaperWidth));
+        CHECK_FAILURE(printSettings->put_PageHeight(samplePrintSettings.PaperHeight));
+    }
+    CHECK_FAILURE(printSettings2->put_ColorMode(samplePrintSettings.ColorMode));
+    CHECK_FAILURE(printSettings2->put_Collation(samplePrintSettings.Collation));
+    CHECK_FAILURE(printSettings2->put_Duplex(samplePrintSettings.Duplex));
+    CHECK_FAILURE(printSettings->put_ScaleFactor(samplePrintSettings.ScaleFactor));
+    CHECK_FAILURE(
+        printSettings->put_ShouldPrintBackgrounds(samplePrintSettings.PrintBackgrounds));
+    CHECK_FAILURE(
+        printSettings->put_ShouldPrintBackgrounds(samplePrintSettings.PrintBackgrounds));
+    CHECK_FAILURE(
+        printSettings->put_ShouldPrintHeaderAndFooter(samplePrintSettings.HeaderAndFooter));
+    CHECK_FAILURE(printSettings->put_HeaderTitle(samplePrintSettings.HeaderTitle.c_str()));
+    CHECK_FAILURE(printSettings->put_FooterUri(samplePrintSettings.FooterUri.c_str()));
+    CHECK_FAILURE(printSettings2->put_PrinterName(printerName.c_str()));
+
+    wil::unique_cotaskmem_string title;
+    CHECK_FAILURE(m_webView->get_DocumentTitle(&title));
+
+    CHECK_FAILURE(webView2Experimental17->Print(
+        printSettings.get(),
+        Callback<ICoreWebView2ExperimentalPrintCompletedHandler>(
+            [title = std::move(title),
+             this](HRESULT errorCode, COREWEBVIEW2_PRINT_STATUS printStatus) -> HRESULT
+            {
+                std::wstring message = L"";
+                if (errorCode == S_OK && printStatus == COREWEBVIEW2_PRINT_STATUS_SUCCEEDED)
+                {
+                    message = L"Printing " + std::wstring(title.get()) +
+                              L" document to printer is succedded";
+                }
+                else if (
+                    errorCode == S_OK &&
+                    printStatus == COREWEBVIEW2_PRINT_STATUS_PRINTER_UNAVAILABLE)
+                {
+                    message = L"Selected printer is not found, not available, offline or "
+                              L"error state.";
+                }
+                else if (errorCode == E_INVALIDARG)
+                {
+                    message = L"Invalid settings provided for the specified printer";
+                }
+                else if (errorCode == E_ABORT)
+                {
+                    message = L"Printing " + std::wstring(title.get()) +
+                              L" document already in progress";
+                }
+                else
+                {
+                    message = L"Printing " + std::wstring(title.get()) +
+                              L" document to printer is failed";
+                }
+
+                AsyncMessageBox(message, L"Print to printer");
+
+                return S_OK;
+            })
+            .Get()));
+    return true;
+}
+//! [PrintToPrinter]
+
+// Function to display current web page pdf data in a custom print preview dialog.
+static void DisplayPdfDataInPrintDialog(IStream* pdfData)
+{
+    // You can display the printable pdf data in a custom print preview dialog to the end user.
+}
+
+//! [PrintToPdfStream]
+// This example prints the Pdf data of the current page to a stream.
+bool AppWindow::PrintToPdfStream()
+{
+    wil::com_ptr<ICoreWebView2Experimental17> webView2Experimental17;
+    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webView2Experimental17)));
+
+    wil::unique_cotaskmem_string title;
+    CHECK_FAILURE(m_webView->get_DocumentTitle(&title));
+
+    // Passing nullptr for `ICoreWebView2PrintSettings` results in default print settings used.
+    CHECK_FAILURE(webView2Experimental17->PrintToPdfStream(
+        nullptr,
+        Callback<ICoreWebView2ExperimentalPrintToPdfStreamCompletedHandler>(
+            [title = std::move(title), this](HRESULT errorCode, IStream* pdfData) -> HRESULT
+            {
+                DisplayPdfDataInPrintDialog(pdfData);
+
+                std::wstring message =
+                    L"Printing " + std::wstring(title.get()) + L" document to PDF Stream " +
+                    ((errorCode == S_OK && pdfData != nullptr) ? L"succedded" : L"failed");
+
+                AsyncMessageBox(message, L"Print to PDF Stream");
+
+                return S_OK;
+            })
+            .Get()));
+    return true;
+}
+//! [PrintToPdfStream]
 
 // Message handler for about dialog.
 INT_PTR CALLBACK AppWindow::About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -923,6 +1201,13 @@ void AppWindow::InitializeWebView()
             2, static_cast<ICoreWebView2ExperimentalCustomSchemeRegistration**>(registrations));
     }
     //! [CoreWebView2CustomSchemeRegistration]
+
+    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions2> optionsExperimental2;
+    if (options.As(&optionsExperimental2) == S_OK)
+    {
+        CHECK_FAILURE(optionsExperimental2->put_IsCustomCrashReportingEnabled(
+            m_CustomCrashReportingEnabled ? TRUE : FALSE));
+    }
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
         subFolder, m_userDataFolder.c_str(), options.Get(),

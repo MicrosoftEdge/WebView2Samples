@@ -9,7 +9,6 @@
 #include <string>
 
 #include <commdlg.h>
-#include <sstream>
 
 #include "ProcessComponent.h"
 #include "ScriptComponent.h"
