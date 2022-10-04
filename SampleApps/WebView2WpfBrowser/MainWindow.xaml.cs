@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -126,7 +127,7 @@ namespace WebView2WpfBrowser
             InitializeComponent();
             AttachControlEventHandlers(webView);
             // Set background transparent
-            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            // webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         public MainWindow(CoreWebView2CreationProperties creationProperties = null)
@@ -136,7 +137,7 @@ namespace WebView2WpfBrowser
             InitializeComponent();
             AttachControlEventHandlers(webView);
             // Set background transparent
-            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            // webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         void AttachControlEventHandlers(WebView2 control)
@@ -1658,6 +1659,10 @@ namespace WebView2WpfBrowser
             catch (InvalidOperationException e)
             {
                 return e.Message;
+            }
+            catch (Win32Exception)
+            {
+                return "N/A";
             }
         }
 
