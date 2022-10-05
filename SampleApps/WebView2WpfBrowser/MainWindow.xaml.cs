@@ -103,11 +103,42 @@ namespace WebView2WpfBrowser
         public MainWindow()
         {
             InitializeComponent();
+
             AttachControlEventHandlers(webView);
+
+            // Set focus to different control, so we know WebView gets focus from JavaScript.
+            url.Focus();
+            // Initialize explicitly, after we have set our handlers.
+            webView.EnsureCoreWebView2Async();
+        }
+
+        void WebView_WebMessageReceivedFocus(object sender, CoreWebView2WebMessageReceivedEventArgs args)
+        {
+            string message;
+            try
+            {
+                message = args.TryGetWebMessageAsString();
+            }
+            catch (ArgumentException)
+            {
+                // Ignore messages that aren't strings, but log for further investigation
+                // since it suggests a mismatch between the web content and the host.
+                Debug.WriteLine($"Non-string message received");
+                return;
+            }
+
+            if (message == "element-focus")
+            {
+                Debug.WriteLine($">>> Got focus message");
+                // Set focus to WebView when we get the message from JavaScript
+                webView.Focus();
+            }
         }
 
         void AttachControlEventHandlers(WebView2 control)
         {
+            // Add our handler for web messages so we can give focus to WebView. This is addded before control initialization.
+            control.WebMessageReceived += WebView_WebMessageReceivedFocus;
             control.NavigationStarting += WebView_NavigationStarting;
             control.NavigationCompleted += WebView_NavigationCompleted;
             control.CoreWebView2InitializationCompleted += WebView_CoreWebView2InitializationCompleted;
@@ -861,7 +892,7 @@ namespace WebView2WpfBrowser
             System.DateTime endTime = DateTime.Now;
             System.DateTime startTime = DateTime.Now.AddHours(-1);
 
-            // Clear the browsing data from the last hour. 
+            // Clear the browsing data from the last hour.
             await WebViewProfile.ClearBrowsingDataAsync(dataKinds, startTime, endTime);
             MessageBox.Show(this,
                "Completed",
@@ -1215,6 +1246,21 @@ namespace WebView2WpfBrowser
         {
             if (e.IsSuccess)
             {
+                // Add script to override .focus() so it sends us a message and we can give focus to WebView.
+                webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
+                    HTMLElement.prototype.focus = (function(_super) {
+                        return function() {
+                            // notify app that focus was called on element
+                            window.chrome.webview.postMessage('element-focus');
+                            console.log('>>> posted to host app');
+                            return _super.apply(this, arguments);
+                        }
+                    })(HTMLElement.prototype.focus);
+                    console.log('Function overridden');");
+                // We're initializing WebView explicitly, we need to navigate explicitly once we have set up our handlers.
+                string source = "file:///" + System.IO.Path.GetFullPath("assets/focus.html");
+                webView.CoreWebView2.Navigate(source);
+
                 webView.CoreWebView2.ProcessFailed += WebView_ProcessFailed;
                 webView.CoreWebView2.DocumentTitleChanged += WebView_DocumentTitleChanged;
                 webView.CoreWebView2.IsDocumentPlayingAudioChanged += WebView_IsDocumentPlayingAudioChanged;

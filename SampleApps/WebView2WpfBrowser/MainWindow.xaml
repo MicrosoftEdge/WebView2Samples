@@ -150,7 +150,6 @@ found in the LICENSE file.
             <wv2:WebView2
                 x:Name="webView"
                 CreationProperties="{StaticResource EvergreenWebView2CreationProperties}"
-                Source="https://www.bing.com/"
             />
             <!-- The control event handlers are set in code behind so they can be reused when replacing the control after
             a WebView2 Runtime's browser process failure

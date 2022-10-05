@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<script>
+  function focusInput() {
+      document.getElementById('monitor-display').value += "[focusInput]: BEGIN\n";
+      document.getElementById('inpFocus').focus();
+      document.getElementById('monitor-display').value += "[focusInput]: END\n";
+  }
+
+  function SetFocus() {
+    document.getElementById("inpFocus").focus();
+    document.getElementById('monitor-display').value += "Focused on load\n";
+    setTimeout(focusInput, 2000);
+  }
+</script>
+
+<body onload="SetFocus()">
+  <h2>HTML Forms</h2>
+  <form>
+    <label for="fname">First name:</label><br>
+    <input id="inpFocus" type="text" id="fname" name="fname" value="John"><br>
+    <label for="lname">Last name:</label><br>
+    <input type="text" id="lname" name="lname" value="Doe"><br><br>
+    <input type="submit" value="Submit">
+  </form>
+
+  <div id="monitor">
+    <form>
+      <textarea id="monitor-display"></textarea>
+    </form>
+  </div>
+</body>
+</html>
