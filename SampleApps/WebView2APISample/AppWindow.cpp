@@ -1154,7 +1154,7 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
         if (m_initialUri != L"none")
         {
             std::wstring initialUri = m_initialUri.empty() ? AppStartPage::GetUri(this) : m_initialUri;
-            CHECK_FAILURE(m_webView->Navigate(initialUri.c_str()));
+            CHECK_FAILURE(m_webView->Navigate(GetLocalUri(L"focus.html").c_str()));
         }
     }
     else if (result == E_ABORT)
