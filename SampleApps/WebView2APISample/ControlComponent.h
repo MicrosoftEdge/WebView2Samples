@@ -33,9 +33,9 @@ public:
         HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result);
 
     ~ControlComponent() override;
+    HWND GetAddressBar();
 
 private:
-    HWND GetAddressBar();
     AppWindow* m_appWindow;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webView;

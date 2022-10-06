@@ -1144,6 +1144,13 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             m_onWebViewFirstInitialized = nullptr;
         }
 
+        if (auto control = GetComponent<ControlComponent>())
+        {
+            SetFocus(control->GetAddressBar());
+        } else {
+            CHECK_FAILURE(E_ABORT);
+        }
+
         if (m_initialUri != L"none")
         {
             std::wstring initialUri = m_initialUri.empty() ? AppStartPage::GetUri(this) : m_initialUri;
