@@ -1263,6 +1263,24 @@ void AppWindow::RegisterEventHandlers()
           })
           .Get()));
 
+  EventRegistrationToken webMessageReceivedToken;
+  CHECK_FAILURE(m_webView->add_WebMessageReceived(
+      Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+          [this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) {
+              wil::unique_cotaskmem_string messageRaw;
+              CHECK_FAILURE(args->TryGetWebMessageAsString(&messageRaw));
+              std::wstring message = messageRaw.get();
+
+              if (message.compare(0, 13, L"element-focus") == 0)
+              {
+                OutputDebugString(L">>> Got focus message\n");
+                CHECK_FAILURE(m_controller->MoveFocus(COREWEBVIEW2_MOVE_FOCUS_REASON_PROGRAMMATIC));
+              }
+              return S_OK;
+          })
+          .Get(),
+      &webMessageReceivedToken));
+
   //! [ContainsFullScreenElementChanged]
   // Register a handler for the ContainsFullScreenChanged event.
   CHECK_FAILURE(m_webView->add_ContainsFullScreenElementChanged(
