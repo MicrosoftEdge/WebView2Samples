@@ -1240,127 +1240,155 @@ void AppWindow::RestartApp()
 
 void AppWindow::RegisterEventHandlers()
 {
-    //! [ContainsFullScreenElementChanged]
-    // Register a handler for the ContainsFullScreenChanged event.
-    CHECK_FAILURE(m_webView->add_ContainsFullScreenElementChanged(
-        Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
-            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                CHECK_FAILURE(
-                    sender->get_ContainsFullScreenElement(&m_containsFullscreenElement));
-                if (m_containsFullscreenElement)
-                {
-                    EnterFullScreen();
-                }
-                else
-                {
-                    ExitFullScreen();
-                }
-                return S_OK;
-            })
-            .Get(),
-        nullptr));
-    //! [ContainsFullScreenElementChanged]
+  std::wstring script = LR""""(
+    HTMLElement.prototype.focus = (function(_super) {
+        return function() {
+            // notify app that focus was called on element
+            window.chrome.webview.postMessage('element-focus');
+            console.log('>>> posted to host app');
+            return _super.apply(this, arguments);
+        }
+    })(HTMLElement.prototype.focus);
+    console.log('Function overridden');
+  )"""";
 
-    //! [NewWindowRequested]
-    // Register a handler for the NewWindowRequested event.
-    // This handler will defer the event, create a new app window, and then once the
-    // new window is ready, it'll provide that new window's WebView as the response to
-    // the request.
-    CHECK_FAILURE(m_webView->add_NewWindowRequested(
-        Callback<ICoreWebView2NewWindowRequestedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) {
-                if (!m_shouldHandleNewWindowRequest)
-                {
-                    args->put_Handled(FALSE);
-                    return S_OK;
-                }
-                wil::com_ptr<ICoreWebView2Deferral> deferral;
-                CHECK_FAILURE(args->GetDeferral(&deferral));
-                AppWindow* newAppWindow;
+  CHECK_FAILURE(m_webView->AddScriptToExecuteOnDocumentCreated(
+      script.c_str(),
+      Callback<ICoreWebView2AddScriptToExecuteOnDocumentCreatedCompletedHandler>(
+          [this](HRESULT error, PCWSTR id) -> HRESULT
+          {
+            CHECK_FAILURE(error);
+            OutputDebugString(L">>> Added .focus() interceptor\n");
+            return S_OK;
+          })
+          .Get()));
 
-                wil::com_ptr<ICoreWebView2WindowFeatures> windowFeatures;
-                CHECK_FAILURE(args->get_WindowFeatures(&windowFeatures));
+  //! [ContainsFullScreenElementChanged]
+  // Register a handler for the ContainsFullScreenChanged event.
+  CHECK_FAILURE(m_webView->add_ContainsFullScreenElementChanged(
+      Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
+          [this](ICoreWebView2 *sender, IUnknown *args) -> HRESULT
+          {
+            CHECK_FAILURE(
+                sender->get_ContainsFullScreenElement(&m_containsFullscreenElement));
+            if (m_containsFullscreenElement)
+            {
+              EnterFullScreen();
+            }
+            else
+            {
+              ExitFullScreen();
+            }
+            return S_OK;
+          })
+          .Get(),
+      nullptr));
+  //! [ContainsFullScreenElementChanged]
 
-                RECT windowRect = {0};
-                UINT32 left = 0;
-                UINT32 top = 0;
-                UINT32 height = 0;
-                UINT32 width = 0;
-                BOOL shouldHaveToolbar = true;
+  //! [NewWindowRequested]
+  // Register a handler for the NewWindowRequested event.
+  // This handler will defer the event, create a new app window, and then once the
+  // new window is ready, it'll provide that new window's WebView as the response to
+  // the request.
+  CHECK_FAILURE(m_webView->add_NewWindowRequested(
+      Callback<ICoreWebView2NewWindowRequestedEventHandler>(
+          [this](ICoreWebView2 *sender, ICoreWebView2NewWindowRequestedEventArgs *args)
+          {
+            if (!m_shouldHandleNewWindowRequest)
+            {
+              args->put_Handled(FALSE);
+              return S_OK;
+            }
+            wil::com_ptr<ICoreWebView2Deferral> deferral;
+            CHECK_FAILURE(args->GetDeferral(&deferral));
+            AppWindow *newAppWindow;
 
-                BOOL hasPosition = FALSE;
-                BOOL hasSize = FALSE;
-                CHECK_FAILURE(windowFeatures->get_HasPosition(&hasPosition));
-                CHECK_FAILURE(windowFeatures->get_HasSize(&hasSize));
+            wil::com_ptr<ICoreWebView2WindowFeatures> windowFeatures;
+            CHECK_FAILURE(args->get_WindowFeatures(&windowFeatures));
 
-                bool useDefaultWindow = true;
+            RECT windowRect = {0};
+            UINT32 left = 0;
+            UINT32 top = 0;
+            UINT32 height = 0;
+            UINT32 width = 0;
+            BOOL shouldHaveToolbar = true;
 
-                if (!!hasPosition && !!hasSize)
-                {
-                    CHECK_FAILURE(windowFeatures->get_Left(&left));
-                    CHECK_FAILURE(windowFeatures->get_Top(&top));
-                    CHECK_FAILURE(windowFeatures->get_Height(&height));
-                    CHECK_FAILURE(windowFeatures->get_Width(&width));
-                    useDefaultWindow = false;
-                }
-                CHECK_FAILURE(windowFeatures->get_ShouldDisplayToolbar(&shouldHaveToolbar));
+            BOOL hasPosition = FALSE;
+            BOOL hasSize = FALSE;
+            CHECK_FAILURE(windowFeatures->get_HasPosition(&hasPosition));
+            CHECK_FAILURE(windowFeatures->get_HasSize(&hasSize));
 
-                windowRect.left = left;
-                windowRect.right =
-                    left + (width < s_minNewWindowSize ? s_minNewWindowSize : width);
-                windowRect.top = top;
-                windowRect.bottom =
-                    top + (height < s_minNewWindowSize ? s_minNewWindowSize : height);
+            bool useDefaultWindow = true;
 
-                // passing "none" as uri as its a noinitialnavigation
-                if (!useDefaultWindow)
-                {
-                    newAppWindow = new AppWindow(
-                        m_creationModeId, GetWebViewOption(), L"none", m_userDataFolder, false,
-                        nullptr, true, windowRect, !!shouldHaveToolbar);
-                }
-                else
-                {
-                    newAppWindow = new AppWindow(m_creationModeId, GetWebViewOption(), L"none");
-                }
-                newAppWindow->m_isPopupWindow = true;
-                newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]() {
-                    CHECK_FAILURE(args->put_NewWindow(newAppWindow->m_webView.get()));
-                    CHECK_FAILURE(args->put_Handled(TRUE));
-                    CHECK_FAILURE(deferral->Complete());
-                };
-                return S_OK;
-            })
-            .Get(),
-        nullptr));
-    //! [NewWindowRequested]
+            if (!!hasPosition && !!hasSize)
+            {
+              CHECK_FAILURE(windowFeatures->get_Left(&left));
+              CHECK_FAILURE(windowFeatures->get_Top(&top));
+              CHECK_FAILURE(windowFeatures->get_Height(&height));
+              CHECK_FAILURE(windowFeatures->get_Width(&width));
+              useDefaultWindow = false;
+            }
+            CHECK_FAILURE(windowFeatures->get_ShouldDisplayToolbar(&shouldHaveToolbar));
 
-    //! [WindowCloseRequested]
-    // Register a handler for the WindowCloseRequested event.
-    // This handler will close the app window if it is not the main window.
-    CHECK_FAILURE(m_webView->add_WindowCloseRequested(
-        Callback<ICoreWebView2WindowCloseRequestedEventHandler>([this](
-                                                                    ICoreWebView2* sender,
-                                                                    IUnknown* args) {
+            windowRect.left = left;
+            windowRect.right =
+                left + (width < s_minNewWindowSize ? s_minNewWindowSize : width);
+            windowRect.top = top;
+            windowRect.bottom =
+                top + (height < s_minNewWindowSize ? s_minNewWindowSize : height);
+
+            // passing "none" as uri as its a noinitialnavigation
+            if (!useDefaultWindow)
+            {
+              newAppWindow = new AppWindow(
+                  m_creationModeId, GetWebViewOption(), L"none", m_userDataFolder, false,
+                  nullptr, true, windowRect, !!shouldHaveToolbar);
+            }
+            else
+            {
+              newAppWindow = new AppWindow(m_creationModeId, GetWebViewOption(), L"none");
+            }
+            newAppWindow->m_isPopupWindow = true;
+            newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]()
+            {
+              CHECK_FAILURE(args->put_NewWindow(newAppWindow->m_webView.get()));
+              CHECK_FAILURE(args->put_Handled(TRUE));
+              CHECK_FAILURE(deferral->Complete());
+            };
+            return S_OK;
+          })
+          .Get(),
+      nullptr));
+  //! [NewWindowRequested]
+
+  //! [WindowCloseRequested]
+  // Register a handler for the WindowCloseRequested event.
+  // This handler will close the app window if it is not the main window.
+  CHECK_FAILURE(m_webView->add_WindowCloseRequested(
+      Callback<ICoreWebView2WindowCloseRequestedEventHandler>([this](
+                                                                  ICoreWebView2 *sender,
+                                                                  IUnknown *args)
+                                                              {
             if (m_isPopupWindow)
             {
                 CloseAppWindow();
             }
-            return S_OK;
-        }).Get(),
-        nullptr));
-    //! [WindowCloseRequested]
+            return S_OK; })
+          .Get(),
+      nullptr));
+  //! [WindowCloseRequested]
 
-    //! [NewBrowserVersionAvailable]
-    // After the environment is successfully created,
-    // register a handler for the NewBrowserVersionAvailable event.
-    // This handler tells when there is a new Edge version available on the machine.
-    CHECK_FAILURE(m_webViewEnvironment->add_NewBrowserVersionAvailable(
-        Callback<ICoreWebView2NewBrowserVersionAvailableEventHandler>(
-            [this](ICoreWebView2Environment* sender, IUnknown* args) -> HRESULT {
-                 // Don't block the event handler with a message box
-                RunAsync([this]
-                {
+  //! [NewBrowserVersionAvailable]
+  // After the environment is successfully created,
+  // register a handler for the NewBrowserVersionAvailable event.
+  // This handler tells when there is a new Edge version available on the machine.
+  CHECK_FAILURE(m_webViewEnvironment->add_NewBrowserVersionAvailable(
+      Callback<ICoreWebView2NewBrowserVersionAvailableEventHandler>(
+          [this](ICoreWebView2Environment *sender, IUnknown *args) -> HRESULT
+          {
+            // Don't block the event handler with a message box
+            RunAsync([this]
+                     {
                     std::wstring message = L"We detected there is a new version for the browser.";
                     if (m_webView)
                     {
@@ -1383,14 +1411,13 @@ void AppWindow::RegisterEventHandlers()
                     else
                     {
                         // do nothing
-                    }
-                });
+                    } });
 
-                return S_OK;
-            })
-            .Get(),
-        nullptr));
-    //! [NewBrowserVersionAvailable]
+            return S_OK;
+          })
+          .Get(),
+      nullptr));
+  //! [NewBrowserVersionAvailable]
 }
 
 // Updates the sizing and positioning of everything in the window.
