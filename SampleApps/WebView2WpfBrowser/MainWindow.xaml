@@ -43,6 +43,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.NewBrowserVersionCommand}" Executed="NewBrowserVersionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SwipeNavigationCommand}" Executed="SwipeNavigationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}" Executed="PdfToolbarSaveCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.SmartScreenEnabledCommand}" Executed="SmartScreenEnabledExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AuthenticationCommand}" Executed="AuthenticationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" Executed="ClearBrowsingDataCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.FaviconChangedCommand}" Executed="FaviconChangedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -63,7 +64,12 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.AllowExternalDropCommand}" Executed="AllowExternalDropCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PerfInfoCommand}" Executed="PerfInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}" Executed="NewWindowWithOptionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PrintDialogCommand}" Executed="PrintDialogCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PrintToDefaultPrinterCommand}" Executed="PrintToDefaultPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PrintToPrinterCommand}" Executed="PrintToPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PrintToPdfStreamCommand}" Executed="PrintToPdfStreamCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AboutCommand}" Executed="AboutCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GetDocumentTitleCommand}" Executed="GetDocumentTitleCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -72,6 +78,7 @@ found in the LICENSE file.
                     <MenuItem Header="Portrait" Command="{x:Static local:MainWindow.PrintToPdfCommand}" CommandParameter="Portrait"/>
                     <MenuItem Header="Landscape" Command="{x:Static local:MainWindow.PrintToPdfCommand}" CommandParameter="Landscape"/>
                 </MenuItem>
+                <MenuItem Header="_Get Document Title" Command="{x:Static local:MainWindow.GetDocumentTitleCommand}"/>
                 <MenuItem x:Name="newVersionMenuItem" Header="New Browser _Version" Command="{x:Static local:MainWindow.NewBrowserVersionCommand}"/>
                 <MenuItem Header="_Exit" Command="ApplicationCommands.Close"/>
             </MenuItem>
@@ -101,6 +108,7 @@ found in the LICENSE file.
                 <MenuItem Header="Toggle Password Autosave" Name="passwordAutosaveEnabled" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.PasswordAutosaveCommand}"/>
                 <MenuItem Header="Toggle Pinch Zoom Enabled" Command="{x:Static local:MainWindow.PinchZoomCommand}"/>
                 <MenuItem Header="Toggle PDF toolbar save button" Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}"/>
+                <MenuItem Header="Toggle profile SmartScreen enabled" Command="{x:Static local:MainWindow.SmartScreenEnabledCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Toggle _Visibility" Name="webViewVisible" IsCheckable="True" IsChecked="True"/>
@@ -143,6 +151,15 @@ found in the LICENSE file.
                 <MenuItem Header="Custom Download Experience">
                     <MenuItem Header="_Start Deferred Download" Command="{x:Static local:MainWindow.DownloadStartingCommand}"/>
                     <MenuItem Header="_Set Default Download Folder Path" Command="{x:Static local:MainWindow.SetDefaultDownloadPathCommand}"/>
+                </MenuItem>
+                <MenuItem Header="_Print">
+                    <MenuItem Header="_Print dialog">
+                        <MenuItem Header="_Browser Print Preview" Command="{x:Static local:MainWindow.PrintDialogCommand}" CommandParameter="Browser"/>
+                        <MenuItem Header="_System Print" Command="{x:Static local:MainWindow.PrintDialogCommand}" CommandParameter="System"/>
+                    </MenuItem>
+                    <MenuItem Header="_Print to default printer" Command="{x:Static local:MainWindow.PrintToDefaultPrinterCommand}"/>
+                    <MenuItem Header="_Print to printer" Command="{x:Static local:MainWindow.PrintToPrinterCommand}"/>
+                    <MenuItem Header="_Print to Pdf Stream" Command="{x:Static local:MainWindow.PrintToPdfStreamCommand}"/>
                 </MenuItem>
                 <MenuItem Header="_DOM Content Loaded" Command="{x:Static local:MainWindow.DOMContentLoadedCommand}"/>
                 <MenuItem Header="_Favicon Changed Listener" Command="{x:Static local:MainWindow.FaviconChangedCommand}"/>

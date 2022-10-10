@@ -61,6 +61,28 @@ struct WebViewCreateOption
     void PopupDialog(AppWindow* app);
 };
 
+// SamplePrintSettings also defaults to the defaults of the ICoreWebView2PrintSettings
+// defaults.
+struct SamplePrintSettings
+{
+    COREWEBVIEW2_PRINT_ORIENTATION Orientation = COREWEBVIEW2_PRINT_ORIENTATION_PORTRAIT;
+    int Copies = 1;
+    int PagesPerSide = 1;
+    std::wstring Pages = L"";
+    COREWEBVIEW2_PRINT_COLLATION Collation = COREWEBVIEW2_PRINT_COLLATION_DEFAULT;
+    COREWEBVIEW2_PRINT_COLOR_MODE ColorMode = COREWEBVIEW2_PRINT_COLOR_MODE_DEFAULT;
+    COREWEBVIEW2_PRINT_DUPLEX Duplex = COREWEBVIEW2_PRINT_DUPLEX_DEFAULT;
+    COREWEBVIEW2_PRINT_MEDIA_SIZE Media = COREWEBVIEW2_PRINT_MEDIA_SIZE_DEFAULT;
+    double PaperWidth = 8.5;
+    double PaperHeight = 11;
+    double ScaleFactor = 1.0;
+    bool PrintBackgrounds = false;
+    bool HeaderAndFooter = false;
+    bool ShouldPrintSelectionOnly = false;
+    std::wstring HeaderTitle = L"";
+    std::wstring FooterUri = L"";
+};
+
 class AppWindow
 {
 public:
@@ -180,11 +202,18 @@ private:
     bool ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds);
     void UpdateAppTitle();
     void ToggleExclusiveUserDataFolderAccess();
+    void ToggleCustomCrashReporting();
 #ifdef USE_WEBVIEW2_WIN10
     void OnTextScaleChanged(
         winrt::Windows::UI::ViewManagement::UISettings const& uiSettings,
         winrt::Windows::Foundation::IInspectable const& args);
 #endif
+    bool ShowPrintUI(COREWEBVIEW2_PRINT_DIALOG_KIND printDialogKind);
+    bool PrintToDefaultPrinter();
+    bool PrintToPrinter();
+    std::wstring GetPrinterName();
+    SamplePrintSettings GetSelectedPrinterPrintSettings(std::wstring printerName);
+    bool PrintToPdfStream();
 
     std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
@@ -236,6 +265,8 @@ private:
 
     bool m_AADSSOEnabled = false;
     bool m_ExclusiveUserDataFolderAccess = false;
+
+    bool m_CustomCrashReportingEnabled = false;
 
     // Fullscreen related code
     RECT m_previousWindowRect;

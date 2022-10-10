@@ -745,7 +745,6 @@ bool SettingsComponent::HandleWindowMessage(
         {
             //! [TogglePinchZoomEnabled]
             CHECK_FEATURE_RETURN(m_settings5);
-
             BOOL pinchZoomEnabled;
             CHECK_FAILURE(m_settings5->get_IsPinchZoomEnabled(&pinchZoomEnabled));
             if (pinchZoomEnabled)
@@ -907,19 +906,27 @@ bool SettingsComponent::HandleWindowMessage(
             if (hiddenPdfToolbarItems ==
                 COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_NONE)
             {
-                CHECK_FAILURE(m_settings7->put_HiddenPdfToolbarItems(
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_BOOKMARKS |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FIT_PAGE |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_LAYOUT |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ROTATE |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SEARCH |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_IN |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_OUT |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE |
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE_AS |
+                CHECK_FAILURE(
+                    m_settings7->put_HiddenPdfToolbarItems(
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_BOOKMARKS |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FIT_PAGE |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_LAYOUT |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ROTATE |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SEARCH |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_IN |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_OUT |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE_AS |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_SELECTOR) |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FULL_SCREEN |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_SELECTOR));
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS_MORE_SETTINGS);
                 MessageBox(
                     nullptr,
                     L"PDF toolbar print and save buttons are hidden after the next navigation.",
@@ -964,6 +971,33 @@ bool SettingsComponent::HandleWindowMessage(
                 }
             }
             //! [ToggleAllowExternalDrop]
+            return true;
+        }
+        case ID_SETTINGS_SMART_SCREEN_ENABLED:
+        {
+            //! [ToggleSmartScreen]
+            wil::com_ptr<ICoreWebView2ExperimentalSettings7> experimentalSettings;
+            experimentalSettings = m_settings.try_query<ICoreWebView2ExperimentalSettings7>();
+            CHECK_FEATURE_RETURN(experimentalSettings);
+
+            BOOL is_smart_screen_enabled;
+            CHECK_FAILURE(experimentalSettings->get_IsReputationCheckingRequired(
+                &is_smart_screen_enabled));
+            if (is_smart_screen_enabled)
+            {
+                CHECK_FAILURE(experimentalSettings->put_IsReputationCheckingRequired(false));
+                MessageBox(
+                    nullptr, L"SmartScreen is disable after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(experimentalSettings->put_IsReputationCheckingRequired(true));
+                MessageBox(
+                    nullptr, L"SmartScreen is enable after the next navigation.",
+                    L"Settings change", MB_OK);
+            }
+            //! [ToggleSmartScreen]
             return true;
         }
         case ID_TOGGLE_CUSTOM_SERVER_CERTIFICATE_SUPPORT:

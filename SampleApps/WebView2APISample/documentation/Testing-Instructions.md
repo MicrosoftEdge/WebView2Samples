@@ -50,6 +50,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle password autosave enabled](#Toggle-password-autosave-enabled)
     * [Toggle browser accelerator keys enabled](#Toggle-browser-accelerator-keys-enabled)
     * [Toggle Swipe Navigation enabled](#Toggle-Swipe-Navigation-enabled)
+    * [Toggle SmartScreen enabled](#Toggle-SmartScreen-enabled)
     * [Toggle Hidden PDF toolbar items](#Toggle-hide-PDF-toolbar-items)
     * [Toggle Allow External Drop](#Toggle-Allow-External-Drop)
     * [Toggle Server Certificate Error](#Toggle-Custom-Server-Certificate-Support)
@@ -72,9 +73,13 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Client Certificate Requested](#ClientCertificateRequested)
     * [Clear Browsing Data](#ClearBrowsingData)
     * [Single sign on](#SingleSignOn)
+    * [Print](#Print)
     * [IFrame Device Permission](#IFrame-Device-Permission)
   * [Help](#Help)
     * [About ...](#about-)
+  * [Dialogs](#Dialogs)
+    * [Download Dialog](#Download-Dialog)
+    * [Find Dialog](#Find-Dialog)
   * [Miscellaneous](#Miscellaneous)
     * [Accelerator Key Support](#Accelerator-Key-Support)
     * [Language](#Language)
@@ -707,6 +712,32 @@ _Swipe left/right to navigate is enabled by default._
 1. Click `OK` inside the popup dialog and click `Reload`
 1. Verify that swipe to navigate works again.
 
+#### Toggle SmartScreen enabled
+Test that enables/disables SmartScreen
+
+1. Launch the sample app
+1. Navigate to <https://nav.smartscreen.msft.net/other/areyousure.html>
+1. Expected: The SmartScreen pop-up window will appear
+1. Go to `Settings -> Toggle Profile Smart Screen`
+1. Expected: Message Box that says `SmartScreen is disable after the next navigation.`
+1. Refresh the page
+1. Expected: The popup will no longer appear
+1. Go to `Window -> Create New Window`
+1. Expected:A new window will be created
+1. Navigate both windows to <https://nav.smartscreen.msft.net/other/areyousure.html>
+1. Expected: The SmartScreen pop-up window will appear in both windows
+1. In the second window, go to `Settings -> Toggle Profile Smart Screen`
+1. Expected: Message Box that says `SmartScreen is disable after the next navigation.`
+1. Refresh the pages of both windows.
+1. Expected: The pop-up window of SmartScreen will not appear on both windows
+1. In the second window,go to `Settings -> Toggle Profile Smart Screen`
+1. Expected: Message Box that says `SmartScreen is enable after the next navigation.`
+1. Refresh the page
+1. Expected: The SmartScreen pop-up window will appear in both windows
+1. Close the second window
+1. First window navigate to <https://nav.smartscreen.msft.net/other/areyousure.html>
+1. Expected: The popup will no longer appear
+
 #### Toggle hide PDF toolbar items
 Test that hide/show PDF save button and print button.
 
@@ -1143,6 +1174,25 @@ Test that demonstrates the clear browsing data API.
 31. Click on the Name field.
 32. Expected: A drop down box with the saved profile information is shown.
 
+#### Print
+
+Test that demonstrates the ShowPrintUI and Print API.
+
+1. Launch the sample app.
+2. Go to **Scenario** > **Print** > **Browser Print Preview**.
+3. Verify that browser print preview dialog is displayed.
+4. Click cancel.
+5. Go to **Scenario** > **Print** > **System Print**.
+6. Verify that system print dialog is displayed.
+7. Click cancel.
+8. Go to **Scenario** > **Print** > **Print to printer**.
+9. On the opened dialog box enter `Microsoft Print to PDF` as the printer name and click OK.
+10. Confirm file dialog is displayed.
+11. Save the PDF file to a location on the machine.
+12. Open and confirm that the sample app home page is printed as PDF without any background graphics.
+13. Go to **Scenario** > **Print** > **Print to default printer**.
+14. Repeat steps 10-12.
+
 #### IFrame-Device-Permission
 
 Test that demonstrates the frame Permission Requested API.
@@ -1167,6 +1217,32 @@ Test that gets `About …`
 3. Expected: About Message Box that contains the sample app information.
 4. Click `OK` inside the popup dialog
 5. Expected: dialog closed
+
+### Dialogs
+Test that various dialogs work as expected. Uses two windows because some crashes are only caught if the app is still running.
+
+#### Download Dialog
+1. Launch the sample app.
+2. Go to `Window -> Create New Thread`.
+3. Expected: A new app window is opened.
+4. Navigate to https://demo.smartscreen.msft.net.
+5. Scroll down to `App Rep Demos` section and click on `Known Good Program` to download.
+6. Expected: Download dialog appears.
+7. Minimize app window with download dialog.
+8. Restore app window with download dialog.
+9. Close download dialog using `X` button.
+10. Expected: Download dialog is closed.
+11. Repeat step 5 to start another download.
+12. Close app window with download dialog open.
+13. Expected: App window and download dialog are closed.
+
+#### Find Dialog
+1. Launch the sample app.
+2. Go to `Window -> Create New Thread`.
+3. Expected: A new app window is opened.
+4. Launch find dialog on new window with `Ctrl-F`.
+5. Close new window.
+6. Expected: New window and find dialog are closed.
 
 ### Miscellaneous
 
