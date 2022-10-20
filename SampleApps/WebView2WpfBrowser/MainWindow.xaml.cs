@@ -380,7 +380,7 @@ namespace WebView2WpfBrowser
             bool IsAppContentUri(Uri source)
             {
                 // Sample virtual host name for the app's content.
-                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://docs.microsoft.com/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
+                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://learn.microsoft.com/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
                 return source.Host == "appassets.example";
             }
 

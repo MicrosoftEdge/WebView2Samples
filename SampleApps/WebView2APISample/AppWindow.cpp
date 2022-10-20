@@ -1854,7 +1854,7 @@ void AppWindow::CleanupUserDataFolder()
     // developers specify userDataFolder during WebView environment
     // creation, they would need to pass in that explicit value here.
     // For more information about userDataFolder:
-    // https://docs.microsoft.com/microsoft-edge/webview2/reference/win32/webview2-idl#createcorewebview2environmentwithoptions
+    // https://learn.microsoft.com/microsoft-edge/webview2/reference/win32/webview2-idl#createcorewebview2environmentwithoptions
     WCHAR userDataFolder[MAX_PATH] = L"";
     // Obtain the absolute path for relative paths that include "./" or "../"
     _wfullpath(userDataFolder, GetLocalPath(L".WebView2", true).c_str(), MAX_PATH);

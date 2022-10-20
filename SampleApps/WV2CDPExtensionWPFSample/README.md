@@ -21,6 +21,6 @@ This sample, **WV2CDPExtensionWPFSample**, is built with the WebView2 CDP Extens
 
 This sample is built as a WPF Visual Studio 2019 project.  It uses C# in the WebView2 environment.
 
-To use this sample, see [WPF sample app with CDP extension](https://docs.microsoft.com/microsoft-edge/webview2/samples/wv2cdpextensionwpfsample).
+To use this sample, see [WPF sample app with CDP extension](https://learn.microsoft.com/microsoft-edge/webview2/samples/wv2cdpextensionwpfsample).
 
 ![CDP Extension sample app running](screenshots/wv2cdpextensionwpfsample-app-running.png)
