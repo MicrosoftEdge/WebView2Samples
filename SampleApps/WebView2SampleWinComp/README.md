@@ -21,6 +21,6 @@ This sample, **WebView2SampleWinComp**, embeds a WebView within a Win32 native a
 
 This sample is built as a Win32 Visual Studio 2019 project.  It uses C++ and HTML/CSS/JavaScript in the WebView2 environment.
 
-To use this sample, see [Win32 sample app with Visual Composition](https://docs.microsoft.com/microsoft-edge/webview2/samples/webview2samplewincomp).
+To use this sample, see [Win32 sample app with Visual Composition](https://learn.microsoft.com/microsoft-edge/webview2/samples/webview2samplewincomp).
 
 ![The WebView2SampleWinComp sample app running](screenshots/wincomp-sample-app-running.png)

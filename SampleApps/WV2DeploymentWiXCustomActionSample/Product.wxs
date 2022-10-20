@@ -43,7 +43,7 @@
     <UIRef Id="WixUI_InstallDir"/>
 
     <!-- Step 4: Config Custom Action to download/install Bootstrapper -->
-    <!-- Reference: https://docs.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#understand-the-webview2-runtime-and-installer-preview -->
+    <!-- Reference: https://learn.microsoft.com/microsoft-edge/webview2/concepts/distribution#understand-the-webview2-runtime-and-installer-preview -->
     <!-- Note: PerMachine case, user can use Impersonate="no" to run MicrosoftEdgeWebview2Setup.exe elevated with /silent flag to install WebView Runtime silently-->
 
     <!-- [Package Standalone Installer] Package Standalone Installer as binary stream to use during app install. SourceFile can be anywhere you put the Standalone Installer on. -->

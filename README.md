@@ -1,12 +1,12 @@
 # WebView2 Samples
 
-Welcome to the WebView2Samples repo.  This repo contains several types of samples for [WebView2](https://docs.microsoft.com/microsoft-edge/webview2/):
+Welcome to the WebView2Samples repo.  This repo contains several types of samples for [WebView2](https://learn.microsoft.com/microsoft-edge/webview2/):
 
-*  Getting Started tutorial projects - Completed Visual Studio projects that result from following the steps in the [Getting Started tutorials](https://docs.microsoft.com/microsoft-edge/webview2/get-started/get-started).  These are like Hello World basic apps.
+*  Getting Started tutorial projects - Completed Visual Studio projects that result from following the steps in the [Getting Started tutorials](https://learn.microsoft.com/microsoft-edge/webview2/get-started/get-started).  These are like Hello World basic apps.
 
-*  Sample apps - WebView2 sample apps for various frameworks and platforms, as Visual Studio projects.  These samples have menus and demonstrate various APIs.  For more information, see [Sample apps](https://docs.microsoft.com/microsoft-edge/webview2/code-samples-links).
+*  Sample apps - WebView2 sample apps for various frameworks and platforms, as Visual Studio projects.  These samples have menus and demonstrate various APIs.  For more information, see [Sample apps](https://learn.microsoft.com/microsoft-edge/webview2/code-samples-links).
 
-*  Deployment samples - Samples that demonstrate deploying the WebView2 Runtime.  For more information, see [Deployment samples](https://docs.microsoft.com/microsoft-edge/webview2/samples/deployment-samples).
+*  Deployment samples - Samples that demonstrate deploying the WebView2 Runtime.  For more information, see [Deployment samples](https://learn.microsoft.com/microsoft-edge/webview2/samples/deployment-samples).
 
 
 ## Contributing

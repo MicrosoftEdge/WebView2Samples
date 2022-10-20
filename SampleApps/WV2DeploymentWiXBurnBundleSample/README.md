@@ -19,4 +19,4 @@ urlFragment: WV2DeploymentWiXBurnBundleSample
 <!-- only enough info to differentiate this sample vs the others; what is different about this sample compared to the sibling samples? -->
 This sample, **WV2DeploymentWiXBurnBundleSample**, demonstrates how to deploy the Evergreen WebView2 Runtime with your app.  This sample creates a WiX installer for [WebView2APISample](../WebView2APISample/README.md) and uses WiX Burn Bundle to chain-install the Evergreen WebView2 Runtime.
 
-For more information about this sample, see [WiX Burn Bundle to deploy the WebView2 Runtime](https://review.docs.microsoft.com/microsoft-edge/webview2/samples/wv2deploymentwixburnbundlesample).
+For more information about this sample, see [WiX Burn Bundle to deploy the WebView2 Runtime](https://learn.microsoft.com/microsoft-edge/webview2/samples/wv2deploymentwixburnbundlesample).
