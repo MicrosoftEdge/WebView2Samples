@@ -266,6 +266,7 @@ BEGIN
         MENUITEM "Virtual Host Mapping For Pop Up Window",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING_POP_UP_WINDOW
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
         MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
+        MENUITEM "Shared Buffer",               IDM_SCENARIO_SHARED_BUFFER
     END
     POPUP "&Audio"
     BEGIN

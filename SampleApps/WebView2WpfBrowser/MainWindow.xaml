@@ -68,6 +68,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.PrintToDefaultPrinterCommand}" Executed="PrintToDefaultPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPrinterCommand}" Executed="PrintToPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPdfStreamCommand}" Executed="PrintToPdfStreamCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.SharedBufferRequestedCommand}" Executed="SharedBufferRequestedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AboutCommand}" Executed="AboutCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GetDocumentTitleCommand}" Executed="GetDocumentTitleCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
@@ -166,6 +167,7 @@ found in the LICENSE file.
                 <MenuItem Header="Intercept _Response" IsCheckable="True" IsChecked="{Binding ElementName=MyWindow, Path=ShowNextWebResponse, Mode=TwoWay}"/>
                 <MenuItem Header="_Navigate With Web Resource Request" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem Header="_Web Messages" Command="{x:Static local:MainWindow.WebMessagesCommand}"/>
+                <MenuItem Header="_Shared Buffer" Command="{x:Static local:MainWindow.SharedBufferRequestedCommand}"/>
             </MenuItem>
             <MenuItem Header="_Audio">
                 <MenuItem Header="Toggle Mute State" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.ToggleMuteStateCommand}"/>

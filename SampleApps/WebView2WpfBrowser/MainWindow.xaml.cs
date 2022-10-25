@@ -5,11 +5,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -75,6 +75,8 @@ namespace WebView2WpfBrowser
         // Commands(V2)
         public static RoutedCommand AboutCommand = new RoutedCommand();
         public static RoutedCommand GetDocumentTitleCommand = new RoutedCommand();
+        public static RoutedCommand SharedBufferRequestedCommand = new RoutedCommand();
+
         bool _isNavigating = false;
 
         CoreWebView2Settings _webViewSettings;
@@ -127,7 +129,7 @@ namespace WebView2WpfBrowser
             InitializeComponent();
             AttachControlEventHandlers(webView);
             // Set background transparent
-            // webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         public MainWindow(CoreWebView2CreationProperties creationProperties = null)
@@ -137,7 +139,7 @@ namespace WebView2WpfBrowser
             InitializeComponent();
             AttachControlEventHandlers(webView);
             // Set background transparent
-            // webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         void AttachControlEventHandlers(WebView2 control)
@@ -162,6 +164,13 @@ namespace WebView2WpfBrowser
             {
                 return false;
             }
+        }
+
+        void AssertCondition(bool condition, string message)
+        {
+            if (condition)
+                return;
+            MessageBox.Show(message, "Assertion Failed");
         }
 
         void NewCmdExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -380,7 +389,7 @@ namespace WebView2WpfBrowser
             bool IsAppContentUri(Uri source)
             {
                 // Sample virtual host name for the app's content.
-                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://learn.microsoft.com/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
+                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://docs.microsoft.com/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
                 return source.Host == "appassets.example";
             }
 
@@ -1660,10 +1669,6 @@ namespace WebView2WpfBrowser
             {
                 return e.Message;
             }
-            catch (Win32Exception)
-            {
-                return "N/A";
-            }
         }
 
         private string GetStartPageUri(CoreWebView2 webView2)
@@ -2115,5 +2120,105 @@ namespace WebView2WpfBrowser
         {
             MessageBox.Show(webView.CoreWebView2.DocumentTitle, "Document Title");
         }
+
+        // <SharedBuffer>
+        private CoreWebView2SharedBuffer sharedBuffer = null;
+        void SharedBufferRequestedCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.WebMessageReceived += WebView_WebMessageReceivedSharedBuffer;
+            webView.CoreWebView2.FrameCreated += WebView_FrameCreatedSharedBuffer;
+            webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "appassets.example", "assets", CoreWebView2HostResourceAccessKind.DenyCors);
+            webView.Source = new Uri("https://appassets.example/sharedBuffer.html");
+        }
+
+        void EnsureSharedBuffer()
+        {
+            ulong bufferSize = 128;
+            if (sharedBuffer == null)
+            {
+                sharedBuffer = WebViewEnvironment.CreateSharedBuffer(bufferSize);
+
+                using (Stream stream = sharedBuffer.OpenStream())
+                {
+                    using (StreamWriter writer = new StreamWriter(stream))
+                    {
+                        writer.Write("some data from .NET");
+                    }
+                }
+            }
+        }
+
+        void WebView_WebMessageReceivedSharedBuffer(object sender, CoreWebView2WebMessageReceivedEventArgs args)
+        {
+            bool forWebView = (sender is CoreWebView2);
+            if (args.TryGetWebMessageAsString() == "RequestShareBuffer")
+            {
+                EnsureSharedBuffer();
+                if (forWebView)
+                {
+                    ((CoreWebView2)sender).PostSharedBufferToScript(sharedBuffer, CoreWebView2SharedBufferAccess.ReadWrite, null);
+                }
+                else
+                {
+                    ((CoreWebView2Frame)sender).PostSharedBufferToScript(sharedBuffer, CoreWebView2SharedBufferAccess.ReadWrite, null);
+                }
+            }
+            else if (args.TryGetWebMessageAsString() == "RequestOneTimeShareBuffer")
+            {
+                ulong bufferSize = 128;
+                string data = "some read only data";
+                //! [OneTimeShareBuffer]
+                SafeHandle fileMappingHandle;
+                using (CoreWebView2SharedBuffer buffer = WebViewEnvironment.CreateSharedBuffer(bufferSize))
+                {
+                    fileMappingHandle = buffer.FileMappingHandle;
+                    AssertCondition(fileMappingHandle.IsInvalid == false, "FileMappingHandle of a valid shared buffer should be valid");
+                    using (Stream stream = buffer.OpenStream())
+                    {
+                        using (StreamWriter writer = new StreamWriter(stream))
+                        {
+                            writer.Write(data);
+                        }
+                    }
+                    string additionalDataAsJson = "{\"myBufferType\":\"bufferType1\"}";
+                    if (forWebView)
+                    {
+                        ((CoreWebView2)sender).PostSharedBufferToScript(buffer, CoreWebView2SharedBufferAccess.ReadOnly, additionalDataAsJson);
+                    }
+                    else
+                    {
+                        ((CoreWebView2Frame)sender).PostSharedBufferToScript(buffer, CoreWebView2SharedBufferAccess.ReadOnly, additionalDataAsJson);
+                    }
+                }
+                AssertCondition(fileMappingHandle.IsInvalid == true, "FileMappingHandle of a disposed shared buffer should be invalid");
+                //! [OneTimeShareBuffer]
+            }
+            else if (args.TryGetWebMessageAsString() == "SharedBufferDataUpdated")
+            {
+                ShowSharedBuffer();
+            }
+        }
+
+        void WebView_FrameCreatedSharedBuffer(object sender, CoreWebView2FrameCreatedEventArgs args)
+        {
+            args.Frame.WebMessageReceived += (WebMessageReceivedSender, WebMessageReceivedArgs) =>
+            {
+                WebView_WebMessageReceivedSharedBuffer(WebMessageReceivedSender, WebMessageReceivedArgs);
+            };
+        }
+
+        void ShowSharedBuffer()
+        {
+            using (Stream stream = sharedBuffer.OpenStream())
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string text_content = reader.ReadLine();
+                    MessageBox.Show(text_content, "shared buffer updated");
+                }
+            }
+        }
+        // <SharedBuffer>
     }
 }

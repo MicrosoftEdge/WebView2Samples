@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioSharedBuffer</title>
+    <script>
+        "use strict";
+        let sharedBuffer;
+        function ShowSharedBuffer() {
+            if (sharedBuffer) {
+                DisplaySharedBufferData(sharedBuffer);
+            } else {
+                // Post a web message to ask host to share the buffer.
+                chrome.webview.postMessage("RequestShareBuffer");
+            }
+        }
+
+        //! [ShareBufferScriptCode_2]
+        let readOnlySharedBuffer;
+        function ShowReadOnlySharedBuffer() {
+            if (readOnlySharedBuffer) {
+                DisplaySharedBufferData(readOnlySharedBuffer);
+            } else {
+                // Post a web message to ask host to share the one time read only buffer.
+                chrome.webview.postMessage("RequestOneTimeShareBuffer");
+            }
+        }
+
+        function DisplaySharedBufferData(buffer) {
+            document.getElementById("shared-buffer-data").value =
+                new TextDecoder().decode(new Uint8Array(buffer));
+        }
+
+        function SharedBufferReceived(e) {
+            if (e.additionalData && e.additionalData.myBufferType == "bufferType1") {
+                readOnlySharedBuffer = e.getBuffer();
+            } else {
+                sharedBuffer = e.getBuffer();
+            }
+            DisplaySharedBufferData(e.getBuffer());
+        }
+        
+        function ReleaseBuffer(buffer) {
+          window.chrome.webview.releaseBuffer(buffer);
+        }
+        //! [ShareBufferScriptCode_2]
+
+        function UpdateSharedBufferData(buffer) {
+            if (!buffer)
+            return;
+          const sharedArray = new Uint8Array(buffer);
+          let data = new TextEncoder().encode(document.getElementById("shared-buffer-data").value);
+          sharedArray.set(data.subarray(0, buffer.byteLength));
+          // notify the app that data has been set.
+          window.chrome.webview.postMessage("SharedBufferDataUpdated");
+        }
+
+        function createIFrame() {
+            var i = document.createElement("iframe");
+            i.src = window.location.href;
+            i.scrolling = "auto";
+            i.frameborder = "0";
+            i.height = "90%";
+            i.width = "100%";
+            i.name = "iframeName";
+            var div = document.getElementById("div-iframe");
+            div.appendChild(i); div.style.display = 'block';
+        };
+
+        window.onload = function () {
+            //! [ShareBufferScriptCode_1]
+            window.chrome.webview.addEventListener("sharedbufferreceived", e => {
+                SharedBufferReceived(e);});
+            //! [ShareBufferScriptCode_1]
+            var classValue;
+            var description;
+            if (window.top === window) {
+                var divSummary = document.getElementById("div-summary");
+                divSummary.style.display = 'block';
+                createIFrame();
+                classValue = "ICoreWebView2";
+                description = "page";
+            } else {
+                classValue = "ICoreWebView2Frame";
+                description = "iframe";
+            }
+            document.getElementById("class1").innerHTML = classValue;
+            document.getElementById("page").innerHTML = description;
+        };
+    </script>
+</head>
+<body>
+    <div id="div-summary" style="display: none;">
+        <h1>Shared Buffer Sample Page</h1>
+        <p>
+            This page demonstrates basic interaction between the host app and the webview by
+            means of Shared Buffer.
+        </p>
+        <p>
+            Shared Buffer are received by <label id="page"></label> with 'sharedbufferreceived' event from
+            <code>chrome.webview</code>.
+        </p>
+        <p>
+            The host app calls <code>ICoreWebView2Environment.CreateSharedBuffer</code> to create a shared buffer
+            and calls <code><label id="class1"></label>.PostSharedBufferToScript</code> to share the buffer to script.
+        </p>
+    </div>
+
+    <h2>Shared Buffer Data</h2>
+    <div>
+        <button onclick="ShowSharedBuffer()">Show data in shared buffer</button><br>
+        <button onclick="ShowReadOnlySharedBuffer()">Show data in read only shared buffer</button><br>
+        <button onclick="ReleaseBuffer(sharedBuffer)">Release shared buffer</button><br>
+        <button onclick="ReleaseBuffer(readOnlySharedBuffer)">Release read only shared buffer</button><br>
+        <button onclick="UpdateSharedBufferData(sharedBuffer)">Update data in shared buffer</button><br>
+        <button onclick="UpdateSharedBufferData(readOnlySharedBuffer)">Update Data in read only shared buffer (renderer process will crash unless buffer is released)</button><br>
+        <textarea id="shared-buffer-data"></textarea>
+    </div>
+
+    <div id="div-iframe" style="display: none;">
+    <h2>IFrame</h2>
+    </div>
+</body>
+</html>
