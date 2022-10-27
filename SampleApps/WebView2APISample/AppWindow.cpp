@@ -38,6 +38,7 @@
 #include "ScenarioExtensionsManagement.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
+#include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
 #include "ScenarioVirtualHostMappingForSW.h"
@@ -47,6 +48,7 @@
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
+
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -560,6 +562,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_SHARED_WORKER:
     {
         NewComponent<ScenarioSharedWorkerWRR>(this);
+        return true;
+    }
+    case IDM_SCENARIO_SHARED_BUFFER:
+    {
+        NewComponent<ScenarioSharedBuffer>(this);
         return true;
     }
     case IDM_SCENARIO_DOM_CONTENT_LOADED:

@@ -24,9 +24,9 @@ The WebView2WindowsFormsBrowser is an example of an application that embeds a We
 
 The API Sample showcases a selection of WebView2's event handlers and API methods that allow a Windows Forms application to directly interact with a WebView and vice versa.
 
-If this is your first time using WebView, we recommend first following the [Getting Started](https://learn.microsoft.com/microsoft-edge/webview2/gettingstarted/winforms) guide, which goes over how to create a WebView2 and walks through some basic WebView2 functionality.
+If this is your first time using WebView, we recommend first following the [Getting Started](https://docs.microsoft.com/microsoft-edge/webview2/gettingstarted/winforms) guide, which goes over how to create a WebView2 and walks through some basic WebView2 functionality.
 
-To learn more specifics about events and API Handlers in WebView2, you can refer to the [WebView2 Reference Documentation](https://learn.microsoft.com/microsoft-edge/webview2/webview2-api-reference).
+To learn more specifics about events and API Handlers in WebView2, you can refer to the [WebView2 Reference Documentation](https://docs.microsoft.com/microsoft-edge/webview2/webview2-api-reference).
 
 ## Prerequisites
 

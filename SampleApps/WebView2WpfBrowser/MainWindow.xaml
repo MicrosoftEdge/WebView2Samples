@@ -29,6 +29,12 @@ found in the LICENSE file.
         <CommandBinding Command="NavigationCommands.DecreaseZoom" Executed="DecreaseZoomCmdExecuted" CanExecute="DecreaseZoomCmdCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.InjectScriptCommand}" Executed="InjectScriptCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.InjectScriptIFrameCommand}" Executed="InjectScriptIFrameCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.AddInitializeScriptCommand}" Executed="AddInitializeScriptCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.RemoveInitializeScriptCommand}" Executed="RemoveInitializeScriptCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.CallCdpMethodCommand}" Executed="CallCdpMethodCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.OpenDevToolsCommand}" Executed="OpenDevToolsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.OpenTaskManagerCommand}" Executed="OpenTaskManagerCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.InjectScriptWithResultCommand}" Executed="InjectScriptWithResultCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SetUserAgentCommand}" Executed="SetUserAgentCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GetCookiesCommand}" Executed="GetCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DOMContentLoadedCommand}" Executed="DOMContentLoadedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -64,12 +70,23 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.AllowExternalDropCommand}" Executed="AllowExternalDropCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PerfInfoCommand}" Executed="PerfInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}" Executed="NewWindowWithOptionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.CreateNewThreadCommand}" Executed="CreateNewThreadCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintDialogCommand}" Executed="PrintDialogCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToDefaultPrinterCommand}" Executed="PrintToDefaultPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPrinterCommand}" Executed="PrintToPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPdfStreamCommand}" Executed="PrintToPdfStreamCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.SharedBufferRequestedCommand}" Executed="SharedBufferRequestedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AboutCommand}" Executed="AboutCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.CrashBrowserProcessCommand}" Executed="CrashBrowserProcessCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.CrashRenderProcessCommand}" Executed="CrashRenderProcessCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+
         <CommandBinding Command="{x:Static local:MainWindow.GetDocumentTitleCommand}" Executed="GetDocumentTitleCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GetUserDataFolderCommand}" Executed="GetUserDataFolderCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PostMessageStringCommand}" Executed="PostMessageStringCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.PostMessageJSONCommand}" Executed="PostMessageJSONCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.HostObjectsAllowedCommand}" Executed="HostObjectsAllowedCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.BrowserAcceleratorKeyEnabledCommand}" Executed="BrowserAcceleratorKeyEnabledCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -79,20 +96,34 @@ found in the LICENSE file.
                     <MenuItem Header="Landscape" Command="{x:Static local:MainWindow.PrintToPdfCommand}" CommandParameter="Landscape"/>
                 </MenuItem>
                 <MenuItem Header="_Get Document Title" Command="{x:Static local:MainWindow.GetDocumentTitleCommand}"/>
+                <MenuItem Header="_Get User Data Folder" Command="{x:Static local:MainWindow.GetUserDataFolderCommand}"/>
                 <MenuItem x:Name="newVersionMenuItem" Header="New Browser _Version" Command="{x:Static local:MainWindow.NewBrowserVersionCommand}"/>
                 <MenuItem Header="_Exit" Command="ApplicationCommands.Close"/>
             </MenuItem>
             <MenuItem Header="_Script">
                 <MenuItem Header="_Inject Script..." Command="{x:Static local:MainWindow.InjectScriptCommand}"/>
                 <MenuItem Header="_Inject Script Into IFrame..." Command="{x:Static local:MainWindow.InjectScriptIFrameCommand}"/>
+                <MenuItem Header="_Inject Script With Result..." Command="{x:Static local:MainWindow.InjectScriptWithResultCommand}"/>
+                <MenuItem Header="_Post Message String..." Command="{x:Static local:MainWindow.PostMessageStringCommand}"/>
+                <MenuItem Header="_Post Message JSON..." Command="{x:Static local:MainWindow.PostMessageJSONCommand}"/>
+                <MenuItem Header="Add Initialize Script" Command="{x:Static local:MainWindow.AddInitializeScriptCommand}"/>
+                <MenuItem Header="Remove Initialize Script" Command="{x:Static local:MainWindow.RemoveInitializeScriptCommand}"/>
+                <Separator/>
+                <MenuItem Header="Call CDP Method" Command="{x:Static local:MainWindow.CallCdpMethodCommand}"/>
+                <Separator/>
+                <MenuItem Header="Open DevTools Window" Command="{x:Static local:MainWindow.OpenDevToolsCommand}"/>
+                <MenuItem Header="Open Task Manager Window" Command="{x:Static local:MainWindow.OpenTaskManagerCommand}"/>
                 <!--TODO-->
             </MenuItem>
             <MenuItem Header="_Window">
                 <MenuItem Header="_New Window" Command="ApplicationCommands.New"/>
                 <MenuItem Header="_New Window With Options" Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}"/>
+                <MenuItem Header="_Create New Thread" Command="{x:Static local:MainWindow.CreateNewThreadCommand}"/>
                 <!---TODO-->
             </MenuItem>
             <MenuItem Header="_Process">
+                <MenuItem Header="Crash Browser Process" Command="{x:Static local:MainWindow.CrashBrowserProcessCommand}"/>
+                <MenuItem Header="Crash Render Process" Command="{x:Static local:MainWindow.CrashRenderProcessCommand}"/>
                 <MenuItem Header="Show _Performance Info" Command="{x:Static local:MainWindow.PerfInfoCommand}"/>
                 <!---TODO-->
             </MenuItem>
@@ -104,11 +135,13 @@ found in the LICENSE file.
                 <MenuItem Header="Set _UserAgent" Command="{x:Static local:MainWindow.SetUserAgentCommand}"/>
                 <MenuItem Header="Toggle Allow External Drop" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.AllowExternalDropCommand}"/>
                 <MenuItem Header="Toggle Autofill" Name ="generalAutofillEnabled" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.GeneralAutofillCommand}"/>
-                <MenuItem Header="Toggle Swipe Navigation Enabled" Command="{x:Static local:MainWindow.SwipeNavigationCommand}"/>
+                <MenuItem Header="Toggle Browser Accelerator Key Enabled" Command="{x:Static local:MainWindow.BrowserAcceleratorKeyEnabledCommand}"/>
+                <MenuItem Header="Toggle Host Objects Allowed" Command="{x:Static local:MainWindow.HostObjectsAllowedCommand}"/>
                 <MenuItem Header="Toggle Password Autosave" Name="passwordAutosaveEnabled" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.PasswordAutosaveCommand}"/>
                 <MenuItem Header="Toggle Pinch Zoom Enabled" Command="{x:Static local:MainWindow.PinchZoomCommand}"/>
                 <MenuItem Header="Toggle PDF toolbar save button" Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}"/>
                 <MenuItem Header="Toggle profile SmartScreen enabled" Command="{x:Static local:MainWindow.SmartScreenEnabledCommand}"/>
+                <MenuItem Header="Toggle Swipe Navigation Enabled" Command="{x:Static local:MainWindow.SwipeNavigationCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Toggle _Visibility" Name="webViewVisible" IsCheckable="True" IsChecked="True"/>
@@ -166,6 +199,7 @@ found in the LICENSE file.
                 <MenuItem Header="Intercept _Response" IsCheckable="True" IsChecked="{Binding ElementName=MyWindow, Path=ShowNextWebResponse, Mode=TwoWay}"/>
                 <MenuItem Header="_Navigate With Web Resource Request" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem Header="_Web Messages" Command="{x:Static local:MainWindow.WebMessagesCommand}"/>
+                <MenuItem Header="_Shared Buffer" Command="{x:Static local:MainWindow.SharedBufferRequestedCommand}"/>
             </MenuItem>
             <MenuItem Header="_Audio">
                 <MenuItem Header="Toggle Mute State" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.ToggleMuteStateCommand}"/>

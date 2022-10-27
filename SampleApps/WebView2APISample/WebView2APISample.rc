@@ -64,6 +64,7 @@ BEGIN
     BEGIN
         MENUITEM "Inject Script",               IDM_INJECT_SCRIPT
         MENUITEM "Inject Script Into IFrame",   IDM_INJECT_SCRIPT_FRAME
+        MENUITEM "Inject Script With Result",   IDM_INJECT_SCRIPT_WITH_RESULT
         MENUITEM "Add Initialize Script",       ID_ADD_INITIALIZE_SCRIPT
         MENUITEM "Remove Initialize Script",    ID_REMOVE_INITIALIZE_SCRIPT
         MENUITEM SEPARATOR
@@ -266,6 +267,7 @@ BEGIN
         MENUITEM "Virtual Host Mapping For Pop Up Window",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING_POP_UP_WINDOW
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
         MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
+        MENUITEM "Shared Buffer",               IDM_SCENARIO_SHARED_BUFFER
     END
     POPUP "&Audio"
     BEGIN

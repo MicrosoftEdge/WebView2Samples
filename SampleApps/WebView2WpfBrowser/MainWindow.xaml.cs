@@ -5,12 +5,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,6 +22,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 
@@ -33,6 +35,7 @@ namespace WebView2WpfBrowser
     {
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
         public static RoutedCommand InjectScriptIFrameCommand = new RoutedCommand();
+        public static RoutedCommand InjectScriptWithResultCommand = new RoutedCommand();
         public static RoutedCommand PrintToPdfCommand = new RoutedCommand();
         public static RoutedCommand NavigateWithWebResourceRequestCommand = new RoutedCommand();
         public static RoutedCommand DOMContentLoadedCommand = new RoutedCommand();
@@ -68,14 +71,41 @@ namespace WebView2WpfBrowser
         public static RoutedCommand CustomServerCertificateSupportCommand = new RoutedCommand();
         public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
         public static RoutedCommand NewWindowWithOptionsCommand = new RoutedCommand();
+        public static RoutedCommand CreateNewThreadCommand = new RoutedCommand();
         public static RoutedCommand PrintDialogCommand = new RoutedCommand();
         public static RoutedCommand PrintToDefaultPrinterCommand = new RoutedCommand();
         public static RoutedCommand PrintToPrinterCommand = new RoutedCommand();
         public static RoutedCommand PrintToPdfStreamCommand = new RoutedCommand();
         // Commands(V2)
         public static RoutedCommand AboutCommand = new RoutedCommand();
+
+
+
+        public static RoutedCommand CrashBrowserProcessCommand = new RoutedCommand();
+        public static RoutedCommand CrashRenderProcessCommand = new RoutedCommand();
+
+
         public static RoutedCommand GetDocumentTitleCommand = new RoutedCommand();
+        public static RoutedCommand GetUserDataFolderCommand = new RoutedCommand();
+        public static RoutedCommand SharedBufferRequestedCommand = new RoutedCommand();
+        public static RoutedCommand PostMessageStringCommand = new RoutedCommand();
+        public static RoutedCommand PostMessageJSONCommand = new RoutedCommand();
+
+
+        public static RoutedCommand HostObjectsAllowedCommand = new RoutedCommand();
+        public static RoutedCommand BrowserAcceleratorKeyEnabledCommand = new RoutedCommand();
+
+        public static RoutedCommand AddInitializeScriptCommand = new RoutedCommand();
+        public static RoutedCommand RemoveInitializeScriptCommand = new RoutedCommand();
+
+        public static RoutedCommand CallCdpMethodCommand = new RoutedCommand();
+        public static RoutedCommand OpenDevToolsCommand = new RoutedCommand();
+        public static RoutedCommand OpenTaskManagerCommand = new RoutedCommand();
+
         bool _isNavigating = false;
+
+        // for add/remove initialize script
+        string m_lastInitializeScriptId;
 
         CoreWebView2Settings _webViewSettings;
         CoreWebView2Settings WebViewSettings
@@ -119,6 +149,9 @@ namespace WebView2WpfBrowser
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
         IReadOnlyList<CoreWebView2ProcessInfo> _processList = new List<CoreWebView2ProcessInfo>();
 
+        IDictionary<(string, CoreWebView2PermissionKind, bool), bool> _cachedPermissions = 
+            new Dictionary<(string, CoreWebView2PermissionKind, bool), bool>();
+
         public CoreWebView2CreationProperties CreationProperties { get; set; } = null;
 
         public MainWindow()
@@ -127,7 +160,7 @@ namespace WebView2WpfBrowser
             InitializeComponent();
             AttachControlEventHandlers(webView);
             // Set background transparent
-            // webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         public MainWindow(CoreWebView2CreationProperties creationProperties = null)
@@ -137,7 +170,7 @@ namespace WebView2WpfBrowser
             InitializeComponent();
             AttachControlEventHandlers(webView);
             // Set background transparent
-            // webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         void AttachControlEventHandlers(WebView2 control)
@@ -162,6 +195,13 @@ namespace WebView2WpfBrowser
             {
                 return false;
             }
+        }
+
+        void AssertCondition(bool condition, string message)
+        {
+            if (condition)
+                return;
+            MessageBox.Show(message, "Assertion Failed");
         }
 
         void NewCmdExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -324,112 +364,94 @@ namespace WebView2WpfBrowser
 
         void WebView_ProcessFailed(object sender, CoreWebView2ProcessFailedEventArgs e)
         {
-            void ReinitIfSelectedByUser(CoreWebView2ProcessFailedKind kind)
+            void ReinitIfSelectedByUser(string caption, string message)
             {
-                string caption;
-                string message;
-                if (kind == CoreWebView2ProcessFailedKind.BrowserProcessExited)
+                this.Dispatcher.InvokeAsync(() =>
                 {
-                    caption = "Browser process exited";
-                    message = "WebView2 Runtime's browser process exited unexpectedly. Recreate WebView?";
-                }
-                else
-                {
-                    caption = "Web page unresponsive";
-                    message = "WebView2 Runtime's render process stopped responding. Recreate WebView?";
-                }
-
-                var selection = MessageBox.Show(message, caption, MessageBoxButton.YesNo);
-                if (selection == MessageBoxResult.Yes)
-                {
-                    // The control cannot be re-initialized so we setup a new instance to replace it.
-                    // Note the previous instance of the control is disposed of and removed from the
-                    // visual tree before attaching the new one.
-                    if (_isControlInVisualTree)
+                    var selection = MessageBox.Show(message, caption, MessageBoxButton.YesNo);
+                    if (selection == MessageBoxResult.Yes)
                     {
-                        RemoveControlFromVisualTree(webView);
+                        // The control cannot be re-initialized so we setup a new instance to replace it.
+                        // Note the previous instance of the control is disposed of and removed from the
+                        // visual tree before attaching the new one.
+                        if (_isControlInVisualTree)
+                        {
+                            RemoveControlFromVisualTree(webView);
+                        }
+                        webView.Dispose();
+                        webView = GetReplacementControl(false);
+                        AttachControlToVisualTree(webView);
+                        // Set background transparent
+                        webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
                     }
-                    webView.Dispose();
-                    webView = GetReplacementControl(false);
-                    AttachControlToVisualTree(webView);
-                }
+                });
             }
 
-            void ReloadIfSelectedByUser(CoreWebView2ProcessFailedKind kind)
+            void ReloadIfSelectedByUser(string caption, string message)
             {
-                string caption;
-                string message;
-                if (kind == CoreWebView2ProcessFailedKind.RenderProcessExited)
+                this.Dispatcher.InvokeAsync(() =>
                 {
-                    caption = "Web page unresponsive";
-                    message = "WebView2 Runtime's render process exited unexpectedly. Reload page?";
-                }
-                else
-                {
-                    caption = "App content frame unresponsive";
-                    message = "WebView2 Runtime's render process for app frame exited unexpectedly. Reload page?";
-                }
-
-                var selection = MessageBox.Show(message, caption, MessageBoxButton.YesNo);
-                if (selection == MessageBoxResult.Yes)
-                {
-                    webView.Reload();
-                }
+                    var selection = MessageBox.Show(message, caption, MessageBoxButton.YesNo);
+                    if (selection == MessageBoxResult.Yes)
+                    {
+                        webView.Reload();
+                        // Set background transparent
+                        webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+                    }
+                });
             }
 
             bool IsAppContentUri(Uri source)
             {
                 // Sample virtual host name for the app's content.
-                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://learn.microsoft.com/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
+                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://docs.microsoft.com/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
                 return source.Host == "appassets.example";
             }
 
-            switch (e.ProcessFailedKind)
+            if (e.ProcessFailedKind == CoreWebView2ProcessFailedKind.FrameRenderProcessExited)
             {
-                case CoreWebView2ProcessFailedKind.BrowserProcessExited:
-                    // Once the WebView2 Runtime's browser process has crashed,
-                    // the control becomes virtually unusable as the process exit
-                    // moves the CoreWebView2 to its Closed state. Most calls will
-                    // become invalid as they require a backing browser process.
-                    // Remove the control from the visual tree so the framework does
-                    // not attempt to redraw it, which would call the invalid methods.
-                    RemoveControlFromVisualTree(webView);
-                    goto case CoreWebView2ProcessFailedKind.RenderProcessUnresponsive;
-                case CoreWebView2ProcessFailedKind.RenderProcessUnresponsive:
-                    System.Threading.SynchronizationContext.Current.Post((_) =>
+                // A frame-only renderer has exited unexpectedly. Check if reload is needed.
+                // In this sample we only reload if the app's content has been impacted.
+                foreach (CoreWebView2FrameInfo frameInfo in e.FrameInfosForFailedProcess)
+                {
+                    if (IsAppContentUri(new System.Uri(frameInfo.Source)))
                     {
-                        ReinitIfSelectedByUser(e.ProcessFailedKind);
-                    }, null);
-                    break;
-                case CoreWebView2ProcessFailedKind.RenderProcessExited:
-                    System.Threading.SynchronizationContext.Current.Post((_) =>
-                    {
-                        ReloadIfSelectedByUser(e.ProcessFailedKind);
-                    }, null);
-                    break;
-                case CoreWebView2ProcessFailedKind.FrameRenderProcessExited:
-                    // A frame-only renderer has exited unexpectedly. Check if reload is needed.
-                    // In this sample we only reload if the app's content has been impacted.
-                    foreach (CoreWebView2FrameInfo frameInfo in e.FrameInfosForFailedProcess)
-                    {
-                        if (IsAppContentUri(new System.Uri(frameInfo.Source)))
+                        System.Threading.SynchronizationContext.Current.Post((_) =>
                         {
-                            goto case CoreWebView2ProcessFailedKind.RenderProcessExited;
-                        }
+                            ReloadIfSelectedByUser("App content frame unresponsive",
+                                "Browser render process for app frame exited unexpectedly. Reload page?");
+                        }, null);
                     }
-                    break;
-                default:
-                    // Show the process failure details. Apps can collect info for their logging purposes.
-                    StringBuilder messageBuilder = new StringBuilder();
-                    messageBuilder.AppendLine($"Process kind: {e.ProcessFailedKind}");
-                    messageBuilder.AppendLine($"Reason: {e.Reason}");
-                    messageBuilder.AppendLine($"Exit code: {e.ExitCode}");
-                    messageBuilder.AppendLine($"Process description: {e.ProcessDescription}");
-                    System.Threading.SynchronizationContext.Current.Post((_) =>
-                    {
-                        MessageBox.Show(messageBuilder.ToString(), "Child process failed", MessageBoxButton.OK);
-                    }, null);
-                    break;
+                }
+
+                return;
+            }
+
+            // Show the process failure details. Apps can collect info for their logging purposes.
+            this.Dispatcher.InvokeAsync(() =>
+            {
+                StringBuilder messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine($"Process kind: {e.ProcessFailedKind}");
+                messageBuilder.AppendLine($"Reason: {e.Reason}");
+                messageBuilder.AppendLine($"Exit code: {e.ExitCode}");
+                messageBuilder.AppendLine($"Process description: {e.ProcessDescription}");
+                MessageBox.Show(messageBuilder.ToString(), "Child process failed", MessageBoxButton.OK);
+            });
+
+            if (e.ProcessFailedKind == CoreWebView2ProcessFailedKind.BrowserProcessExited)
+            {
+                ReinitIfSelectedByUser("Browser process exited",
+                    "Browser process exited unexpectedly. Recreate webview?");
+            }
+            else if (e.ProcessFailedKind == CoreWebView2ProcessFailedKind.RenderProcessUnresponsive)
+            {
+                ReinitIfSelectedByUser("Web page unresponsive",
+                    "Browser render process has stopped responding. Recreate webview?");
+            }
+            else if (e.ProcessFailedKind == CoreWebView2ProcessFailedKind.RenderProcessExited)
+            {
+                ReloadIfSelectedByUser("Web page unresponsive",
+                    "Browser render process exited unexpectedly. Reload page?");
             }
         }
 
@@ -566,7 +588,7 @@ namespace WebView2WpfBrowser
             }
         }
 
-        // Shows the user a print dialog. If `printDialogKind` is browser print preview, 
+        // Shows the user a print dialog. If `printDialogKind` is browser print preview,
         // opens a browser print preview dialog, CoreWebView2PrintDialogKind.System opens a system print dialog.
         void ShowPrintUI(object target, ExecutedRoutedEventArgs e)
         {
@@ -615,6 +637,7 @@ namespace WebView2WpfBrowser
             }
         }
 
+        // <PrintToPrinter>
         // Function to get printer name by displaying printer text input dialog to the user.
         // User has to specify the desired printer name by querying the installed printers list on the
         // OS to print the web page.
@@ -634,14 +657,14 @@ namespace WebView2WpfBrowser
             return printerName;
 
             // or
-            // 
+            //
             // Use GetPrintQueues() of LocalPrintServer from System.Printing to get list of locally installed printers.
             // Display the printer list to the user and get the desired printer to print.
             // Return the user selected printer name.
         }
 
         // Function to get print settings for the selected printer.
-        // You may also choose get the capabilties from the native printer API, display to the user to get 
+        // You may also choose get the capabilties from the native printer API, display to the user to get
         // the print settings for the current web page and for the selected printer.
         CoreWebView2PrintSettings GetSelectedPrinterPrintSettings(string printerName)
         {
@@ -653,7 +676,7 @@ namespace WebView2WpfBrowser
             return printSettings;
 
             // or
-            //  
+            //
             // Get PrintQueue for the selected printer and use GetPrintCapabilities() of PrintQueue from System.Printing
             // to get the capabilities of the selected printer.
             // Display the printer capabilities to the user along with the page settings.
@@ -696,7 +719,9 @@ namespace WebView2WpfBrowser
 
             }
         }
+        // </PrintToPrinter>
 
+        // <PrintToPdfStream>
         // This example prints the Pdf data of the current web page to a stream.
         async void PrintToPdfStream()
         {
@@ -706,7 +731,6 @@ namespace WebView2WpfBrowser
              
                 // Passing null for `PrintSettings` results in default print settings used.
                 System.IO.Stream stream = await webView.CoreWebView2.PrintToPdfStreamAsync(null);
-
                 DisplayPdfDataInPrintDialog(stream);
                 MessageBox.Show(this, "Printing" + title + " document to PDF Stream " + ((stream != null) ? "succeeded" : "failed"), "Print To PDF Stream");
             }
@@ -722,6 +746,7 @@ namespace WebView2WpfBrowser
         {
             // You can display the printable pdf data in a custom print preview dialog to the end user.
         }
+        // </PrintToPdfStream>
 
         async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -777,52 +802,52 @@ namespace WebView2WpfBrowser
             webView.Source = new Uri("https://appassets.example/webMessages.html");
         }
 
-        String GetWindowBounds(CoreWebView2WebMessageReceivedEventArgs args)
+
+        void HandleWebMessage(CoreWebView2WebMessageReceivedEventArgs args)
         {
-            if (args.Source != "https://appassets.example/webMessages.html")
-            {
-                // Ignore messages from untrusted sources.
-                return null;
-            }
-            string message;
             try
             {
-                message = args.TryGetWebMessageAsString();
-            }
-            catch (ArgumentException)
-            {
-                // Ignore messages that aren't strings, but log for further investigation
-                // since it suggests a mismatch between the web content and the host.
-                Debug.WriteLine($"Non-string message received");
-                return null;
-            }
+                if (args.Source != "https://appassets.example/webMessages.html")
+                {
+                    // Throw exception from untrusted sources.
+                    throw new Exception();
+                }
 
-            if (message == "GetWindowBounds")
-            {
-                String reply = "{\"WindowBounds\":\"Left:" + 0 +
-                               "\\nTop:" + 0 +
-                               "\\nRight:" + webView.ActualWidth +
-                               "\\nBottom:" + webView.ActualHeight +
-                               "\"}";
-                return reply;
-            }
-            else
-            {
-                // Ignore unrecognized messages, but log them
-                // since it suggests a mismatch between the web content and the host.
-                Debug.WriteLine($"Unexpected message received: {message}");
-            }
+                string message = args.TryGetWebMessageAsString();
 
-            return null;
+                if (message.Contains("SetTitleText"))
+                {
+                    int msgLength = "SetTitleText".Length;
+                    this.Title = message.Substring(msgLength);
+
+                }
+
+                else if (message == "GetWindowBounds")
+                {
+                    string reply = "{\"WindowBounds\":\"Left:" + 0 +
+                                   "\\nTop:" + 0 +
+                                   "\\nRight:" + webView.ActualWidth +
+                                   "\\nBottom:" + webView.ActualHeight +
+                                   "\"}";
+
+                    webView.CoreWebView2.PostWebMessageAsJson(reply);
+                }
+                else
+                {
+                    // Ignore unrecognized messages, but log them
+                    // since it suggests a mismatch between the web content and the host.
+                    Debug.WriteLine($"Unexpected message received: {message}");
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show($"Unexpected message received: {e.Message}");
+            }
         }
 
         void WebView_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs args)
         {
-            String reply = GetWindowBounds(args);
-            if (!String.IsNullOrEmpty(reply))
-            {
-                webView.CoreWebView2.PostWebMessageAsJson(reply);
-            }
+            HandleWebMessage(args);
         }
 
         // <WebMessageReceivedIFrame>
@@ -830,14 +855,11 @@ namespace WebView2WpfBrowser
         {
             args.Frame.WebMessageReceived += (WebMessageReceivedSender, WebMessageReceivedArgs) =>
             {
-                String reply = GetWindowBounds(WebMessageReceivedArgs);
-                if (!String.IsNullOrEmpty(reply))
-                {
-                    args.Frame.PostWebMessageAsJson(reply);
-                }
+                HandleWebMessage(WebMessageReceivedArgs);
             };
         }
         // </WebMessageReceivedIFrame>
+
 
         // <DOMContentLoaded>
         void DOMContentLoadedCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -1042,7 +1064,7 @@ namespace WebView2WpfBrowser
 
         void AuthenticationCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            // <BasicAuthenticationRequested-Short>
+            // <BasicAuthenticationRequested>
             webView.CoreWebView2.BasicAuthenticationRequested += delegate (object sender, CoreWebView2BasicAuthenticationRequestedEventArgs args)
             {
                 // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Demo credentials in https://authenticationtest.com")]
@@ -1051,7 +1073,7 @@ namespace WebView2WpfBrowser
                 args.Response.Password = "pass";
             };
             webView.CoreWebView2.Navigate("https://authenticationtest.com/HTTPAuth");
-            // </BasicAuthenticationRequested-Short>
+            // </BasicAuthenticationRequested>
         }
 
         private bool _isFaviconChanged = false;
@@ -1660,10 +1682,6 @@ namespace WebView2WpfBrowser
             {
                 return e.Message;
             }
-            catch (Win32Exception)
-            {
-                return "N/A";
-            }
         }
 
         private string GetStartPageUri(CoreWebView2 webView2)
@@ -1673,11 +1691,11 @@ namespace WebView2WpfBrowser
             {
                 return uri;
             }
-            String sdkBuildVersion = GetSdkBuildVersion(),
+            string sdkBuildVersion = GetSdkBuildVersion(),
                    runtimeVersion = GetRuntimeVersion(webView2),
                    appPath = GetAppPath(),
                    runtimePath = GetRuntimePath(webView2);
-            String newUri = $"{uri}?sdkBuild={sdkBuildVersion}&runtimeVersion={runtimeVersion}" +
+            string newUri = $"{uri}?sdkBuild={sdkBuildVersion}&runtimeVersion={runtimeVersion}" +
                 $"&appPath={appPath}&runtimePath={runtimePath}";
             return newUri;
         }
@@ -1703,6 +1721,9 @@ namespace WebView2WpfBrowser
                 // <IsMutedChanged>
                 webView.CoreWebView2.IsMutedChanged += WebView_IsMutedChanged;
                 // </IsMutedChanged>
+                // <PermissionRequested>
+                webView.CoreWebView2.PermissionRequested += WebView_PermissionRequested;
+                // </PermissionRequested>
 
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
@@ -1793,9 +1814,9 @@ namespace WebView2WpfBrowser
             {
                 if (i > 0) result += "; ";
                 result += i.ToString() + " " +
-                    (string.IsNullOrEmpty(_webViewFrames[i].Name) ? "<empty_name>" : _webViewFrames[i].Name);
+                    (String.IsNullOrEmpty(_webViewFrames[i].Name) ? "<empty_name>" : _webViewFrames[i].Name);
             }
-            return string.IsNullOrEmpty(result) ? "no iframes available." : result;
+            return String.IsNullOrEmpty(result) ? "no iframes available." : result;
         }
 
         // <NewBrowserVersionAvailable>
@@ -2097,6 +2118,52 @@ namespace WebView2WpfBrowser
                 new MainWindow(dialog.CreationProperties).Show();
             }
         }
+
+        private void ThreadProc(string browserExecutableFolder, string userDataFolder, string language, string additionalBrowserArguments, string profileName, bool? isInPrivateModeEnabled)
+        {
+            try
+            {
+                // Some class members are global static properties, and VerifyAccess() will throw exceptions when accessing across threads. So prepare copies of them.
+                // See DispatcherObject Class on MSDN: Only the thread that the Dispatcher was created on may access the DispatcherObject directly.
+                CoreWebView2CreationProperties creationProperties = new CoreWebView2CreationProperties();
+                creationProperties.BrowserExecutableFolder = browserExecutableFolder;
+                creationProperties.UserDataFolder = userDataFolder;
+                creationProperties.Language = language;
+                creationProperties.AdditionalBrowserArguments = additionalBrowserArguments;
+                creationProperties.ProfileName = profileName;
+                creationProperties.IsInPrivateModeEnabled = isInPrivateModeEnabled;
+                var tempWindow = new MainWindow(creationProperties);
+                tempWindow.Show();
+                // Causes dispatcher to shutdown when window is closed.
+                tempWindow.Closed += (s, e) =>
+                {
+                    System.Windows.Threading.Dispatcher.CurrentDispatcher.InvokeShutdown();
+                };
+                // Run the message pump
+                System.Windows.Threading.Dispatcher.Run();
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("Create New Thread Failed: " + exception.Message, "Create New Thread");
+            }
+        }
+
+        void CreateNewThreadCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            string browserExecutableFolder = webView.CreationProperties.BrowserExecutableFolder;
+            string userDataFolder = webView.CreationProperties.UserDataFolder;
+            string language = webView.CreationProperties.Language;
+            string additionalBrowserArguments = webView.CreationProperties.AdditionalBrowserArguments;
+            string profileName = webView.CreationProperties.ProfileName;
+            bool? isInPrivateModeEnabled = webView.CreationProperties.IsInPrivateModeEnabled;
+            Thread newWindowThread = new Thread(() =>
+            {
+                ThreadProc(browserExecutableFolder, userDataFolder, language, additionalBrowserArguments, profileName, isInPrivateModeEnabled);
+            });
+            newWindowThread.SetApartmentState(ApartmentState.STA);
+            newWindowThread.IsBackground = false;
+            newWindowThread.Start();
+        }
         // Commands(V2)
         void AboutCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -2111,9 +2178,401 @@ namespace WebView2WpfBrowser
             MessageBox.Show("SmartScreen is" + (WebViewSettings.IsReputationCheckingRequired ? " enabled " : " disabled ") + "after the next navigation.");
         }
 
+
+        void PostMessageStringCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            var dialog = new TextInputDialog(
+                title: "Post Web Message String",
+                description: "Web message string:\r\nEnter the web message as a string.");
+
+            try
+            {
+                if (dialog.ShowDialog() == true)
+                {
+                    webView.CoreWebView2.PostWebMessageAsString(dialog.Input.Text);
+                }
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "PostMessageAsString Failed: " + exception.Message,
+                   "Post Message As String");
+            }
+        }
+
+
+        void PostMessageJSONCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            var dialog = new TextInputDialog(
+                title: "Post Web Message JSON",
+                description: "Web message JSON:\r\nEnter the web message as JSON.",
+                 defaultInput: "{\"SetColor\":\"blue\"}");
+
+            try
+            {
+                if (dialog.ShowDialog() == true)
+                {
+                    webView.CoreWebView2.PostWebMessageAsJson(dialog.Input.Text);
+                }
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "PostMessageAsJSON Failed: " + exception.Message,
+                   "Post Message As JSON");
+            }
+        }   
+
         void GetDocumentTitleCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
             MessageBox.Show(webView.CoreWebView2.DocumentTitle, "Document Title");
         }
+
+        void GetUserDataFolderCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                MessageBox.Show(WebViewEnvironment.UserDataFolder, "User Data Folder");
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(this, "Get User Data Folder Failed: " + exception.Message, "User Data Folder");
+            }
+        }
+
+        // <SharedBuffer>
+        private CoreWebView2SharedBuffer sharedBuffer = null;
+        void SharedBufferRequestedCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.WebMessageReceived += WebView_WebMessageReceivedSharedBuffer;
+            webView.CoreWebView2.FrameCreated += WebView_FrameCreatedSharedBuffer;
+            webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "appassets.example", "assets", CoreWebView2HostResourceAccessKind.DenyCors);
+            webView.Source = new Uri("https://appassets.example/sharedBuffer.html");
+        }
+
+        void EnsureSharedBuffer()
+        {
+            ulong bufferSize = 128;
+            if (sharedBuffer == null)
+            {
+                sharedBuffer = WebViewEnvironment.CreateSharedBuffer(bufferSize);
+
+                using (Stream stream = sharedBuffer.OpenStream())
+                {
+                    using (StreamWriter writer = new StreamWriter(stream))
+                    {
+                        writer.Write("some data from .NET");
+                    }
+                }
+            }
+        }
+
+        void WebView_WebMessageReceivedSharedBuffer(object sender, CoreWebView2WebMessageReceivedEventArgs args)
+        {
+            bool forWebView = (sender is CoreWebView2);
+            if (args.TryGetWebMessageAsString() == "RequestShareBuffer")
+            {
+                EnsureSharedBuffer();
+                if (forWebView)
+                {
+                    ((CoreWebView2)sender).PostSharedBufferToScript(sharedBuffer, CoreWebView2SharedBufferAccess.ReadWrite, null);
+                }
+                else
+                {
+                    ((CoreWebView2Frame)sender).PostSharedBufferToScript(sharedBuffer, CoreWebView2SharedBufferAccess.ReadWrite, null);
+                }
+            }
+            else if (args.TryGetWebMessageAsString() == "RequestOneTimeShareBuffer")
+            {
+                ulong bufferSize = 128;
+                string data = "some read only data";
+                // <OneTimeShareBuffer>
+                SafeHandle fileMappingHandle;
+                using (CoreWebView2SharedBuffer buffer = WebViewEnvironment.CreateSharedBuffer(bufferSize))
+                {
+                    fileMappingHandle = buffer.FileMappingHandle;
+                    AssertCondition(fileMappingHandle.IsInvalid == false, "FileMappingHandle of a valid shared buffer should be valid");
+                    using (Stream stream = buffer.OpenStream())
+                    {
+                        using (StreamWriter writer = new StreamWriter(stream))
+                        {
+                            writer.Write(data);
+                        }
+                    }
+                    string additionalDataAsJson = "{\"myBufferType\":\"bufferType1\"}";
+                    if (forWebView)
+                    {
+                        ((CoreWebView2)sender).PostSharedBufferToScript(buffer, CoreWebView2SharedBufferAccess.ReadOnly, additionalDataAsJson);
+                    }
+                    else
+                    {
+                        ((CoreWebView2Frame)sender).PostSharedBufferToScript(buffer, CoreWebView2SharedBufferAccess.ReadOnly, additionalDataAsJson);
+                    }
+                }
+                AssertCondition(fileMappingHandle.IsInvalid == true, "FileMappingHandle of a disposed shared buffer should be invalid");
+                // </OneTimeShareBuffer>
+            }
+            else if (args.TryGetWebMessageAsString() == "SharedBufferDataUpdated")
+            {
+                ShowSharedBuffer();
+            }
+        }
+
+        void WebView_FrameCreatedSharedBuffer(object sender, CoreWebView2FrameCreatedEventArgs args)
+        {
+            args.Frame.WebMessageReceived += (WebMessageReceivedSender, WebMessageReceivedArgs) =>
+            {
+                WebView_WebMessageReceivedSharedBuffer(WebMessageReceivedSender, WebMessageReceivedArgs);
+            };
+        }
+
+        void ShowSharedBuffer()
+        {
+            using (Stream stream = sharedBuffer.OpenStream())
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string text_content = reader.ReadLine();
+                    MessageBox.Show(text_content, "shared buffer updated");
+                }
+            }
+        }
+        // </SharedBuffer>
+        
+        // Prompt the user for some script and register it to execute whenever a new page loads.
+        private async void AddInitializeScriptCmdExecuted(object sender, ExecutedRoutedEventArgs e) {
+            TextInputDialog dialog = new TextInputDialog(
+              title: "Add Initialize Script",
+              description: "Enter the JavaScript code to run as the initialization script that runs before any script in the HTML document.",
+              // This example script stops child frames from opening new windows.  Because
+              // the initialization script runs before any script in the HTML document, we
+              // can trust the results of our checks on window.parent and window.top.
+              defaultInput: "if (window.parent !== window.top) {\r\n" +
+              "    delete window.open;\r\n" +
+              "}");
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                  string scriptId = await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(dialog.Input.Text);
+                  m_lastInitializeScriptId = scriptId;
+                  MessageBox.Show(this, scriptId, "AddScriptToExecuteOnDocumentCreated Id");
+                }
+                catch (Exception ex)
+                {
+                  MessageBox.Show(this, ex.ToString(), "AddScriptToExecuteOnDocumentCreated failed");
+                }
+            }
+        }
+
+        // Prompt the user for an initialization script ID and deregister that script.
+        private void RemoveInitializeScriptCmdExecuted(object sender, ExecutedRoutedEventArgs e) {
+            TextInputDialog dialog = new TextInputDialog(
+              title: "Remove Initialize Script",
+              description: "Enter the ID created from Add Initialize Script.",
+              defaultInput: m_lastInitializeScriptId);
+            if (dialog.ShowDialog() == true)
+            {
+                string scriptId = dialog.Input.Text;
+                // check valid
+                try
+                {
+                  Int64 result = Int64.Parse(scriptId);
+                  Int64 lastId = Int64.Parse(m_lastInitializeScriptId);
+                  if (result > lastId) {
+                    MessageBox.Show(this, scriptId, "Invalid ScriptId, should be less or equal than " + m_lastInitializeScriptId);
+                  } else {
+                    webView.CoreWebView2.RemoveScriptToExecuteOnDocumentCreated(scriptId);
+                    if (result == lastId && lastId >= 2) {
+                      m_lastInitializeScriptId = (lastId - 1).ToString();
+                    }
+                    MessageBox.Show(this, scriptId, "RemoveScriptToExecuteOnDocumentCreated Id");
+                  }
+                }
+                catch (FormatException) {
+                  MessageBox.Show(this, scriptId, "Invalid ScriptId, should be Integer");
+                }
+            }
+        }
+        // Prompt the user for the name and parameters of a CDP method, then call it.
+        private async void CallCdpMethodCmdExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+          TextInputDialog dialog = new TextInputDialog(
+            title: "Call CDP Method",
+            description: "Enter the CDP method name to call, followed by a space,\r\n" +
+              "followed by the parameters in JSON format.",
+            defaultInput: "Runtime.evaluate {\"expression\":\"alert(\\\"test\\\")\"}"
+          );
+          if (dialog.ShowDialog() == true)
+          {
+            string[] words = dialog.Input.Text.Trim().Split(' ');
+            if (words.Length == 1 && words[0] == "") {
+              MessageBox.Show(this, "Invalid argument:" + dialog.Input.Text, "CDP Method call failed");
+              return;
+            }
+            string methodName = words[0];
+            string methodParams = (words.Length == 2 ? words[1] : "{}");
+
+            try
+            {
+              string cdpResult = await webView.CoreWebView2.CallDevToolsProtocolMethodAsync(methodName, methodParams);
+              MessageBox.Show(this, cdpResult, "CDP method call successfully");
+            }
+            catch (Exception ex)
+            {
+              MessageBox.Show(this, ex.ToString(), "CDP method call failed");
+            }
+          }
+        }
+
+        private void OpenDevToolsCmdExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+          try
+          {
+            webView.CoreWebView2.OpenDevToolsWindow();
+          }
+          catch (Exception ex) {
+            MessageBox.Show(this, ex.ToString(), "Open DevTools Window failed");
+          }
+        }
+
+        private void OpenTaskManagerCmdExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+          try
+          {
+            webView.CoreWebView2.OpenTaskManagerWindow();
+          }
+          catch (Exception ex) {
+            MessageBox.Show(this, ex.ToString(), "Open Task Manager Window failed");
+          }
+        }
+
+
+        void CrashBrowserProcessCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.Navigate("edge://inducebrowsercrashforrealz");
+        }
+
+        void CrashRenderProcessCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.Navigate("edge://kill");
+        }
+
+
+
+        void HostObjectsAllowedCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            // <ToggleHostObjectsAllowed>
+            WebViewSettings.AreHostObjectsAllowed = !WebViewSettings.AreHostObjectsAllowed;
+            // </ToggleHostObjectsAllowed>
+            MessageBox.Show("Access to host objects will be" + (WebViewSettings.AreHostObjectsAllowed ? " allowed " : " denied ") + "after the next navigation.");
+        }
+
+        void BrowserAcceleratorKeyEnabledCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            // <ToggleBrowserAcceleratorKeyEnabled>
+            WebViewSettings.AreBrowserAcceleratorKeysEnabled = !WebViewSettings.AreBrowserAcceleratorKeysEnabled;
+            // </ToggleBrowserAcceleratorKeyEnabled>
+            MessageBox.Show("Browser-specific accelerator keys will be" + (WebViewSettings.AreBrowserAcceleratorKeysEnabled ? " enabled " : " disabled ") + "after the next navigation.");
+        }
+
+
+        async void InjectScriptWithResultCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            // <ExecuteScriptWithResult>
+            var dialog = new TextInputDialog(
+                title: "Inject Script With Result",
+                description: "Enter some JavaScript to be executed in the context of this page, and get the error info when execution failed",
+                defaultInput: ""
+            );
+            if (dialog.ShowDialog() == true) {
+                var result = await webView.CoreWebView2.ExecuteScriptWithResultAsync(dialog.Input.Text);
+                if (result.Succeeded)
+                {
+                    MessageBox.Show(this, result.ResultAsJson, "ExecuteScript Json Result");
+                    int is_success = 0;
+                    string str = "";
+                    result.TryGetResultAsString(out str, out is_success);
+                    if (is_success == 1)
+                    {
+                        MessageBox.Show(this, str, "ExecuteScript String Result");
+                    }
+                    else {
+                        MessageBox.Show(this, "Get string failed", "ExecuteScript String Result");
+                    }
+                }
+                else {
+                    var exception = result.Exception;
+                    MessageBox.Show(this, exception.Name, "ExecuteScript Exception Name");
+                    MessageBox.Show(this, exception.Message, "ExecuteScript Exception Message");
+                    MessageBox.Show(this, exception.ToJson, "ExecuteScript Exception Detail");
+                    var location_info = "LineNumber:" + exception.LineNumber + ", ColumnNumber:" + exception.ColumnNumber;
+                    MessageBox.Show(this, location_info, "ExecuteScript Exception Location");
+                }
+            }
+            // </ExecuteScriptWithResult>
+        }
+
+        string NameOfPermissionKind(CoreWebView2PermissionKind kind)
+        {
+            switch (kind)
+            {
+                case CoreWebView2PermissionKind.Microphone:
+                    return "Microphone";
+                case CoreWebView2PermissionKind.Camera:
+                    return "Camera";
+                case CoreWebView2PermissionKind.Geolocation:
+                    return "Geolocation";
+                case CoreWebView2PermissionKind.Notifications:
+                    return "Notifications";
+                case CoreWebView2PermissionKind.OtherSensors:
+                    return "OtherSensors";
+                case CoreWebView2PermissionKind.ClipboardRead:
+                    return "ClipboardRead";
+                default:
+                    return "Unknown";
+            }
+        }
+
+        // <OnPermissionRequested>
+        void WebView_PermissionRequested(object sender, CoreWebView2PermissionRequestedEventArgs args)
+        {
+            CoreWebView2Deferral deferral = args.GetDeferral();
+
+            System.Threading.SynchronizationContext.Current.Post((_) =>
+            {
+                using (deferral)
+                {
+                    (string, CoreWebView2PermissionKind, bool) cachedKey = (args.Uri, args.PermissionKind, args.IsUserInitiated);
+                    if (_cachedPermissions.ContainsKey(cachedKey))
+                    {
+                        args.State = _cachedPermissions[cachedKey]
+                            ? CoreWebView2PermissionState.Allow
+                            : CoreWebView2PermissionState.Deny;
+                    }
+                    else
+                    {
+                        string message = "An iframe has requested device permission for ";
+                        message += NameOfPermissionKind(args.PermissionKind) + " to the website at ";
+                        message += args.Uri + ".\n\nDo you want to grant permission?\n";
+                        message += args.IsUserInitiated ? "This request came from a user gesture." : "This request did not come from a user gesture.";
+                        var selection = MessageBox.Show(
+                            message, "Permission Request", MessageBoxButton.YesNoCancel);
+                        switch (selection)
+                        {
+                            case MessageBoxResult.Yes:
+                                args.State = CoreWebView2PermissionState.Allow;
+                                break;
+                            case MessageBoxResult.No:
+                                args.State = CoreWebView2PermissionState.Deny;
+                                break;
+                            case MessageBoxResult.Cancel:
+                                args.State = CoreWebView2PermissionState.Default;
+                                break;
+                        }
+                    }
+                }
+            }, null);
+        }
+        // </OnPermissionRequested>
     }
 }

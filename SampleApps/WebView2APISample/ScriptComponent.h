@@ -47,8 +47,8 @@ private:
     void SendJsonWebMessageIFrame();
 
     void AddSiteEmbeddingIFrame();
+    void ExecuteScriptWithResult();
     ~ScriptComponent() override;
-
     void HandleIFrames();
     std::wstring IFramesToString();
     std::vector<wil::com_ptr<ICoreWebView2Frame>> m_frames;
