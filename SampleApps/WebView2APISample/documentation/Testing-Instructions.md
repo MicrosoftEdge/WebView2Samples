@@ -15,6 +15,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Exit](#Exit)
   * [Script](#Script)
     * [Inject Script](#Inject-Script)
+    * [Inject Script With Result](#Inject-Script-With-Result)
     * [Post Message String](#Post-Message-String)
     * [Post Message JSON](#Post-Message-JSON)
     * [Add Initialize Script](#addremove-initialize-script)
@@ -172,6 +173,23 @@ Test that prompts the user for some script to run in the WebView
 8. Click `OK` inside the Confirm Box
 9. Expected: dialog closed
 10. Expected: ExecuteScript Result popup that says `true`
+11. Click OK inside the popup dialog
+12. Expected: dialog closed
+
+#### Inject Script With Result
+
+Test that prompts the user for some script to run in the WebView, and get the error reason when the execution fails
+
+1. Launch the sample app.
+2. Go to `Script -> Inject Script With Result`
+3. Expected: Text Input Dialog that prompts the user for JavaScript code to execute in the current top level document rendered in the WebView
+4. Click `Cancel`
+5. Repeat steps 2-3
+6. Type `"abc"` in the text input box and click `OK`
+7. Expected: ExecuteScriptWithResult Json Result popup that says `"abc"`
+8. Click OK inside the popup dialog
+9. Expected: dialog closed
+10. Expected: ExecuteScriptWithResult String Result popup that says `abc`
 11. Click OK inside the popup dialog
 12. Expected: dialog closed
 
