@@ -171,7 +171,7 @@ namespace WebView2WpfBrowser
             InitializeComponent();
             AttachControlEventHandlers(webView);
             // Set background transparent
-            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            //webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         void AttachControlEventHandlers(WebView2 control)
