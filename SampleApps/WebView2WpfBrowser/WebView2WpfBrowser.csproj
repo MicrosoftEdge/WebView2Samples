@@ -40,6 +40,21 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="assets\hostObject.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\sharedBuffer.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\webMessages.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1466-prerelease" />
 	<PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
