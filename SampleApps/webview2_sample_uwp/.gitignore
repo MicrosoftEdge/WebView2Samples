@@ -1,6 +1,8 @@
 bin/
 .vs/
 obj/
+*/Generated Files/
+
 # Created by running event monitor
 enc_temp_folder/
 packages/
@@ -8,6 +10,9 @@ packages/
 # Override root .gitignore to ensure we pick up changes for the sample app
 !*.sln
 !*.csproj
+!*.vcxproj
+!*.vcxproj.filters
+!*.props
 
 # Make sure script debug config is checked in for vendor testing
 !.vscode

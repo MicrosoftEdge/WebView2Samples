@@ -1,0 +1,30 @@
+﻿<!DOCTYPE html>
+<!--Copyright (C) Microsoft Corporation. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.-->
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Popups and Dialogs</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        function getElementBoundingClientRect(id) {
+            return document.getElementById(id).getBoundingClientRect().toJSON();
+        }
+
+        function showFileUploadDialog() {
+            document.getElementById("FileInput").click();
+        }
+    </script>
+</head>
+<body class="power_of_native_bg">
+    <h2 id="header" class="page_header">Popups and Dialogs</h2>
+
+    <div>
+        <a id="StatusBarLink" href="#header">Status Bar Link</a>
+    </div>
+
+    <input id="FileInput" type="file" style="display:none">
+</body>
+</html>
