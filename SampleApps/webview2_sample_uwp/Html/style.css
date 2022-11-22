@@ -1,0 +1,63 @@
+﻿html
+{
+    margin: 0;
+    height: 100%;
+}
+
+body
+{
+    font-family: Segoe UI,SegoeUI,Helvetica Neue,Helvetica,Arial,sans-serif;
+    color: rgb(23, 23, 23);
+    margin: 0px;
+    padding: 23px;
+}
+
+.page_header
+{
+    margin: 0px 0px 0.5em 0px;
+    padding: 0px;
+}
+
+.section_header
+{
+    font-weight: bold;
+}
+
+.webviewhero_bg
+{
+    background-position: right bottom;
+    background-color: rgb(194, 194, 194);
+    background-image: url("webview-hero.svg");
+    background-repeat: no-repeat;
+}
+
+.bestoftheweb_bg
+{
+    background-position: right bottom;
+    background-color: rgb(194, 194, 194);
+    background-image: url("best-of-the-web.svg");
+    background-repeat: no-repeat;
+}
+
+.always_up_to_date_bg
+{
+    background-position: right bottom;
+    background-color: rgb(194, 194, 194);
+    background-image: url("always-up-to-date.svg");
+    background-repeat: no-repeat;
+}
+
+.power_of_native_bg
+{
+    background-position: right bottom;
+    background-color: rgb(194, 194, 194);
+    background-image: url("power-of-native.svg");
+    background-repeat: no-repeat;
+}
+
+textarea
+{
+    width: 30em;
+    height: 15em;
+    resize: none;
+}

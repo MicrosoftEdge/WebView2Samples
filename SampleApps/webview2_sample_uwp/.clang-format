@@ -1,0 +1,22 @@
+# Defines the coding style to apply. See:
+# <http://clang.llvm.org/docs/ClangFormatStyleOptions.html>
+Language:        Cpp
+BasedOnStyle:  LLVM
+AccessModifierOffset: -4
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: false
+AlignAfterOpenBracket: AlwaysBreak
+AlwaysBreakAfterReturnType: None
+BreakBeforeBraces: Allman
+ColumnLimit:     96
+DerivePointerAlignment: false
+IndentWidth:     4
+PointerAlignment: Left
+PenaltyReturnTypeOnItsOwnLine: 1000
+TabWidth:        4
+UseTab:          Never
+...
+

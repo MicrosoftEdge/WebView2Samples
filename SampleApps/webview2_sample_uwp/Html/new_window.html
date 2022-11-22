@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<!--Copyright (C) Microsoft Corporation. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.-->
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>New Window</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        function OpenWindow(button) {
+            var url = button.getAttribute("data-url");
+            window.open(url, "_blank");
+        }
+    </script>
+</head>
+<body class="always_up_to_date_bg">
+<h2 id="header" class="page_header">New Window</h2>
+<div><button onclick="OpenWindow(this)" data-url="https://www.bing.com">Open Bing</button></div>
+<div><button onclick="OpenWindow(this)" data-url="https://developer.microsoft.com/en-us/microsoft-edge/webview2/">Open WebView2</button></div>
+<div><button onclick="OpenWindow(this)" data-url="https://www.microsoft.com/">Open Microsoft</button></div>
+</body>
+</html>

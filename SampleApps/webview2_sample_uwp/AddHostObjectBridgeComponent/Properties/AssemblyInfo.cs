@@ -5,8 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
+[assembly: AssemblyTitle("AddHostObjectBridgeComponent")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyProduct("webview2_sample_uwp")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("AddHostObjectBridgeComponent")]
+[assembly: AssemblyCopyright("Copyright ©  2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -23,7 +27,3 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 [assembly: ComVisible(false)]
-[assembly: AssemblyTitleAttribute("webview2_sample_uwp")]
-[assembly: AssemblyDescriptionAttribute("A WebView2 WinUI2 UWP test application")]
-[assembly: AssemblyCompanyAttribute("Microsoft")]
-[assembly: AssemblyCopyrightAttribute("Copyright © Microsoft Inc. 2021")]

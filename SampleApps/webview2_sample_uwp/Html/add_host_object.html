@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<!--Copyright (C) Microsoft Corporation. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.-->
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Add Host Object</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+        function Initialize() {
+            chrome.webview.hostObjects.options.defaultSyncProxy = true;
+
+            bridgeInstance = chrome.webview.hostObjects.sync.BridgeInstance;
+            bridgeInstance.addEventListener("itemsChangedEvent", UpdateItemsListView);
+
+            document.getElementById("StringPropertySpan").innerHTML = bridgeInstance.stringProperty;
+        }
+
+        function AddToList(button) {
+            let text = button.innerHTML;
+            bridgeInstance.async().appendToItems(text);
+        }
+
+        function ClearList() {
+            bridgeInstance.async().clearItems();
+        }
+
+        function UpdateItemsListView(items) {
+            let value = "";
+            let i = 0;
+            let item = items[i];
+
+            // There is a bug when passing IList as an argument
+            // of an event handler. Test for the type as a workaround.
+            while (typeof(item) === 'string') {
+                value += item + "\n";
+                item = items[++i];
+            }
+
+            document.getElementById("ItemsList").value = value;
+        }
+
+        document.addEventListener("DOMContentLoaded", Initialize);
+    </script>
+</head>
+<body class="bestoftheweb_bg">
+<h2 id="header" class="page_header">Add Host Object</h2>
+
+<div class="section_header">Items</div>
+<textarea id="ItemsList" readonly placeholder="Add items to this list by clicking the buttons below."></textarea>
+<div>
+    <button onclick="AddToList(this)">Lions</button>
+    <button onclick="AddToList(this)">Tigers</button>
+    <button onclick="AddToList(this)">Bears</button>
+</div>
+<div>
+    <button onclick="ClearList()">Clear List</button>
+</div>
+<div>
+<br />
+<label>String Property:&nbsp;</label><span id="StringPropertySpan"></span>
+</div>
+</body>
+</html>
