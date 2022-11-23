@@ -19,8 +19,6 @@ namespace WebView2_UWP.Pages
         {
             this.InitializeComponent();
 
-            this.InitializeComponent();
-
             WebView2.CoreWebView2Initialized += WebView2_CoreWebView2Initialized;
             WebView2.Source = new Uri("http://appassets.html.example/popups_and_dialogs.html");
         }
