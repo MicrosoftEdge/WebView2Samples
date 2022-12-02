@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,11 +31,34 @@ namespace WebView2WinAppSDKSample
         public MainWindow()
         {
             this.InitializeComponent();
+            MyWebView.NavigationStarting += EnsureHttps;
+
+        }
+        private void EnsureHttps(WebView2 sender, CoreWebView2NavigationStartingEventArgs args)
+        {
+            String uri = args.Uri;
+            if (!uri.StartsWith("https://"))
+            {
+                MyWebView.ExecuteScriptAsync($"alert('{uri} is not safe, try an https link')");
+                args.Cancel = true;
+            }
+            else
+            {
+                addressBar.Text = uri;
+            }
         }
 
         private void myButton_Click(object sender, RoutedEventArgs e)
         {
-            //myButton.Content = "Clicked";
+            try
+            {
+                Uri targetUri = new Uri(addressBar.Text);
+                MyWebView.Source = targetUri;
+            }
+            catch (FormatException ex)
+            {
+                // Incorrect address entered.
+            }
         }
     }
 }

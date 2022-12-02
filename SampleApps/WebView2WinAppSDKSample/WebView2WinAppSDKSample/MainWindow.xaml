@@ -22,6 +22,9 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
+        <TextBox Name="addressBar" Grid.Column="0"/>
+        <Button x:Name="myButton" Grid.Column="1" Click="myButton_Click">Go</Button>
+        
         <controls:WebView2 x:Name="MyWebView"  Grid.Row="1" Grid.ColumnSpan="2"
         Source="https://www.microsoft.com" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
 
