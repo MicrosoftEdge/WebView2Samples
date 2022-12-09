@@ -79,8 +79,8 @@ ScenarioCustomScheme::ScenarioCustomScheme(AppWindow* appWindow) : m_appWindow(a
                         [](HRESULT error, PCWSTR result) -> HRESULT { return S_OK; })
                         .Get()));
                 // The following XHR will fail because *.example.com is not in the allowed
-                // origin list of custom-scheme2. The WebResourceRequested event will not be
-                // raised for this request.
+                // origin list of custom-scheme-not-in-allowed-origins. The WebResourceRequested
+                // event will not be raised for this request.
                 CHECK_FAILURE(m_appWindow->GetWebView()->ExecuteScript(
                     L"var oReq = new XMLHttpRequest();"
                     L"oReq.addEventListener(\"load\", reqListener);"

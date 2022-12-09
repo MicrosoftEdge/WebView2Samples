@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>ScenarioPermissionManagement</title>
+</head>
+<body>
+  <h1>Permission Manager</h1>
+  <h2>All Permissions</h2>
+  <ul id="permissionList"></ul>
+  <button onclick="setPermission()">Set Permission</button>
+  <script>
+    function clearList() {
+      let menu = document.getElementById('permissionList');
+      menu.innerHTML = '';
+    }
+    function createMenuItem(name) {
+      let li = document.createElement('li');
+      li.textContent = name;
+      return li;
+    }
+    function addItem(name) {
+      const menu = document.querySelector('#permissionList');
+      menu.appendChild(createMenuItem(name));
+    }
+
+    chrome.webview.addEventListener("message", args => {
+      if ("PermissionSetting" in args.data) {
+        addItem(args.data.PermissionSetting);
+      }
+    });
+    window.addEventListener("unload", (event) => {
+      clearList();
+    });
+    function setPermission() {
+      chrome.webview.postMessage("SetPermission");
+    }
+  </script>
+</body>
+</html>

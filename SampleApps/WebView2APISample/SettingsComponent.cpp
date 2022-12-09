@@ -7,8 +7,12 @@
 #include "SettingsComponent.h"
 
 #include "CheckFailure.h"
+#include "ScenarioPermissionManagement.h"
 #include "TextInputDialog.h"
+#include <windows.h>
+
 #include <gdiplus.h>
+#include <shellapi.h>
 #include <shlwapi.h>
 
 using namespace Microsoft::WRL;
@@ -305,7 +309,8 @@ SettingsComponent::SettingsComponent(
         // Registering a listener for status bar message changes
         CHECK_FAILURE(m_webView2_12->add_StatusBarTextChanged(
             Microsoft::WRL::Callback<ICoreWebView2StatusBarTextChangedEventHandler>(
-                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT
+                {
                     if (m_customStatusBar)
                     {
                         wil::unique_cotaskmem_string value;
@@ -364,7 +369,7 @@ HRESULT SettingsComponent::OnPermissionRequested(
         else
         {
             std::wstring message = L"An iframe has requested device permission for ";
-            message += SettingsComponent::NameOfPermissionKind(kind);
+            message += PermissionKindToString(kind);
             message += L" to the website at ";
             message += uri.get();
             message += L"?\n\n";
@@ -1034,6 +1039,18 @@ bool SettingsComponent::HandleWindowMessage(
                     .Get()));
             return true;
         }
+        case IDM_TRACKING_PREVENTION_LEVEL_NONE:
+            SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_NONE);
+            return true;
+        case IDM_TRACKING_PREVENTION_LEVEL_BASIC:
+            SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_BASIC);
+            return true;
+        case IDM_TRACKING_PREVENTION_LEVEL_BALANCED:
+            SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_BALANCED);
+            return true;
+        case IDM_TRACKING_PREVENTION_LEVEL_STRICT:
+            SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_STRICT);
+            return true;
         }
     }
     return false;
@@ -1462,26 +1479,28 @@ void SettingsComponent::ToggleCustomServerCertificateSupport()
 }
 //! [ServerCertificateErrorDetected1]
 
-PCWSTR SettingsComponent::NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind)
+//! [SetTrackingPreventionLevel]
+void SettingsComponent::SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL value)
 {
-    switch (kind)
+    wil::com_ptr<ICoreWebView2_13> webView2_13;
+    webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+
+    if (webView2_13)
     {
-    case COREWEBVIEW2_PERMISSION_KIND_MICROPHONE:
-        return L"Microphone";
-    case COREWEBVIEW2_PERMISSION_KIND_CAMERA:
-        return L"Camera";
-    case COREWEBVIEW2_PERMISSION_KIND_GEOLOCATION:
-        return L"Geolocation";
-    case COREWEBVIEW2_PERMISSION_KIND_NOTIFICATIONS:
-        return L"Notifications";
-    case COREWEBVIEW2_PERMISSION_KIND_OTHER_SENSORS:
-        return L"Generic Sensors";
-    case COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ:
-        return L"Clipboard Read";
-    default:
-        return L"Unknown resources";
+        wil::com_ptr<ICoreWebView2Profile> profile;
+        CHECK_FAILURE(webView2_13->get_Profile(&profile));
+
+        auto profileExperimental5 = profile.try_query<ICoreWebView2ExperimentalProfile5>();
+        if (profileExperimental5)
+        {
+            CHECK_FAILURE(profileExperimental5->put_PreferredTrackingPreventionLevel(value));
+            MessageBox(
+                nullptr, L"Tracking prevention level is set successfully",
+                L"Tracking Prevention Level", MB_OK);
+        }
     }
 }
+//! [SetTrackingPreventionLevel]
 
 SettingsComponent::~SettingsComponent()
 {

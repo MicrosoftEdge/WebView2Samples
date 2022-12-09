@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -398,6 +398,7 @@
     <ClInclude Include="DpiUtil.h" />
     <ClInclude Include="DropTarget.h" />
     <ClInclude Include="FileComponent.h" />
+    <ClInclude Include="PermissionDialog.h" />
     <ClInclude Include="ProcessComponent.h" />
     <ClInclude Include="HostObjectSampleImpl.h" />
     <ClInclude Include="resource.h" />
@@ -412,6 +413,7 @@
     <ClInclude Include="ScenarioExtensionsManagement.h" />
     <ClInclude Include="ScenarioIFrameDevicePermission.h" />
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
+    <ClInclude Include="ScenarioPermissionManagement.h" />
     <ClInclude Include="ScenarioSharedBuffer.h" />
     <ClInclude Include="ScenarioSharedWorkerWRR.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h" />
@@ -439,6 +441,7 @@
     <ClCompile Include="DpiUtil.cpp" />
     <ClCompile Include="DropTarget.cpp" />
     <ClCompile Include="FileComponent.cpp" />
+    <ClCompile Include="PermissionDialog.cpp" />
     <ClCompile Include="ProcessComponent.cpp" />
     <ClCompile Include="HostObjectSampleImpl.cpp" />
     <ClCompile Include="ScenarioAddHostObject.cpp" />
@@ -452,6 +455,7 @@
     <ClCompile Include="ScenarioExtensionsManagement.cpp" />
     <ClCompile Include="ScenarioIFrameDevicePermission.cpp" />
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
+    <ClCompile Include="ScenarioPermissionManagement.cpp" />
     <ClCompile Include="ScenarioSharedBuffer.cpp" />
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp" />
@@ -507,6 +511,9 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermissionIFrameNested.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioPermissionManagement.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioSharedBuffer.html">

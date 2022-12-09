@@ -8,7 +8,7 @@
 
 #include "AppWindow.h"
 #include "CheckFailure.h"
-#include "SettingsComponent.h"
+#include "ScenarioPermissionManagement.h"
 
 using namespace Microsoft::WRL;
 
@@ -108,7 +108,7 @@ HRESULT ScenarioIFrameDevicePermission::OnPermissionRequested(
         else
         {
             std::wstring message = L"An iframe has requested device permission for ";
-            message += SettingsComponent::NameOfPermissionKind(kind);
+            message += PermissionKindToString(kind);
             message += L" to the website at ";
             message += uri.get();
             message += L"?\n\n";

@@ -36,17 +36,19 @@ struct WebViewCreateOption
     std::wstring profile;
     bool isInPrivate = false;
     std::wstring downloadPath;
-
+    std::wstring localeRegion;
     // This value is inherited from the operated AppWindow
     WebViewCreateEntry entry = WebViewCreateEntry::OTHER;
+    bool useOSRegion = false;
     WebViewCreateOption()
     {
     }
 
-    WebViewCreateOption(const std::wstring& profile_, bool inPrivate,
-        const std::wstring& downloadPath, WebViewCreateEntry entry_)
-        : profile(profile_), isInPrivate(inPrivate),
-          downloadPath(downloadPath), entry(entry_)
+    WebViewCreateOption(
+        const std::wstring& profile_, bool inPrivate, const std::wstring& downloadPath,
+        const std::wstring& localeRegion_, WebViewCreateEntry entry_, bool useOSRegion_)
+        : profile(profile_), isInPrivate(inPrivate), downloadPath(downloadPath),
+          localeRegion(localeRegion_), entry(entry_), useOSRegion(useOSRegion_)
     {
     }
 
@@ -55,7 +57,9 @@ struct WebViewCreateOption
         profile = opt.profile;
         isInPrivate = opt.isInPrivate;
         downloadPath = opt.downloadPath;
+        localeRegion = opt.localeRegion;
         entry = opt.entry;
+        useOSRegion = opt.useOSRegion;
     }
 
     void PopupDialog(AppWindow* app);
@@ -214,6 +218,7 @@ private:
     std::wstring GetPrinterName();
     SamplePrintSettings GetSelectedPrinterPrintSettings(std::wstring printerName);
     bool PrintToPdfStream();
+    void ToggleTrackingPrevention();
 
     std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
@@ -256,6 +261,7 @@ private:
     std::unique_ptr<SettingsComponent> m_oldSettingsComponent;
 
     std::wstring m_language;
+    std::wstring m_region;
 
     // app title, initialized in constructor
     std::wstring m_appTitle;
@@ -267,7 +273,7 @@ private:
     bool m_ExclusiveUserDataFolderAccess = false;
 
     bool m_CustomCrashReportingEnabled = false;
-
+    bool m_TrackingPreventionEnabled = true;
     // Fullscreen related code
     RECT m_previousWindowRect;
     HMENU m_hMenu;

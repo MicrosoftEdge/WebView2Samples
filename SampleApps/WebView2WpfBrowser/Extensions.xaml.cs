@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -42,7 +43,9 @@ namespace WebView2WpfBrowser
 
         private async System.Threading.Tasks.Task FillViewAsync()
         {
+            await Task.CompletedTask;
         }
+
         private void ExtensionsToggleEnabled(object sender, RoutedEventArgs e)
         {
             _ = ExtensionsToggleEnabledAsync(sender, e);
@@ -59,7 +62,9 @@ namespace WebView2WpfBrowser
 
         private async System.Threading.Tasks.Task ExtensionsAddAsync(object sender, RoutedEventArgs e)
         {
+            await Task.CompletedTask;
         }
+
         private void ExtensionsRemove(object sender, RoutedEventArgs e)
         {
             _ = ExtensionsRemoveAsync(sender, e);

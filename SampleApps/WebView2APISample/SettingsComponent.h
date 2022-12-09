@@ -39,8 +39,7 @@ public:
     void SetUserAgent(const std::wstring& userAgent);
     void EnableCustomClientCertificateSelection();
     void ToggleCustomServerCertificateSupport();
-
-    static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
+    void SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL value);
 
     ~SettingsComponent() override;
 
@@ -67,7 +66,6 @@ private:
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2Experimental5> m_webViewExperimental5;
     wil::com_ptr<ICoreWebView2ContextMenuItem> m_displayPageUrlContextSubMenuItem;
-
     bool m_blockImages = false;
     bool m_replaceImages = false;
     bool m_changeUserAgent = false;
