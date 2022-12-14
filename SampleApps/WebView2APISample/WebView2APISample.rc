@@ -91,6 +91,7 @@ BEGIN
         MENUITEM "Toggle AAD SSO enabled",                     IDM_TOGGLE_AAD_SSO
         MENUITEM "Toggle exclusive user data folder access",   IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS
         MENUITEM "Toggle Custom Crash Reporting"       IDM_TOGGLE_CUSTOM_CRASH_REPORTING
+        MENUITEM "Toggle Tracking Prevention Disabled",   IDM_TOGGLE_TRACKING_PREVENTION
         MENUITEM "Close WebView",                              IDM_CLOSE_WEBVIEW
         MENUITEM "Close WebView and Delete User Data Folder", IDM_CLOSE_WEBVIEW_CLEANUP
         MENUITEM SEPARATOR
@@ -148,6 +149,14 @@ BEGIN
         MENUITEM "Toggle Swipe navigation Enabled",   ID_SETTINGS_SWIPE_NAVIGATION_ENABLED
         MENUITEM "Toggle Web Messaging",        IDM_TOGGLE_WEB_MESSAGING
         MENUITEM "Toggle Zoom Control Enabled",   ID_SETTINGS_ZOOM_ENABLED
+        POPUP "Tracking Prevention Level"
+        BEGIN
+            MENUITEM "None", IDM_TRACKING_PREVENTION_LEVEL_NONE
+            MENUITEM "Basic", IDM_TRACKING_PREVENTION_LEVEL_BASIC
+            MENUITEM "Balanced", IDM_TRACKING_PREVENTION_LEVEL_BALANCED
+            MENUITEM "Strict", IDM_TRACKING_PREVENTION_LEVEL_STRICT
+        END
+
     END
     POPUP "&View"
     BEGIN
@@ -343,9 +352,13 @@ BEGIN
     EDITTEXT        IDC_EDIT_PROFILE,62,18,96,18,ES_AUTOHSCROLL
     LTEXT           "Download path:",IDC_STATIC,25,40,36,18
     EDITTEXT        IDC_EDIT_DOWNLOAD_PATH,62,42,96,18,ES_AUTOHSCROLL
-    CONTROL         "  InPrivate",IDC_CHECK_INPRIVATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,61,74,16
+    CONTROL         "  InPrivate",IDC_CHECK_INPRIVATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,84,74,16
     LTEXT           "Only allow alphabet characters (a-z, A-Z), digit characters (0-9) and '#', '@', '$', '(', ')', '+', '-', '_', '~', '.', ' ' (space).",IDC_STATIC,160,14,138,37
+    LTEXT           "Locale Region:",IDC_STATIC,25,61,36,18
+    EDITTEXT        IDC_EDIT_LOCALE,62,63,96,18,ES_AUTOHSCROLL
+    CONTROL         "  UseOSRegion",IDC_CHECK_USE_OS_REGION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,106,74,16
 END
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // DESIGNINFO

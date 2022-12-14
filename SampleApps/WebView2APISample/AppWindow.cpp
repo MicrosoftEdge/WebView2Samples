@@ -48,7 +48,6 @@
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
-
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -116,9 +115,11 @@ static INT_PTR CALLBACK DlgProcStatic(HWND hDlg, UINT message, WPARAM wParam, LP
         SetWindowLongPtr(hDlg, GWLP_USERDATA, (LONG_PTR)app);
 
         SetDlgItemText(hDlg, IDC_EDIT_PROFILE, app->GetWebViewOption().profile.c_str());
-        SetDlgItemText(hDlg, IDC_EDIT_DOWNLOAD_PATH,
-            app->GetWebViewOption().downloadPath.c_str());
+        SetDlgItemText(
+            hDlg, IDC_EDIT_DOWNLOAD_PATH, app->GetWebViewOption().downloadPath.c_str());
+        SetDlgItemText(hDlg, IDC_EDIT_LOCALE, app->GetWebViewOption().localeRegion.c_str());
         CheckDlgButton(hDlg, IDC_CHECK_INPRIVATE, app->GetWebViewOption().isInPrivate);
+
         return (INT_PTR)TRUE;
     }
     case WM_COMMAND:
@@ -136,9 +137,16 @@ static INT_PTR CALLBACK DlgProcStatic(HWND hDlg, UINT message, WPARAM wParam, LP
             GetDlgItemText(hDlg, IDC_EDIT_DOWNLOAD_PATH, downloadPath,
                 downloadPathLength + 1);
 
-            WebViewCreateOption opt(std::wstring(std::move(text)), inPrivate,
-                std::wstring(std::move(downloadPath)),
-                WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU);
+            int localeRegionLength = GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT_LOCALE));
+            wchar_t localeRegion[MAX_PATH] = {};
+            GetDlgItemText(hDlg, IDC_EDIT_LOCALE, localeRegion, localeRegionLength + 1);
+
+            bool useOsRegion = IsDlgButtonChecked(hDlg, IDC_CHECK_USE_OS_REGION);
+
+            WebViewCreateOption opt(
+                std::wstring(std::move(text)), inPrivate, std::wstring(std::move(downloadPath)),
+                std::wstring(std::move(localeRegion)),
+                WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU, useOsRegion);
 
             // create app window
             new AppWindow(app->GetCreationModeId(), opt);
@@ -236,7 +244,6 @@ AppWindow::AppWindow(
     UpdateCreationModeMenu();
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
-
     // If no WebView2 Runtime installed, create new thread to do install/download.
     // Otherwise just initialize webview.
     wil::unique_cotaskmem_string version_info;
@@ -259,7 +266,6 @@ AppWindow::AppWindow(
         }
     }
 }
-
 AppWindow::~AppWindow()
 {
     DeleteObject(m_appBackgroundImageHandle);
@@ -463,25 +469,21 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_GET_USER_DATA_FOLDER:
     {
         //! [GetUserDataFolder]
-        auto environment7 =
-            m_webViewEnvironment.try_query<ICoreWebView2Environment7>();
+        auto environment7 = m_webViewEnvironment.try_query<ICoreWebView2Environment7>();
         CHECK_FEATURE_RETURN(environment7);
         wil::unique_cotaskmem_string userDataFolder;
         environment7->get_UserDataFolder(&userDataFolder);
-        MessageBox(
-            m_mainWindow, userDataFolder.get(), L"User Data Folder",
-            MB_OK);
+        MessageBox(m_mainWindow, userDataFolder.get(), L"User Data Folder", MB_OK);
         //! [GetUserDataFolder]
         return true;
     }
     case IDM_GET_FAILURE_REPORT_FOLDER:
     {
         //! [GetFailureReportFolder]
-        auto experimental_environment =
-            m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment>();
-        CHECK_FEATURE_RETURN(experimental_environment);
+        auto environment11 = m_webViewEnvironment.try_query<ICoreWebView2Environment11>();
+        CHECK_FEATURE_RETURN(environment11);
         wil::unique_cotaskmem_string failureReportFolder;
-        experimental_environment->get_FailureReportFolderPath(&failureReportFolder);
+        environment11->get_FailureReportFolderPath(&failureReportFolder);
         MessageBox(m_mainWindow, failureReportFolder.get(), L"Failure Report Folder", MB_OK);
         //! [GetFailureReportFolder]
         return true;
@@ -735,6 +737,9 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_TOGGLE_CUSTOM_CRASH_REPORTING:
         ToggleCustomCrashReporting();
         return true;
+    case IDM_TOGGLE_TRACKING_PREVENTION:
+        ToggleTrackingPrevention();
+        return true;
     case IDM_SCENARIO_CLEAR_BROWSING_DATA_COOKIES:
     {
         return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_COOKIES);
@@ -849,15 +854,27 @@ void AppWindow::ToggleCustomCrashReporting()
         L"Custom Crash Reporting", MB_OK);
 }
 
+void AppWindow::ToggleTrackingPrevention()
+{
+    m_TrackingPreventionEnabled = !m_TrackingPreventionEnabled;
+    MessageBox(
+        nullptr,
+        m_TrackingPreventionEnabled ? L"Tracking prevention will be enabled for new WebView "
+                                      L"created after all webviews are closed."
+                                    : L"Tracking prevention will be disabled for new WebView "
+                                      L"created after all webviews are closed.",
+        L"Tracking Prevention", MB_OK);
+}
+
 //! [ShowPrintUI]
 // Shows the user a print dialog. If `printDialogKind` is
 // COREWEBVIEW2_PRINT_DIALOG_KIND_BROWSER, opens a browser print preview dialog,
 // COREWEBVIEW2_PRINT_DIALOG_KIND_SYSTEM opens a system print dialog.
 bool AppWindow::ShowPrintUI(COREWEBVIEW2_PRINT_DIALOG_KIND printDialogKind)
 {
-    auto webView2Experimental17 = m_webView.try_query<ICoreWebView2Experimental17>();
-    CHECK_FEATURE_RETURN(webView2Experimental17);
-    CHECK_FAILURE(webView2Experimental17->ShowPrintUI(printDialogKind));
+    auto webView2_16 = m_webView.try_query<ICoreWebView2_16>();
+    CHECK_FEATURE_RETURN(webView2_16);
+    CHECK_FAILURE(webView2_16->ShowPrintUI(printDialogKind));
     return true;
 }
 //! [ShowPrintUI]
@@ -866,16 +883,16 @@ bool AppWindow::ShowPrintUI(COREWEBVIEW2_PRINT_DIALOG_KIND printDialogKind)
 // with the default print settings.
 bool AppWindow::PrintToDefaultPrinter()
 {
-    wil::com_ptr<ICoreWebView2Experimental17> webView2Experimental17;
-    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webView2Experimental17)));
+    wil::com_ptr<ICoreWebView2_16> webView2_16;
+    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webView2_16)));
 
     wil::unique_cotaskmem_string title;
     CHECK_FAILURE(m_webView->get_DocumentTitle(&title));
 
     // Passing nullptr for `ICoreWebView2PrintSettings` results in default print settings used.
     // Prints current web page with the default page and printer settings.
-    CHECK_FAILURE(webView2Experimental17->Print(
-        nullptr, Callback<ICoreWebView2ExperimentalPrintCompletedHandler>(
+    CHECK_FAILURE(webView2_16->Print(
+        nullptr, Callback<ICoreWebView2PrintCompletedHandler>(
                      [title = std::move(title),
                       this](HRESULT errorCode, COREWEBVIEW2_PRINT_STATUS printStatus) -> HRESULT
                      {
@@ -962,8 +979,8 @@ bool AppWindow::PrintToPrinter()
     // Host apps custom print settings based on the user selection.
     SamplePrintSettings samplePrintSettings = GetSelectedPrinterPrintSettings(printerName);
 
-    wil::com_ptr<ICoreWebView2Experimental17> webView2Experimental17;
-    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webView2Experimental17)));
+    wil::com_ptr<ICoreWebView2_16> webView2_16;
+    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webView2_16)));
 
     wil::com_ptr<ICoreWebView2Environment6> webviewEnvironment6;
     CHECK_FAILURE(m_webViewEnvironment->QueryInterface(IID_PPV_ARGS(&webviewEnvironment6)));
@@ -971,7 +988,7 @@ bool AppWindow::PrintToPrinter()
     wil::com_ptr<ICoreWebView2PrintSettings> printSettings;
     CHECK_FAILURE(webviewEnvironment6->CreatePrintSettings(&printSettings));
 
-    wil::com_ptr<ICoreWebView2ExperimentalPrintSettings2> printSettings2;
+    wil::com_ptr<ICoreWebView2PrintSettings2> printSettings2;
     CHECK_FAILURE(printSettings->QueryInterface(IID_PPV_ARGS(&printSettings2)));
 
     CHECK_FAILURE(printSettings->put_Orientation(samplePrintSettings.Orientation));
@@ -1000,9 +1017,9 @@ bool AppWindow::PrintToPrinter()
     wil::unique_cotaskmem_string title;
     CHECK_FAILURE(m_webView->get_DocumentTitle(&title));
 
-    CHECK_FAILURE(webView2Experimental17->Print(
+    CHECK_FAILURE(webView2_16->Print(
         printSettings.get(),
-        Callback<ICoreWebView2ExperimentalPrintCompletedHandler>(
+        Callback<ICoreWebView2PrintCompletedHandler>(
             [title = std::move(title),
              this](HRESULT errorCode, COREWEBVIEW2_PRINT_STATUS printStatus) -> HRESULT
             {
@@ -1053,16 +1070,16 @@ static void DisplayPdfDataInPrintDialog(IStream* pdfData)
 // This example prints the Pdf data of the current page to a stream.
 bool AppWindow::PrintToPdfStream()
 {
-    wil::com_ptr<ICoreWebView2Experimental17> webView2Experimental17;
-    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webView2Experimental17)));
+    wil::com_ptr<ICoreWebView2_16> webView2_16;
+    CHECK_FAILURE(m_webView->QueryInterface(IID_PPV_ARGS(&webView2_16)));
 
     wil::unique_cotaskmem_string title;
     CHECK_FAILURE(m_webView->get_DocumentTitle(&title));
 
     // Passing nullptr for `ICoreWebView2PrintSettings` results in default print settings used.
-    CHECK_FAILURE(webView2Experimental17->PrintToPdfStream(
+    CHECK_FAILURE(webView2_16->PrintToPdfStream(
         nullptr,
-        Callback<ICoreWebView2ExperimentalPrintToPdfStreamCompletedHandler>(
+        Callback<ICoreWebView2PrintToPdfStreamCompletedHandler>(
             [title = std::move(title), this](HRESULT errorCode, IStream* pdfData) -> HRESULT
             {
                 DisplayPdfDataInPrintDialog(pdfData);
@@ -1184,6 +1201,8 @@ void AppWindow::InitializeWebView()
         m_ExclusiveUserDataFolderAccess ? TRUE : FALSE));
     if (!m_language.empty())
         CHECK_FAILURE(options->put_Language(m_language.c_str()));
+    CHECK_FAILURE(options->put_IsCustomCrashReportingEnabled(
+        m_CustomCrashReportingEnabled ? TRUE : FALSE));
 
     //! [CoreWebView2CustomSchemeRegistration]
     Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions> optionsExperimental;
@@ -1198,6 +1217,7 @@ void AppWindow::InitializeWebView()
             Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(L"wv2rocks");
         customSchemeRegistration2->put_TreatAsSecure(TRUE);
         customSchemeRegistration2->SetAllowedOrigins(1, allowedOrigins);
+        customSchemeRegistration2->put_HasAuthorityComponent(TRUE);
         auto customSchemeRegistration3 =
             Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(
                 L"custom-scheme-not-in-allowed-origins");
@@ -1212,8 +1232,8 @@ void AppWindow::InitializeWebView()
     Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions2> optionsExperimental2;
     if (options.As(&optionsExperimental2) == S_OK)
     {
-        CHECK_FAILURE(optionsExperimental2->put_IsCustomCrashReportingEnabled(
-            m_CustomCrashReportingEnabled ? TRUE : FALSE));
+        CHECK_FAILURE(optionsExperimental2->put_EnableTrackingPrevention(
+            m_TrackingPreventionEnabled ? TRUE : FALSE));
     }
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
@@ -1334,6 +1354,28 @@ HRESULT AppWindow::CreateControllerWithOptions()
     // immediately. ProfileName could be reused.
     CHECK_FAILURE(options->put_ProfileName(m_webviewOption.profile.c_str()));
     CHECK_FAILURE(options->put_IsInPrivateModeEnabled(m_webviewOption.isInPrivate));
+
+    //! [RegionLocaleSetting]
+    wil::com_ptr<ICoreWebView2ExperimentalControllerOptions>
+        webView2ExperimentalControllerOptions;
+    if (SUCCEEDED(
+            options->QueryInterface(IID_PPV_ARGS(&webView2ExperimentalControllerOptions))))
+    {
+        if (m_webviewOption.useOSRegion)
+        {
+            int languageCodeSize =
+                GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, nullptr, 0);
+            WCHAR* osLocale = new WCHAR[languageCodeSize];
+            GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, osLocale, languageCodeSize);
+            CHECK_FAILURE(webView2ExperimentalControllerOptions->put_LocaleRegion(osLocale));
+        }
+        else if (!m_webviewOption.localeRegion.empty())
+        {
+            CHECK_FAILURE(webView2ExperimentalControllerOptions->put_LocaleRegion(
+                m_webviewOption.localeRegion.c_str()));
+        }
+    }
+    //! [RegionLocaleSetting]
 
 #ifdef USE_WEBVIEW2_WIN10
     if (m_dcompDevice || m_wincompCompositor)
@@ -1466,7 +1508,6 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
                 COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY_CORS);
             //! [AddVirtualHostNameToFolderMapping]
         }
-
         // We have a few of our own event handlers to register here as well
         RegisterEventHandlers();
 

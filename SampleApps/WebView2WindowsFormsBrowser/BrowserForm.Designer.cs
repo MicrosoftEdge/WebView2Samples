@@ -42,6 +42,10 @@ namespace WebView2WindowsFormsBrowser
             this.btnGo = new System.Windows.Forms.Button();
             this.txtUrl = new System.Windows.Forms.TextBox();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.windowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeWebViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.createNewWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.createNewWindowWithOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.controlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.acceleratorKeysEnabledToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,7 +60,15 @@ namespace WebView2WindowsFormsBrowser
             this.whiteBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.transparentBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.allowExternalDropMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.webViewLogoBitmap = new System.Drawing.Bitmap(@"assets\EdgeWebView2-80.jpg");
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.getDocumentTitleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.getUserDataFolderMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.printToPDFMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.portraitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.landscapeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toggleVisibilityMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.webViewLogoBitmap = new System.Drawing.Bitmap(@"assets\AppStartPageBackground.png");
             this.webView2Control = new Microsoft.Web.WebView2.WinForms.WebView2();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.webView2Control)).BeginInit();
@@ -104,18 +116,18 @@ namespace WebView2WindowsFormsBrowser
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(150, 44);
             this.btnRefresh.TabIndex = 2;
-            this.btnRefresh.Text = "Refresh";
+            this.btnRefresh.Text = "Reload";
             this.btnRefresh.UseVisualStyleBackColor = true;
             this.btnRefresh.Click += new System.EventHandler(this.BtnRefresh_Click);
             //
             // btnStop
-            //
+            // 
             this.btnStop.Location = new System.Drawing.Point(510, 48);
             this.btnStop.Margin = new System.Windows.Forms.Padding(6);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(150, 44);
             this.btnStop.TabIndex = 3;
-            this.btnStop.Text = "Stop";
+            this.btnStop.Text = "Cancel";
             this.btnStop.UseVisualStyleBackColor = true;
             //
             // btnGo
@@ -142,6 +154,8 @@ namespace WebView2WindowsFormsBrowser
             //
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem,
+            this.windowToolStripMenuItem,
             this.controlToolStripMenuItem,
             this.viewToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
@@ -150,19 +164,99 @@ namespace WebView2WindowsFormsBrowser
             this.menuStrip1.TabIndex = 7;
             this.menuStrip1.Text = "menuStrip1";
             //
+            // fileToolStripMenuItem
+            //
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.printToPDFMenuItem,this.getDocumentTitleMenuItem,this.getUserDataFolderMenuItem,this.exitMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
+            this.fileToolStripMenuItem.Text = "File";
+            //
+            // getDocumentTitleMenuItem
+            //
+            this.getDocumentTitleMenuItem.Name = "getDocumentTitleMenuItem";
+            this.getDocumentTitleMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.getDocumentTitleMenuItem.Text = "Get Document Title";
+            this.getDocumentTitleMenuItem.Click += new System.EventHandler(this.getDocumentTitleMenuItem_Click);
+            //
+            // exitMenuItem
+            //
+            this.exitMenuItem.Name = "exitMenuItem";
+            this.exitMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.exitMenuItem.Text = "Exit";
+            this.exitMenuItem.Click += new System.EventHandler(this.exitMenuItem_Click);
+            //
+            // getUserDataFolderMenuItem
+            //
+            this.getUserDataFolderMenuItem.Name = "getUserDataFolderMenuItem";
+            this.getUserDataFolderMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.getUserDataFolderMenuItem.Text = "Get User Data Folder";
+            this.getUserDataFolderMenuItem.Click += new System.EventHandler(this.getUserDataFolderMenuItem_Click);
+            //
+            // printToPDFMenuItem
+            //
+            this.printToPDFMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.portraitMenuItem, this.landscapeMenuItem});
+            this.printToPDFMenuItem.Name = "printToPDFMenuItem";
+            this.printToPDFMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.printToPDFMenuItem.Text = "Print to PDF";
+            //
+            // portraitMenuItem
+            //
+            this.portraitMenuItem.Name = "portraitMenuItem";
+            this.portraitMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.portraitMenuItem.Text = "Portrait";
+            this.portraitMenuItem.Click += new System.EventHandler(this.portraitMenuItem_Click);
+            //
+            // landscapeMenuItem
+            //
+            this.landscapeMenuItem.Name = "landscapeMenuItem";
+            this.landscapeMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.landscapeMenuItem.Text = "Landscape";
+            this.landscapeMenuItem.Click += new System.EventHandler(this.landscapeMenuItem_Click);
+            //
+            // windowToolStripMenuItem
+            //
+            this.windowToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.closeWebViewToolStripMenuItem, this.createNewWindowToolStripMenuItem, this.createNewWindowWithOptionsToolStripMenuItem});
+            this.windowToolStripMenuItem.Name = "windowToolStripMenuItem";
+            this.windowToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
+            this.windowToolStripMenuItem.Text = "Window";
+            //
+            // closeWebViewToolStripMenuItem
+            //
+            this.closeWebViewToolStripMenuItem.Name = "closeWebViewToolStripMenuItem";
+            this.closeWebViewToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.closeWebViewToolStripMenuItem.Text = "Close WebView";
+            this.closeWebViewToolStripMenuItem.Click += new System.EventHandler(this.closeWebViewToolStripMenuItem_Click);
+            //
+            // createNewWindowToolStripMenuItem
+            //
+            this.createNewWindowToolStripMenuItem.Name = "createNewWindowToolStripMenuItem";
+            this.createNewWindowToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.createNewWindowToolStripMenuItem.Text = "Create New Window";
+            this.createNewWindowToolStripMenuItem.Click += new System.EventHandler(this.createNewWindowToolStripMenuItem_Click);
+            //
+            // createNewWindowWithOptionsToolStripMenuItem
+            //
+            this.createNewWindowWithOptionsToolStripMenuItem.Name = "createNewWindowWithOptionsToolStripMenuItem";
+            this.createNewWindowWithOptionsToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.createNewWindowWithOptionsToolStripMenuItem.Text = "Create New Window With Options";
+            this.createNewWindowWithOptionsToolStripMenuItem.Click += new System.EventHandler(this.createNewWindowWithOptionsToolStripMenuItem_Click);
+            //
             // controlToolStripMenuItem
             //
             this.controlToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.acceleratorKeysEnabledToolStripMenuItem, this.allowExternalDropMenuItem});
             this.controlToolStripMenuItem.Name = "controlToolStripMenuItem";
             this.controlToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
-            this.controlToolStripMenuItem.Text = "Control";
+            this.controlToolStripMenuItem.Text = "Settings";
             //
             // acceleratorKeysEnabledToolStripMenuItem
             //
             this.acceleratorKeysEnabledToolStripMenuItem.Name = "acceleratorKeysEnabledToolStripMenuItem";
             this.acceleratorKeysEnabledToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.acceleratorKeysEnabledToolStripMenuItem.Text = "AcceleratorKeys Enabled";
+            this.acceleratorKeysEnabledToolStripMenuItem.Text = "Toggle AcceleratorKeys";
             this.acceleratorKeysEnabledToolStripMenuItem.Checked = true;
             this.acceleratorKeysEnabledToolStripMenuItem.CheckOnClick = true;
             //
@@ -170,7 +264,7 @@ namespace WebView2WindowsFormsBrowser
             //
             this.allowExternalDropMenuItem.Name = "allowExternalDropMenuItem";
             this.allowExternalDropMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.allowExternalDropMenuItem.Text = "AllowExternalDrop Enabled";
+            this.allowExternalDropMenuItem.Text = "Toggle AllowExternalDrop";
             this.allowExternalDropMenuItem.Checked = true;
             this.allowExternalDropMenuItem.CheckOnClick = true;
             this.allowExternalDropMenuItem.Click += new System.EventHandler(this.allowExternalDropMenuItem_Click);
@@ -178,10 +272,19 @@ namespace WebView2WindowsFormsBrowser
             // viewToolStripMenuItem
             //
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.zoomToolStripMenuItem, this.backgroundColorMenuItem});
+                this.toggleVisibilityMenuItem, this.zoomToolStripMenuItem, this.backgroundColorMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(86, 38);
             this.viewToolStripMenuItem.Text = "View";
+            //
+            // toggleVisibilityMenuItem
+            //
+            this.toggleVisibilityMenuItem.Name = "toggleVisibilityMenuItem";
+            this.toggleVisibilityMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.toggleVisibilityMenuItem.Text = "Toggle Visibility";
+            this.toggleVisibilityMenuItem.Checked = true;
+            this.toggleVisibilityMenuItem.CheckOnClick = true;
+            this.toggleVisibilityMenuItem.Click += new System.EventHandler(this.toggleVisibilityMenuItem_Click);
             //
             // zoomToolStripMenuItem
             //
@@ -266,7 +369,11 @@ namespace WebView2WindowsFormsBrowser
             this.webView2Control.Location = new System.Drawing.Point(0, 96);
             this.webView2Control.Name = "webView2Control";
             this.webView2Control.Size = new System.Drawing.Size(788, 410);
+
+            this.webView2Control.CreationProperties = this.CreationProperties;
+
             this.webView2Control.Source = new Uri("https://www.bing.com/");
+            this.webView2Control.DefaultBackgroundColor = System.Drawing.Color.Transparent;
             this.webView2Control.TabIndex = 7;
             //
             // BrowserForm
@@ -297,6 +404,7 @@ namespace WebView2WindowsFormsBrowser
             this.PerformLayout();
         }
         #endregion
+
         private System.Windows.Forms.Button btnEvents;
         private System.Windows.Forms.Button btnBack;
         private System.Windows.Forms.Button btnForward;
@@ -307,6 +415,10 @@ namespace WebView2WindowsFormsBrowser
         private System.Drawing.Bitmap webViewLogoBitmap;
         private Microsoft.Web.WebView2.WinForms.WebView2 webView2Control;
         private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem windowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeWebViewToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem createNewWindowToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem createNewWindowWithOptionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem controlToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem acceleratorKeysEnabledToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
@@ -321,5 +433,14 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem blueBackgroundColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem transparentBackgroundColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem allowExternalDropMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem getDocumentTitleMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exitMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem getUserDataFolderMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem printToPDFMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem portraitMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem landscapeMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toggleVisibilityMenuItem;
+
     }
 }

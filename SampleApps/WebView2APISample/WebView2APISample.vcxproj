@@ -398,6 +398,7 @@
     <ClInclude Include="DpiUtil.h" />
     <ClInclude Include="DropTarget.h" />
     <ClInclude Include="FileComponent.h" />
+    <ClInclude Include="PermissionDialog.h" />
     <ClInclude Include="ProcessComponent.h" />
     <ClInclude Include="HostObjectSampleImpl.h" />
     <ClInclude Include="resource.h" />
@@ -412,6 +413,7 @@
     <ClInclude Include="ScenarioExtensionsManagement.h" />
     <ClInclude Include="ScenarioIFrameDevicePermission.h" />
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
+    <ClInclude Include="ScenarioPermissionManagement.h" />
     <ClInclude Include="ScenarioSharedBuffer.h" />
     <ClInclude Include="ScenarioSharedWorkerWRR.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h" />
@@ -439,6 +441,7 @@
     <ClCompile Include="DpiUtil.cpp" />
     <ClCompile Include="DropTarget.cpp" />
     <ClCompile Include="FileComponent.cpp" />
+    <ClCompile Include="PermissionDialog.cpp" />
     <ClCompile Include="ProcessComponent.cpp" />
     <ClCompile Include="HostObjectSampleImpl.cpp" />
     <ClCompile Include="ScenarioAddHostObject.cpp" />
@@ -452,6 +455,7 @@
     <ClCompile Include="ScenarioExtensionsManagement.cpp" />
     <ClCompile Include="ScenarioIFrameDevicePermission.cpp" />
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
+    <ClCompile Include="ScenarioPermissionManagement.cpp" />
     <ClCompile Include="ScenarioSharedBuffer.cpp" />
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp" />
@@ -509,6 +513,9 @@
     <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermissionIFrameNested.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioPermissionManagement.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioSharedBuffer.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
@@ -562,13 +569,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
-    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.1466-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.1466-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.1549-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.1549-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.191107.2\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.1466-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.1466-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.1549-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.1549-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
   </Target>
 </Project>

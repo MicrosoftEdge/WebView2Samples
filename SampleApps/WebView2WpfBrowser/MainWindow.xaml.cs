@@ -73,6 +73,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
         public static RoutedCommand NewWindowWithOptionsCommand = new RoutedCommand();
         public static RoutedCommand CreateNewThreadCommand = new RoutedCommand();
+        public static RoutedCommand TrackingPreventionLevelCommand = new RoutedCommand();
         public static RoutedCommand PrintDialogCommand = new RoutedCommand();
         public static RoutedCommand PrintToDefaultPrinterCommand = new RoutedCommand();
         public static RoutedCommand PrintToPrinterCommand = new RoutedCommand();
@@ -93,8 +94,13 @@ namespace WebView2WpfBrowser
         public static RoutedCommand PostMessageJSONCommand = new RoutedCommand();
 
 
+
+        public static RoutedCommand CloseWebViewCommand = new RoutedCommand();
+        public static RoutedCommand NewWebViewCommand = new RoutedCommand();
+
         public static RoutedCommand HostObjectsAllowedCommand = new RoutedCommand();
         public static RoutedCommand BrowserAcceleratorKeyEnabledCommand = new RoutedCommand();
+
 
         public static RoutedCommand AddInitializeScriptCommand = new RoutedCommand();
         public static RoutedCommand RemoveInitializeScriptCommand = new RoutedCommand();
@@ -150,7 +156,7 @@ namespace WebView2WpfBrowser
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
         IReadOnlyList<CoreWebView2ProcessInfo> _processList = new List<CoreWebView2ProcessInfo>();
 
-        IDictionary<(string, CoreWebView2PermissionKind, bool), bool> _cachedPermissions = 
+        IDictionary<(string, CoreWebView2PermissionKind, bool), bool> _cachedPermissions =
             new Dictionary<(string, CoreWebView2PermissionKind, bool), bool>();
 
         public CoreWebView2CreationProperties CreationProperties { get; set; } = null;
@@ -161,7 +167,7 @@ namespace WebView2WpfBrowser
             InitializeComponent();
             AttachControlEventHandlers(webView);
             // Set background transparent
-            //webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         public MainWindow(CoreWebView2CreationProperties creationProperties = null)
@@ -171,7 +177,7 @@ namespace WebView2WpfBrowser
             InitializeComponent();
             AttachControlEventHandlers(webView);
             // Set background transparent
-            //webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         void AttachControlEventHandlers(WebView2 control)
@@ -284,7 +290,6 @@ namespace WebView2WpfBrowser
         {
             DeferredCustomClientCertificateSelectionDialog();
         }
-
         void CustomServerCertificateSupportCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             ToggleCustomServerCertificateSupport();
@@ -342,6 +347,7 @@ namespace WebView2WpfBrowser
                 replacementControl.CreationProperties.BrowserExecutableFolder = webView.CreationProperties.BrowserExecutableFolder;
                 replacementControl.CreationProperties.Language = webView.CreationProperties.Language;
                 replacementControl.CreationProperties.UserDataFolder = webView.CreationProperties.UserDataFolder;
+                replacementControl.CreationProperties.AdditionalBrowserArguments = webView.CreationProperties.AdditionalBrowserArguments;
                 shouldAttachEnvironmentEventHandlers = true;
             }
             else
@@ -405,7 +411,7 @@ namespace WebView2WpfBrowser
             bool IsAppContentUri(Uri source)
             {
                 // Sample virtual host name for the app's content.
-                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://docs.microsoft.com/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
+                // See CoreWebView2.SetVirtualHostNameToFolderMapping: https://learn.microsoft.com/dotnet/api/microsoft.web.webview2.core.corewebview2.setvirtualhostnametofoldermapping
                 return source.Host == "appassets.example";
             }
 
@@ -625,7 +631,7 @@ namespace WebView2WpfBrowser
                 {
                     MessageBox.Show(this, "Printer is not available, offline or error state", "Print");
                 }
-                else 
+                else
                 {
                     MessageBox.Show(this, "Printing " + title + " document to printer is failed",
                         "Print");
@@ -729,7 +735,7 @@ namespace WebView2WpfBrowser
             try
             {
                 string title = webView.CoreWebView2.DocumentTitle;
-             
+
                 // Passing null for `PrintSettings` results in default print settings used.
                 System.IO.Stream stream = await webView.CoreWebView2.PrintToPdfStreamAsync(null);
                 DisplayPdfDataInPrintDialog(stream);
@@ -748,6 +754,35 @@ namespace WebView2WpfBrowser
             // You can display the printable pdf data in a custom print preview dialog to the end user.
         }
         // </PrintToPdfStream>
+
+        void TrackingPreventionLevelCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            string level = e.Parameter.ToString();
+            if (level == "None")
+            {
+                SetTrackingPreventionLevel(CoreWebView2TrackingPreventionLevel.None);
+            }
+            else if (level == "Basic")
+            {
+                SetTrackingPreventionLevel(CoreWebView2TrackingPreventionLevel.Basic);
+            }
+            else if (level == "Balanced")
+            {
+                SetTrackingPreventionLevel(CoreWebView2TrackingPreventionLevel.Balanced);
+            }
+            else
+            {
+                SetTrackingPreventionLevel(CoreWebView2TrackingPreventionLevel.Strict);
+            }
+        }
+
+        // <SetTrackingPreventionLevel>
+        void SetTrackingPreventionLevel(CoreWebView2TrackingPreventionLevel value)
+        {
+            WebViewProfile.PreferredTrackingPreventionLevel = value;
+            MessageBox.Show(this, "Tracking prevention level is set successfully", "Tracking Prevention Level");
+        }
+        // <SetTrackingPreventionLevel>
 
         async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -1140,6 +1175,7 @@ namespace WebView2WpfBrowser
             }
         }
 
+
         void PdfToolbarSaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             // <ToggleHiddenPdfToolbarItems>
@@ -1424,7 +1460,6 @@ namespace WebView2WpfBrowser
             }
         }
         // </ClientCertificateRequested2>
-
         // <ServerCertificateErrorDetected>
         // When WebView2 doesn't trust a TLS certificate but host app does, this example bypasses
         // the default TLS interstitial page using the ServerCertificateErrorDetected event handler and
@@ -1683,11 +1718,12 @@ namespace WebView2WpfBrowser
             {
                 return e.Message;
             }
-            catch (Win32Exception)
-            {
-                return "N/A";
-            }
-        }
+			// Occurred when a 32-bit process wants to access the modules of a 64-bit process.
+			catch (Win32Exception e)
+			{
+				return e.Message;
+			}
+		}
 
         private string GetStartPageUri(CoreWebView2 webView2)
         {
@@ -1729,7 +1765,6 @@ namespace WebView2WpfBrowser
                 // <PermissionRequested>
                 webView.CoreWebView2.PermissionRequested += WebView_PermissionRequested;
                 // </PermissionRequested>
-
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
                 // instance has changed.
@@ -2224,7 +2259,7 @@ namespace WebView2WpfBrowser
                 MessageBox.Show(this, "PostMessageAsJSON Failed: " + exception.Message,
                    "Post Message As JSON");
             }
-        }   
+        }
 
         void GetDocumentTitleCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -2342,7 +2377,7 @@ namespace WebView2WpfBrowser
             }
         }
         // </SharedBuffer>
-        
+
         // Prompt the user for some script and register it to execute whenever a new page loads.
         private async void AddInitializeScriptCmdExecuted(object sender, ExecutedRoutedEventArgs e) {
             TextInputDialog dialog = new TextInputDialog(
@@ -2395,6 +2430,7 @@ namespace WebView2WpfBrowser
                 }
                 catch (FormatException) {
                   MessageBox.Show(this, scriptId, "Invalid ScriptId, should be Integer");
+
                 }
             }
         }
@@ -2547,7 +2583,7 @@ namespace WebView2WpfBrowser
             {
                 using (deferral)
                 {
-                    (string, CoreWebView2PermissionKind, bool) cachedKey = (args.Uri, args.PermissionKind, args.IsUserInitiated);
+                    var cachedKey = (args.Uri, args.PermissionKind, args.IsUserInitiated);
                     if (_cachedPermissions.ContainsKey(cachedKey))
                     {
                         args.State = _cachedPermissions[cachedKey]
@@ -2579,5 +2615,23 @@ namespace WebView2WpfBrowser
             }, null);
         }
         // </OnPermissionRequested>
+
+        void CloseWebViewCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            RemoveControlFromVisualTree(webView);
+        }
+
+        void NewWebViewCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            if (_isControlInVisualTree)
+            {
+                RemoveControlFromVisualTree(webView);
+            }
+            webView.Dispose();
+            webView = GetReplacementControl(false);
+            AttachControlToVisualTree(webView);
+            // Set background transparent
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+        }
     }
 }

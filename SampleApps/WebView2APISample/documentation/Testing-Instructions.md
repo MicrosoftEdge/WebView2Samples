@@ -1011,9 +1011,7 @@ Test that verifies `DOMContentLoaded` event is raised after the DOM is loaded wh
 
 ##### [VSCode] Debugging Setup
 
-1. Open VSCode, go to `View -> Extensions` and install the two debuggers:
-    1. [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2)
-    ![old-debugging-tool](screenshots/old-script-debugging-tool.png)
+1. Open VSCode, go to `View -> Extensions` and install the debugger:
     1. [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug)
     ![new-debugging-tool](screenshots/new-script-debugging-tool.png)
 1. Go to `File -> Open Folder` and open `WebView2APISample/` (where `.vscode/` lives)
@@ -1023,7 +1021,7 @@ Test that verifies `DOMContentLoaded` event is raised after the DOM is loaded wh
 
 ##### [VSCode] Single WebView JavaScript Debugging
 
-Test Single WebView JavaScript Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
+Test Single WebView JavaScript Debugging with **both** [Visual Studio Code's built-in debugger for Microsoft Edge](https://code.visualstudio.com/docs/nodejs/browser-debugging) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
 1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
@@ -1037,7 +1035,7 @@ Test Single WebView JavaScript Debugging with **both** [Debugger For Microsoft E
 
 ##### [VSCode] Single WebView TypeScript Debugging
 
-Test Single WebView TypeScript Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
+Test Single WebView TypeScript Debugging with **both** [Visual Studio Code's built-in debugger for Microsoft Edge](https://code.visualstudio.com/docs/nodejs/browser-debugging) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
 1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
@@ -1052,7 +1050,7 @@ Test Single WebView TypeScript Debugging with **both** [Debugger For Microsoft E
 
 ##### [VSCode] Single WebView JavaScript Debugging Using Attach
 
-Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
+Test Single WebView Script Debugging with **both** [Visual Studio Code's built-in debugger for Microsoft Edge](https://code.visualstudio.com/docs/nodejs/browser-debugging) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
 1. Add a new REGKEY `*=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments`
   ![step 1](screenshots/script-debugging-reg-key.png)
@@ -1069,7 +1067,7 @@ Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge]
 
 ##### [VSCode] Single WebView TypeScript Debugging Using Attach
 
-Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
+Test Single WebView Script Debugging with **both** [Visual Studio Code's built-in debugger for Microsoft Edge](https://code.visualstudio.com/docs/nodejs/browser-debugging) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
 1. Add a new REGKEY `*=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments`
   ![step 1](screenshots/script-debugging-reg-key.png)
@@ -1084,9 +1082,9 @@ Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge]
 1. Expect debugger to hit the breakpoint and pause the page
 1. Delete the REGKEY after testing
 
-##### [VS] Single WebView JavaScript Debugging (Old Tool: Debugger For Microsoft Edge)
+##### [VS] Single WebView JavaScript Debugging (Debugger For Microsoft Edge)
 
-Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For Microsoft Edge in VS](https://github.com/microsoft/vscode-edge-debug2)
+Test Single WebView JavaScript Debugging:
 
 1. Open VS Installer, and make sure `JavaScript Diagnostics` is installed for C++ Development Kit.
   ![step 1](screenshots/vs-javascript-diagnostics.png)
@@ -1098,9 +1096,9 @@ Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For 
 6. Go to `Scenario -> Script Debugging -> JavaScript`
 7. Expect debugger to hit the breakpoint and pause the page
 
-##### [VS] Single WebView TypeScript Debugging (Old Tool: Debugger For Microsoft Edge)
+##### [VS] Single WebView TypeScript Debugging (Debugger For Microsoft Edge)
 
-Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For Microsoft Edge in VS](https://github.com/microsoft/vscode-edge-debug2)
+Test Single WebView JavaScript Debugging:
 
 1. Open VS Installer, and make sure `JavaScript Diagnostics` is installed for C++ Development Kit.
   ![step 1](screenshots/vs-javascript-diagnostics.png)
@@ -1306,6 +1304,18 @@ Verify that we don't offer saving password.
 7. Ensure that the fields are not auto filled.
 8. Set focus on Email input, verify that we can choose to auto fill with previously typed in value.
 9. Set focus on Password input, verify that there is no auto fill option showing up.
+
+#### Ctrl Cick a form with post method
+
+Verify that we correctly pass request to the new opened window when submit form with post method through ctrl click.
+
+1. Launch the sample app.
+2. Load <https://www.w3schools.com/tags/tryit.asp?filename=tryhtml_form_method_post>, ignore any iframe navigation failure messages during the test.
+3. Remove `target="_blank"` from the line `<form action="/action_page.php" method="post" target="_blank">`.
+4. Click `Run` button on the left part of the page.
+5. Type in some test first name and last name, like first_name and last_name in First name and Last name on the right part of the page.
+6. Press the Ctrl key, hold it and click `Submit` button in the meanwhile, then it should pop up a new window.
+7. Verify that the text bar in the new opened window shows the first name and last name you typed in step 5, like `fname=first_name&lname=last_name`.
 
 #### Open Link in New Window from PDF
 
