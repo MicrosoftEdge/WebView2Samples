@@ -513,9 +513,6 @@
     <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermissionIFrameNested.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="assets/ScenarioPermissionManagement.html">
-      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
-    </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioSharedBuffer.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
