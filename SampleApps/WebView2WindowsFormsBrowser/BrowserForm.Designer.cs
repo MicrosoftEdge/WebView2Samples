@@ -42,10 +42,6 @@ namespace WebView2WindowsFormsBrowser
             this.btnGo = new System.Windows.Forms.Button();
             this.txtUrl = new System.Windows.Forms.TextBox();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.windowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.closeWebViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.createNewWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.createNewWindowWithOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.controlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.acceleratorKeysEnabledToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -67,7 +63,6 @@ namespace WebView2WindowsFormsBrowser
             this.printToPDFMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.portraitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.landscapeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toggleVisibilityMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.webViewLogoBitmap = new System.Drawing.Bitmap(@"assets\AppStartPageBackground.png");
             this.webView2Control = new Microsoft.Web.WebView2.WinForms.WebView2();
             this.menuStrip1.SuspendLayout();
@@ -155,7 +150,6 @@ namespace WebView2WindowsFormsBrowser
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.windowToolStripMenuItem,
             this.controlToolStripMenuItem,
             this.viewToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
@@ -215,35 +209,6 @@ namespace WebView2WindowsFormsBrowser
             this.landscapeMenuItem.Text = "Landscape";
             this.landscapeMenuItem.Click += new System.EventHandler(this.landscapeMenuItem_Click);
             //
-            // windowToolStripMenuItem
-            //
-            this.windowToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.closeWebViewToolStripMenuItem, this.createNewWindowToolStripMenuItem, this.createNewWindowWithOptionsToolStripMenuItem});
-            this.windowToolStripMenuItem.Name = "windowToolStripMenuItem";
-            this.windowToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
-            this.windowToolStripMenuItem.Text = "Window";
-            //
-            // closeWebViewToolStripMenuItem
-            //
-            this.closeWebViewToolStripMenuItem.Name = "closeWebViewToolStripMenuItem";
-            this.closeWebViewToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.closeWebViewToolStripMenuItem.Text = "Close WebView";
-            this.closeWebViewToolStripMenuItem.Click += new System.EventHandler(this.closeWebViewToolStripMenuItem_Click);
-            //
-            // createNewWindowToolStripMenuItem
-            //
-            this.createNewWindowToolStripMenuItem.Name = "createNewWindowToolStripMenuItem";
-            this.createNewWindowToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.createNewWindowToolStripMenuItem.Text = "Create New Window";
-            this.createNewWindowToolStripMenuItem.Click += new System.EventHandler(this.createNewWindowToolStripMenuItem_Click);
-            //
-            // createNewWindowWithOptionsToolStripMenuItem
-            //
-            this.createNewWindowWithOptionsToolStripMenuItem.Name = "createNewWindowWithOptionsToolStripMenuItem";
-            this.createNewWindowWithOptionsToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.createNewWindowWithOptionsToolStripMenuItem.Text = "Create New Window With Options";
-            this.createNewWindowWithOptionsToolStripMenuItem.Click += new System.EventHandler(this.createNewWindowWithOptionsToolStripMenuItem_Click);
-            //
             // controlToolStripMenuItem
             //
             this.controlToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -272,19 +237,10 @@ namespace WebView2WindowsFormsBrowser
             // viewToolStripMenuItem
             //
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.toggleVisibilityMenuItem, this.zoomToolStripMenuItem, this.backgroundColorMenuItem});
+            this.zoomToolStripMenuItem, this.backgroundColorMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(86, 38);
             this.viewToolStripMenuItem.Text = "View";
-            //
-            // toggleVisibilityMenuItem
-            //
-            this.toggleVisibilityMenuItem.Name = "toggleVisibilityMenuItem";
-            this.toggleVisibilityMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.toggleVisibilityMenuItem.Text = "Toggle Visibility";
-            this.toggleVisibilityMenuItem.Checked = true;
-            this.toggleVisibilityMenuItem.CheckOnClick = true;
-            this.toggleVisibilityMenuItem.Click += new System.EventHandler(this.toggleVisibilityMenuItem_Click);
             //
             // zoomToolStripMenuItem
             //
@@ -369,9 +325,6 @@ namespace WebView2WindowsFormsBrowser
             this.webView2Control.Location = new System.Drawing.Point(0, 96);
             this.webView2Control.Name = "webView2Control";
             this.webView2Control.Size = new System.Drawing.Size(788, 410);
-
-            this.webView2Control.CreationProperties = this.CreationProperties;
-
             this.webView2Control.Source = new Uri("https://www.bing.com/");
             this.webView2Control.DefaultBackgroundColor = System.Drawing.Color.Transparent;
             this.webView2Control.TabIndex = 7;
@@ -415,10 +368,6 @@ namespace WebView2WindowsFormsBrowser
         private System.Drawing.Bitmap webViewLogoBitmap;
         private Microsoft.Web.WebView2.WinForms.WebView2 webView2Control;
         private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem windowToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem closeWebViewToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem createNewWindowToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem createNewWindowWithOptionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem controlToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem acceleratorKeysEnabledToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
@@ -440,7 +389,5 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem printToPDFMenuItem;
         private System.Windows.Forms.ToolStripMenuItem portraitMenuItem;
         private System.Windows.Forms.ToolStripMenuItem landscapeMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem toggleVisibilityMenuItem;
-
     }
 }

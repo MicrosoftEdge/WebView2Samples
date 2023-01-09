@@ -39,16 +39,15 @@ struct WebViewCreateOption
     std::wstring localeRegion;
     // This value is inherited from the operated AppWindow
     WebViewCreateEntry entry = WebViewCreateEntry::OTHER;
-    bool useOSRegion = false;
     WebViewCreateOption()
     {
     }
 
     WebViewCreateOption(
         const std::wstring& profile_, bool inPrivate, const std::wstring& downloadPath,
-        const std::wstring& localeRegion_, WebViewCreateEntry entry_, bool useOSRegion_)
+        const std::wstring& localeRegion_, WebViewCreateEntry entry_)
         : profile(profile_), isInPrivate(inPrivate), downloadPath(downloadPath),
-          localeRegion(localeRegion_), entry(entry_), useOSRegion(useOSRegion_)
+          localeRegion(localeRegion_), entry(entry_)
     {
     }
 
@@ -59,7 +58,6 @@ struct WebViewCreateOption
         downloadPath = opt.downloadPath;
         localeRegion = opt.localeRegion;
         entry = opt.entry;
-        useOSRegion = opt.useOSRegion;
     }
 
     void PopupDialog(AppWindow* app);

@@ -193,8 +193,8 @@
 #define ID_TOGGLE_CUSTOM_SERVER_CERTIFICATE_SUPPORT 32797
 #define ID_CLEAR_SERVER_CERTIFICATE_ERROR_ACTIONS 32798
 #define ID_SETTINGS_SMART_SCREEN_ENABLED 32799
+#define ID_SETTINGS_PROFILE_DELETE 32800
 #define IDC_EDIT_LOCALE 32801
-#define IDC_CHECK_USE_OS_REGION 32803
 #define IDC_STATIC                      -1
 // Next default values for new objects
 //
@@ -202,7 +202,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        245
-#define _APS_NEXT_COMMAND_VALUE         32804
+#define _APS_NEXT_COMMAND_VALUE         32803
 #define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

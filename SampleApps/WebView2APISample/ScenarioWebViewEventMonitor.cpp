@@ -8,13 +8,12 @@
 
 #include "AppWindow.h"
 #include "CheckFailure.h"
-#include "ScenarioPermissionManagement.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include <WebView2.h>
-#include <codecvt>
-#include <locale>
 #include <regex>
 #include <string>
+#include <codecvt>
+#include <locale>
 
 using namespace Microsoft::WRL;
 using namespace std;
@@ -1026,31 +1025,23 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
     m_webviewEventSource->add_PermissionRequested(
         Callback<ICoreWebView2PermissionRequestedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)
-                -> HRESULT
-            {
+                -> HRESULT {
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
-                COREWEBVIEW2_PERMISSION_KIND kind;
-                CHECK_FAILURE(args->get_PermissionKind(&kind));
-                COREWEBVIEW2_PERMISSION_STATE state;
-                CHECK_FAILURE(args->get_State(&state));
+
                 std::wstring message =
                     L"{ \"kind\": \"event\", \"name\": \"PermissionRequested\", \"args\": {"
-                    L"\"uri\": " +
-                    EncodeQuote(uri.get()) +
-                    L", "
-                    L"\"kind\": " +
-                    EncodeQuote(PermissionKindToString(kind)) +
-                    L", "
-                    L"\"state\": " +
-                    EncodeQuote(PermissionStateToString(state)) +
-                    L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                    L"\"uri\": " + EncodeQuote(uri.get()) +
+                    L"}"
+                    + WebViewPropertiesToJsonString(m_webviewEventSource.get())
+                    + L"}";
                 PostEventMessage(message);
                 return S_OK;
-            })
-            .Get(),
+                })
+                .Get(),
         &m_permissionRequestedToken);
 }
+
 void ScenarioWebViewEventMonitor::InitializeFrameEventView(
     wil::com_ptr<ICoreWebView2Frame> webviewFrame)
 {

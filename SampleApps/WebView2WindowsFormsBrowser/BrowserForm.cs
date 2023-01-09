@@ -7,39 +7,13 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
-using Microsoft.Web.WebView2.WinForms;
 
 namespace WebView2WindowsFormsBrowser
 {
     public partial class BrowserForm : Form
     {
-        private CoreWebView2CreationProperties _creationProperties = null;
-        public CoreWebView2CreationProperties CreationProperties
-        {
-            get
-            {
-                if (_creationProperties == null)
-                {
-                    _creationProperties = new Microsoft.Web.WebView2.WinForms.CoreWebView2CreationProperties();
-                }
-                return _creationProperties;
-            }
-            set
-            {
-                _creationProperties = value;
-            }
-        }
-
         public BrowserForm()
         {
-            InitializeComponent();
-            AttachControlEventHandlers(this.webView2Control);
-            HandleResize();
-        }
-
-        public BrowserForm(CoreWebView2CreationProperties creationProperties = null)
-        {
-            this.CreationProperties = creationProperties;
             InitializeComponent();
             AttachControlEventHandlers(this.webView2Control);
             HandleResize();
@@ -65,36 +39,6 @@ namespace WebView2WindowsFormsBrowser
         }
 
         #region Event Handlers
-        // Enable (or disable) buttons when webview2 is init (or disposed). Similar to the CanExecute feature of WPF.
-        private void UpdateButtons(bool isEnabled)
-        {
-            this.btnEvents.Enabled = isEnabled;
-            this.btnBack.Enabled = isEnabled && webView2Control != null && webView2Control.CanGoBack;
-            this.btnForward.Enabled = isEnabled && webView2Control != null && webView2Control.CanGoForward;
-            this.btnRefresh.Enabled = isEnabled;
-            this.btnGo.Enabled = isEnabled;
-            this.closeWebViewToolStripMenuItem.Enabled = isEnabled;
-            this.allowExternalDropMenuItem.Enabled = isEnabled;
-            this.xToolStripMenuItem.Enabled = isEnabled;
-            this.xToolStripMenuItem1.Enabled = isEnabled;
-            this.xToolStripMenuItem2.Enabled = isEnabled;
-            this.xToolStripMenuItem3.Enabled = isEnabled;
-            this.whiteBackgroundColorMenuItem.Enabled = isEnabled;
-            this.redBackgroundColorMenuItem.Enabled = isEnabled;
-            this.blueBackgroundColorMenuItem.Enabled = isEnabled;
-            this.transparentBackgroundColorMenuItem.Enabled = isEnabled;
-        }
-
-        private void EnableButtons()
-        {
-            UpdateButtons(true);
-        }
-
-        private void DisableButtons(object sender, EventArgs e)
-        {
-            UpdateButtons(false);
-        }
-
         private void WebView2Control_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
             UpdateTitleWithEvent("NavigationStarting");
@@ -128,7 +72,6 @@ namespace WebView2WindowsFormsBrowser
             this.webView2Control.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
             this.webView2Control.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Image);
             UpdateTitleWithEvent("CoreWebView2InitializationCompleted succeeded");
-            EnableButtons();
         }
 
         void AttachControlEventHandlers(Microsoft.Web.WebView2.WinForms.WebView2 control) {
@@ -138,7 +81,6 @@ namespace WebView2WindowsFormsBrowser
             control.SourceChanged += WebView2Control_SourceChanged;
             control.KeyDown += WebView2Control_KeyDown;
             control.KeyUp += WebView2Control_KeyUp;
-            control.Disposed += DisableButtons;
         }
 
         private void WebView2Control_KeyUp(object sender, KeyEventArgs e)
@@ -225,26 +167,6 @@ namespace WebView2WindowsFormsBrowser
         private void Form_Resize(object sender, EventArgs e)
         {
             HandleResize();
-        }
-
-        private void closeWebViewToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.Controls.Remove(webView2Control);
-            webView2Control.Dispose();
-        }
-
-        private void createNewWindowToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            new BrowserForm().Show();
-        }
-
-        private void createNewWindowWithOptionsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            var dialog = new NewWindowOptionsDialog();
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                new BrowserForm(dialog.CreationProperties).Show();
-            }
         }
 
         private void xToolStripMenuItem05_Click(object sender, EventArgs e)
@@ -378,11 +300,6 @@ namespace WebView2WindowsFormsBrowser
             {
                 MessageBox.Show(this, "Get User Data Folder Failed: " + exception.Message, "User Data Folder");
             }
-        }
-
-        private void toggleVisibilityMenuItem_Click(object sender, EventArgs e)
-        {
-            this.webView2Control.Visible = this.toggleVisibilityMenuItem.Checked;
         }
         #endregion
 

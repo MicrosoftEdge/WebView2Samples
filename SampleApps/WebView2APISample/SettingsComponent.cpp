@@ -7,7 +7,6 @@
 #include "SettingsComponent.h"
 
 #include "CheckFailure.h"
-#include "ScenarioPermissionManagement.h"
 #include "TextInputDialog.h"
 #include <windows.h>
 
@@ -369,7 +368,7 @@ HRESULT SettingsComponent::OnPermissionRequested(
         else
         {
             std::wstring message = L"An iframe has requested device permission for ";
-            message += PermissionKindToString(kind);
+            message += SettingsComponent::NameOfPermissionKind(kind);
             message += L" to the website at ";
             message += uri.get();
             message += L"?\n\n";
@@ -746,10 +745,25 @@ bool SettingsComponent::HandleWindowMessage(
             //! [DisableZoomControl]
             return true;
         }
+        case ID_SETTINGS_PROFILE_DELETE:
+        {
+            CHECK_FEATURE_RETURN(m_webView);
+            auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+            CHECK_FEATURE_RETURN(webView2_13);
+            wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+            webView2_13->get_Profile(&webView2Profile);
+            CHECK_FEATURE_RETURN(webView2Profile);
+            auto webView2ExperimentalProfile =
+                webView2Profile.try_query<ICoreWebView2ExperimentalProfile>();
+            CHECK_FEATURE_RETURN(webView2ExperimentalProfile);
+            webView2ExperimentalProfile->Delete();
+            return true;
+        }
         case ID_SETTINGS_PINCH_ZOOM_ENABLED:
         {
             //! [TogglePinchZoomEnabled]
             CHECK_FEATURE_RETURN(m_settings5);
+
             BOOL pinchZoomEnabled;
             CHECK_FAILURE(m_settings5->get_IsPinchZoomEnabled(&pinchZoomEnabled));
             if (pinchZoomEnabled)
@@ -1501,6 +1515,27 @@ void SettingsComponent::SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENT
     }
 }
 //! [SetTrackingPreventionLevel]
+
+PCWSTR SettingsComponent::NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind)
+{
+    switch (kind)
+    {
+    case COREWEBVIEW2_PERMISSION_KIND_MICROPHONE:
+        return L"Microphone";
+    case COREWEBVIEW2_PERMISSION_KIND_CAMERA:
+        return L"Camera";
+    case COREWEBVIEW2_PERMISSION_KIND_GEOLOCATION:
+        return L"Geolocation";
+    case COREWEBVIEW2_PERMISSION_KIND_NOTIFICATIONS:
+        return L"Notifications";
+    case COREWEBVIEW2_PERMISSION_KIND_OTHER_SENSORS:
+        return L"Generic Sensors";
+    case COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ:
+        return L"Clipboard Read";
+    default:
+        return L"Unknown resources";
+    }
+}
 
 SettingsComponent::~SettingsComponent()
 {

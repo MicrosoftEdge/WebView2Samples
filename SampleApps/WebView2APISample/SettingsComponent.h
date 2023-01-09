@@ -41,6 +41,8 @@ public:
     void ToggleCustomServerCertificateSupport();
     void SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL value);
 
+    static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
+
     ~SettingsComponent() override;
 
 private:

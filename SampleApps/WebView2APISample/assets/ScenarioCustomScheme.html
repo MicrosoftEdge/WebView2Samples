@@ -4,15 +4,8 @@
     <title>Handling custom schemes</title>
 </head>
 <body>
-    <div> These resources are loaded via a URL with custom scheme that has an authority component:</div>
-    <img src="wv2rocks://domain/EdgeWebView2-80.jpg" />
-    <!-- Can do POST requests and get the POST data as well when using a scheme with authority component.-->
-    <form action="wv2rocks://domain/action_page.php" method="post">
-        <label for="fname">First name:</label>
-        <input type="text" id="fname" name="fname"><br><br>
-        <label for="lname">Last name:</label>
-        <input type="text" id="lname" name="lname"><br><br>
-        <input type="submit" value="Submit">
-    </form>
+    <div> These resources are loaded via a URL with custom scheme:</div>
+    <img src="wv2rocks:EdgeWebView2-80.jpg" />
+    <iframe src="wv2rocks:AppStartPage.html" style='height: 200px; width: 100%;' />
 </body>
 </html>

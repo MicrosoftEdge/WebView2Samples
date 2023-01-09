@@ -66,6 +66,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand GeneralAutofillCommand = new RoutedCommand();
         public static RoutedCommand PinchZoomCommand = new RoutedCommand();
         public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
+        public static RoutedCommand DeleteProfileCommand = new RoutedCommand();
         public static RoutedCommand ToggleMuteStateCommand = new RoutedCommand();
         public static RoutedCommand AllowExternalDropCommand = new RoutedCommand();
         public static RoutedCommand PerfInfoCommand = new RoutedCommand();
@@ -1175,6 +1176,17 @@ namespace WebView2WpfBrowser
             }
         }
 
+        void DeleteProfileExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            try
+            {
+                WebViewProfile.Delete();
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Delete profile Failed: " + exception.Message, "Profile Delete");
+            }
+        }
 
         void PdfToolbarSaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -1239,7 +1251,7 @@ namespace WebView2WpfBrowser
                "Clear Browsing Data");
             // </ClearBrowsingData>
         }
-
+        
         void NewBrowserVersionCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             foreach (Window window in Application.Current.Windows)
@@ -1765,6 +1777,7 @@ namespace WebView2WpfBrowser
                 // <PermissionRequested>
                 webView.CoreWebView2.PermissionRequested += WebView_PermissionRequested;
                 // </PermissionRequested>
+
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
                 // instance has changed.
@@ -2583,7 +2596,7 @@ namespace WebView2WpfBrowser
             {
                 using (deferral)
                 {
-                    var cachedKey = (args.Uri, args.PermissionKind, args.IsUserInitiated);
+                    (string, CoreWebView2PermissionKind, bool) cachedKey = (args.Uri, args.PermissionKind, args.IsUserInitiated);
                     if (_cachedPermissions.ContainsKey(cachedKey))
                     {
                         args.State = _cachedPermissions[cachedKey]
@@ -2611,7 +2624,11 @@ namespace WebView2WpfBrowser
                                 break;
                         }
                     }
+
                 }
+
+        
+
             }, null);
         }
         // </OnPermissionRequested>
@@ -2633,5 +2650,6 @@ namespace WebView2WpfBrowser
             // Set background transparent
             webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
+
     }
 }

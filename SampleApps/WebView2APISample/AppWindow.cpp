@@ -141,12 +141,10 @@ static INT_PTR CALLBACK DlgProcStatic(HWND hDlg, UINT message, WPARAM wParam, LP
             wchar_t localeRegion[MAX_PATH] = {};
             GetDlgItemText(hDlg, IDC_EDIT_LOCALE, localeRegion, localeRegionLength + 1);
 
-            bool useOsRegion = IsDlgButtonChecked(hDlg, IDC_CHECK_USE_OS_REGION);
-
             WebViewCreateOption opt(
                 std::wstring(std::move(text)), inPrivate, std::wstring(std::move(downloadPath)),
                 std::wstring(std::move(localeRegion)),
-                WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU, useOsRegion);
+                WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU);
 
             // create app window
             new AppWindow(app->GetCreationModeId(), opt);
@@ -1217,7 +1215,6 @@ void AppWindow::InitializeWebView()
             Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(L"wv2rocks");
         customSchemeRegistration2->put_TreatAsSecure(TRUE);
         customSchemeRegistration2->SetAllowedOrigins(1, allowedOrigins);
-        customSchemeRegistration2->put_HasAuthorityComponent(TRUE);
         auto customSchemeRegistration3 =
             Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(
                 L"custom-scheme-not-in-allowed-origins");
@@ -1356,24 +1353,14 @@ HRESULT AppWindow::CreateControllerWithOptions()
     CHECK_FAILURE(options->put_IsInPrivateModeEnabled(m_webviewOption.isInPrivate));
 
     //! [RegionLocaleSetting]
-    wil::com_ptr<ICoreWebView2ExperimentalControllerOptions>
-        webView2ExperimentalControllerOptions;
-    if (SUCCEEDED(
-            options->QueryInterface(IID_PPV_ARGS(&webView2ExperimentalControllerOptions))))
+    if (!m_webviewOption.localeRegion.empty())
     {
-        if (m_webviewOption.useOSRegion)
-        {
-            int languageCodeSize =
-                GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, nullptr, 0);
-            WCHAR* osLocale = new WCHAR[languageCodeSize];
-            GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, osLocale, languageCodeSize);
-            CHECK_FAILURE(webView2ExperimentalControllerOptions->put_LocaleRegion(osLocale));
-        }
-        else if (!m_webviewOption.localeRegion.empty())
-        {
-            CHECK_FAILURE(webView2ExperimentalControllerOptions->put_LocaleRegion(
-                m_webviewOption.localeRegion.c_str()));
-        }
+        wil::com_ptr<ICoreWebView2ExperimentalControllerOptions>
+            webView2ExperimentalControllerOptions;
+        CHECK_FAILURE(
+            options->QueryInterface(IID_PPV_ARGS(&webView2ExperimentalControllerOptions)));
+        CHECK_FAILURE(webView2ExperimentalControllerOptions->put_LocaleRegion(
+            m_webviewOption.localeRegion.c_str()));
     }
     //! [RegionLocaleSetting]
 
@@ -1508,6 +1495,7 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
                 COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY_CORS);
             //! [AddVirtualHostNameToFolderMapping]
         }
+
         // We have a few of our own event handlers to register here as well
         RegisterEventHandlers();
 

@@ -149,6 +149,7 @@ BEGIN
         MENUITEM "Toggle Swipe navigation Enabled",   ID_SETTINGS_SWIPE_NAVIGATION_ENABLED
         MENUITEM "Toggle Web Messaging",        IDM_TOGGLE_WEB_MESSAGING
         MENUITEM "Toggle Zoom Control Enabled",   ID_SETTINGS_ZOOM_ENABLED
+        MENUITEM "Delete This Profile", ID_SETTINGS_PROFILE_DELETE
         POPUP "Tracking Prevention Level"
         BEGIN
             MENUITEM "None", IDM_TRACKING_PREVENTION_LEVEL_NONE
@@ -356,9 +357,7 @@ BEGIN
     LTEXT           "Only allow alphabet characters (a-z, A-Z), digit characters (0-9) and '#', '@', '$', '(', ')', '+', '-', '_', '~', '.', ' ' (space).",IDC_STATIC,160,14,138,37
     LTEXT           "Locale Region:",IDC_STATIC,25,61,36,18
     EDITTEXT        IDC_EDIT_LOCALE,62,63,96,18,ES_AUTOHSCROLL
-    CONTROL         "  UseOSRegion",IDC_CHECK_USE_OS_REGION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,106,74,16
 END
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // DESIGNINFO
