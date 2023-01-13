@@ -1034,6 +1034,11 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 CHECK_FAILURE(args->get_PermissionKind(&kind));
                 COREWEBVIEW2_PERMISSION_STATE state;
                 CHECK_FAILURE(args->get_State(&state));
+                wil::com_ptr<ICoreWebView2ExperimentalPermissionRequestedEventArgs3>
+                    extended_args;
+                CHECK_FAILURE(args->QueryInterface(IID_PPV_ARGS(&extended_args)));
+                BOOL saves_in_profile = TRUE;
+                CHECK_FAILURE(extended_args->get_SavesInProfile(&saves_in_profile));
                 std::wstring message =
                     L"{ \"kind\": \"event\", \"name\": \"PermissionRequested\", \"args\": {"
                     L"\"uri\": " +
@@ -1043,14 +1048,16 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                     EncodeQuote(PermissionKindToString(kind)) +
                     L", "
                     L"\"state\": " +
-                    EncodeQuote(PermissionStateToString(state)) +
-                    L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                    EncodeQuote(PermissionStateToString(state)) + L", \"SavesInProfile\": " +
+                    BoolToString(saves_in_profile) + L"}" +
+                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
                 PostEventMessage(message);
                 return S_OK;
             })
             .Get(),
         &m_permissionRequestedToken);
 }
+
 void ScenarioWebViewEventMonitor::InitializeFrameEventView(
     wil::com_ptr<ICoreWebView2Frame> webviewFrame)
 {

@@ -100,9 +100,7 @@ BEGIN
             MENUITEM "Windowed",                        IDM_CREATION_MODE_WINDOWED
             MENUITEM "Visual - DComp",                  IDM_CREATION_MODE_VISUAL_DCOMP
             MENUITEM "Target - DComp",                  IDM_CREATION_MODE_TARGET_DCOMP
-#ifdef USE_WEBVIEW2_WIN10
             MENUITEM "Visual - WinComp",                IDM_CREATION_MODE_VISUAL_WINCOMP
-#endif
         END
         MENUITEM "Create WebView"                             IDM_REINIT
         MENUITEM "Create New Window With Option"    IDM_CREATE_WITH_OPTION
@@ -256,6 +254,7 @@ BEGIN
         MENUITEM "Host Objects",                IDM_SCENARIO_ADD_HOST_OBJECT
         MENUITEM "IFrame Device Permission",    IDM_SCENARIO_IFRAME_DEVICE_PERMISSION
         MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
+        MENUITEM "Permission Management",       IDM_PERMISSION_MANAGEMENT
         POPUP "Print"
         BEGIN
             MENUITEM "Browser Print Preview",  IDM_SCENARIO_BROWSER_PRINT_PREVIEW
@@ -357,6 +356,22 @@ BEGIN
     LTEXT           "Locale Region:",IDC_STATIC,25,61,36,18
     EDITTEXT        IDC_EDIT_LOCALE,62,63,96,18,ES_AUTOHSCROLL
     CONTROL         "  UseOSRegion",IDC_CHECK_USE_OS_REGION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,106,74,16
+END
+
+IDD_SET_PERMISSION DIALOGEX 0, 0, 200, 130
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,15,110,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,75,110,50,14
+    GROUPBOX        "Set Permission",IDC_STATIC,7,3,190,100
+    LTEXT           "Origin:",IDC_STATIC,25,22,36,12
+    EDITTEXT        IDC_EDIT_PERMISSION_ORIGIN,62,22,105,12,ES_AUTOHSCROLL
+    LTEXT           "Permission Kind:",IDC_STATIC,25,40,36,18
+    COMBOBOX        IDC_PERMISSION_KIND,62,42,105,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Permission State:",IDC_STATIC,25,61,36,18
+    COMBOBOX        IDC_PERMISSION_STATE,62,62,105,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 /////////////////////////////////////////////////////////////////////////////

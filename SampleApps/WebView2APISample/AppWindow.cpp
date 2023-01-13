@@ -7,15 +7,15 @@
 #include "AppWindow.h"
 
 #include <DispatcherQueue.h>
-#include <functional>
-#include <regex>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <sstream>
 #include <ShObjIdl_core.h>
 #include <Shellapi.h>
 #include <ShlObj_core.h>
+#include <functional>
+#include <iostream>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <vector>
 #include <winrt/windows.system.h>
 
 #include "App.h"
@@ -38,6 +38,7 @@
 #include "ScenarioExtensionsManagement.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
+#include "ScenarioPermissionManagement.h"
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
@@ -60,19 +61,21 @@ static constexpr int s_minNewWindowSize = 100;
 // Run Download and Install in another thread so we don't block the UI thread
 DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
 {
-    AppWindow* appWindow = (AppWindow*) lpParameter;
+    AppWindow* appWindow = (AppWindow*)lpParameter;
 
     int returnCode = 2; // Download failed
     // Use fwlink to download WebView2 Bootstrapper at runtime and invoke installation
     // Broken/Invalid Https Certificate will fail to download
-    // Use of the download link below is governed by the below terms. You may acquire the link for your use at https://developer.microsoft.com/microsoft-edge/webview2/.
-    // Microsoft owns all legal right, title, and interest in and to the
-    // WebView2 Runtime Bootstrapper ("Software") and related documentation,
-    // including any intellectual property in the Software. You must acquire all
-    // code, including any code obtained from a Microsoft URL, under a separate
-    // license directly from Microsoft, including a Microsoft download site
+    // Use of the download link below is governed by the below terms. You may acquire the link
+    // for your use at https://developer.microsoft.com/microsoft-edge/webview2/. Microsoft owns
+    // all legal right, title, and interest in and to the WebView2 Runtime Bootstrapper
+    // ("Software") and related documentation, including any intellectual property in the
+    // Software. You must acquire all code, including any code obtained from a Microsoft URL,
+    // under a separate license directly from Microsoft, including a Microsoft download site
     // (e.g., https://developer.microsoft.com/microsoft-edge/webview2/).
-    HRESULT hr = URLDownloadToFile(NULL, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703", L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
+    HRESULT hr = URLDownloadToFile(
+        NULL, L"https://go.microsoft.com/fwlink/p/?LinkId=2124703",
+        L".\\MicrosoftEdgeWebview2Setup.exe", 0, 0);
     if (hr == S_OK)
     {
         // Either Package the WebView2 Bootstrapper with your app or download it using fwlink
@@ -131,11 +134,10 @@ static INT_PTR CALLBACK DlgProcStatic(HWND hDlg, UINT message, WPARAM wParam, LP
             GetDlgItemText(hDlg, IDC_EDIT_PROFILE, text, length + 1);
             bool inPrivate = IsDlgButtonChecked(hDlg, IDC_CHECK_INPRIVATE);
 
-            int downloadPathLength = GetWindowTextLength(
-                GetDlgItem(hDlg, IDC_EDIT_DOWNLOAD_PATH));
+            int downloadPathLength =
+                GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT_DOWNLOAD_PATH));
             wchar_t downloadPath[MAX_PATH] = {};
-            GetDlgItemText(hDlg, IDC_EDIT_DOWNLOAD_PATH, downloadPath,
-                downloadPathLength + 1);
+            GetDlgItemText(hDlg, IDC_EDIT_DOWNLOAD_PATH, downloadPath, downloadPathLength + 1);
 
             int localeRegionLength = GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT_LOCALE));
             wchar_t localeRegion[MAX_PATH] = {};
@@ -173,22 +175,13 @@ void WebViewCreateOption::PopupDialog(AppWindow* app)
         (LPARAM)app);
 }
 
-
 // Creates a new window which is a copy of the entire app, but on the same thread.
 AppWindow::AppWindow(
-    UINT creationModeId,
-    const WebViewCreateOption& opt,
-    const std::wstring& initialUri,
-    const std::wstring& userDataFolderParam,
-    bool isMainWindow,
-    std::function<void()> webviewCreatedCallback,
-    bool customWindowRect,
-    RECT windowRect,
-    bool shouldHaveToolbar
-    )
-    : m_creationModeId(creationModeId),
-      m_webviewOption(opt),
-      m_initialUri(initialUri),
+    UINT creationModeId, const WebViewCreateOption& opt, const std::wstring& initialUri,
+    const std::wstring& userDataFolderParam, bool isMainWindow,
+    std::function<void()> webviewCreatedCallback, bool customWindowRect, RECT windowRect,
+    bool shouldHaveToolbar)
+    : m_creationModeId(creationModeId), m_webviewOption(opt), m_initialUri(initialUri),
       m_onWebViewFirstInitialized(webviewCreatedCallback)
 {
     // Initialize COM as STA.
@@ -208,8 +201,9 @@ AppWindow::AppWindow(
     if (customWindowRect)
     {
         m_mainWindow = CreateWindowExW(
-            WS_EX_CONTROLPARENT, GetWindowClass(), szTitle, WS_OVERLAPPEDWINDOW, windowRect.left,
-            windowRect.top, windowRect.right-windowRect.left, windowRect.bottom-windowRect.top, nullptr, nullptr, g_hInstance, nullptr);
+            WS_EX_CONTROLPARENT, GetWindowClass(), szTitle, WS_OVERLAPPEDWINDOW,
+            windowRect.left, windowRect.top, windowRect.right - windowRect.left,
+            windowRect.bottom - windowRect.top, nullptr, nullptr, g_hInstance, nullptr);
     }
     else
     {
@@ -219,22 +213,21 @@ AppWindow::AppWindow(
     }
 
     m_appBackgroundImageHandle = (HBITMAP)LoadImage(
-        g_hInstance, MAKEINTRESOURCE(IDI_WEBVIEW2_BACKGROUND), IMAGE_BITMAP, 0, 0, LR_DEFAULTCOLOR);
+        g_hInstance, MAKEINTRESOURCE(IDI_WEBVIEW2_BACKGROUND), IMAGE_BITMAP, 0, 0,
+        LR_DEFAULTCOLOR);
     GetObject(m_appBackgroundImageHandle, sizeof(m_appBackgroundImage), &m_appBackgroundImage);
     m_memHdc = CreateCompatibleDC(GetDC(m_mainWindow));
     SelectObject(m_memHdc, m_appBackgroundImageHandle);
 
     SetWindowLongPtr(m_mainWindow, GWLP_USERDATA, (LONG_PTR)this);
 
-#ifdef USE_WEBVIEW2_WIN10
     //! [TextScaleChanged1]
     if (winrt::try_get_activation_factory<winrt::Windows::UI::ViewManagement::UISettings>())
     {
         m_uiSettings = winrt::Windows::UI::ViewManagement::UISettings();
-        m_uiSettings.TextScaleFactorChanged({ this, &AppWindow::OnTextScaleChanged });
+        m_uiSettings.TextScaleFactorChanged({this, &AppWindow::OnTextScaleChanged});
     }
     //! [TextScaleChanged1]
-#endif
 
     if (shouldHaveToolbar)
     {
@@ -250,19 +243,20 @@ AppWindow::AppWindow(
     HRESULT hr = GetAvailableCoreWebView2BrowserVersionString(nullptr, &version_info);
     if (hr == S_OK && version_info != nullptr)
     {
-        RunAsync([this] {
-            InitializeWebView();
-        });
+        RunAsync([this] { InitializeWebView(); });
     }
     else
     {
-        if (isMainWindow) {
+        if (isMainWindow)
+        {
             AddRef();
-            CreateThread(0, 0, DownloadAndInstallWV2RT, (void*) this, 0, 0);
+            CreateThread(0, 0, DownloadAndInstallWV2RT, (void*)this, 0, 0);
         }
         else
         {
-            MessageBox(m_mainWindow, L"WebView Runtime not installed", L"WebView Runtime Installation status", MB_OK);
+            MessageBox(
+                m_mainWindow, L"WebView Runtime not installed",
+                L"WebView Runtime Installation status", MB_OK);
         }
     }
 }
@@ -276,7 +270,8 @@ AppWindow::~AppWindow()
 PCWSTR AppWindow::GetWindowClass()
 {
     // Only do this once
-    static PCWSTR windowClass = [] {
+    static PCWSTR windowClass = []
+    {
         static WCHAR windowClass[s_maxLoadString];
         LoadStringW(g_hInstance, IDC_WEBVIEW2APISAMPLE, windowClass, s_maxLoadString);
 
@@ -350,13 +345,10 @@ bool AppWindow::HandleWindowMessage(
         }
 
         RECT* const newWindowSize = reinterpret_cast<RECT*>(lParam);
-        SetWindowPos(hWnd,
-            nullptr,
-            newWindowSize->left,
-            newWindowSize->top,
+        SetWindowPos(
+            hWnd, nullptr, newWindowSize->left, newWindowSize->top,
             newWindowSize->right - newWindowSize->left,
-            newWindowSize->bottom - newWindowSize->top,
-            SWP_NOZORDER | SWP_NOACTIVATE);
+            newWindowSize->bottom - newWindowSize->top, SWP_NOZORDER | SWP_NOACTIVATE);
         return true;
     }
     break;
@@ -369,9 +361,10 @@ bool AppWindow::HandleWindowMessage(
 
         hdc = GetDC(hWnd);
 
-        StretchBlt(hdc, m_appBackgroundImageRect.left, m_appBackgroundImageRect.top,
-            m_appBackgroundImageRect.right, m_appBackgroundImageRect.bottom, m_memHdc,
-            0, 0, m_appBackgroundImage.bmWidth, m_appBackgroundImage.bmHeight, SRCCOPY);
+        StretchBlt(
+            hdc, m_appBackgroundImageRect.left, m_appBackgroundImageRect.top,
+            m_appBackgroundImageRect.right, m_appBackgroundImageRect.bottom, m_memHdc, 0, 0,
+            m_appBackgroundImage.bmWidth, m_appBackgroundImage.bmHeight, SRCCOPY);
 
         EndPaint(hWnd, &ps);
         return true;
@@ -671,8 +664,9 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
         CHECK_FEATURE_RETURN(experimentalEnvironment3);
         HRESULT hr = experimentalEnvironment3->UpdateRuntime(
             Callback<ICoreWebView2ExperimentalUpdateRuntimeCompletedHandler>(
-                [this](HRESULT errorCode,
-                   ICoreWebView2ExperimentalUpdateRuntimeResult* result) -> HRESULT {
+                [this](HRESULT errorCode, ICoreWebView2ExperimentalUpdateRuntimeResult* result)
+                    -> HRESULT
+                {
                     HRESULT updateError = E_FAIL;
                     COREWEBVIEW2_UPDATE_RUNTIME_STATUS status =
                         COREWEBVIEW2_UPDATE_RUNTIME_STATUS_FAILED;
@@ -700,9 +694,7 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_CREATION_MODE_WINDOWED:
     case IDM_CREATION_MODE_VISUAL_DCOMP:
     case IDM_CREATION_MODE_TARGET_DCOMP:
-#ifdef USE_WEBVIEW2_WIN10
     case IDM_CREATION_MODE_VISUAL_WINCOMP:
-#endif
         m_creationModeId = LOWORD(wParam);
         UpdateCreationModeMenu();
         return true;
@@ -726,9 +718,11 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
         return true;
     case IDM_TOGGLE_TOPMOST_WINDOW:
     {
-        bool isCurrentlyTopMost = (GetWindowLong(m_mainWindow, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
-        SetWindowPos(m_mainWindow, isCurrentlyTopMost ? HWND_NOTOPMOST : HWND_TOPMOST,
-            0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+        bool isCurrentlyTopMost =
+            (GetWindowLong(m_mainWindow, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
+        SetWindowPos(
+            m_mainWindow, isCurrentlyTopMost ? HWND_NOTOPMOST : HWND_TOPMOST, 0, 0, 0, 0,
+            SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
         return true;
     }
     case IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS:
@@ -762,9 +756,8 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     }
     case IDM_SCENARIO_CLEAR_BROWSING_DATA_AUTOFILL:
     {
-        return ClearBrowsingData(
-            (COREWEBVIEW2_BROWSING_DATA_KINDS)(COREWEBVIEW2_BROWSING_DATA_KINDS_GENERAL_AUTOFILL |
-            COREWEBVIEW2_BROWSING_DATA_KINDS_PASSWORD_AUTOSAVE));
+        return ClearBrowsingData((
+            COREWEBVIEW2_BROWSING_DATA_KINDS)(COREWEBVIEW2_BROWSING_DATA_KINDS_GENERAL_AUTOFILL | COREWEBVIEW2_BROWSING_DATA_KINDS_PASSWORD_AUTOSAVE));
     }
     case IDM_SCENARIO_CLEAR_BROWSING_DATA_BROWSING_HISTORY:
     {
@@ -793,7 +786,8 @@ bool AppWindow::ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds)
     CHECK_FAILURE(webView2Profile2->ClearBrowsingDataInTimeRange(
         dataKinds, startTime, endTime,
         Callback<ICoreWebView2ClearBrowsingDataCompletedHandler>(
-            [this](HRESULT error) -> HRESULT {
+            [this](HRESULT error) -> HRESULT
+            {
                 AsyncMessageBox(L"Completed", L"Clear Browsing Data");
                 return S_OK;
             })
@@ -822,11 +816,10 @@ void AppWindow::ToggleAADSSO()
     MessageBox(
         nullptr,
         m_AADSSOEnabled ? L"AAD single sign on will be enabled for new WebView "
-                          L"created after all webviews are closed." :
-                          L"AAD single sign on will be disabled for new WebView"
+                          L"created after all webviews are closed."
+                        : L"AAD single sign on will be disabled for new WebView"
                           L" created after all webviews are closed.",
-        L"AAD SSO change",
-        MB_OK);
+        L"AAD SSO change", MB_OK);
 }
 
 void AppWindow::ToggleExclusiveUserDataFolderAccess()
@@ -834,11 +827,11 @@ void AppWindow::ToggleExclusiveUserDataFolderAccess()
     m_ExclusiveUserDataFolderAccess = !m_ExclusiveUserDataFolderAccess;
     MessageBox(
         nullptr,
-        m_ExclusiveUserDataFolderAccess ?
-            L"Will request exclusive access to user data folder "
-            L"for new WebView created after all webviews are closed." :
-            L"Will not request exclusive access to user data folder "
-            L"for new WebView created after all webviews are closed.",
+        m_ExclusiveUserDataFolderAccess
+            ? L"Will request exclusive access to user data folder "
+              L"for new WebView created after all webviews are closed."
+            : L"Will not request exclusive access to user data folder "
+              L"for new WebView created after all webviews are closed.",
         L"Exclusive User Data Folder Access change", MB_OK);
 }
 
@@ -1130,7 +1123,8 @@ std::function<void()> AppWindow::GetAcceleratorKeyFunction(UINT key)
         case 'Q':
             return [this] { CloseAppWindow(); };
         case 'S':
-            return [this] {
+            return [this]
+            {
                 if (auto file = GetComponent<FileComponent>())
                 {
                     file->SaveScreenshot();
@@ -1154,9 +1148,7 @@ void AppWindow::InitializeWebView()
     // getting created which will apply the browser switches.
     CloseWebView();
     m_dcompDevice = nullptr;
-#ifdef USE_WEBVIEW2_WIN10
     m_wincompCompositor = nullptr;
-#endif
     LPCWSTR subFolder = nullptr;
 
     if (m_creationModeId == IDM_CREATION_MODE_VISUAL_DCOMP ||
@@ -1174,7 +1166,6 @@ void AppWindow::InitializeWebView()
             return;
         }
     }
-#ifdef USE_WEBVIEW2_WIN10
     else if (m_creationModeId == IDM_CREATION_MODE_VISUAL_WINCOMP)
     {
         HRESULT hr = TryCreateDispatcherQueue();
@@ -1190,13 +1181,11 @@ void AppWindow::InitializeWebView()
         }
         m_wincompCompositor = winrtComp::Compositor();
     }
-#endif
     //! [CreateCoreWebView2EnvironmentWithOptions]
 
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
     CHECK_FAILURE(
-        options->put_AllowSingleSignOnUsingOSPrimaryAccount(
-        m_AADSSOEnabled ? TRUE : FALSE));
+        options->put_AllowSingleSignOnUsingOSPrimaryAccount(m_AADSSOEnabled ? TRUE : FALSE));
     CHECK_FAILURE(options->put_ExclusiveUserDataFolderAccess(
         m_ExclusiveUserDataFolderAccess ? TRUE : FALSE));
     if (!m_language.empty())
@@ -1205,8 +1194,8 @@ void AppWindow::InitializeWebView()
         m_CustomCrashReportingEnabled ? TRUE : FALSE));
 
     //! [CoreWebView2CustomSchemeRegistration]
-    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions> optionsExperimental;
-    if (options.As(&optionsExperimental) == S_OK)
+    Microsoft::WRL::ComPtr<ICoreWebView2EnvironmentOptions4> options4;
+    if (options.As(&options4) == S_OK)
     {
         const WCHAR* allowedOrigins[1] = {L"https://*.example.com"};
 
@@ -1221,19 +1210,19 @@ void AppWindow::InitializeWebView()
         auto customSchemeRegistration3 =
             Microsoft::WRL::Make<CoreWebView2CustomSchemeRegistration>(
                 L"custom-scheme-not-in-allowed-origins");
-        ICoreWebView2ExperimentalCustomSchemeRegistration* registrations[3] = {
+        ICoreWebView2CustomSchemeRegistration* registrations[3] = {
             customSchemeRegistration.Get(), customSchemeRegistration2.Get(),
             customSchemeRegistration3.Get()};
-        optionsExperimental->SetCustomSchemeRegistrations(
-            2, static_cast<ICoreWebView2ExperimentalCustomSchemeRegistration**>(registrations));
+        options4->SetCustomSchemeRegistrations(
+            2, static_cast<ICoreWebView2CustomSchemeRegistration**>(registrations));
     }
     //! [CoreWebView2CustomSchemeRegistration]
 
-    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions2> optionsExperimental2;
-    if (options.As(&optionsExperimental2) == S_OK)
+    Microsoft::WRL::ComPtr<ICoreWebView2EnvironmentOptions5> options5;
+    if (options.As(&options5) == S_OK)
     {
-        CHECK_FAILURE(optionsExperimental2->put_EnableTrackingPrevention(
-            m_TrackingPreventionEnabled ? TRUE : FALSE));
+        CHECK_FAILURE(
+            options5->put_EnableTrackingPrevention(m_TrackingPreventionEnabled ? TRUE : FALSE));
     }
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
@@ -1246,38 +1235,40 @@ void AppWindow::InitializeWebView()
     {
         switch (hr)
         {
-            case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND):
-            {
-                MessageBox(
-                    m_mainWindow,
-                    L"Couldn't find Edge WebView2 Runtime. "
-                    "Do you have a version installed?",
-                    nullptr, MB_OK);
-            }
-            break;
-            case HRESULT_FROM_WIN32(ERROR_FILE_EXISTS):
-            {
-                MessageBox(
-                    m_mainWindow, L"User data folder cannot be created because a file with the same name already exists.", nullptr, MB_OK);
-            }
-            break;
-            case E_ACCESSDENIED:
-            {
-                MessageBox(
-                    m_mainWindow, L"Unable to create user data folder, Access Denied.", nullptr, MB_OK);
-            }
-            break;
-            case E_FAIL:
-            {
-                MessageBox(
-                    m_mainWindow, L"Edge runtime unable to start", nullptr, MB_OK);
-            }
-            break;
-            default:
-            {
-                ShowFailure(
-                    hr, L"Failed to create WebView2 environment");
-            }
+        case HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND):
+        {
+            MessageBox(
+                m_mainWindow,
+                L"Couldn't find Edge WebView2 Runtime. "
+                "Do you have a version installed?",
+                nullptr, MB_OK);
+        }
+        break;
+        case HRESULT_FROM_WIN32(ERROR_FILE_EXISTS):
+        {
+            MessageBox(
+                m_mainWindow,
+                L"User data folder cannot be created because a file with the same name already "
+                L"exists.",
+                nullptr, MB_OK);
+        }
+        break;
+        case E_ACCESSDENIED:
+        {
+            MessageBox(
+                m_mainWindow, L"Unable to create user data folder, Access Denied.", nullptr,
+                MB_OK);
+        }
+        break;
+        case E_FAIL:
+        {
+            MessageBox(m_mainWindow, L"Edge runtime unable to start", nullptr, MB_OK);
+        }
+        break;
+        default:
+        {
+            ShowFailure(hr, L"Failed to create WebView2 environment");
+        }
         }
     }
 }
@@ -1294,21 +1285,17 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
         return CreateControllerWithOptions();
     }
 
-    auto webViewEnvironment3 =
-        m_webViewEnvironment.try_query<ICoreWebView2Environment3>();
-#ifdef USE_WEBVIEW2_WIN10
+    auto webViewEnvironment3 = m_webViewEnvironment.try_query<ICoreWebView2Environment3>();
+
     if (webViewEnvironment3 && (m_dcompDevice || m_wincompCompositor))
-#else
-    if (webViewEnvironment3 && m_dcompDevice)
-#endif
     {
         CHECK_FAILURE(webViewEnvironment3->CreateCoreWebView2CompositionController(
             m_mainWindow,
-            Callback<
-                ICoreWebView2CreateCoreWebView2CompositionControllerCompletedHandler>(
+            Callback<ICoreWebView2CreateCoreWebView2CompositionControllerCompletedHandler>(
                 [this](
                     HRESULT result,
-                    ICoreWebView2CompositionController* compositionController) -> HRESULT {
+                    ICoreWebView2CompositionController* compositionController) -> HRESULT
+                {
                     auto controller =
                         wil::com_ptr<ICoreWebView2CompositionController>(compositionController)
                             .query<ICoreWebView2Controller>();
@@ -1377,11 +1364,7 @@ HRESULT AppWindow::CreateControllerWithOptions()
     }
     //! [RegionLocaleSetting]
 
-#ifdef USE_WEBVIEW2_WIN10
     if (m_dcompDevice || m_wincompCompositor)
-#else
-    if (m_dcompDevice)
-#endif
     {
         //! [OnCreateCoreWebView2ControllerCompleted]
         CHECK_FAILURE(webViewEnvironment10->CreateCoreWebView2CompositionControllerWithOptions(
@@ -1389,7 +1372,8 @@ HRESULT AppWindow::CreateControllerWithOptions()
             Callback<ICoreWebView2CreateCoreWebView2CompositionControllerCompletedHandler>(
                 [this](
                     HRESULT result,
-                    ICoreWebView2CompositionController* compositionController) -> HRESULT {
+                    ICoreWebView2CompositionController* compositionController) -> HRESULT
+                {
                     auto controller =
                         wil::com_ptr<ICoreWebView2CompositionController>(compositionController)
                             .query<ICoreWebView2Controller>();
@@ -1438,9 +1422,10 @@ void AppWindow::SetAppIcon(bool inPrivate)
         SendMessage(m_mainWindow, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(newBigIcon)));
 }
 
-// This is the callback passed to CreateCoreWebView2Controller. Here we initialize all WebView-related
-// state and register most of our event handlers with the WebView.
-HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICoreWebView2Controller* controller)
+// This is the callback passed to CreateCoreWebView2Controller. Here we initialize all
+// WebView-related state and register most of our event handlers with the WebView.
+HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(
+    HRESULT result, ICoreWebView2Controller* controller)
 {
     if (result == S_OK)
     {
@@ -1490,10 +1475,7 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
             this, m_webViewEnvironment.get(), m_oldSettingsComponent.get());
         m_oldSettingsComponent = nullptr;
         NewComponent<ViewComponent>(
-            this, m_dcompDevice.get(),
-#ifdef USE_WEBVIEW2_WIN10
-            m_wincompCompositor,
-#endif
+            this, m_dcompDevice.get(), m_wincompCompositor,
             m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<AudioComponent>(this);
         NewComponent<ControlComponent>(this, &m_toolbar);
@@ -1508,6 +1490,8 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
                 COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY_CORS);
             //! [AddVirtualHostNameToFolderMapping]
         }
+        NewComponent<ScenarioPermissionManagement>(this);
+
         // We have a few of our own event handlers to register here as well
         RegisterEventHandlers();
 
@@ -1522,7 +1506,8 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(HRESULT result, ICore
 
         if (m_initialUri != L"none")
         {
-            std::wstring initialUri = m_initialUri.empty() ? AppStartPage::GetUri(this) : m_initialUri;
+            std::wstring initialUri =
+                m_initialUri.empty() ? AppStartPage::GetUri(this) : m_initialUri;
             CHECK_FAILURE(m_webView->Navigate(initialUri.c_str()));
         }
     }
@@ -1613,7 +1598,8 @@ void AppWindow::RegisterEventHandlers()
     // Register a handler for the ContainsFullScreenChanged event.
     CHECK_FAILURE(m_webView->add_ContainsFullScreenElementChanged(
         Callback<ICoreWebView2ContainsFullScreenElementChangedEventHandler>(
-            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT
+            {
                 CHECK_FAILURE(
                     sender->get_ContainsFullScreenElement(&m_containsFullscreenElement));
                 if (m_containsFullscreenElement)
@@ -1637,7 +1623,8 @@ void AppWindow::RegisterEventHandlers()
     // the request.
     CHECK_FAILURE(m_webView->add_NewWindowRequested(
         Callback<ICoreWebView2NewWindowRequestedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) {
+            [this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args)
+            {
                 if (!m_shouldHandleNewWindowRequest)
                 {
                     args->put_Handled(FALSE);
@@ -1693,7 +1680,8 @@ void AppWindow::RegisterEventHandlers()
                     newAppWindow = new AppWindow(m_creationModeId, GetWebViewOption(), L"none");
                 }
                 newAppWindow->m_isPopupWindow = true;
-                newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]() {
+                newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]()
+                {
                     CHECK_FAILURE(args->put_NewWindow(newAppWindow->m_webView.get()));
                     CHECK_FAILURE(args->put_Handled(TRUE));
                     CHECK_FAILURE(deferral->Complete());
@@ -1708,15 +1696,16 @@ void AppWindow::RegisterEventHandlers()
     // Register a handler for the WindowCloseRequested event.
     // This handler will close the app window if it is not the main window.
     CHECK_FAILURE(m_webView->add_WindowCloseRequested(
-        Callback<ICoreWebView2WindowCloseRequestedEventHandler>([this](
-                                                                    ICoreWebView2* sender,
-                                                                    IUnknown* args) {
-            if (m_isPopupWindow)
+        Callback<ICoreWebView2WindowCloseRequestedEventHandler>(
+            [this](ICoreWebView2* sender, IUnknown* args)
             {
-                CloseAppWindow();
-            }
-            return S_OK;
-        }).Get(),
+                if (m_isPopupWindow)
+                {
+                    CloseAppWindow();
+                }
+                return S_OK;
+            })
+            .Get(),
         nullptr));
     //! [WindowCloseRequested]
 
@@ -1726,34 +1715,38 @@ void AppWindow::RegisterEventHandlers()
     // This handler tells when there is a new Edge version available on the machine.
     CHECK_FAILURE(m_webViewEnvironment->add_NewBrowserVersionAvailable(
         Callback<ICoreWebView2NewBrowserVersionAvailableEventHandler>(
-            [this](ICoreWebView2Environment* sender, IUnknown* args) -> HRESULT {
-                 // Don't block the event handler with a message box
-                RunAsync([this]
-                {
-                    std::wstring message = L"We detected there is a new version for the browser.";
-                    if (m_webView)
+            [this](ICoreWebView2Environment* sender, IUnknown* args) -> HRESULT
+            {
+                // Don't block the event handler with a message box
+                RunAsync(
+                    [this]
                     {
-                        message += L"Do you want to restart the app? \n\n";
-                        message += L"Click No if you only want to re-create the webviews. \n";
-                        message += L"Click Cancel for no action. \n";
-                    }
-                    int response = MessageBox(
-                        m_mainWindow, message.c_str(), L"New available version",
-                        m_webView ? MB_YESNOCANCEL : MB_OK);
+                        std::wstring message =
+                            L"We detected there is a new version for the browser.";
+                        if (m_webView)
+                        {
+                            message += L"Do you want to restart the app? \n\n";
+                            message +=
+                                L"Click No if you only want to re-create the webviews. \n";
+                            message += L"Click Cancel for no action. \n";
+                        }
+                        int response = MessageBox(
+                            m_mainWindow, message.c_str(), L"New available version",
+                            m_webView ? MB_YESNOCANCEL : MB_OK);
 
-                    if (response == IDYES)
-                    {
-                        RestartApp();
-                    }
-                    else if (response == IDNO)
-                    {
-                        ReinitializeWebViewWithNewBrowser();
-                    }
-                    else
-                    {
-                        // do nothing
-                    }
-                });
+                        if (response == IDYES)
+                        {
+                            RestartApp();
+                        }
+                        else if (response == IDNO)
+                        {
+                            ReinitializeWebViewWithNewBrowser();
+                        }
+                        else
+                        {
+                            // do nothing
+                        }
+                    });
 
                 return S_OK;
             })
@@ -1761,7 +1754,6 @@ void AppWindow::RegisterEventHandlers()
         nullptr));
     //! [NewBrowserVersionAvailable]
 }
-
 // Updates the sizing and positioning of everything in the window.
 void AppWindow::ResizeEverything()
 {
@@ -1788,8 +1780,8 @@ bool AppWindow::CloseWebView(bool cleanupUserDataFolder)
     {
         if (file->IsPrintToPdfInProgress())
         {
-            int selection = MessageBox(m_mainWindow,
-                L"Print to PDF is in progress. Continue closing?",
+            int selection = MessageBox(
+                m_mainWindow, L"Print to PDF is in progress. Continue closing?",
                 L"Print to PDF", MB_YESNO);
             if (selection == IDNO)
             {
@@ -1805,8 +1797,7 @@ bool AppWindow::CloseWebView(bool cleanupUserDataFolder)
     wil::com_ptr<ICoreWebView2Environment5> environment5;
     if (m_webViewEnvironment)
     {
-        environment5 =
-            m_webViewEnvironment.try_query<ICoreWebView2Environment5>();
+        environment5 = m_webViewEnvironment.try_query<ICoreWebView2Environment5>();
     }
     if (cleanupUserDataFolder && environment5)
     {
@@ -1816,7 +1807,8 @@ bool AppWindow::CloseWebView(bool cleanupUserDataFolder)
             Callback<ICoreWebView2BrowserProcessExitedEventHandler>(
                 [environment5, this](
                     ICoreWebView2Environment* sender,
-                    ICoreWebView2BrowserProcessExitedEventArgs* args) {
+                    ICoreWebView2BrowserProcessExitedEventArgs* args)
+                {
                     COREWEBVIEW2_BROWSER_PROCESS_EXIT_KIND kind;
                     UINT32 pid;
                     CHECK_FAILURE(args->get_BrowserProcessExitKind(&kind));
@@ -2005,7 +1997,8 @@ std::wstring AppWindow::GetDocumentTitle()
     return m_documentTitle;
 }
 
-void AppWindow::UpdateAppTitle() {
+void AppWindow::UpdateAppTitle()
+{
     std::wstring str(m_appTitle);
     if (!m_profileName.empty())
     {
@@ -2074,9 +2067,7 @@ void AppWindow::RunAsync(std::function<void()> callback)
 void AppWindow::AsyncMessageBox(std::wstring message, std::wstring title)
 {
     RunAsync([this, message = std::move(message), title = std::move(title)]
-    {
-        MessageBox(m_mainWindow, message.c_str(), title.c_str(), MB_OK);
-    });
+             { MessageBox(m_mainWindow, message.c_str(), title.c_str(), MB_OK); });
 }
 
 void AppWindow::EnterFullScreen()
@@ -2143,7 +2134,7 @@ HRESULT AppWindow::TryCreateDispatcherQueue()
     namespace winSystem = winrt::Windows::System;
 
     HRESULT hr = S_OK;
-    thread_local winSystem::DispatcherQueueController dispatcherQueueController{ nullptr };
+    thread_local winSystem::DispatcherQueueController dispatcherQueueController{nullptr};
 
     if (dispatcherQueueController == nullptr)
     {
@@ -2162,13 +2153,9 @@ HRESULT AppWindow::TryCreateDispatcherQueue()
         }
         if (fnCreateDispatcherQueueController != nullptr)
         {
-            winSystem::DispatcherQueueController controller{ nullptr };
-            DispatcherQueueOptions options
-            {
-                sizeof(DispatcherQueueOptions),
-                DQTYPE_THREAD_CURRENT,
-                DQTAT_COM_STA
-            };
+            winSystem::DispatcherQueueController controller{nullptr};
+            DispatcherQueueOptions options{
+                sizeof(DispatcherQueueOptions), DQTYPE_THREAD_CURRENT, DQTAT_COM_STA};
             hr = fnCreateDispatcherQueueController(
                 options, reinterpret_cast<ABI::Windows::System::IDispatcherQueueController**>(
                              winrt::put_abi(controller)));
@@ -2179,36 +2166,30 @@ HRESULT AppWindow::TryCreateDispatcherQueue()
     return hr;
 }
 
-#ifdef USE_WEBVIEW2_WIN10
 //! [TextScaleChanged2]
 void AppWindow::OnTextScaleChanged(
     winrt::Windows::UI::ViewManagement::UISettings const& settings,
     winrt::Windows::Foundation::IInspectable const& args)
 {
-    RunAsync([this] {
-        m_toolbar.UpdateDpiAndTextScale();
-        if (auto view = GetComponent<ViewComponent>())
+    RunAsync(
+        [this]
         {
-            view->UpdateDpiAndTextScale();
-        }
-    });
+            m_toolbar.UpdateDpiAndTextScale();
+            if (auto view = GetComponent<ViewComponent>())
+            {
+                view->UpdateDpiAndTextScale();
+            }
+        });
 }
 //! [TextScaleChanged2]
-#endif
 
 void AppWindow::UpdateCreationModeMenu()
 {
     HMENU hMenu = GetMenu(m_mainWindow);
     CheckMenuRadioItem(
-        hMenu,
-        IDM_CREATION_MODE_WINDOWED,
-#ifdef USE_WEBVIEW2_WIN10
+        hMenu, IDM_CREATION_MODE_WINDOWED,
         IDM_CREATION_MODE_VISUAL_WINCOMP,
-#else
-        IDM_CREATION_MODE_TARGET_DCOMP,
-#endif
-        m_creationModeId,
-        MF_BYCOMMAND);
+        m_creationModeId, MF_BYCOMMAND);
 }
 
 double AppWindow::GetDpiScale()
@@ -2218,21 +2199,17 @@ double AppWindow::GetDpiScale()
 
 double AppWindow::GetTextScale()
 {
-#ifdef USE_WEBVIEW2_WIN10
     return m_uiSettings ? m_uiSettings.TextScaleFactor() : 1.0f;
-#else
-    return 1.0f;
-#endif
 }
 
 void AppWindow::AddRef()
 {
-    InterlockedIncrement((LONG *)&m_refCount);
+    InterlockedIncrement((LONG*)&m_refCount);
 }
 
 void AppWindow::Release()
 {
-    uint32_t refCount = InterlockedDecrement((LONG *)&m_refCount);
+    uint32_t refCount = InterlockedDecrement((LONG*)&m_refCount);
     if (refCount == 0)
     {
         delete this;
@@ -2255,17 +2232,19 @@ void AppWindow::InstallComplete(int return_code)
     {
         if (return_code == 0)
         {
-            RunAsync([this] {
-                InitializeWebView();
-            });
+            RunAsync([this] { InitializeWebView(); });
         }
         else if (return_code == 1)
         {
-            MessageBox(m_mainWindow, L"WebView Runtime failed to Install", L"WebView Runtime Installation status", MB_OK);
+            MessageBox(
+                m_mainWindow, L"WebView Runtime failed to Install",
+                L"WebView Runtime Installation status", MB_OK);
         }
         else if (return_code == 2)
         {
-            MessageBox(m_mainWindow, L"WebView Bootstrapper failled to download", L"WebView Bootstrapper Download status", MB_OK);
+            MessageBox(
+                m_mainWindow, L"WebView Bootstrapper failled to download",
+                L"WebView Bootstrapper Download status", MB_OK);
         }
     }
 }

@@ -9,10 +9,10 @@ using Microsoft.Web.WebView2.Core;
 
 namespace WebView2WpfBrowser {
   /// <summary>
-  /// Interaction logic for PermissionDialog.xaml
+  /// Interaction logic for SetPermissionDialog.xaml
   /// </summary>
-  public partial class PermissionDialog : Window {
-    public PermissionDialog(List<CoreWebView2PermissionKind> permissionKinds = null,
+  public partial class SetPermissionDialog : Window {
+    public SetPermissionDialog(List<CoreWebView2PermissionKind> permissionKinds = null,
                             List<CoreWebView2PermissionState> permissionStates = null) {
       InitializeComponent();
       PermissionKind.ItemsSource = permissionKinds;

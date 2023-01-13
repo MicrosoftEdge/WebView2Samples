@@ -16,12 +16,10 @@
 #include <string>
 #include <vector>
 #include <winnt.h>
-#ifdef USE_WEBVIEW2_WIN10
 #include <winrt/Windows.UI.Composition.h>
 #include <winrt/Windows.UI.ViewManagement.h>
 
 namespace winrtComp = winrt::Windows::UI::Composition;
-#endif
 
 class SettingsComponent;
 
@@ -207,11 +205,9 @@ private:
     void UpdateAppTitle();
     void ToggleExclusiveUserDataFolderAccess();
     void ToggleCustomCrashReporting();
-#ifdef USE_WEBVIEW2_WIN10
     void OnTextScaleChanged(
         winrt::Windows::UI::ViewManagement::UISettings const& uiSettings,
         winrt::Windows::Foundation::IInspectable const& args);
-#endif
     bool ShowPrintUI(COREWEBVIEW2_PRINT_DIALOG_KIND printDialogKind);
     bool PrintToDefaultPrinter();
     bool PrintToPrinter();
@@ -288,10 +284,8 @@ private:
     HRESULT TryCreateDispatcherQueue();
 
     wil::com_ptr<IDCompositionDevice> m_dcompDevice;
-#ifdef USE_WEBVIEW2_WIN10
     winrtComp::Compositor m_wincompCompositor{ nullptr };
-    winrt::Windows::UI::ViewManagement::UISettings m_uiSettings{ nullptr };
-#endif
+    winrt::Windows::UI::ViewManagement::UISettings m_uiSettings{nullptr};
 
     // Background Image members
     HBITMAP m_appBackgroundImageHandle;

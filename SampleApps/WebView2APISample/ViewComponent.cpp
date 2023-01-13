@@ -8,13 +8,11 @@
 #include "DCompTargetImpl.h"
 #include "AppStartPage.h"
 
+#include "DropTarget.h"
 #include <d2d1helper.h>
 #include <sstream>
-#include <windowsx.h>
-#ifdef USE_WEBVIEW2_WIN10
 #include <windows.ui.composition.interop.h>
-#endif
-#include "DropTarget.h"
+#include <windowsx.h>
 
 #include "CheckFailure.h"
 
@@ -37,18 +35,11 @@ static void UpdateDocumentTitle(AppWindow* appWindow, const std::wstring& prefix
 };
 
 ViewComponent::ViewComponent(
-    AppWindow* appWindow,
-    IDCompositionDevice* dcompDevice,
-#ifdef USE_WEBVIEW2_WIN10
-    winrtComp::Compositor wincompCompositor,
-#endif
-    bool isDcompTargetMode)
+    AppWindow* appWindow, IDCompositionDevice* dcompDevice,
+    winrtComp::Compositor wincompCompositor, bool isDcompTargetMode)
     : m_appWindow(appWindow), m_controller(appWindow->GetWebViewController()),
       m_webView(appWindow->GetWebView()), m_dcompDevice(dcompDevice),
-#ifdef USE_WEBVIEW2_WIN10
-      m_wincompCompositor(wincompCompositor),
-#endif
-      m_isDcompTargetMode(isDcompTargetMode)
+      m_wincompCompositor(wincompCompositor), m_isDcompTargetMode(isDcompTargetMode)
 {
     //! [ZoomFactorChanged]
     // Register a handler for the ZoomFactorChanged event.
@@ -86,31 +77,21 @@ ViewComponent::ViewComponent(
                     // the background color transparent so the WebView2 logo in the AppWindow
                     // shows through. On Win7, transparency is not supported, so we need to
                     // enable a CSS style to add the WebView2 logo as the background image.
-#if USE_WEBVIEW2_WIN10
                     COREWEBVIEW2_COLOR transparentColor = { 0, 255, 255, 255 };
                     wil::com_ptr<ICoreWebView2Controller2> controller2 =
                         m_controller.query<ICoreWebView2Controller2>();
                     // Save the previous background color to restore when navigating away.
                     CHECK_FAILURE(controller2->get_DefaultBackgroundColor(&m_webViewColor));
                     CHECK_FAILURE(controller2->put_DefaultBackgroundColor(transparentColor));
-#else
-                    std::wstring setBackgroundImageScript =
-                        L"document.addEventListener('DOMContentLoaded', () => {"
-                        L"  document.documentElement.classList.add('logo-background');"
-                        L"});";
-                    m_webView->ExecuteScript(setBackgroundImageScript.c_str(), nullptr);
-#endif
                 }
                 else if (appStartPage.compare(0, queryIndex, oldUri.get(), queryIndex) == 0)
                 {
-#if USE_WEBVIEW2_WIN10
                     // When navigating away from the app start page, set the background color
                     // back to the previous value. If the user changed the background color,
                     // m_webViewColor will have changed.
                     wil::com_ptr<ICoreWebView2Controller2> controller2 =
                         m_controller.query<ICoreWebView2Controller2>();
                     CHECK_FAILURE(controller2->put_DefaultBackgroundColor(m_webViewColor));
-#endif
                 }
                 return S_OK;
             }).Get(), &m_navigationStartingToken));
@@ -160,13 +141,11 @@ ViewComponent::ViewComponent(
             CHECK_FAILURE(m_dcompDevice->Commit());
             //! [SetRootVisualTarget]
         }
-#ifdef USE_WEBVIEW2_WIN10
         else if (m_wincompCompositor)
         {
             BuildWinCompVisualTree();
             CHECK_FAILURE(m_compositionController->put_RootVisualTarget(m_wincompWebViewVisual.as<IUnknown>().get()));
         }
-#endif
         else
         {
             FAIL_FAST();
@@ -213,11 +192,7 @@ ViewComponent::ViewComponent(
         m_dropTarget->Init(
             m_appWindow->GetMainWindow(), this, compositionController3.get());
     }
-    else if (m_dcompDevice
-#ifdef USE_WEBVIEW2_WIN10
-        || m_wincompCompositor
-#endif
-        )
+    else if (m_dcompDevice || m_wincompCompositor)
     {
         FAIL_FAST();
     }
@@ -599,7 +574,6 @@ void ViewComponent::ResizeWebView()
                 {0, 0, float(webViewSize.cx), float(webViewSize.cy)}));
             CHECK_FAILURE(m_dcompDevice->Commit());
         }
-#ifdef USE_WEBVIEW2_WIN10
         else if (m_wincompCompositor)
         {
             if (m_wincompRootVisual != nullptr)
@@ -616,7 +590,6 @@ void ViewComponent::ResizeWebView()
                 m_wincompRootVisual.Clip(insetClip.as<winrtComp::CompositionClip>());
             }
         }
-#endif
     }
 }
 //! [ResizeWebView]
@@ -680,18 +653,13 @@ void ViewComponent::SetTransform(TransformType transformType)
         m_webViewTransformMatrix = D2D1::Matrix4x4F();
     }
 
-#ifdef USE_WEBVIEW2_WIN10
     if (m_dcompDevice && !m_wincompCompositor)
-#else
-    if (m_dcompDevice)
-#endif
     {
         wil::com_ptr<IDCompositionVisual3> dcompWebViewVisual3;
         m_dcompWebViewVisual->QueryInterface(IID_PPV_ARGS(&dcompWebViewVisual3));
         CHECK_FAILURE(dcompWebViewVisual3->SetTransform(m_webViewTransformMatrix));
         CHECK_FAILURE(m_dcompDevice->Commit());
     }
-#ifdef USE_WEBVIEW2_WIN10
     else if (m_wincompCompositor && !m_dcompDevice)
     {
         if (m_wincompWebViewVisual != nullptr)
@@ -700,7 +668,6 @@ void ViewComponent::SetTransform(TransformType transformType)
                 *reinterpret_cast<numerics::float4x4*>(&m_webViewTransformMatrix));
         }
     }
-#endif
     else
     {
         FAIL_FAST();
@@ -749,11 +716,7 @@ static D2D1_MATRIX_4X4_F Convert3x2MatrixTo4x4Matrix(D2D1_MATRIX_3X2_F* matrix3x
 bool ViewComponent::OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
     // Manually relay mouse messages to the WebView
-#ifdef USE_WEBVIEW2_WIN10
     if (m_dcompDevice || m_wincompCompositor)
-#else
-    if (m_dcompDevice)
-#endif
     {
         POINT point;
         POINTSTOPOINT(point, lParam);
@@ -854,11 +817,7 @@ bool ViewComponent::OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 bool ViewComponent::OnPointerMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
     bool handled = false;
-#ifdef USE_WEBVIEW2_WIN10
     if (m_dcompDevice || m_wincompCompositor)
-#else
-    if (m_dcompDevice)
-#endif
     {
         POINT point;
         POINTSTOPOINT(point, lParam);
@@ -958,7 +917,6 @@ void ViewComponent::DestroyDCompVisualTree()
     }
 }
 
-#ifdef USE_WEBVIEW2_WIN10
 void ViewComponent::BuildWinCompVisualTree()
 {
     namespace abiComp = ABI::Windows::UI::Composition;
@@ -992,7 +950,6 @@ void ViewComponent::DestroyWinCompVisualTree()
         m_wincompHwndTarget = nullptr;
     }
 }
-#endif
 
 //! [ToggleDefaultDownloadDialog]
 void ViewComponent::ToggleDefaultDownloadDialog()
@@ -1108,8 +1065,6 @@ ViewComponent::~ViewComponent()
         // is destroyed. If the webview is closed explicitly, this will succeed.
         m_compositionController->put_RootVisualTarget(nullptr);
         DestroyDCompVisualTree();
-#ifdef USE_WEBVIEW2_WIN10
         DestroyWinCompVisualTree();
-#endif
     }
 }

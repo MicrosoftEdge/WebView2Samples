@@ -109,6 +109,8 @@ namespace WebView2WpfBrowser
         public static RoutedCommand OpenDevToolsCommand = new RoutedCommand();
         public static RoutedCommand OpenTaskManagerCommand = new RoutedCommand();
 
+        public static RoutedCommand PermissionManagementCommand = new RoutedCommand();
+
         bool _isNavigating = false;
 
         // for add/remove initialize script
@@ -158,6 +160,28 @@ namespace WebView2WpfBrowser
 
         IDictionary<(string, CoreWebView2PermissionKind, bool), bool> _cachedPermissions =
             new Dictionary<(string, CoreWebView2PermissionKind, bool), bool>();
+
+        List<CoreWebView2PermissionKind> _permissionKinds = new List<CoreWebView2PermissionKind>
+        {
+          CoreWebView2PermissionKind.Microphone,
+          CoreWebView2PermissionKind.Camera,
+          CoreWebView2PermissionKind.Geolocation,
+          CoreWebView2PermissionKind.Notifications,
+          CoreWebView2PermissionKind.OtherSensors,
+          CoreWebView2PermissionKind.ClipboardRead,
+          CoreWebView2PermissionKind.MultipleAutomaticDownloads,
+          CoreWebView2PermissionKind.FileReadWrite,
+          CoreWebView2PermissionKind.Autoplay,
+          CoreWebView2PermissionKind.LocalFonts,
+          CoreWebView2PermissionKind.MidiSystemExclusiveMessageAccess,
+        };
+
+        List<CoreWebView2PermissionState> _permissionStates = new List<CoreWebView2PermissionState>
+        {
+          CoreWebView2PermissionState.Allow,
+          CoreWebView2PermissionState.Deny,
+          CoreWebView2PermissionState.Default
+        };
 
         public CoreWebView2CreationProperties CreationProperties { get; set; } = null;
 
@@ -1175,7 +1199,6 @@ namespace WebView2WpfBrowser
             }
         }
 
-
         void PdfToolbarSaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             // <ToggleHiddenPdfToolbarItems>
@@ -1666,6 +1689,11 @@ namespace WebView2WpfBrowser
         {
             _isNavigating = true;
             RequeryCommands();
+
+            // <NavigationKind>
+            CoreWebView2NavigationKind kind = e.NavigationKind;
+            Debug.WriteLine($"CoreWebView2_NavigationStarting: NavigationKind({kind})");
+            // </NavigationKind>
         }
 
         void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -1765,6 +1793,9 @@ namespace WebView2WpfBrowser
                 // <PermissionRequested>
                 webView.CoreWebView2.PermissionRequested += WebView_PermissionRequested;
                 // </PermissionRequested>
+                webView.CoreWebView2.DOMContentLoaded += WebView_PermissionManager_DOMContentLoaded;
+                webView.CoreWebView2.WebMessageReceived += WebView_PermissionManager_WebMessageReceived;
+
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
                 // instance has changed.
@@ -1792,10 +1823,8 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
-
                 return;
             }
-
             MessageBox.Show($"WebView2 creation failed with exception = {e.InitializationException}");
         }
         private void SetDefaultDownloadDialogPosition()
@@ -2569,6 +2598,16 @@ namespace WebView2WpfBrowser
                     return "OtherSensors";
                 case CoreWebView2PermissionKind.ClipboardRead:
                     return "ClipboardRead";
+                case CoreWebView2PermissionKind.MultipleAutomaticDownloads:
+                    return "AutomaticDownloads";
+                case CoreWebView2PermissionKind.FileReadWrite:
+                    return "FileReadWrite";
+                case CoreWebView2PermissionKind.Autoplay:
+                    return "Autoplay";
+                case CoreWebView2PermissionKind.LocalFonts:
+                    return "LocalFonts";
+                case CoreWebView2PermissionKind.MidiSystemExclusiveMessageAccess:
+                    return "MidiSysex";
                 default:
                     return "Unknown";
             }
@@ -2577,16 +2616,30 @@ namespace WebView2WpfBrowser
         // <OnPermissionRequested>
         void WebView_PermissionRequested(object sender, CoreWebView2PermissionRequestedEventArgs args)
         {
+            // Obtain a deferral for the event so that the CoreWebView2 doesn't examine
+            // the properties set on the event args until after the dialog is closed.
             CoreWebView2Deferral deferral = args.GetDeferral();
 
             System.Threading.SynchronizationContext.Current.Post((_) =>
             {
                 using (deferral)
                 {
+                    try
+                    {
+                        // Do not save state to the profile so that the PermissionRequested
+                        // event is always raised and the app is in control of all
+                        // permission requests.
+                        args.SavesInProfile = false;
+                    }
+                    catch (NotImplementedException e)
+                    {
+                        Debug.WriteLine($"SavesInProfile is not available with this WebView2 Runtime version. Handle `NewBrowserVersionAvailable` to be notified when the Runtime can be updated: {e.Message}");
+                    }
                     var cachedKey = (args.Uri, args.PermissionKind, args.IsUserInitiated);
+                    CoreWebView2PermissionState state = CoreWebView2PermissionState.Default;
                     if (_cachedPermissions.ContainsKey(cachedKey))
                     {
-                        args.State = _cachedPermissions[cachedKey]
+                        state = _cachedPermissions[cachedKey]
                             ? CoreWebView2PermissionState.Allow
                             : CoreWebView2PermissionState.Deny;
                     }
@@ -2601,16 +2654,19 @@ namespace WebView2WpfBrowser
                         switch (selection)
                         {
                             case MessageBoxResult.Yes:
-                                args.State = CoreWebView2PermissionState.Allow;
+                                state = CoreWebView2PermissionState.Allow;
+                                _cachedPermissions[cachedKey] = true;
                                 break;
                             case MessageBoxResult.No:
-                                args.State = CoreWebView2PermissionState.Deny;
+                                state = CoreWebView2PermissionState.Deny;
+                                _cachedPermissions[cachedKey] = false;
                                 break;
                             case MessageBoxResult.Cancel:
-                                args.State = CoreWebView2PermissionState.Default;
+                                state = CoreWebView2PermissionState.Default;
                                 break;
                         }
                     }
+                    args.State = state;
                 }
             }, null);
         }
@@ -2632,6 +2688,108 @@ namespace WebView2WpfBrowser
             AttachControlToVisualTree(webView);
             // Set background transparent
             webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+        }
+
+        void PermissionManagementExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "appassets.example", "assets", CoreWebView2HostResourceAccessKind.DenyCors);
+            webView.Source = new Uri("https://appassets.example/ScenarioPermissionManagement.html");
+        }
+
+        string PermissionStateToString(CoreWebView2PermissionState state) {
+            switch (state) {
+              case CoreWebView2PermissionState.Allow:
+                return "Allow";
+              case CoreWebView2PermissionState.Deny:
+                return "Deny";
+              default:
+                return "Default";
+            }
+        }
+
+        // <GetNonDefaultPermissionSettings>
+        async void WebView_PermissionManager_DOMContentLoaded(object sender,
+            CoreWebView2DOMContentLoadedEventArgs arg)
+        {
+            if (webView.CoreWebView2.Source !=
+                "https://appassets.example/ScenarioPermissionManagement.html")
+            {
+                return;
+            }
+            try
+            {
+                // Gets the nondefault permission collection and updates a
+                // custom permission management page.
+                IReadOnlyList<CoreWebView2PermissionSetting> permissionList =
+                    await WebViewProfile.GetNonDefaultPermissionSettingsAsync();
+                foreach (CoreWebView2PermissionSetting setting in permissionList)
+                {
+                    string reply = "{\"PermissionSetting\": \"" +
+                                    NameOfPermissionKind(setting.PermissionKind) + ", " +
+                                    setting.PermissionOrigin + ", " +
+                                    PermissionStateToString(setting.PermissionState) +
+                                    "\"}";
+                    webView.CoreWebView2.PostWebMessageAsJson(reply);
+                }
+            }
+            catch (NotImplementedException exception)
+            {
+                System.Threading.SynchronizationContext.Current.Post((_) =>
+                {
+                    MessageBox.Show(this,
+                        "Permission manager not supported: " + exception.Message,
+                        "Permission Manager");
+                }, null);
+            }
+        }
+        // </GetNonDefaultPermissionSettings>
+
+        void WebView_PermissionManager_WebMessageReceived(object sender,
+            CoreWebView2WebMessageReceivedEventArgs args)
+        {
+            if (args.Source !=
+                "https://appassets.example/ScenarioPermissionManagement.html")
+            {
+                return;
+            }
+            string message = args.TryGetWebMessageAsString();
+            if (message == "SetPermission")
+            {
+                // Avoid potential reentrancy from running a message loop in the
+                // event handler.
+                System.Threading.SynchronizationContext.Current.Post((_) =>
+                {
+                    var dialog = new SetPermissionDialog(
+                        _permissionKinds, _permissionStates);
+                    if (dialog.ShowDialog() == true)
+                    {
+                        try
+                        {
+                            SetPermissionState(
+                                (CoreWebView2PermissionKind)dialog.PermissionKind.SelectedItem,
+                                dialog.Origin.Text,
+                                (CoreWebView2PermissionState)dialog.PermissionState.SelectedItem);
+                        }
+                        catch (NotImplementedException e)
+                        {
+                            Debug.WriteLine($"SetPermissionState failed: {e.Message}");
+                        }
+                  }
+                }, null);
+            }
+        }
+
+        async void SetPermissionState(CoreWebView2PermissionKind kind,
+            string origin, CoreWebView2PermissionState state)
+        {
+            // Example: WebViewProfile.SetPermissionState(
+            //    CoreWebView2PermissionKind.Geolocation,
+            //    "https://example.com",
+            //    CoreWebView2PermissionState.Deny);
+            await WebViewProfile.SetPermissionStateAsync(
+                kind, origin, state);
+            webView.Reload();
         }
     }
 }

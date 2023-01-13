@@ -9,11 +9,10 @@
 #include "CheckFailure.h"
 #include "ScenarioPermissionManagement.h"
 #include "TextInputDialog.h"
-#include <windows.h>
-
 #include <gdiplus.h>
 #include <shellapi.h>
 #include <shlwapi.h>
+#include <windows.h>
 
 using namespace Microsoft::WRL;
 
@@ -163,6 +162,15 @@ SettingsComponent::SettingsComponent(
                     }
                 }
                 //! [UserAgent]
+                // [NavigationKind]
+                wil::com_ptr<ICoreWebView2ExperimentalNavigationStartingEventArgs2> args2;
+                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))))
+                {
+                    COREWEBVIEW2_NAVIGATION_KIND kind =
+                        COREWEBVIEW2_NAVIGATION_KIND_NEW_DOCUMENT;
+                    CHECK_FAILURE(args2->get_NavigationKind(&kind));
+                }
+                // ! [NavigationKind]
                 return S_OK;
             })
             .Get(),
@@ -347,59 +355,68 @@ HRESULT SettingsComponent::OnPermissionRequested(
     wil::com_ptr<ICoreWebView2Deferral> deferral;
     CHECK_FAILURE(args->GetDeferral(&deferral));
 
+    // Do not save state to the profile so that the PermissionRequested event is
+    // always raised and the app is in control of all permission requests. In
+    // this example, the app listens to all requests and caches permission on
+    // its own to decide whether to show custom UI to the user.
+    wil::com_ptr<ICoreWebView2ExperimentalPermissionRequestedEventArgs3> extended_args;
+    CHECK_FAILURE(args->QueryInterface(IID_PPV_ARGS(&extended_args)));
+    CHECK_FAILURE(extended_args->put_SavesInProfile(FALSE));
+
     // Do the rest asynchronously, to avoid calling MessageBox in an event handler.
-    m_appWindow->RunAsync([this, deferral, args] {
-        COREWEBVIEW2_PERMISSION_KIND kind = COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
-        BOOL userInitiated = FALSE;
-        wil::unique_cotaskmem_string uri;
-        CHECK_FAILURE(args->get_PermissionKind(&kind));
-        CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
-        CHECK_FAILURE(args->get_Uri(&uri));
-
-        COREWEBVIEW2_PERMISSION_STATE state;
-
-        auto cached_key = std::make_tuple(std::wstring(uri.get()), kind, userInitiated);
-        auto cached_permission = m_cached_permissions.find(cached_key);
-        if (cached_permission != m_cached_permissions.end())
+    m_appWindow->RunAsync(
+        [this, deferral, args = wil::com_ptr<ICoreWebView2PermissionRequestedEventArgs>(args)]
         {
-            state =
-                (cached_permission->second ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
-                                           : COREWEBVIEW2_PERMISSION_STATE_DENY);
-        }
-        else
-        {
-            std::wstring message = L"An iframe has requested device permission for ";
-            message += PermissionKindToString(kind);
-            message += L" to the website at ";
-            message += uri.get();
-            message += L"?\n\n";
-            message += L"Do you want to grant permission?\n";
-            message +=
-                (userInitiated ? L"This request came from a user gesture."
-                               : L"This request did not come from a user gesture.");
+            wil::unique_cotaskmem_string uri;
+            COREWEBVIEW2_PERMISSION_KIND kind = COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
+            BOOL userInitiated = FALSE;
+            CHECK_FAILURE(args->get_Uri(&uri));
+            CHECK_FAILURE(args->get_PermissionKind(&kind));
+            CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
 
-            int response = MessageBox(
-                nullptr, message.c_str(), L"Permission Request",
-                MB_YESNOCANCEL | MB_ICONWARNING);
-            switch (response)
+            COREWEBVIEW2_PERMISSION_STATE state = COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
+
+            auto cached_key = std::make_tuple(std::wstring(uri.get()), kind, userInitiated);
+            auto cached_permission = m_cached_permissions.find(cached_key);
+            if (cached_permission != m_cached_permissions.end())
             {
-            case IDYES:
-                m_cached_permissions[cached_key] = true;
-                state = COREWEBVIEW2_PERMISSION_STATE_ALLOW;
-                break;
-            case IDNO:
-                m_cached_permissions[cached_key] = false;
-                state = COREWEBVIEW2_PERMISSION_STATE_DENY;
-                break;
-            default:
-                state = COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
-                break;
+                state =
+                    (cached_permission->second ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
+                                               : COREWEBVIEW2_PERMISSION_STATE_DENY);
             }
-        }
+            else
+            {
+                std::wstring message = L"An iframe has requested device permission for ";
+                message += PermissionKindToString(kind);
+                message += L" to the website at ";
+                message += uri.get();
+                message += L"?\n\n";
+                message += L"Do you want to grant permission?\n";
+                message +=
+                    (userInitiated ? L"This request came from a user gesture."
+                                   : L"This request did not come from a user gesture.");
 
-        CHECK_FAILURE(args->put_State(state));
-        CHECK_FAILURE(deferral->Complete());
-    });
+                int response = MessageBox(
+                    nullptr, message.c_str(), L"Permission Request",
+                    MB_YESNOCANCEL | MB_ICONWARNING);
+                switch (response)
+                {
+                case IDYES:
+                    m_cached_permissions[cached_key] = true;
+                    state = COREWEBVIEW2_PERMISSION_STATE_ALLOW;
+                    break;
+                case IDNO:
+                    m_cached_permissions[cached_key] = false;
+                    state = COREWEBVIEW2_PERMISSION_STATE_DENY;
+                    break;
+                default:
+                    state = COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
+                    break;
+                }
+            }
+            CHECK_FAILURE(args->put_State(state));
+            CHECK_FAILURE(deferral->Complete());
+        });
     return S_OK;
 }
 //! [PermissionRequested1]
@@ -1490,10 +1507,10 @@ void SettingsComponent::SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENT
         wil::com_ptr<ICoreWebView2Profile> profile;
         CHECK_FAILURE(webView2_13->get_Profile(&profile));
 
-        auto profileExperimental5 = profile.try_query<ICoreWebView2ExperimentalProfile5>();
-        if (profileExperimental5)
+        auto profile3 = profile.try_query<ICoreWebView2Profile3>();
+        if (profile3)
         {
-            CHECK_FAILURE(profileExperimental5->put_PreferredTrackingPreventionLevel(value));
+            CHECK_FAILURE(profile3->put_PreferredTrackingPreventionLevel(value));
             MessageBox(
                 nullptr, L"Tracking prevention level is set successfully",
                 L"Tracking Prevention Level", MB_OK);
