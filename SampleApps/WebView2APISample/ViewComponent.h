@@ -10,9 +10,7 @@
 #include "ComponentBase.h"
 #include <dcomp.h>
 #include <unordered_set>
-#ifdef USE_WEBVIEW2_WIN10
 #include <winrt/Windows.UI.Composition.Desktop.h>
-#endif
 
 // This component handles commands from the View menu, as well as the ZoomFactorChanged
 // event, and any functionality related to sizing and visibility of the WebView.
@@ -27,13 +25,8 @@ class ViewComponent : public ComponentBase
 
 public:
     ViewComponent(
-        AppWindow* appWindow,
-        IDCompositionDevice* dcompDevice,
-#ifdef USE_WEBVIEW2_WIN10
-        winrtComp::Compositor wincompCompositor,
-#endif
-        bool isDCompTargetMode
-    );
+        AppWindow* appWindow, IDCompositionDevice* dcompDevice,
+        winrtComp::Compositor wincompCompositor, bool isDCompTargetMode);
 
     bool HandleWindowMessage(
         HWND hWnd,
@@ -127,15 +120,13 @@ private:
     wil::com_ptr<IDCompositionVisual> m_dcompRootVisual;
     wil::com_ptr<IDCompositionVisual> m_dcompWebViewVisual;
 
-#ifdef USE_WEBVIEW2_WIN10
     void BuildWinCompVisualTree();
     void DestroyWinCompVisualTree();
 
     winrt::Windows::UI::Composition::Compositor m_wincompCompositor{ nullptr };
     winrt::Windows::UI::Composition::Desktop::DesktopWindowTarget m_wincompHwndTarget{ nullptr };
     winrt::Windows::UI::Composition::ContainerVisual m_wincompRootVisual{ nullptr };
-    winrt::Windows::UI::Composition::ContainerVisual m_wincompWebViewVisual{ nullptr };
-#endif
+    winrt::Windows::UI::Composition::ContainerVisual m_wincompWebViewVisual{nullptr};
 
     // This member is used to exercise the put_RootVisualTarget API with an IDCompositionTarget.
     // Distinct/unrelated to the dcompHwndTarget

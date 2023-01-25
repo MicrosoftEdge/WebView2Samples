@@ -46,9 +46,11 @@ namespace WebView2WindowsFormsBrowser
             this.closeWebViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createNewWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createNewWindowWithOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.createNewThreadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.controlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.acceleratorKeysEnabledToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.scriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.zoomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.xToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.xToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,8 +60,11 @@ namespace WebView2WindowsFormsBrowser
             this.blueBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.redBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.whiteBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.taskManagerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.methodCDPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.transparentBackgroundColorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.allowExternalDropMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.setUsersAgentMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.getDocumentTitleMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -68,6 +73,10 @@ namespace WebView2WindowsFormsBrowser
             this.portraitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.landscapeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toggleVisibilityMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.serverCertificateErrorMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toggleCustomServerCertificateSupportMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearServerCertificateErrorActionsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toggleDefaultScriptDialogsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.webViewLogoBitmap = new System.Drawing.Bitmap(@"assets\AppStartPageBackground.png");
             this.webView2Control = new Microsoft.Web.WebView2.WinForms.WebView2();
             this.menuStrip1.SuspendLayout();
@@ -157,7 +166,8 @@ namespace WebView2WindowsFormsBrowser
             this.fileToolStripMenuItem,
             this.windowToolStripMenuItem,
             this.controlToolStripMenuItem,
-            this.viewToolStripMenuItem});
+            this.viewToolStripMenuItem,
+            this.scriptToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1580, 42);
@@ -218,7 +228,7 @@ namespace WebView2WindowsFormsBrowser
             // windowToolStripMenuItem
             //
             this.windowToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.closeWebViewToolStripMenuItem, this.createNewWindowToolStripMenuItem, this.createNewWindowWithOptionsToolStripMenuItem});
+            this.closeWebViewToolStripMenuItem, this.createNewWindowToolStripMenuItem, this.createNewWindowWithOptionsToolStripMenuItem, this.createNewThreadToolStripMenuItem});
             this.windowToolStripMenuItem.Name = "windowToolStripMenuItem";
             this.windowToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
             this.windowToolStripMenuItem.Text = "Window";
@@ -244,10 +254,21 @@ namespace WebView2WindowsFormsBrowser
             this.createNewWindowWithOptionsToolStripMenuItem.Text = "Create New Window With Options";
             this.createNewWindowWithOptionsToolStripMenuItem.Click += new System.EventHandler(this.createNewWindowWithOptionsToolStripMenuItem_Click);
             //
+            // createNewThreadToolStripMenuItem
+            //
+            this.createNewThreadToolStripMenuItem.Name = "createNewThreadToolStripMenuItem";
+            this.createNewThreadToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.createNewThreadToolStripMenuItem.Text = "Create New Thread";
+            this.createNewThreadToolStripMenuItem.Click += new System.EventHandler(this.createNewThreadToolStripMenuItem_Click);
+            //
             // controlToolStripMenuItem
             //
             this.controlToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.acceleratorKeysEnabledToolStripMenuItem, this.allowExternalDropMenuItem});
+                this.acceleratorKeysEnabledToolStripMenuItem,
+                this.allowExternalDropMenuItem,
+                this.serverCertificateErrorMenuItem,
+                this.setUsersAgentMenuItem,
+                this.toggleDefaultScriptDialogsMenuItem});
             this.controlToolStripMenuItem.Name = "controlToolStripMenuItem";
             this.controlToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
             this.controlToolStripMenuItem.Text = "Settings";
@@ -269,6 +290,43 @@ namespace WebView2WindowsFormsBrowser
             this.allowExternalDropMenuItem.CheckOnClick = true;
             this.allowExternalDropMenuItem.Click += new System.EventHandler(this.allowExternalDropMenuItem_Click);
             //
+            // serverCertificateErrorMenuItem
+            //
+            this.serverCertificateErrorMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.toggleCustomServerCertificateSupportMenuItem,
+                this.clearServerCertificateErrorActionsMenuItem});
+            this.serverCertificateErrorMenuItem.Name = "serverCertificateErrorMenuItem";
+            this.serverCertificateErrorMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.serverCertificateErrorMenuItem.Text = "Server Certificate Error";
+            //
+            // setUsersAgentMenuItem
+            //
+            this.setUsersAgentMenuItem.Name = "setUsersAgentMenuItem";
+            this.setUsersAgentMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.setUsersAgentMenuItem.Text = "Set Users Agent";
+            this.setUsersAgentMenuItem.Click += new System.EventHandler(this.setUsersAgentMenuItem_Click);
+            //
+            // toggleCustomServerCertificateSupportMenuItem
+            //
+            this.toggleCustomServerCertificateSupportMenuItem.Name = "toggleCustomServerCertificateSupportMenuItem";
+            this.toggleCustomServerCertificateSupportMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.toggleCustomServerCertificateSupportMenuItem.Text = "Toggle Custom Server Certificate Support";
+            this.toggleCustomServerCertificateSupportMenuItem.Click += new System.EventHandler(this.toggleCustomServerCertificateSupportMenuItem_Click);
+            //
+            // clearServerCertificateErrorActionsMenuItem
+            //
+            this.clearServerCertificateErrorActionsMenuItem.Name = "clearServerCertificateErrorActionsMenuItem";
+            this.clearServerCertificateErrorActionsMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.clearServerCertificateErrorActionsMenuItem.Text = "Clear Server Certificate Error Actions";
+            this.clearServerCertificateErrorActionsMenuItem.Click += new System.EventHandler(this.clearServerCertificateErrorActionsMenuItem_Click);
+            //
+            // toggleDefaultScriptDialogsMenuItem
+            //
+            this.toggleDefaultScriptDialogsMenuItem.Name = "toggleDefaultScriptDialogsMenuItem";
+            this.toggleDefaultScriptDialogsMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.toggleDefaultScriptDialogsMenuItem.Text = "Toggle Default Script Dialogs";
+            this.toggleDefaultScriptDialogsMenuItem.Click += new System.EventHandler(this.toggleDefaultScriptDialogsMenuItem_Click);
+            //
             // viewToolStripMenuItem
             //
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -276,6 +334,14 @@ namespace WebView2WindowsFormsBrowser
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
             this.viewToolStripMenuItem.Size = new System.Drawing.Size(86, 38);
             this.viewToolStripMenuItem.Text = "View";
+            //
+            // scriptToolStripMenuItem
+            //
+            this.scriptToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.methodCDPToolStripMenuItem, this.taskManagerToolStripMenuItem});
+            this.scriptToolStripMenuItem.Name = "scriptToolStripMenuItem";
+            this.scriptToolStripMenuItem.Size = new System.Drawing.Size(86, 38);
+            this.scriptToolStripMenuItem.Text = "Script";
             //
             // toggleVisibilityMenuItem
             //
@@ -357,6 +423,20 @@ namespace WebView2WindowsFormsBrowser
             this.blueBackgroundColorMenuItem.Text = "Blue";
             this.blueBackgroundColorMenuItem.Click += new System.EventHandler(this.backgroundColorMenuItem_Click);
             //
+            // methodCDPToolStripMenuItem
+            //
+            this.methodCDPToolStripMenuItem.Name = "methodCDPToolStripMenuItem";
+            this.methodCDPToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.methodCDPToolStripMenuItem.Text = "Call CDP Method";
+            this.methodCDPToolStripMenuItem.Click += new System.EventHandler(this.methodCDPToolStripMenuItem_Click);
+            //
+            // taskManagerToolStripMenuItem
+            //
+            this.taskManagerToolStripMenuItem.Name = "methodCDPToolStripMenuItem";
+            this.taskManagerToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.taskManagerToolStripMenuItem.Text = "Open Task Manager";
+            this.taskManagerToolStripMenuItem.Click += new System.EventHandler(this.taskManagerToolStripMenuItem_Click);
+            //
             // transparentBackgroundColorMenuItem
             //
             this.transparentBackgroundColorMenuItem.Name = "transparentBackgroundColorMenuItem";
@@ -419,10 +499,12 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem closeWebViewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem createNewWindowToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem createNewWindowWithOptionsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem createNewThreadToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem controlToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem acceleratorKeysEnabledToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem zoomToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem scriptToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem xToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem xToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem xToolStripMenuItem2;
@@ -431,8 +513,11 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem whiteBackgroundColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem redBackgroundColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem blueBackgroundColorMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem taskManagerToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem methodCDPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem transparentBackgroundColorMenuItem;
         private System.Windows.Forms.ToolStripMenuItem allowExternalDropMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem setUsersAgentMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem getDocumentTitleMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exitMenuItem;
@@ -441,6 +526,10 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem portraitMenuItem;
         private System.Windows.Forms.ToolStripMenuItem landscapeMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toggleVisibilityMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem serverCertificateErrorMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toggleCustomServerCertificateSupportMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem clearServerCertificateErrorActionsMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toggleDefaultScriptDialogsMenuItem;
 
     }
 }

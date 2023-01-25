@@ -4,12 +4,8 @@
 
 #include "stdafx.h"
 
-#ifdef USE_WEBVIEW2_WIN10
 #include <pathcch.h>
-#else
-#include <Shlwapi.h>
-#endif
-#include <Psapi.h>
+#include <psapi.h>
 
 #include "AppStartPage.h"
 #include "AppWindow.h"
@@ -34,16 +30,8 @@ bool AreFileUrisEqual(std::wstring leftUri, std::wstring rightUri)
 std::wstring ResolvePathAndTrimFile(std::wstring path)
 {
     wchar_t resultPath[MAX_PATH];
-#ifdef USE_WEBVIEW2_WIN10
     PathCchCanonicalize(resultPath, ARRAYSIZE(resultPath), path.c_str());
     PathCchRemoveFileSpec(resultPath, ARRAYSIZE(resultPath));
-#else
-    // Supress compiler warning for PathCanonicalize. It is only used on Win7
-    // where PathCchCanonicalize doesn't exist.
-    #pragma warning(suppress : 4995)
-    PathCanonicalize(resultPath, path.c_str());
-    PathRemoveFileSpec(resultPath);
-#endif
     return resultPath;
 }
 

@@ -47,6 +47,11 @@ namespace WebView2WpfBrowser
             return $"BridgeAddRemoteObject.FuncAsync({msDelay})";
         }
 
+        public async Task FuncAsyncTaskVoid(int msDelay)
+        {
+            await Task.Delay(msDelay);
+        }
+
         // Sample function that takes no parameters.
         public string Func2()
         {
@@ -57,6 +62,11 @@ namespace WebView2WpfBrowser
         {
             await Task.Delay(500);
             return "BridgeAddRemoteObject.Func2Async()";
+        }
+
+        public async Task Func2AsyncTaskVoid()
+        {
+            await Task.Delay(500);
         }
 
         // Get type of an object.

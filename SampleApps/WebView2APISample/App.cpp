@@ -108,12 +108,10 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
                 {
                     creationModeId = IDM_CREATION_MODE_TARGET_DCOMP;
                 }
-#ifdef USE_WEBVIEW2_WIN10
                 else if (NEXT_PARAM_CONTAINS(L"visualwincomp"))
                 {
                     creationModeId = IDM_CREATION_MODE_VISUAL_WINCOMP;
                 }
-#endif
             }
         }
         LocalFree(params);

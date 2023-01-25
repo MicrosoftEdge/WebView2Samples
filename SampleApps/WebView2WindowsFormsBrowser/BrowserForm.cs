@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
@@ -61,6 +62,19 @@ namespace WebView2WindowsFormsBrowser
                     _webViewEnvironment = webView2Control.CoreWebView2.Environment;
                 }
                 return _webViewEnvironment;
+            }
+        }
+
+        CoreWebView2Settings _webViewSettings;
+        CoreWebView2Settings WebViewSettings
+        {
+            get
+            {
+                if (_webViewSettings == null && webView2Control?.CoreWebView2 != null)
+                {
+                    _webViewSettings = webView2Control.CoreWebView2.Settings;
+                }
+                return _webViewSettings;
             }
         }
 
@@ -247,6 +261,40 @@ namespace WebView2WindowsFormsBrowser
             }
         }
 
+        private void ThreadProc(CoreWebView2CreationProperties creationProperties)
+        {
+            try
+            {
+                var creationProps = new CoreWebView2CreationProperties();
+                // The CoreWebView2CreationProperties object cannot be assigned directly, because its member _task will also be assigned.
+                creationProps.BrowserExecutableFolder = creationProperties.BrowserExecutableFolder;
+                creationProps.UserDataFolder = creationProperties.UserDataFolder;
+                creationProps.Language = creationProperties.Language;
+                creationProps.AdditionalBrowserArguments = creationProperties.AdditionalBrowserArguments;
+                creationProps.ProfileName = creationProperties.ProfileName;
+                creationProps.IsInPrivateModeEnabled = creationProperties.IsInPrivateModeEnabled;
+                var tempForm = new BrowserForm(creationProps);
+                tempForm.Show();
+                // Run the message pump
+                Application.Run();
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("Create New Thread Failed: " + exception.Message, "Create New Thread");
+            }
+        }
+
+        private void createNewThreadToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Thread newFormThread = new Thread(() =>
+            {
+                ThreadProc(webView2Control.CreationProperties);
+            });
+            newFormThread.SetApartmentState(ApartmentState.STA);
+            newFormThread.IsBackground = false;
+            newFormThread.Start();
+        }
+
         private void xToolStripMenuItem05_Click(object sender, EventArgs e)
         {
             this.webView2Control.ZoomFactor = 0.5;
@@ -274,9 +322,65 @@ namespace WebView2WindowsFormsBrowser
             this.webView2Control.DefaultBackgroundColor = backgroundColor;
         }
 
+        private void taskManagerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                this.webView2Control.CoreWebView2.OpenTaskManagerWindow();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.ToString(), "Open Task Manager Window failed");
+            }
+        }
+
+        private async void methodCDPToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            TextInputDialog dialog = new TextInputDialog(
+              title: "Call CDP Method",
+              description: "Enter the CDP method name to call, followed by a space,\r\n" +
+                "followed by the parameters in JSON format.",
+              defaultInput: "Runtime.evaluate {\"expression\":\"alert(\\\"test\\\")\"}"
+            );
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                string[] words = dialog.inputBox().Trim().Split(' ');
+                if (words.Length == 1 && words[0] == "")
+                {
+                    MessageBox.Show(this, "Invalid argument:" + dialog.inputBox(), "CDP Method call failed");
+                    return;
+                }
+                string methodName = words[0];
+                string methodParams = (words.Length == 2 ? words[1] : "{}");
+
+                try
+                {
+                    string cdpResult = await this.webView2Control.CoreWebView2.CallDevToolsProtocolMethodAsync(methodName, methodParams);
+                    MessageBox.Show(this, cdpResult, "CDP method call successfully");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, ex.ToString(), "CDP method call failed");
+                }
+            }
+        }
+
         private void allowExternalDropMenuItem_Click(object sender, EventArgs e)
         {
             this.webView2Control.AllowExternalDrop = this.allowExternalDropMenuItem.Checked;
+        }
+
+        private void setUsersAgentMenuItem_Click(object sender, EventArgs e)
+        {
+            var dialog = new TextInputDialog(
+                title: "SetUserAgent",
+                description: "Enter UserAgent");
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                // <SetUserAgent>
+                WebViewSettings.UserAgent = dialog.inputBox();
+                // </SetUserAgent>
+            }
         }
 
         private void getDocumentTitleMenuItem_Click(object sender, EventArgs e)
@@ -384,6 +488,98 @@ namespace WebView2WindowsFormsBrowser
         {
             this.webView2Control.Visible = this.toggleVisibilityMenuItem.Checked;
         }
+
+        private void toggleCustomServerCertificateSupportMenuItem_Click(object sender, EventArgs e)
+        {
+            ToggleCustomServerCertificateSupport();
+        }
+
+        private void clearServerCertificateErrorActionsMenuItem_Click(object sender, EventArgs e)
+        {
+            ClearServerCertificateErrorActions();
+        }
+
+        private void toggleDefaultScriptDialogsMenuItem_Click(object sender, EventArgs e)
+        {
+
+            WebViewSettings.AreDefaultScriptDialogsEnabled = !WebViewSettings.AreDefaultScriptDialogsEnabled;
+
+            MessageBox.Show("Default script dialogs will be " + (WebViewSettings.AreDefaultScriptDialogsEnabled ? "enabled" : "disabled"),"after the next navigation.");
+        }
+
+        // <ServerCertificateError>
+        // When WebView2 doesn't trust a TLS certificate but host app does, this example bypasses
+        // the default TLS interstitial page using the ServerCertificateErrorDetected event handler and
+        // continues the request to a server. Otherwise, cancel the request.
+        private bool _enableServerCertificateError = false;
+        private void ToggleCustomServerCertificateSupport()
+        {
+            // Safeguarding the handler when unsupported runtime is used.
+            try
+            {
+                if (!_enableServerCertificateError)
+                {
+                    this.webView2Control.CoreWebView2.ServerCertificateErrorDetected += WebView_ServerCertificateErrorDetected;
+                }
+                else
+                {
+                    this.webView2Control.CoreWebView2.ServerCertificateErrorDetected -= WebView_ServerCertificateErrorDetected;
+                }
+                _enableServerCertificateError = !_enableServerCertificateError;
+
+                MessageBox.Show(this, "Custom server certificate support has been " +
+                    (_enableServerCertificateError ? "enabled" : "disabled"),
+                    "Custom server certificate support");
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Custom server certificate support failed: " + exception.Message, "Custom server certificate support");
+            }
+        }
+
+        private void WebView_ServerCertificateErrorDetected(object sender, CoreWebView2ServerCertificateErrorDetectedEventArgs e)
+        {
+            CoreWebView2Certificate certificate = e.ServerCertificate;
+
+            // Continues the request to a server with a TLS certificate if the error status
+            // is of type `COREWEBVIEW2_WEB_ERROR_STATUS_CERTIFICATE_IS_INVALID`
+            // and trusted by the host app.
+            if (e.ErrorStatus == CoreWebView2WebErrorStatus.CertificateIsInvalid &&
+                            ValidateServerCertificate(certificate))
+            {
+                e.Action = CoreWebView2ServerCertificateErrorAction.AlwaysAllow;
+            }
+            else
+            {
+                // Cancel the request for other TLS certificate error types or if untrusted by the host app.
+                e.Action = CoreWebView2ServerCertificateErrorAction.Cancel;
+            }
+        }
+
+        // Function to validate the server certificate for untrusted root or self-signed certificate.
+        // You may also choose to defer server certificate validation.
+        bool ValidateServerCertificate(CoreWebView2Certificate certificate)
+        {
+            // You may want to validate certificates in different ways depending on your app and
+            // scenario. One way might be the following:
+            // First, get the list of host app trusted certificates and its thumbprint.
+            //
+            // Then get the last chain element using `ICoreWebView2Certificate::get_PemEncodedIssuerCertificateChain`
+            // that contains the raw data of the untrusted root CA/self-signed certificate. Get the untrusted
+            // root CA/self signed certificate thumbprint from the raw certificate data and validate the thumbprint
+            // against the host app trusted certificate list.
+            //
+            // Finally, return true if it exists in the host app's certificate trusted list, or otherwise return false.
+            return true;
+        }
+
+        // This example clears `AlwaysAllow` response that are added for proceeding with TLS certificate errors.
+        async void ClearServerCertificateErrorActions()
+        {
+            await this.webView2Control.CoreWebView2.ClearServerCertificateErrorActionsAsync();
+            MessageBox.Show(this, "message", "Clear server certificate error actions are succeeded");
+        }
+        // </ServerCertificateError>
         #endregion
 
         private void HandleResize()
