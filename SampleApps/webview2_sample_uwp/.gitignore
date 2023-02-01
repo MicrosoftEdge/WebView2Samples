@@ -1,7 +1,10 @@
-bin/
 .vs/
 obj/
 */Generated Files/
+AppPackages/
+BundleArtifacts/
+WinRTAdapter/x64/
+x64/
 
 # Created by running event monitor
 enc_temp_folder/
