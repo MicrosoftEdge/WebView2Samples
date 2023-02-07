@@ -172,8 +172,7 @@ namespace WebView2WpfBrowser
           CoreWebView2PermissionKind.MultipleAutomaticDownloads,
           CoreWebView2PermissionKind.FileReadWrite,
           CoreWebView2PermissionKind.Autoplay,
-          CoreWebView2PermissionKind.LocalFonts,
-          CoreWebView2PermissionKind.MidiSystemExclusiveMessageAccess,
+          CoreWebView2PermissionKind.LocalFonts
         };
 
         List<CoreWebView2PermissionState> _permissionStates = new List<CoreWebView2PermissionState>
@@ -1199,6 +1198,7 @@ namespace WebView2WpfBrowser
             }
         }
 
+
         void PdfToolbarSaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             // <ToggleHiddenPdfToolbarItems>
@@ -1689,11 +1689,6 @@ namespace WebView2WpfBrowser
         {
             _isNavigating = true;
             RequeryCommands();
-
-            // <NavigationKind>
-            CoreWebView2NavigationKind kind = e.NavigationKind;
-            Debug.WriteLine($"CoreWebView2_NavigationStarting: NavigationKind({kind})");
-            // </NavigationKind>
         }
 
         void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -1823,8 +1818,10 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
+
                 return;
             }
+
             MessageBox.Show($"WebView2 creation failed with exception = {e.InitializationException}");
         }
         private void SetDefaultDownloadDialogPosition()
@@ -2606,8 +2603,6 @@ namespace WebView2WpfBrowser
                     return "Autoplay";
                 case CoreWebView2PermissionKind.LocalFonts:
                     return "LocalFonts";
-                case CoreWebView2PermissionKind.MidiSystemExclusiveMessageAccess:
-                    return "MidiSysex";
                 default:
                     return "Unknown";
             }
