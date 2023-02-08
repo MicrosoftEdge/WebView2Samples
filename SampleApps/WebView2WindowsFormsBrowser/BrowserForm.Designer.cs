@@ -77,6 +77,12 @@ namespace WebView2WindowsFormsBrowser
             this.toggleCustomServerCertificateSupportMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.clearServerCertificateErrorActionsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toggleDefaultScriptDialogsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.audioToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toggleMuteStateMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.blockedDomainsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+
             this.webViewLogoBitmap = new System.Drawing.Bitmap(@"assets\AppStartPageBackground.png");
             this.webView2Control = new Microsoft.Web.WebView2.WinForms.WebView2();
             this.menuStrip1.SuspendLayout();
@@ -130,7 +136,7 @@ namespace WebView2WindowsFormsBrowser
             this.btnRefresh.Click += new System.EventHandler(this.BtnRefresh_Click);
             //
             // btnStop
-            // 
+            //
             this.btnStop.Location = new System.Drawing.Point(510, 48);
             this.btnStop.Margin = new System.Windows.Forms.Padding(6);
             this.btnStop.Name = "btnStop";
@@ -167,7 +173,9 @@ namespace WebView2WindowsFormsBrowser
             this.windowToolStripMenuItem,
             this.controlToolStripMenuItem,
             this.viewToolStripMenuItem,
-            this.scriptToolStripMenuItem});
+            this.scriptToolStripMenuItem,
+            this.audioToolStripMenuItem,
+            this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(1580, 42);
@@ -327,6 +335,13 @@ namespace WebView2WindowsFormsBrowser
             this.toggleDefaultScriptDialogsMenuItem.Text = "Toggle Default Script Dialogs";
             this.toggleDefaultScriptDialogsMenuItem.Click += new System.EventHandler(this.toggleDefaultScriptDialogsMenuItem_Click);
             //
+            // blockedDomainsMenuItem
+            //
+            this.blockedDomainsMenuItem.Name = "blockedDomainsMenuItem";
+            this.blockedDomainsMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.blockedDomainsMenuItem.Text = "Blocked Domains";
+            this.blockedDomainsMenuItem.Click += new System.EventHandler(this.blockedDomainsMenuItem_Click);
+            //
             // viewToolStripMenuItem
             //
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -444,6 +459,39 @@ namespace WebView2WindowsFormsBrowser
             this.transparentBackgroundColorMenuItem.Text = "Transparent";
             this.transparentBackgroundColorMenuItem.Click += new System.EventHandler(this.backgroundColorMenuItem_Click);
             //
+            // audioToolStripMenuItem
+            //
+            this.audioToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripMenuItem[] {
+                this.toggleMuteStateMenuItem });
+            this.audioToolStripMenuItem.Name = "audioToolStripMenuItem";
+            this.audioToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
+            this.audioToolStripMenuItem.Text = "Audio";
+            //
+            // toggleMuteStateStripMenuItem
+            //
+            this.toggleMuteStateMenuItem.Name = "toggleMuteStateMenuItem";
+            this.toggleMuteStateMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.toggleMuteStateMenuItem.Text = "Toggle Mute State";
+            this.toggleMuteStateMenuItem.Click += new System.EventHandler(this.toggleMuteStateMenuItem_Click);
+            this.toggleMuteStateMenuItem.Checked = true;
+            this.toggleMuteStateMenuItem.CheckOnClick = true;
+            //
+            // helpToolStripMenuItem
+            //
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.aboutToolStripMenuItem });
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
+            this.helpToolStripMenuItem.Text = "Help";
+            //
+            // aboutToolStripMenuItem
+            //
+            this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.aboutToolStripMenuItem.Text = "About";
+            this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+
+            //
             // webView2Control
             //
             this.webView2Control.Location = new System.Drawing.Point(0, 96);
@@ -530,6 +578,11 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem toggleCustomServerCertificateSupportMenuItem;
         private System.Windows.Forms.ToolStripMenuItem clearServerCertificateErrorActionsMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toggleDefaultScriptDialogsMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem audioToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toggleMuteStateMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem blockedDomainsMenuItem;
 
     }
 }

@@ -73,10 +73,9 @@ ViewComponent::ViewComponent(
                 if (appStartPage.compare(0, queryIndex, newUri.get(), queryIndex) == 0)
                 {
                     // When navigating to the app start page, make the background of
-                    // the html be the WebView2 logo. On Win10, we do this by making
+                    // the html be the WebView2 logo. We do this by making
                     // the background color transparent so the WebView2 logo in the AppWindow
-                    // shows through. On Win7, transparency is not supported, so we need to
-                    // enable a CSS style to add the WebView2 logo as the background image.
+                    // shows through.
                     COREWEBVIEW2_COLOR transparentColor = { 0, 255, 255, 255 };
                     wil::com_ptr<ICoreWebView2Controller2> controller2 =
                         m_controller.query<ICoreWebView2Controller2>();

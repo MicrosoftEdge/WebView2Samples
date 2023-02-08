@@ -34,7 +34,7 @@ struct WebViewCreateOption
     std::wstring profile;
     bool isInPrivate = false;
     std::wstring downloadPath;
-    std::wstring localeRegion;
+    std::wstring scriptLocale;
     // This value is inherited from the operated AppWindow
     WebViewCreateEntry entry = WebViewCreateEntry::OTHER;
     bool useOSRegion = false;
@@ -44,9 +44,9 @@ struct WebViewCreateOption
 
     WebViewCreateOption(
         const std::wstring& profile_, bool inPrivate, const std::wstring& downloadPath,
-        const std::wstring& localeRegion_, WebViewCreateEntry entry_, bool useOSRegion_)
+        const std::wstring& scriptLocale_, WebViewCreateEntry entry_, bool useOSRegion_)
         : profile(profile_), isInPrivate(inPrivate), downloadPath(downloadPath),
-          localeRegion(localeRegion_), entry(entry_), useOSRegion(useOSRegion_)
+          scriptLocale(scriptLocale_), entry(entry_), useOSRegion(useOSRegion_)
     {
     }
 
@@ -55,7 +55,7 @@ struct WebViewCreateOption
         profile = opt.profile;
         isInPrivate = opt.isInPrivate;
         downloadPath = opt.downloadPath;
-        localeRegion = opt.localeRegion;
+        scriptLocale = opt.scriptLocale;
         entry = opt.entry;
         useOSRegion = opt.useOSRegion;
     }

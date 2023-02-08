@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioDOMContentLoaded</title>
+
+</head>
+<body>
+    <form method="post" enctype="multipart/form-data">
+        <div>
+            <label for="file">Choose file</label>
+            <input type="file"
+                   id="files"
+                   multiple />
+        </div>
+        <div id="preview">
+            <p></p>
+        </div>
+        <div>
+            <button>Submit</button>
+        </div>
+    </form>
+    <script>
+        function returnFileSize(number) {
+            if (number < 1024) {
+                return `${number} bytes`;
+            } else if (number >= 1024 && number < 1048576) {
+                return `${(number / 1024).toFixed(1)} KB`;
+            } else if (number >= 1048576) {
+                return `${(number / 1048576).toFixed(1)} MB`;
+            }
+        }
+
+        function setFilePath() {
+            const curFiles = input.files;
+            preview.innerHTML = "";
+            if (curFiles.length === 0) {
+                const para = document.createElement('p');
+                para.textContent = 'No files currently selected for upload';
+                preview.appendChild(para);
+            } else {
+                const para = document.createElement('p');
+                para.textContent = 'Chosen files:';
+                preview.appendChild(para);
+                const list = document.createElement('ol');
+                preview.appendChild(list);
+                chrome.webview.addEventListener("message", function (e) {
+                    for (var fileKey in e.data) {
+                        const listItem = document.createElement('li');
+                        const para = document.createElement('p');
+                        var file = e.data[fileKey];
+                        para.textContent = `${file.path}`;
+                        listItem.appendChild(para);
+                        list.appendChild(listItem);
+                    }
+                });
+                // Note that postMessageWithAdditionalObjects does not accept a single object,
+                // but only accepts an ArrayLike object.
+                // However, input.files is type FileList, which is already an ArrayLike object so
+                // no conversion to array is needed.
+                chrome.webview.postMessageWithAdditionalObjects("FilesDropped", curFiles);
+            }
+        }
+
+        const input = document.getElementById('files');
+        input.addEventListener('change', setFilePath);</script>
+</body>
+</html>

@@ -227,6 +227,7 @@
     <ClInclude Include="ScenarioCustomScheme.h" />
     <ClInclude Include="ScenarioCustomSchemeNavigate.h" />
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
+    <ClInclude Include="ScenarioDragDrop.h" />
     <ClInclude Include="ScenarioExtensionsManagement.h" />
     <ClInclude Include="ScenarioIFrameDevicePermission.h" />
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
@@ -269,6 +270,7 @@
     <ClCompile Include="ScenarioCustomScheme.cpp" />
     <ClCompile Include="ScenarioCustomSchemeNavigate.cpp" />
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
+    <ClCompile Include="ScenarioDragDrop.cpp" />
     <ClCompile Include="ScenarioExtensionsManagement.cpp" />
     <ClCompile Include="ScenarioIFrameDevicePermission.cpp" />
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
@@ -313,6 +315,9 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioCustomScheme.json">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioDragDrop.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermission.html">

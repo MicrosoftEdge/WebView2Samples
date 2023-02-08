@@ -118,7 +118,7 @@ BEGIN
     POPUP "S&ettings"
     BEGIN
         MENUITEM "Blocked Domains",             ID_BLOCKEDSITES
-        MENUITEM "Set User Agent",              ID_SETTINGS_SETUSERAGENT
+        MENUITEM "Set User Agent", ID_SETTINGS_SETUSERAGENT
         MENUITEM "Toggle Allow External Drop",    ID_TOGGLE_ALLOW_EXTERNAL_DROP
         MENUITEM "Toggle Block Images",         ID_SETTINGS_BLOCKALLIMAGES
         MENUITEM "Toggle Browser Accelerator Keys Enabled", ID_SETTINGS_BROWSER_ACCELERATOR_KEYS_ENABLED
