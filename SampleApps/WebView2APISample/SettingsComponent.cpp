@@ -162,15 +162,6 @@ SettingsComponent::SettingsComponent(
                     }
                 }
                 //! [UserAgent]
-                // [NavigationKind]
-                wil::com_ptr<ICoreWebView2ExperimentalNavigationStartingEventArgs2> args2;
-                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))))
-                {
-                    COREWEBVIEW2_NAVIGATION_KIND kind =
-                        COREWEBVIEW2_NAVIGATION_KIND_NEW_DOCUMENT;
-                    CHECK_FAILURE(args2->get_NavigationKind(&kind));
-                }
-                // ! [NavigationKind]
                 return S_OK;
             })
             .Get(),
@@ -1507,10 +1498,10 @@ void SettingsComponent::SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENT
         wil::com_ptr<ICoreWebView2Profile> profile;
         CHECK_FAILURE(webView2_13->get_Profile(&profile));
 
-        auto profile3 = profile.try_query<ICoreWebView2Profile3>();
-        if (profile3)
+        auto profileExperimental5 = profile.try_query<ICoreWebView2ExperimentalProfile5>();
+        if (profileExperimental5)
         {
-            CHECK_FAILURE(profile3->put_PreferredTrackingPreventionLevel(value));
+            CHECK_FAILURE(profileExperimental5->put_PreferredTrackingPreventionLevel(value));
             MessageBox(
                 nullptr, L"Tracking prevention level is set successfully",
                 L"Tracking Prevention Level", MB_OK);

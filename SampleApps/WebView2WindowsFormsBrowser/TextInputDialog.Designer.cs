@@ -58,7 +58,6 @@ namespace WebView2WindowsFormsBrowser
             this.txtDescription.Location = new System.Drawing.Point(-1, 2);
             this.txtDescription.Multiline = true;
             this.txtDescription.Name = "txtDescription";
-            this.txtDescription.ReadOnly = true;
             this.txtDescription.Size = new System.Drawing.Size(623, 33);
             this.txtDescription.TabIndex = 2;
             // 
@@ -77,8 +76,6 @@ namespace WebView2WindowsFormsBrowser
             this.Controls.Add(this.txtInput);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOk);
-            this.AcceptButton = this.btnOk;
-            this.CancelButton = this.btnCancel;
             this.Name = "TextInputDialog";
             this.Text = "TextInputDialog";
             this.ResumeLayout(false);

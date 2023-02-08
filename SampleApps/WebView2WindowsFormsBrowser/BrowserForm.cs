@@ -322,49 +322,6 @@ namespace WebView2WindowsFormsBrowser
             this.webView2Control.DefaultBackgroundColor = backgroundColor;
         }
 
-        private void taskManagerToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                this.webView2Control.CoreWebView2.OpenTaskManagerWindow();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, ex.ToString(), "Open Task Manager Window failed");
-            }
-        }
-
-        private async void methodCDPToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            TextInputDialog dialog = new TextInputDialog(
-              title: "Call CDP Method",
-              description: "Enter the CDP method name to call, followed by a space,\r\n" +
-                "followed by the parameters in JSON format.",
-              defaultInput: "Runtime.evaluate {\"expression\":\"alert(\\\"test\\\")\"}"
-            );
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                string[] words = dialog.inputBox().Trim().Split(' ');
-                if (words.Length == 1 && words[0] == "")
-                {
-                    MessageBox.Show(this, "Invalid argument:" + dialog.inputBox(), "CDP Method call failed");
-                    return;
-                }
-                string methodName = words[0];
-                string methodParams = (words.Length == 2 ? words[1] : "{}");
-
-                try
-                {
-                    string cdpResult = await this.webView2Control.CoreWebView2.CallDevToolsProtocolMethodAsync(methodName, methodParams);
-                    MessageBox.Show(this, cdpResult, "CDP method call successfully");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(this, ex.ToString(), "CDP method call failed");
-                }
-            }
-        }
-
         private void allowExternalDropMenuItem_Click(object sender, EventArgs e)
         {
             this.webView2Control.AllowExternalDrop = this.allowExternalDropMenuItem.Checked;

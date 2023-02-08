@@ -49,8 +49,6 @@ std::wstring PermissionKindToString(COREWEBVIEW2_PERMISSION_KIND type)
         return L"notifications";
     case COREWEBVIEW2_PERMISSION_KIND_OTHER_SENSORS:
         return L"other sensors";
-    case COREWEBVIEW2_PERMISSION_KIND_MIDI_SYSTEM_EXCLUSIVE_MESSAGE_ACCESS:
-        return L"midi sysex";
     default:
         return L"unknown";
     }
@@ -72,8 +70,7 @@ std::vector<COREWEBVIEW2_PERMISSION_KIND> permissionKinds{
     COREWEBVIEW2_PERMISSION_KIND_LOCAL_FONTS,
     COREWEBVIEW2_PERMISSION_KIND_MICROPHONE,
     COREWEBVIEW2_PERMISSION_KIND_NOTIFICATIONS,
-    COREWEBVIEW2_PERMISSION_KIND_OTHER_SENSORS,
-    COREWEBVIEW2_PERMISSION_KIND_MIDI_SYSTEM_EXCLUSIVE_MESSAGE_ACCESS};
+    COREWEBVIEW2_PERMISSION_KIND_OTHER_SENSORS};
 
 ScenarioPermissionManagement::ScenarioPermissionManagement(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())

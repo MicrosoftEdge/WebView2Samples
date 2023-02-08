@@ -1218,11 +1218,11 @@ void AppWindow::InitializeWebView()
     }
     //! [CoreWebView2CustomSchemeRegistration]
 
-    Microsoft::WRL::ComPtr<ICoreWebView2EnvironmentOptions5> options5;
-    if (options.As(&options5) == S_OK)
+    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions2> optionsExperimental2;
+    if (options.As(&optionsExperimental2) == S_OK)
     {
-        CHECK_FAILURE(
-            options5->put_EnableTrackingPrevention(m_TrackingPreventionEnabled ? TRUE : FALSE));
+        CHECK_FAILURE(optionsExperimental2->put_EnableTrackingPrevention(
+            m_TrackingPreventionEnabled ? TRUE : FALSE));
     }
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
@@ -1754,6 +1754,7 @@ void AppWindow::RegisterEventHandlers()
         nullptr));
     //! [NewBrowserVersionAvailable]
 }
+
 // Updates the sizing and positioning of everything in the window.
 void AppWindow::ResizeEverything()
 {
