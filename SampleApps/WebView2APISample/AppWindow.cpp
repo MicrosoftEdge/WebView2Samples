@@ -35,6 +35,7 @@
 #include "ScenarioCustomScheme.h"
 #include "ScenarioCustomSchemeNavigate.h"
 #include "ScenarioDOMContentLoaded.h"
+#include "ScenarioDragDrop.h"
 #include "ScenarioExtensionsManagement.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
@@ -49,6 +50,7 @@
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
 #include "ViewComponent.h"
+
 using namespace Microsoft::WRL;
 static constexpr size_t s_maxLoadString = 100;
 static constexpr UINT s_runAsyncWindowMessage = WM_APP;
@@ -120,7 +122,7 @@ static INT_PTR CALLBACK DlgProcStatic(HWND hDlg, UINT message, WPARAM wParam, LP
         SetDlgItemText(hDlg, IDC_EDIT_PROFILE, app->GetWebViewOption().profile.c_str());
         SetDlgItemText(
             hDlg, IDC_EDIT_DOWNLOAD_PATH, app->GetWebViewOption().downloadPath.c_str());
-        SetDlgItemText(hDlg, IDC_EDIT_LOCALE, app->GetWebViewOption().localeRegion.c_str());
+        SetDlgItemText(hDlg, IDC_EDIT_LOCALE, app->GetWebViewOption().scriptLocale.c_str());
         CheckDlgButton(hDlg, IDC_CHECK_INPRIVATE, app->GetWebViewOption().isInPrivate);
 
         return (INT_PTR)TRUE;
@@ -139,15 +141,15 @@ static INT_PTR CALLBACK DlgProcStatic(HWND hDlg, UINT message, WPARAM wParam, LP
             wchar_t downloadPath[MAX_PATH] = {};
             GetDlgItemText(hDlg, IDC_EDIT_DOWNLOAD_PATH, downloadPath, downloadPathLength + 1);
 
-            int localeRegionLength = GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT_LOCALE));
-            wchar_t localeRegion[MAX_PATH] = {};
-            GetDlgItemText(hDlg, IDC_EDIT_LOCALE, localeRegion, localeRegionLength + 1);
+            int scriptLocaleLength = GetWindowTextLength(GetDlgItem(hDlg, IDC_EDIT_LOCALE));
+            wchar_t scriptLocale[MAX_PATH] = {};
+            GetDlgItemText(hDlg, IDC_EDIT_LOCALE, scriptLocale, scriptLocaleLength + 1);
 
             bool useOsRegion = IsDlgButtonChecked(hDlg, IDC_CHECK_USE_OS_REGION);
 
             WebViewCreateOption opt(
                 std::wstring(std::move(text)), inPrivate, std::wstring(std::move(downloadPath)),
-                std::wstring(std::move(localeRegion)),
+                std::wstring(std::move(scriptLocale)),
                 WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU, useOsRegion);
 
             // create app window
@@ -795,7 +797,6 @@ bool AppWindow::ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds)
     return true;
 }
 //! [ClearBrowsingData]
-
 // Prompt the user for a new language string
 void AppWindow::ChangeLanguage()
 {
@@ -1342,27 +1343,23 @@ HRESULT AppWindow::CreateControllerWithOptions()
     CHECK_FAILURE(options->put_ProfileName(m_webviewOption.profile.c_str()));
     CHECK_FAILURE(options->put_IsInPrivateModeEnabled(m_webviewOption.isInPrivate));
 
-    //! [RegionLocaleSetting]
-    wil::com_ptr<ICoreWebView2ExperimentalControllerOptions>
-        webView2ExperimentalControllerOptions;
-    if (SUCCEEDED(
-            options->QueryInterface(IID_PPV_ARGS(&webView2ExperimentalControllerOptions))))
+    //! [ScriptLocaleSetting]
+    wil::com_ptr<ICoreWebView2ControllerOptions2> webView2ControllerOptions2;
+    if (SUCCEEDED(options->QueryInterface(IID_PPV_ARGS(&webView2ControllerOptions2))))
     {
         if (m_webviewOption.useOSRegion)
         {
-            int languageCodeSize =
-                GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, nullptr, 0);
-            WCHAR* osLocale = new WCHAR[languageCodeSize];
-            GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, osLocale, languageCodeSize);
-            CHECK_FAILURE(webView2ExperimentalControllerOptions->put_LocaleRegion(osLocale));
+            wchar_t osLocale[LOCALE_NAME_MAX_LENGTH] = {0};
+            GetUserDefaultLocaleName(osLocale, LOCALE_NAME_MAX_LENGTH);
+            CHECK_FAILURE(webView2ControllerOptions2->put_ScriptLocale(osLocale));
         }
-        else if (!m_webviewOption.localeRegion.empty())
+        else if (!m_webviewOption.scriptLocale.empty())
         {
-            CHECK_FAILURE(webView2ExperimentalControllerOptions->put_LocaleRegion(
-                m_webviewOption.localeRegion.c_str()));
+            CHECK_FAILURE(webView2ControllerOptions2->put_ScriptLocale(
+                m_webviewOption.scriptLocale.c_str()));
         }
     }
-    //! [RegionLocaleSetting]
+    //! [ScriptLocaleSetting]
 
     if (m_dcompDevice || m_wincompCompositor)
     {

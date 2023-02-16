@@ -1034,8 +1034,7 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 CHECK_FAILURE(args->get_PermissionKind(&kind));
                 COREWEBVIEW2_PERMISSION_STATE state;
                 CHECK_FAILURE(args->get_State(&state));
-                wil::com_ptr<ICoreWebView2ExperimentalPermissionRequestedEventArgs3>
-                    extended_args;
+                wil::com_ptr<ICoreWebView2PermissionRequestedEventArgs3> extended_args;
                 CHECK_FAILURE(args->QueryInterface(IID_PPV_ARGS(&extended_args)));
                 BOOL saves_in_profile = TRUE;
                 CHECK_FAILURE(extended_args->get_SavesInProfile(&saves_in_profile));

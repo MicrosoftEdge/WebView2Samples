@@ -49,7 +49,7 @@ std::wstring PermissionKindToString(COREWEBVIEW2_PERMISSION_KIND type)
         return L"notifications";
     case COREWEBVIEW2_PERMISSION_KIND_OTHER_SENSORS:
         return L"other sensors";
-    case COREWEBVIEW2_PERMISSION_KIND_MIDI_SYSTEM_EXCLUSIVE_MESSAGE_ACCESS:
+    case COREWEBVIEW2_PERMISSION_KIND_MIDI_SYSTEM_EXCLUSIVE_MESSAGES:
         return L"midi sysex";
     default:
         return L"unknown";
@@ -73,7 +73,7 @@ std::vector<COREWEBVIEW2_PERMISSION_KIND> permissionKinds{
     COREWEBVIEW2_PERMISSION_KIND_MICROPHONE,
     COREWEBVIEW2_PERMISSION_KIND_NOTIFICATIONS,
     COREWEBVIEW2_PERMISSION_KIND_OTHER_SENSORS,
-    COREWEBVIEW2_PERMISSION_KIND_MIDI_SYSTEM_EXCLUSIVE_MESSAGE_ACCESS};
+    COREWEBVIEW2_PERMISSION_KIND_MIDI_SYSTEM_EXCLUSIVE_MESSAGES};
 
 ScenarioPermissionManagement::ScenarioPermissionManagement(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
@@ -84,8 +84,8 @@ ScenarioPermissionManagement::ScenarioPermissionManagement(AppWindow* appWindow)
     if (!webView2_13)
         return;
     CHECK_FAILURE(webView2_13->get_Profile(&profile));
-    m_webViewProfile6 = profile.try_query<ICoreWebView2ExperimentalProfile6>();
-    if (!m_webViewProfile6)
+    m_webViewProfile4 = profile.try_query<ICoreWebView2Profile4>();
+    if (!m_webViewProfile4)
         return;
 
     //! [GetNonDefaultPermissionSettings]
@@ -106,20 +106,18 @@ ScenarioPermissionManagement::ScenarioPermissionManagement(AppWindow* appWindow)
                 // app's permission management page. The permission management
                 // page can present a list of custom permissions set for this
                 // profile and let the end user modify them.
-                CHECK_FAILURE(m_webViewProfile6->GetNonDefaultPermissionSettings(
-                    Callback<
-                        ICoreWebView2ExperimentalGetNonDefaultPermissionSettingsCompletedHandler>(
+                CHECK_FAILURE(m_webViewProfile4->GetNonDefaultPermissionSettings(
+                    Callback<ICoreWebView2GetNonDefaultPermissionSettingsCompletedHandler>(
                         [this, sender](
                             HRESULT code,
-                            ICoreWebView2ExperimentalPermissionSettingCollectionView*
-                                collectionView) -> HRESULT
+                            ICoreWebView2PermissionSettingCollectionView* collectionView)
+                            -> HRESULT
                         {
                             UINT32 count;
                             collectionView->get_Count(&count);
                             for (UINT32 i = 0; i < count; i++)
                             {
-                                wil::com_ptr<ICoreWebView2ExperimentalPermissionSetting>
-                                    setting;
+                                wil::com_ptr<ICoreWebView2PermissionSetting> setting;
                                 CHECK_FAILURE(collectionView->GetValueAtIndex(i, &setting));
                                 COREWEBVIEW2_PERMISSION_KIND kind;
                                 CHECK_FAILURE(setting->get_PermissionKind(&kind));
@@ -175,16 +173,16 @@ ScenarioPermissionManagement::ScenarioPermissionManagement(AppWindow* appWindow)
 void ScenarioPermissionManagement::ShowSetPermissionDialog()
 {
     PermissionDialog dialog(m_appWindow->GetMainWindow(), permissionKinds, permissionStates);
-    if (dialog.confirmed && m_webViewProfile6)
+    if (dialog.confirmed && m_webViewProfile4)
     {
-        // Example: m_webViewProfile6->SetPermissionState(
+        // Example: m_webViewProfile4->SetPermissionState(
         //    COREWEBVIEW2_PERMISSION_KIND_GEOLOCATION,
         //    L"https://example.com",
         //    COREWEBVIEW2_PERMISSION_STATE_DENY
         //    SetPermissionStateCallback);
-        CHECK_FAILURE(m_webViewProfile6->SetPermissionState(
+        CHECK_FAILURE(m_webViewProfile4->SetPermissionState(
             dialog.kind, dialog.origin.c_str(), dialog.state,
-            Callback<ICoreWebView2ExperimentalSetPermissionStateCompletedHandler>(
+            Callback<ICoreWebView2SetPermissionStateCompletedHandler>(
                 [this](HRESULT error) -> HRESULT
                 {
                     m_webView->Reload();
@@ -217,7 +215,7 @@ void ScenarioPermissionManagement::NavigateToPermissionManager()
 
 ScenarioPermissionManagement::~ScenarioPermissionManagement()
 {
-    if (!m_webViewProfile6)
+    if (!m_webViewProfile4)
         return;
     if (m_webView2)
     {

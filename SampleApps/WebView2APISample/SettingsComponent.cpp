@@ -359,7 +359,7 @@ HRESULT SettingsComponent::OnPermissionRequested(
     // always raised and the app is in control of all permission requests. In
     // this example, the app listens to all requests and caches permission on
     // its own to decide whether to show custom UI to the user.
-    wil::com_ptr<ICoreWebView2ExperimentalPermissionRequestedEventArgs3> extended_args;
+    wil::com_ptr<ICoreWebView2PermissionRequestedEventArgs3> extended_args;
     CHECK_FAILURE(args->QueryInterface(IID_PPV_ARGS(&extended_args)));
     CHECK_FAILURE(extended_args->put_SavesInProfile(FALSE));
 
@@ -577,7 +577,6 @@ bool SettingsComponent::HandleWindowMessage(
                                 eventArgs;
                             wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items;
                             CHECK_FAILURE(args->get_MenuItems(&items));
-
                             UINT32 itemsCount;
                             CHECK_FAILURE(items->get_Count(&itemsCount));
 
@@ -1187,6 +1186,9 @@ void SettingsComponent::ChangeBlockedSites()
     {
         m_blockedSitesSet = true;
         m_blockedSites.clear();
+        dialog.input.erase(
+            std::remove_if(dialog.input.begin(), dialog.input.end(), isspace),
+            dialog.input.end());
         size_t begin = 0;
         size_t end = 0;
         while (end != std::wstring::npos)

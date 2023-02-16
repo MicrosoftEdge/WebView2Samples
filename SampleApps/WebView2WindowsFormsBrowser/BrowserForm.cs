@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
@@ -214,11 +215,15 @@ namespace WebView2WindowsFormsBrowser
             else
             {
                 // Otherwise treat it as a web search.
-                uri = new Uri("https://bing.com/search?q=" + 
+                uri = new Uri("https://bing.com/search?q=" +
                     String.Join("+", Uri.EscapeDataString(rawUrl).Split(new string[] { "%20" }, StringSplitOptions.RemoveEmptyEntries)));
             }
 
             webView2Control.Source = uri;
+            if (ShouldBlockUri())
+            {
+               webView2Control.CoreWebView2.NavigateToString("You've attempted to navigate to a domain in the blocked sites list. Press back to return to the previous page.");
+            }
         }
 
         private void btnBack_Click(object sender, EventArgs e)
@@ -507,6 +512,17 @@ namespace WebView2WindowsFormsBrowser
             MessageBox.Show("Default script dialogs will be " + (WebViewSettings.AreDefaultScriptDialogsEnabled ? "enabled" : "disabled"),"after the next navigation.");
         }
 
+        private void toggleMuteStateMenuItem_Click(object sender, EventArgs e)
+        {
+            this.webView2Control.CoreWebView2.IsMuted = !this.webView2Control.CoreWebView2.IsMuted;
+            MessageBox.Show("Mute state will be " + (this.webView2Control.CoreWebView2.IsMuted ? "enabled" : "disabled"), "Mute");
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(this, "WebView2WindowsFormsBrowser, Version 1.0\nCopyright(C) 2023", "About WebView2WindowsFormsBrowser");
+        }
+
         // <ServerCertificateError>
         // When WebView2 doesn't trust a TLS certificate but host app does, this example bypasses
         // the default TLS interstitial page using the ServerCertificateErrorDetected event handler and
@@ -580,6 +596,53 @@ namespace WebView2WindowsFormsBrowser
             MessageBox.Show(this, "message", "Clear server certificate error actions are succeeded");
         }
         // </ServerCertificateError>
+
+        // Prompt the user for a list of blocked domains
+        private bool _blockedSitesSet = false;
+        private HashSet<string> _blockedSitesList = new HashSet<string>();
+        private void blockedDomainsMenuItem_Click(object sender, EventArgs e)
+        {
+            var blockedSitesString = "";
+            if (_blockedSitesSet)
+            {
+                blockedSitesString = String.Join(";", _blockedSitesList);
+            }
+            else
+            {
+                blockedSitesString = "foo.com;bar.org";
+            }
+            var textDialog = new TextInputDialog(
+                title: "Blocked Domains",
+                description: "Enter hostnames to block, sparately by semicolons",
+                defaultInput: blockedSitesString);
+            if (textDialog.ShowDialog() == DialogResult.OK)
+            {
+                _blockedSitesSet = true;
+                _blockedSitesList.Clear();
+                if (textDialog.inputBox() != null)
+                {
+                    string[] textcontent = textDialog.inputBox().Split(';');
+                    foreach (string site in textcontent)
+                    {
+                        _blockedSitesList.Add(site);
+                    }
+                }
+            }
+
+        }
+
+        // Check the URI against the blocked sites list
+        private bool ShouldBlockUri()
+        {
+            foreach (string site in _blockedSitesList)
+            {
+                if (site.Equals(txtUrl.Text))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         #endregion
 
         private void HandleResize()

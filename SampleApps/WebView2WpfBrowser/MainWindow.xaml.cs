@@ -173,7 +173,7 @@ namespace WebView2WpfBrowser
           CoreWebView2PermissionKind.FileReadWrite,
           CoreWebView2PermissionKind.Autoplay,
           CoreWebView2PermissionKind.LocalFonts,
-          CoreWebView2PermissionKind.MidiSystemExclusiveMessageAccess,
+          CoreWebView2PermissionKind.MidiSystemExclusiveMessages,
         };
 
         List<CoreWebView2PermissionState> _permissionStates = new List<CoreWebView2PermissionState>
@@ -2606,7 +2606,7 @@ namespace WebView2WpfBrowser
                     return "Autoplay";
                 case CoreWebView2PermissionKind.LocalFonts:
                     return "LocalFonts";
-                case CoreWebView2PermissionKind.MidiSystemExclusiveMessageAccess:
+                case CoreWebView2PermissionKind.MidiSystemExclusiveMessages:
                     return "MidiSysex";
                 default:
                     return "Unknown";
