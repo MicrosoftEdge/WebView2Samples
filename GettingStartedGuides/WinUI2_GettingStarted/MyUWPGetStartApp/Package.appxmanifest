@@ -8,14 +8,14 @@
 
   <Identity
     Name="7e053cd8-2f6f-46f0-b7bb-b27448358047"
-    Publisher="CN=collabera"
+    Publisher="CN=Microsoft"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="7e053cd8-2f6f-46f0-b7bb-b27448358047" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>MyUWPGetStartApp</DisplayName>
-    <PublisherDisplayName>collabera</PublisherDisplayName>
+    <PublisherDisplayName>Microsoft</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
