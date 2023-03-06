@@ -139,7 +139,15 @@
     <Compile Include="Pages\PopupsAndDialogs.xaml.cs">
       <DependentUpon>PopupsAndDialogs.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\ScriptDebugging.xaml.cs">
+      <DependentUpon>ScriptDebugging.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\SettingsPage.xaml.cs">
+      <DependentUpon>SettingsPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="WebView2Extensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -156,6 +164,10 @@
     <Content Include="Html\new_window.html" />
     <Content Include="Html\popups_and_dialogs.html" />
     <Content Include="Html\power-of-native.svg" />
+    <Content Include="Html\ScenarioJavaScriptDebugIndex.html" />
+    <Content Include="Html\ScenarioJavaScriptDebugIndex.js" />
+    <Content Include="Html\ScenarioTypeScriptDebugIndex.html" />
+    <Content Include="Html\ScenarioTypeScriptDebugIndex.ts" />
     <Content Include="Html\style.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -200,13 +212,21 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\ScriptDebugging.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\SettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.14</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.UI.Xaml">
-      <Version>2.8.2-prerelease.220830001</Version>
+      <Version>2.8.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Web.WebView2">
       <Version>*-*</Version>

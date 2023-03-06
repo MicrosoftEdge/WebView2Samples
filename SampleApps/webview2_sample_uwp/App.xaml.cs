@@ -4,8 +4,10 @@
 
 using System;
 using WebView2_UWP;
+using WebView2_UWP.Pages;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -17,14 +19,30 @@ namespace webview2_sample_uwp
     /// </summary>
     sealed partial class App : Application
     {
+        private readonly Settings _settings;
+
+        public Settings Settings
+        {
+            get { return _settings; }
+        }
+
+        // Syntactic sugar to avoid having to cast
+        // to App in other parts of the application.
+        public static App Instance
+        {
+            get { return (App)Current; }
+        }
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
         public App()
         {
-            this.InitializeComponent();
-            this.Suspending += OnSuspending;
+            _settings = new Settings();
+
+            InitializeComponent();
+            Suspending += OnSuspending;
         }
 
         /// <summary>
@@ -90,6 +108,18 @@ namespace webview2_sample_uwp
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
             deferral.Complete();
+        }
+
+        public void UpdateAppTitle(string webViewVersion)
+        {
+            var title = "";
+
+            if (_settings.ShowWebViewVersionInTitleBar)
+            {
+                title = "WebView2 Version:" + webViewVersion;
+            }
+
+            ApplicationView.GetForCurrentView().Title = title;
         }
     }
 }

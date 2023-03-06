@@ -9,6 +9,7 @@ using Microsoft.Web.WebView2.Core;
 using System;
 using System.Diagnostics;
 using System.IO;
+using webview2_sample_uwp;
 #if USE_WEBVIEW2_SMOKETEST
 using Windows.Storage;
 #endif
@@ -16,7 +17,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 
-namespace webview2_sample_uwp
+namespace WebView2_UWP.Pages
 {
     public sealed partial class Browser : Page
     {
@@ -27,30 +28,34 @@ namespace webview2_sample_uwp
             this.InitializeComponent();
             AddressBar.Text = _homeUrl;
 
-#if USE_WEBVIEW2_SMOKETEST
-            Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", ApplicationData.Current.LocalFolder.Path + "\\EdgeBin");
-#endif
             WebView2.CoreWebView2Initialized += WebView2_CoreWebView2Initialized;
             WebView2.NavigationStarting += WebView2_NavigationStarting;
             WebView2.NavigationCompleted += WebView2_NavigationCompleted;
 
-            WebView2.Source = new Uri(AddressBar.Text);
             StatusUpdate("Ready");
+            WebView2.Source = new Uri(AddressBar.Text);
         }
 
         private async void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
         {
-#if USE_WEBVIEW2_SMOKETEST
             if (args.Exception != null)
             {
+                StatusUpdate($"Error initializing WebView2: {args.Exception.Message}");
+
+#if USE_WEBVIEW2_SMOKETEST
                 StorageFolder localFolder = ApplicationData.Current.LocalFolder;
                 StorageFile file = await localFolder.CreateFileAsync(@"Failure.txt", CreationCollisionOption.FailIfExists);
                 await FileIO.WriteTextAsync(file, args.Exception.ToString());
                 Environment.Exit(1);
-            }
 #endif
-            WebView2.CoreWebView2.DownloadStarting += CoreWebView2_DownloadStarting;
-            WebView2.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
+            }
+            else
+            {
+                App.Instance.UpdateAppTitle(sender.GetExtendedVersionString(false));
+
+                WebView2.CoreWebView2.DownloadStarting += CoreWebView2_DownloadStarting;
+                WebView2.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
+            }
         }
 
         // <DownloadStarting>
