@@ -4,15 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using webview2_sample_uwp;
-using WebView2_UWP.Pages;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media.Animation;
 using MUXC = Microsoft.UI.Xaml.Controls;
 
-namespace WebView2_UWP
+namespace WebView2_UWP.Pages
 {
     public sealed partial class MainPage : Page
     {
@@ -25,6 +22,8 @@ namespace WebView2_UWP
             ("add_host_object", typeof(AddHostObject)),
             ("new_window", typeof(NewWindow)),
             ("popups_and_dialogs", typeof(PopupsAndDialogs)),
+            ("script_debugging", typeof(ScriptDebugging)),
+            ("settings", typeof(SettingsPage)),
         };
 
         public MainPage()
@@ -41,7 +40,11 @@ namespace WebView2_UWP
 
         private void NavView_ItemInvoked(MUXC.NavigationView sender, MUXC.NavigationViewItemInvokedEventArgs args)
         {
-            if ((args.InvokedItemContainer != null) && (args.InvokedItemContainer.Tag != null))
+            if (args.IsSettingsInvoked)
+            {
+                NavView_Navigate("settings", args.RecommendedNavigationTransitionInfo);
+            }
+            else if ((args.InvokedItemContainer != null) && (args.InvokedItemContainer.Tag != null))
             {
                 var navItemTag = args.InvokedItemContainer.Tag.ToString();
                 NavView_Navigate(navItemTag, args.RecommendedNavigationTransitionInfo);

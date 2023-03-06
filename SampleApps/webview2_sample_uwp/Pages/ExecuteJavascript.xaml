@@ -3,7 +3,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.-->
 
 <Page
-    x:Class="WebView2_UWP.ExecuteJavascript"
+    x:Class="WebView2_UWP.Pages.ExecuteJavascript"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:WebView2_UWP"

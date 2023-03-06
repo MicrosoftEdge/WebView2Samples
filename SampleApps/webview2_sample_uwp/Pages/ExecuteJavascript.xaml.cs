@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using Windows.UI.Xaml.Controls;
 
-namespace WebView2_UWP
+namespace WebView2_UWP.Pages
 {
     public sealed partial class ExecuteJavascript : Page
     {
