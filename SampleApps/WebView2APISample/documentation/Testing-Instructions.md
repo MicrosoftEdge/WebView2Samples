@@ -87,7 +87,6 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Saving Password](#Saving-Password)
     * [Open Link in New Window From PDF](#Open-Link-in-New-Window-from-PDF)
     * [WebView Does Not Crash](#WebView-Does-Not-Crash)
-    * [Draggable Regions](#Draggable-Regions)
 
 ## Getting started
 
@@ -1342,38 +1341,3 @@ Test that there is no crash in WebView processes for some of the error prone sce
 1. Close the WebView in first app window by `Window -> Close WebView`.
 1. Expected:  The WebView in first app window does not render the start page anymore, while no browser process failure message box is observed for the newly created app window.
 1. Wait for 1 minute, expect no browser process failure message box is observed for the newly created app window.
-
-#### Draggable Regions
-Test that draggable regions work on WebView2.
-
-1. Launch the sample app.
-1. Select `Script > Inject Script` and paste this code into the text box:
-
-    ```javascript
-    document.getElementsByClassName('header')[0].style.appRegion = "drag";
-    document.getElementsByClassName('center')[0].style.appRegion = "no-drag";
-    header.style.width = "99%";
-    setTimeout(1, function() { document.getElementsByClassName('header')[0].style.width = "100%";});
-    ```
-
-NOTE: this code briefly changes the size of the 'Microsoft Edge WebView2' header
-element on the webpage. This is to trigger a reflow of the document. Without
-this the `appRegion` changes would not take place until some document element was resized
-1. Click and drag over the text of 'Microsoft Edge WebView2' header element
-1. Expected:  Cursor changes to I-bar, text highlights if applicable, sample app
-   does not drag. Note: may drag if click and drag point is too far from the
-   text.
-1. For following instructions, click in the box, not the text of the 'Microsoft
-   Edge WebView2' header element.
-1. Click and drag 'Microsoft Edge WebView2' element.
-1. Expected:  Entire sample app should drag
-1. Double click on the 'Microsoft Edge WebView2' element.
-1. Expected:  Sample app should maximize
-1. Double click on the 'Microsoft Edge WebView2' element again.
-1. Expected:  Sample app should restore to previous size
-1. Right click on 'Microsoft Edge WebView2' element.
-1. Expected: Title bar context menu (non-WebView) should appear
-1. Select `maximize`
-1. Expected: Sample app will maximize
-1. Right click 'Microsoft Edge WebView2' element and select `restore`
-1. Expected: Sample app will restore.
