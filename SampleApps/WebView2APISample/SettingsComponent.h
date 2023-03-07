@@ -39,6 +39,8 @@ public:
     void SetUserAgent(const std::wstring& userAgent);
     void EnableCustomClientCertificateSelection();
     void ToggleCustomServerCertificateSupport();
+    void SetCustomDataPartitionId();
+
     void SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL value);
 
     ~SettingsComponent() override;
@@ -61,11 +63,14 @@ private:
     wil::com_ptr<ICoreWebView2Settings5> m_settings5;
     wil::com_ptr<ICoreWebView2Settings6> m_settings6;
     wil::com_ptr<ICoreWebView2Settings7> m_settings7;
+    wil::com_ptr<ICoreWebView2Settings8> m_settings8;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2Controller3> m_controller3;
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
     wil::com_ptr<ICoreWebView2Experimental5> m_webViewExperimental5;
+    wil::com_ptr<ICoreWebView2Experimental21> m_webViewExperimental21;
     wil::com_ptr<ICoreWebView2ContextMenuItem> m_displayPageUrlContextSubMenuItem;
+
     bool m_blockImages = false;
     bool m_replaceImages = false;
     bool m_changeUserAgent = false;
@@ -83,6 +88,7 @@ private:
     CustomStatusBar m_statusBar;
     bool m_customStatusBar = false;
     bool m_raiseServerCertificateError = false;
+    bool m_launchingExternalUriScheme = false;
 
     EventRegistrationToken m_navigationStartingToken = {};
     EventRegistrationToken m_frameNavigationStartingToken = {};
@@ -96,4 +102,5 @@ private:
     EventRegistrationToken m_faviconChangedToken = {};
     EventRegistrationToken m_statusBarTextChangedToken = {};
     EventRegistrationToken m_ServerCertificateErrorToken = {};
+    EventRegistrationToken m_launchingExternalUriSchemeToken = {};
 };

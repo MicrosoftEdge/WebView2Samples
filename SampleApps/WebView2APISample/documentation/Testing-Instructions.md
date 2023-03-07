@@ -55,6 +55,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle Hidden PDF toolbar items](#Toggle-hide-PDF-toolbar-items)
     * [Toggle Allow External Drop](#Toggle-Allow-External-Drop)
     * [Toggle Server Certificate Error](#Toggle-Custom-Server-Certificate-Support)
+    * [Toggle Launching External URI Scheme enabled](#Toggle-launching-external-uri-scheme-enabled)
   * [View](#View)
     * [Toggle Visibility](#Toggle-Visibility)
     * [WebView Bounds Reference](#WebView-Bounds-Reference)
@@ -70,6 +71,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Host Objects](#Host-Objects)
     * [Script Debugging](#Script-Debugging)
     * [Cookie Management](#Cookie-Management)
+    * [Cookie Management(Profile)](#Cookie-Management(Profile))
     * [NavigateWithWebResourceRequest](#NavigateWithWebResourceRequest)
     * [Client Certificate Requested](#ClientCertificateRequested)
     * [Clear Browsing Data](#ClearBrowsingData)
@@ -803,6 +805,23 @@ Test that turns off TLS error page.
 1. Refresh the page.
 1. Expected: WebView2 displays SSL error page to the user.
 
+#### Toggle Launching External URI Scheme
+
+1. Launch the sample app.
+1. Navigate to <calculator://>.
+1. Expected: Default dialog is displayed.
+1. Select `OK` inside the dialog.
+1. Expected: Calculator application is launched.
+1. Go to `Settings -> Toggle Launching External URI Scheme`.
+1. Expected: Message Box that says `Launching Exteranl URI Scheme support has been enabled`.
+1. Click `OK` inside the popup dialog.
+1. Repeat step 2.
+1. Expected: No default dialog is displayed and the calculator application is launched.
+1. Go to `Settings -> Toggle Launching External URI Scheme`.
+1. Expected: Message Box that says `Launching Exteranl URI Scheme support has been disabled`.
+1. Repeat step 2.
+1. Expected: Default dialog is displayed.
+
 ### View
 
 #### Toggle Visibility
@@ -1118,6 +1137,14 @@ Test that demonstrates cookie management related APIs usage such as `GetCookies`
 
 1. Launch the sample app
 2. Go to **Scenario** > **Cookie Management**
+3. Follow the instructions on the page
+
+#### Cookie Management(Profile)
+
+Test that demonstrates cookie management related APIs using cookie manager got from profile.
+
+1. Launch the sample app
+2. Go to **Scenario** > **Cookie Management(Profile)**
 3. Follow the instructions on the page
 
 #### NavigateWithWebResourceRequest

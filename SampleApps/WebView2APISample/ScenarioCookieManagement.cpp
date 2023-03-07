@@ -15,7 +15,7 @@ using namespace Microsoft::WRL;
 
 static constexpr WCHAR c_samplePath[] = L"ScenarioCookieManagement.html";
 
-ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow)
+ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow, bool isFromProfile)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
 {
     m_sampleUri = m_appWindow->GetLocalUri(c_samplePath);
@@ -24,12 +24,27 @@ ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow)
     CHECK_FAILURE(m_webView->get_Settings(&settings));
     CHECK_FAILURE(settings->put_IsWebMessageEnabled(TRUE));
 
-    //! [CookieManager]
-    auto webview2_2 = m_webView.try_query<ICoreWebView2_2>();
-    CHECK_FEATURE_RETURN_EMPTY(webview2_2);
-    CHECK_FAILURE(webview2_2->get_CookieManager(&m_cookieManager));
-    //! [CookieManager]
-
+    if (isFromProfile)
+    {
+        //! [CookieManagerProfile]
+        auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+        CHECK_FEATURE_RETURN_EMPTY(webView2_13);
+        wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+        CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
+        auto webView2ExperimentalProfile8 =
+            webView2Profile.try_query<ICoreWebView2ExperimentalProfile8>();
+        CHECK_FEATURE_RETURN_EMPTY(webView2ExperimentalProfile8);
+        CHECK_FAILURE(webView2ExperimentalProfile8->get_CookieManager(&m_cookieManager));
+        //! [CookieManagerProfile]
+    }
+    else
+    {
+        //! [CookieManager]
+        auto webview2_2 = m_webView.try_query<ICoreWebView2_2>();
+        CHECK_FEATURE_RETURN_EMPTY(webview2_2);
+        CHECK_FAILURE(webview2_2->get_CookieManager(&m_cookieManager));
+        //! [CookieManager]
+    }
     SetupEventsOnWebview();
 
     CHECK_FAILURE(m_webView->Navigate(m_sampleUri.c_str()));

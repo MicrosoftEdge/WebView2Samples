@@ -546,6 +546,14 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         NewComponent<ScenarioCookieManagement>(this);
         return true;
     }
+    case IDM_SCENARIO_COOKIE_MANAGEMENT_PROFILE:
+    {
+        NewComponent<ScenarioCookieManagement>(this, true);
+        MessageBox(
+            m_mainWindow, L"Got CookieManager from Profile instead of ICoreWebView2.",
+            L"CookieManagement", MB_OK);
+        return true;
+    }
     case IDM_SCENARIO_CUSTOM_SCHEME:
     {
         NewComponent<ScenarioCustomScheme>(this);
@@ -769,6 +777,10 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     {
         return ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS_ALL_PROFILE);
     }
+    case IDM_SCENARIO_CLEAR_CUSTOM_DATA_PARTITION:
+    {
+        return ClearCustomDataPartition();
+    }
     }
     return false;
 }
@@ -797,6 +809,63 @@ bool AppWindow::ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds)
     return true;
 }
 //! [ClearBrowsingData]
+
+//! [ClearCustomDataPartition]
+bool AppWindow::ClearCustomDataPartition()
+{
+    auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+    CHECK_FEATURE_RETURN(webView2_13);
+    wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+    CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
+    CHECK_FEATURE_RETURN(webView2Profile);
+    auto webView2Profile7 = webView2Profile.try_query<ICoreWebView2ExperimentalProfile7>();
+    CHECK_FEATURE_RETURN(webView2Profile7);
+    std::wstring partitionToClearData;
+    wil::com_ptr<ICoreWebView2Experimental20> webViewStaging20;
+    webViewStaging20 = m_webView.try_query<ICoreWebView2Experimental20>();
+    wil::unique_cotaskmem_string partitionId;
+    CHECK_FAILURE(webViewStaging20->get_CustomDataPartitionId(&partitionId));
+    if (!partitionId.get() || !*partitionId.get())
+    {
+        TextInputDialog dialog(
+            GetMainWindow(), L"Custom Data Partition Id", L"Custom Data Partition Id:",
+            L"Enter custom data partition id");
+        if (dialog.confirmed)
+        {
+            partitionToClearData = dialog.input.c_str();
+        }
+    }
+    else
+    {
+        // Use partition id from the WebView.
+        partitionToClearData = partitionId.get();
+    }
+    if (!partitionToClearData.empty())
+    {
+        CHECK_FAILURE(webView2Profile7->ClearCustomDataPartition(
+            partitionToClearData.c_str(),
+            Callback<ICoreWebView2ExperimentalClearCustomDataPartitionCompletedHandler>(
+                [this](HRESULT result) -> HRESULT
+                {
+                    if (SUCCEEDED(result))
+                    {
+                        AsyncMessageBox(L"Completed", L"Clear Custom Data Partition");
+                    }
+                    else
+                    {
+                        std::wstringstream message;
+                        message << L"Failed: " << std::to_wstring(result) << L"(0x" << std::hex
+                                << result << L")" << std::endl;
+                        AsyncMessageBox(message.str(), L"Clear Custom Data Partition");
+                    }
+                    return S_OK;
+                })
+                .Get()));
+    }
+    return true;
+}
+//! [ClearCustomDataPartition]
+
 // Prompt the user for a new language string
 void AppWindow::ChangeLanguage()
 {
@@ -1184,7 +1253,10 @@ void AppWindow::InitializeWebView()
     }
     //! [CreateCoreWebView2EnvironmentWithOptions]
 
+    std::wstring args;
+    args.append(L"--enable-features=ThirdPartyStoragePartitioning,PartitionedCookies");
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+    options->put_AdditionalBrowserArguments(args.c_str());
     CHECK_FAILURE(
         options->put_AllowSingleSignOnUsingOSPrimaryAccount(m_AADSSOEnabled ? TRUE : FALSE));
     CHECK_FAILURE(options->put_ExclusiveUserDataFolderAccess(
@@ -1513,6 +1585,19 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(
         // Webview creation was aborted because the user closed this window.
         // No need to report this as an error.
     }
+    else if (result == HRESULT_FROM_WIN32(ERROR_DELETE_PENDING))
+    {
+        RunAsync(
+            [this, result]()
+            {
+                ShowFailure(
+                    result,
+                    L"Failed to create webview, because the profile's name has been marked as "
+                    L"deleted, please use a different profile's name");
+                m_webviewOption.PopupDialog(this);
+                CloseAppWindow();
+            });
+    }
     else
     {
         ShowFailure(result, L"Failed to create webview");
@@ -1750,7 +1835,44 @@ void AppWindow::RegisterEventHandlers()
             .Get(),
         nullptr));
     //! [NewBrowserVersionAvailable]
+    //! [ProfileDeleted]
+    auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+    if (webView2_13)
+    {
+        wil::com_ptr<ICoreWebView2Profile> webView2ProfileBase;
+        webView2_13->get_Profile(&webView2ProfileBase);
+        if (webView2ProfileBase)
+        {
+            auto webView2Profile =
+                webView2ProfileBase.try_query<ICoreWebView2ExperimentalProfile10>();
+            if (webView2Profile)
+            {
+                CHECK_FAILURE(webView2Profile->add_Deleted(
+                    Microsoft::WRL::Callback<
+                        ICoreWebView2ExperimentalProfileDeletedEventHandler>(
+                        [this](ICoreWebView2Profile* sender, IUnknown* args)
+                        {
+                            RunAsync(
+                                [this]()
+                                {
+                                    std::wstring message =
+                                        L"The profile has been marked for deletion. Any "
+                                        L"associated webview2 objects will be closed.";
+                                    MessageBox(
+                                        m_mainWindow, message.c_str(), L"webview2 closed",
+                                        MB_OK);
+                                    CloseAppWindow();
+                                });
+                            return S_OK;
+                        })
+                        .Get(),
+                    nullptr));
+            }
+        }
+    }
+    //! [ProfileDeleted]
 }
+
 // Updates the sizing and positioning of everything in the window.
 void AppWindow::ResizeEverything()
 {

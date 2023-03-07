@@ -635,7 +635,7 @@ void ScriptComponent::SubscribeToCdpEvent()
             Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
                 [this, eventName](
                     ICoreWebView2* sender,
-                    ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT 
+                    ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT
                 {
                     wil::unique_cotaskmem_string parameterObjectAsJson;
                     CHECK_FAILURE(args->get_ParameterObjectAsJson(&parameterObjectAsJson));
@@ -1014,7 +1014,6 @@ void ScriptComponent::HandleIFrames()
                 })
                 .Get(),
             NULL));
-
         //! [AdditionalAllowedFrameAncestors_2]
         // Set up the event listeners to handle site embedding scenario. The code will take effect
         // when the site embedding page is navigated to and the embedding iframe navigates to the
@@ -1024,8 +1023,8 @@ void ScriptComponent::HandleIFrames()
         // embedding a site. The result is recorded in m_siteEmbeddingIFrameCount.
         CHECK_FAILURE(webview2_4->add_FrameCreated(
             Callback<ICoreWebView2FrameCreatedEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args)
-                    -> HRESULT 
+                [this](
+                    ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args) -> HRESULT
                 {
                     wil::com_ptr<ICoreWebView2Frame> webviewFrame;
                     CHECK_FAILURE(args->get_Frame(&webviewFrame));
