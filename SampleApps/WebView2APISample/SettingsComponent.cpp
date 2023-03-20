@@ -32,6 +32,7 @@ SettingsComponent::SettingsComponent(
     m_settings5 = m_settings.try_query<ICoreWebView2Settings5>();
     m_settings6 = m_settings.try_query<ICoreWebView2Settings6>();
     m_settings7 = m_settings.try_query<ICoreWebView2Settings7>();
+    m_settings8 = m_settings.try_query<ICoreWebView2Settings8>();
     m_controller = m_appWindow->GetWebViewController();
     m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
     m_webView2_5 = m_webView.try_query<ICoreWebView2_5>();
@@ -98,6 +99,11 @@ SettingsComponent::SettingsComponent(
             COREWEBVIEW2_PDF_TOOLBAR_ITEMS hiddenPdfToolbarItems;
             CHECK_FAILURE(old->m_settings7->get_HiddenPdfToolbarItems(&hiddenPdfToolbarItems));
             CHECK_FAILURE(m_settings7->put_HiddenPdfToolbarItems(hiddenPdfToolbarItems));
+        }
+        if (old->m_settings8 && m_settings8)
+        {
+            CHECK_FAILURE(old->m_settings8->get_IsReputationCheckingRequired(&setting));
+            CHECK_FAILURE(m_settings8->put_IsReputationCheckingRequired(setting));
         }
         SetBlockImages(old->m_blockImages);
         SetReplaceImages(old->m_replaceImages);
@@ -433,6 +439,11 @@ bool SettingsComponent::HandleWindowMessage(
             ChangeBlockedSites();
             return true;
         }
+        case ID_CUSTOM_DATA_PARTITION:
+        {
+            SetCustomDataPartitionId();
+            return true;
+        }
         case ID_SETTINGS_SETUSERAGENT:
         {
             CHECK_FEATURE_RETURN(m_settings2);
@@ -577,6 +588,7 @@ bool SettingsComponent::HandleWindowMessage(
                                 eventArgs;
                             wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items;
                             CHECK_FAILURE(args->get_MenuItems(&items));
+
                             UINT32 itemsCount;
                             CHECK_FAILURE(items->get_Count(&itemsCount));
 
@@ -762,10 +774,25 @@ bool SettingsComponent::HandleWindowMessage(
             //! [DisableZoomControl]
             return true;
         }
+        case ID_SETTINGS_PROFILE_DELETE:
+        {
+            //! [DeleteProfile]
+            CHECK_FEATURE_RETURN(m_webView2_13);
+            wil::com_ptr<ICoreWebView2Profile> webView2ProfileBase;
+            m_webView2_13->get_Profile(&webView2ProfileBase);
+            CHECK_FEATURE_RETURN(webView2ProfileBase);
+            auto webView2Profile =
+                webView2ProfileBase.try_query<ICoreWebView2ExperimentalProfile10>();
+            CHECK_FEATURE_RETURN(webView2Profile);
+            webView2Profile->Delete();
+            //! [DeleteProfile]
+            return true;
+        }
         case ID_SETTINGS_PINCH_ZOOM_ENABLED:
         {
             //! [TogglePinchZoomEnabled]
             CHECK_FEATURE_RETURN(m_settings5);
+
             BOOL pinchZoomEnabled;
             CHECK_FAILURE(m_settings5->get_IsPinchZoomEnabled(&pinchZoomEnabled));
             if (pinchZoomEnabled)
@@ -997,29 +1024,150 @@ bool SettingsComponent::HandleWindowMessage(
         case ID_SETTINGS_SMART_SCREEN_ENABLED:
         {
             //! [ToggleSmartScreen]
-            wil::com_ptr<ICoreWebView2ExperimentalSettings7> experimentalSettings;
-            experimentalSettings = m_settings.try_query<ICoreWebView2ExperimentalSettings7>();
-            CHECK_FEATURE_RETURN(experimentalSettings);
+            CHECK_FEATURE_RETURN(m_settings8);
 
             BOOL is_smart_screen_enabled;
-            CHECK_FAILURE(experimentalSettings->get_IsReputationCheckingRequired(
-                &is_smart_screen_enabled));
+            CHECK_FAILURE(
+                m_settings8->get_IsReputationCheckingRequired(&is_smart_screen_enabled));
             if (is_smart_screen_enabled)
             {
-                CHECK_FAILURE(experimentalSettings->put_IsReputationCheckingRequired(false));
+                CHECK_FAILURE(m_settings8->put_IsReputationCheckingRequired(false));
                 MessageBox(
-                    nullptr, L"SmartScreen is disable after the next navigation.",
+                    nullptr, L"SmartScreen is disabled after the next navigation.",
                     L"Settings change", MB_OK);
             }
             else
             {
-                CHECK_FAILURE(experimentalSettings->put_IsReputationCheckingRequired(true));
+                CHECK_FAILURE(m_settings8->put_IsReputationCheckingRequired(true));
                 MessageBox(
-                    nullptr, L"SmartScreen is enable after the next navigation.",
+                    nullptr, L"SmartScreen is enabled after the next navigation.",
                     L"Settings change", MB_OK);
             }
             //! [ToggleSmartScreen]
             return true;
+        }
+        case ID_TOGGLE_LAUNCHING_EXTERNAL_URI_SCHEME_ENABLED:
+        {
+            //! [ToggleLaunchingExternalUriScheme]
+            m_launchingExternalUriScheme = !m_launchingExternalUriScheme;
+            m_webViewExperimental21 = m_webView.try_query<ICoreWebView2Experimental21>();
+            if (m_webViewExperimental21)
+            {
+                if (m_launchingExternalUriScheme)
+                {
+                    CHECK_FAILURE(m_webViewExperimental21->add_LaunchingExternalUriScheme(
+                        Callback<
+                            ICoreWebView2ExperimentalLaunchingExternalUriSchemeEventHandler>(
+                            [this](
+                                ICoreWebView2* sender,
+                                ICoreWebView2ExperimentalLaunchingExternalUriSchemeEventArgs*
+                                    args)
+                            {
+                                auto showDialog = [this, args]
+                                {
+                                    wil::unique_cotaskmem_string uri;
+                                    CHECK_FAILURE(args->get_Uri(&uri));
+                                    if (wcscmp(uri.get(), L"calculator://") == 0)
+                                    {
+                                        // Set the event args to cancel the event and launch the
+                                        // calculator app. This will always allow the external
+                                        // URI scheme launch.
+                                        args->put_Cancel(true);
+                                        std::wstring schemeUrl = L"calculator://";
+                                        SHELLEXECUTEINFO info = {sizeof(info)};
+                                        info.fMask = SEE_MASK_NOASYNC;
+                                        info.lpVerb = L"open";
+                                        info.lpFile = schemeUrl.c_str();
+                                        info.nShow = SW_SHOWNORMAL;
+                                        ::ShellExecuteEx(&info);
+                                    }
+                                    else if (wcscmp(uri.get(), L"malicious://") == 0)
+                                    {
+                                        // Always block the request in this case by cancelling
+                                        // the event.
+                                        args->put_Cancel(true);
+                                    }
+                                    else if (wcscmp(uri.get(), L"contoso://") == 0)
+                                    {
+                                        // To display a custom dialog we cancel the launch,
+                                        // display a custom dialog, and then manually launch the
+                                        // external URI scheme depending on the user's
+                                        // selection.
+                                        args->put_Cancel(true);
+                                        wil::unique_cotaskmem_string initiatingOrigin;
+                                        CHECK_FAILURE(
+                                            args->get_InitiatingOrigin(&initiatingOrigin));
+                                        std::wstring message =
+                                            L"Launching External URI Scheme request";
+                                        std::wstring initiatingOriginString =
+                                            initiatingOrigin.get();
+                                        if (initiatingOriginString.empty())
+                                        {
+                                            message += L" from ";
+                                            message += initiatingOriginString;
+                                        }
+                                        message += L" to ";
+                                        message += uri.get();
+                                        message += L"?\n\n";
+                                        message += L"Do you want to grant permission?\n";
+                                        int response = MessageBox(
+                                            nullptr, message.c_str(),
+                                            L"Launching External URI Scheme",
+                                            MB_YESNO | MB_ICONWARNING);
+                                        if (response == IDYES)
+                                        {
+                                            std::wstring schemeUrl = uri.get();
+                                            SHELLEXECUTEINFO info = {sizeof(info)};
+                                            info.fMask = SEE_MASK_NOASYNC;
+                                            info.lpVerb = L"open";
+                                            info.lpFile = schemeUrl.c_str();
+                                            info.nShow = SW_SHOWNORMAL;
+                                            ::ShellExecuteEx(&info);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Do not cancel the event, allowing the request to use
+                                        // the default dialog.
+                                    }
+                                    return S_OK;
+                                };
+                                showDialog();
+                                return S_OK;
+                                // A deferral may be taken for the event so that the
+                                // CoreWebView2 doesn't examine the properties we set on the
+                                // event args until after we call the Complete method
+                                // asynchronously later. This will give the user more time to
+                                // decide whether to launch the external URI scheme or not.
+                                // A deferral doesn't need to be taken in this case, so taking
+                                // a deferral is commented out here.
+                                // wil::com_ptr<ICoreWebView2Deferral> deferral;
+                                // CHECK_FAILURE(args->GetDeferral(&deferral));
+                                // m_appWindow->RunAsync(
+                                //     [deferral, showDialog]()
+                                //     {
+                                //         showDialog();
+                                // CHECK_FAILURE(deferral->Complete());
+                                //     });
+                                // return S_OK;
+                            })
+                            .Get(),
+                        &m_launchingExternalUriSchemeToken));
+                }
+                else
+                {
+                    m_webViewExperimental21->remove_LaunchingExternalUriScheme(
+                        m_launchingExternalUriSchemeToken);
+                }
+                MessageBox(
+                    nullptr,
+                    (std::wstring(L"Launching External URI Scheme support has been ") +
+                     (m_launchingExternalUriScheme ? L"enabled." : L"disabled."))
+                        .c_str(),
+                    L"Launching External URI Scheme", MB_OK);
+            }
+            return true;
+            //! [ToggleLaunchingExternalUriScheme]
         }
         case ID_TOGGLE_CUSTOM_SERVER_CERTIFICATE_SUPPORT:
         {
@@ -1048,6 +1196,7 @@ bool SettingsComponent::HandleWindowMessage(
                                     : L"Clear server certificate error actions are failed.",
                                 L"Clear server certificate error actions", MB_OK);
                         };
+
                         m_appWindow->RunAsync([showDialog]() { showDialog(); });
 
                         return S_OK;
@@ -1216,6 +1365,29 @@ bool SettingsComponent::ShouldBlockUri(PWSTR uri)
         }
     }
     return false;
+}
+
+void SettingsComponent::SetCustomDataPartitionId()
+{
+    //! [CustomDataPartitionId]
+    wil::com_ptr<ICoreWebView2Experimental20> webViewStaging20;
+    webViewStaging20 = m_webView.try_query<ICoreWebView2Experimental20>();
+    if (webViewStaging20)
+    {
+        wil::unique_cotaskmem_string partitionId;
+        CHECK_FAILURE(webViewStaging20->get_CustomDataPartitionId(&partitionId));
+        TextInputDialog dialog(
+            m_appWindow->GetMainWindow(), L"Custom Datga Partition Id",
+            L"Custom Datga Partition Id:",
+            L"Enter data storage partition id, or leave blank to clear data storage "
+            L"partition.",
+            std::wstring(partitionId.get()));
+        if (dialog.confirmed)
+        {
+            webViewStaging20->put_CustomDataPartitionId(dialog.input.c_str());
+        }
+    }
+    //! [CustomDataPartitionId]
 }
 
 // Decide whether a website should have script disabled.  Since we're only using this

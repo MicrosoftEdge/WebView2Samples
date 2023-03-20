@@ -202,6 +202,7 @@ private:
     void UpdateCreationModeMenu();
     void ToggleAADSSO();
     bool ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds);
+    bool ClearCustomDataPartition();
     void UpdateAppTitle();
     void ToggleExclusiveUserDataFolderAccess();
     void ToggleCustomCrashReporting();

@@ -118,6 +118,7 @@ BEGIN
     POPUP "S&ettings"
     BEGIN
         MENUITEM "Blocked Domains",             ID_BLOCKEDSITES
+        MENUITEM "Set Custom Data Partition Id",   ID_CUSTOM_DATA_PARTITION
         MENUITEM "Set User Agent", ID_SETTINGS_SETUSERAGENT
         MENUITEM "Toggle Allow External Drop",    ID_TOGGLE_ALLOW_EXTERNAL_DROP
         MENUITEM "Toggle Block Images",         ID_SETTINGS_BLOCKALLIMAGES
@@ -147,6 +148,8 @@ BEGIN
         MENUITEM "Toggle Swipe navigation Enabled",   ID_SETTINGS_SWIPE_NAVIGATION_ENABLED
         MENUITEM "Toggle Web Messaging",        IDM_TOGGLE_WEB_MESSAGING
         MENUITEM "Toggle Zoom Control Enabled",   ID_SETTINGS_ZOOM_ENABLED
+        MENUITEM "Delete This Profile", ID_SETTINGS_PROFILE_DELETE
+        MENUITEM "Toggle Launching External URI Scheme",   ID_TOGGLE_LAUNCHING_EXTERNAL_URI_SCHEME_ENABLED
         POPUP "Tracking Prevention Level"
         BEGIN
             MENUITEM "None", IDM_TRACKING_PREVENTION_LEVEL_NONE
@@ -154,7 +157,6 @@ BEGIN
             MENUITEM "Balanced", IDM_TRACKING_PREVENTION_LEVEL_BALANCED
             MENUITEM "Strict", IDM_TRACKING_PREVENTION_LEVEL_STRICT
         END
-
     END
     POPUP "&View"
     BEGIN
@@ -237,12 +239,14 @@ BEGIN
             MENUITEM "Cookies",                 IDM_SCENARIO_CLEAR_BROWSING_DATA_COOKIES
             MENUITEM "Disk Cache",              IDM_SCENARIO_CLEAR_BROWSING_DATA_DISK_CACHE
             MENUITEM "Download History",        IDM_SCENARIO_CLEAR_BROWSING_DATA_DOWNLOAD_HISTORY
+            MENUITEM "Custom Data Partition",   IDM_SCENARIO_CLEAR_CUSTOM_DATA_PARTITION
         END
         POPUP "Client Certificate Requested"
         BEGIN
             MENUITEM "Use Deferred Custom Client Certificate Selection Dialog", IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG
         END
         MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
+        MENUITEM "Cookie Management(Profile)",           IDM_SCENARIO_COOKIE_MANAGEMENT_PROFILE
         MENUITEM "Custom scheme WebResourceRequested CORS", IDM_SCENARIO_CUSTOM_SCHEME
         MENUITEM "Navigate to custom scheme via WebResourceRequested",   IDM_SCENARIO_CUSTOM_SCHEME_NAVIGATE
         MENUITEM "Shared worker WebResourceRequested",   IDM_SCENARIO_SHARED_WORKER
