@@ -10,7 +10,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace WebView2_UWP.Pages
 {
-    public sealed partial class NewWindow : Page
+    public sealed partial class NewWindow : BasePage
     {
         public enum OptionEnum
         {
@@ -65,7 +65,7 @@ namespace WebView2_UWP.Pages
             WebView2.Source = new Uri("http://appassets.html.example/new_window.html");
         }
 
-        private async void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
+        private void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
         {
             sender.CoreWebView2.SetVirtualHostNameToFolderMapping("appassets.html.example", "html", CoreWebView2HostResourceAccessKind.Allow);
             sender.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;

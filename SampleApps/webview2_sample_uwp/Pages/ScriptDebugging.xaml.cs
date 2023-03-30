@@ -9,7 +9,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace WebView2_UWP.Pages
 {
-    public sealed partial class ScriptDebugging : Page
+    public sealed partial class ScriptDebugging : BasePage
     {
         public ScriptDebugging()
         {
@@ -17,16 +17,16 @@ namespace WebView2_UWP.Pages
             WebView2.CoreWebView2Initialized += WebView2_CoreWebView2Initialized;
         }
 
-        private async void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
+        private void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
         {
             sender.CoreWebView2.SetVirtualHostNameToFolderMapping("appassets.html.example", "html", CoreWebView2HostResourceAccessKind.Allow);
         }
 
-        private async void OnJavaScriptLocalFileButtonClicked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void OnJavaScriptLocalFileButtonClicked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             WebView2.Source = new Uri("http://appassets.html.example/ScenarioJavaScriptDebugIndex.html");
         }
-        private async void OnTypeScriptLocalFileButtonClicked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void OnTypeScriptLocalFileButtonClicked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             WebView2.Source = new Uri("http://appassets.html.example/ScenarioTypeScriptDebugIndex.html");
         }

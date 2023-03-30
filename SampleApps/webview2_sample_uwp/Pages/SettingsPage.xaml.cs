@@ -10,6 +10,7 @@ using System.Linq;
 using webview2_sample_uwp;
 using Windows.ApplicationModel.Core;
 using Windows.Storage;
+using Windows.UI.Core;
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -160,6 +161,14 @@ namespace WebView2_UWP.Pages
                             Value = sender.CoreWebView2.Environment.UserDataFolder
                         });
                     }
+
+                    // The garbage collector can be slow to dispose of the
+                    // webview. Manually free the resources being used by
+                    // the webview since it is no longer needed.
+                    var ignored = Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
+                    {
+                        webview2.Close();
+                    });
                 };
             await webview2.EnsureCoreWebView2Async();
         }

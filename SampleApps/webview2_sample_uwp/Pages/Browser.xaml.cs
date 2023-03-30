@@ -19,13 +19,13 @@ using Windows.UI.Xaml.Input;
 
 namespace WebView2_UWP.Pages
 {
-    public sealed partial class Browser : Page
+    public sealed partial class Browser : BasePage
     {
         private string _homeUrl = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
 
         public Browser()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             AddressBar.Text = _homeUrl;
 
             WebView2.CoreWebView2Initialized += WebView2_CoreWebView2Initialized;
@@ -36,7 +36,11 @@ namespace WebView2_UWP.Pages
             WebView2.Source = new Uri(AddressBar.Text);
         }
 
+#if USE_WEBVIEW2_SMOKETEST
         private async void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
+#else
+        private void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
+#endif
         {
             if (args.Exception != null)
             {
@@ -59,7 +63,7 @@ namespace WebView2_UWP.Pages
         }
 
         // <DownloadStarting>
-        private async void CoreWebView2_DownloadStarting(CoreWebView2 sender, CoreWebView2DownloadStartingEventArgs args)
+        private void CoreWebView2_DownloadStarting(CoreWebView2 sender, CoreWebView2DownloadStartingEventArgs args)
         {
             // Developer can obtain a deferral for the event so that the CoreWebView2
             // doesn't examine the properties we set on the event args until
@@ -142,13 +146,17 @@ namespace WebView2_UWP.Pages
             Debug.WriteLine(message);
         }
 
-        private async void WebView2_NavigationStarting(WebView2 sender, CoreWebView2NavigationStartingEventArgs args)
+        private void WebView2_NavigationStarting(WebView2 sender, CoreWebView2NavigationStartingEventArgs args)
         {
             RefreshButton.IsEnabled = false;
             CancelButton.IsEnabled = true;
         }
 
+#if USE_WEBVIEW2_SMOKETEST
         private async void WebView2_NavigationCompleted(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
+#else
+        private void WebView2_NavigationCompleted(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
+#endif
         {
             StatusUpdate("Navigation complete");
 

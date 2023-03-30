@@ -11,7 +11,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace WebView2_UWP.Pages
 {
-    public sealed partial class AddHostObject : Page
+    public sealed partial class AddHostObject : BasePage
     {
         private Bridge _bridge;
 
