@@ -50,7 +50,6 @@
     <Capability Name="privateNetworkClientServer" />
     <uap:Capability Name="enterpriseAuthentication"/>
     <uap:Capability Name="sharedUserCertificates"/>
-    <rescap:Capability Name="enterpriseCloudSSO" />
     <DeviceCapability Name="location"/>
     <DeviceCapability Name="microphone"/>
     <DeviceCapability Name="webcam"/>    

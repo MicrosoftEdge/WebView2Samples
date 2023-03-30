@@ -13,7 +13,7 @@ using Windows.UI.Xaml.Controls;
 
 namespace WebView2_UWP.Pages
 {
-    public sealed partial class PopupsAndDialogs : Page
+    public sealed partial class PopupsAndDialogs : BasePage
     {
         public PopupsAndDialogs()
         {
@@ -23,7 +23,7 @@ namespace WebView2_UWP.Pages
             WebView2.Source = new Uri("http://appassets.html.example/popups_and_dialogs.html");
         }
 
-        private async void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
+        private void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
         {
             WebView2.CoreWebView2.SetVirtualHostNameToFolderMapping("appassets.html.example", "html", CoreWebView2HostResourceAccessKind.Allow);
         }

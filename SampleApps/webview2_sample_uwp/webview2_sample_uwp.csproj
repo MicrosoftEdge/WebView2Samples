@@ -124,6 +124,7 @@
     <Compile Include="Pages\AddHostObject.xaml.cs">
       <DependentUpon>AddHostObject.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\BasePage.cs" />
     <Compile Include="Pages\Browser.xaml.cs">
       <DependentUpon>Browser.xaml</DependentUpon>
     </Compile>
