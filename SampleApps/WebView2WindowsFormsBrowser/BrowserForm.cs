@@ -12,6 +12,7 @@ using System.IO;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
+using System.Linq;
 
 namespace WebView2WindowsFormsBrowser
 {
@@ -84,6 +85,26 @@ namespace WebView2WindowsFormsBrowser
         string _lastInitializeScriptId;
 
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
+        void WebView_HandleIFrames(object sender, CoreWebView2FrameCreatedEventArgs args)
+        {
+            _webViewFrames.Add(args.Frame);
+            args.Frame.Destroyed += WebViewFrames_DestoryedNestedIFrames;
+        }
+
+        void WebViewFrames_DestoryedNestedIFrames(object sender, object args)
+        {
+            try
+            {
+                var frameToRemove = _webViewFrames.SingleOrDefault(r => r.IsDestroyed() == 1);
+                if (frameToRemove != null)
+                    _webViewFrames.Remove(frameToRemove);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
         string WebViewFrames_ToString()
         {
             string result = "";
@@ -160,6 +181,8 @@ namespace WebView2WindowsFormsBrowser
       this.webView2Control.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
       this.webView2Control.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Image);
       this.webView2Control.CoreWebView2.ProcessFailed += CoreWebView2_ProcessFailed;
+      this.webView2Control.CoreWebView2.FrameCreated += WebView_HandleIFrames;
+
       UpdateTitleWithEvent("CoreWebView2InitializationCompleted succeeded");
       EnableButtons();
     }
@@ -745,6 +768,154 @@ namespace WebView2WindowsFormsBrowser
       MessageBox.Show(this, "WebView2WindowsFormsBrowser, Version 1.0\nCopyright(C) 2023", "About WebView2WindowsFormsBrowser");
     }
 
+    void AuthenticationMenuItem_Click(object sender, EventArgs e)
+    {
+        // <BasicAuthenticationRequested>
+        this.webView2Control.CoreWebView2.BasicAuthenticationRequested += delegate (object requestSender, CoreWebView2BasicAuthenticationRequestedEventArgs args)
+        {
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Demo credentials in https://authenticationtest.com")]
+            args.Response.UserName = "user";
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Demo credentials in https://authenticationtest.com")]
+            args.Response.Password = "pass";
+        };
+        this.webView2Control.CoreWebView2.Navigate("https://authenticationtest.com/HTTPAuth");
+        // </BasicAuthenticationRequested>
+    }
+
+    async void ClearBrowsingData(object target, EventArgs e, CoreWebView2BrowsingDataKinds dataKinds)
+    {
+        // Clear the browsing data from the last hour.
+        await this.webView2Control.CoreWebView2.Profile.ClearBrowsingDataAsync(dataKinds);
+        MessageBox.Show(this,
+            "Completed",
+            "Clear Browsing Data");
+        // </ClearBrowsingData>
+    }
+
+    void WebView_ClientCertificateRequested(object sender, CoreWebView2ClientCertificateRequestedEventArgs e)
+    {
+        IReadOnlyList<CoreWebView2ClientCertificate> certificateList = e.MutuallyTrustedCertificates;
+        if (certificateList.Count() > 0)
+        {
+            // There is no significance to the order, picking a certificate arbitrarily.
+            e.SelectedCertificate = certificateList.LastOrDefault();
+        }
+        e.Handled = true;
+    }
+
+    private bool _isCustomClientCertificateSelection = false;
+    void CustomClientCertificateSelectionMenuItem_Click(object sender, EventArgs e)
+    {
+        // Safeguarding the handler when unsupported runtime is used.
+        try
+        {
+            if (!_isCustomClientCertificateSelection)
+            {
+                this.webView2Control.CoreWebView2.ClientCertificateRequested += WebView_ClientCertificateRequested;
+            }
+            else
+            {
+                this.webView2Control.CoreWebView2.ClientCertificateRequested -= WebView_ClientCertificateRequested;
+            }
+            _isCustomClientCertificateSelection = !_isCustomClientCertificateSelection;
+
+            MessageBox.Show(this,
+                _isCustomClientCertificateSelection ? "Custom client certificate selection has been enabled" : "Custom client certificate selection has been disabled",
+                "Custom client certificate selection");
+        }
+        catch (NotImplementedException exception)
+        {
+            MessageBox.Show(this, "Custom client certificate selection Failed: " + exception.Message, "Custom client certificate selection");
+        }
+    }
+    // <ClientCertificateRequested2>
+    // This example hides the default client certificate dialog and shows a custom dialog instead.
+    // The dialog box displays mutually trusted certificates list and allows the user to select a certificate.
+    // Selecting `OK` will continue the request with a certificate.
+    // Selecting `CANCEL` will continue the request without a certificate
+    private bool _isCustomClientCertificateSelectionDialog = false;
+    void DeferredCustomCertificateDialogMenuItem_Click(object sender, EventArgs e)
+    {
+        // Safeguarding the handler when unsupported runtime is used.
+        try
+        {
+            if (!_isCustomClientCertificateSelectionDialog)
+            {
+                this.webView2Control.CoreWebView2.ClientCertificateRequested += delegate (
+                    object requestSender, CoreWebView2ClientCertificateRequestedEventArgs args)
+                {
+                    // Developer can obtain a deferral for the event so that the WebView2
+                    // doesn't examine the properties we set on the event args until
+                    // after the deferral completes asynchronously.
+                    CoreWebView2Deferral deferral = args.GetDeferral();
+
+                    System.Threading.SynchronizationContext.Current.Post((_) =>
+                    {
+                        using (deferral)
+                        {
+                            IReadOnlyList<CoreWebView2ClientCertificate> certificateList = args.MutuallyTrustedCertificates;
+                            if (certificateList.Count() > 0)
+                            {
+                                // Display custom dialog box for the client certificate selection.
+                                var dialog = new ClientCertificateSelectionDialog(
+                                                            title: "Select a Certificate for authentication",
+                                                            host: args.Host,
+                                                            port: args.Port,
+                                                            client_cert_list: certificateList);
+                                if (dialog.ShowDialog() == DialogResult.OK)
+                                {
+                                    // Continue with the selected certificate to respond to the server if `OK` is selected.
+                                    args.SelectedCertificate = (CoreWebView2ClientCertificate)dialog.CertificateDataBinding.SelectedItems[0].Tag;
+                                }
+                            }
+                            args.Handled = true;
+                        }
+
+                    }, null);
+                };
+                _isCustomClientCertificateSelectionDialog = true;
+                MessageBox.Show("Custom Client Certificate selection dialog will be used next when WebView2 is making a " +
+                    "request to an HTTP server that needs a client certificate.", "Client certificate selection");
+            }
+        }
+        catch (NotImplementedException exception)
+        {
+            MessageBox.Show(this, "Custom client certificate selection dialog Failed: " + exception.Message, "Client certificate selection");
+        }
+    }
+
+    async void GetCookiesMenuItem_Click(object sender, EventArgs e, string address)
+    {
+        // <GetCookies>
+        List<CoreWebView2Cookie> cookieList = await this.webView2Control.CoreWebView2.CookieManager.GetCookiesAsync(address);
+        StringBuilder cookieResult = new StringBuilder(cookieList.Count + " cookie(s) received from " + address);
+        for (int i = 0; i < cookieList.Count; ++i)
+        {
+            CoreWebView2Cookie cookie = this.webView2Control.CoreWebView2.CookieManager.CreateCookieWithSystemNetCookie(cookieList[i].ToSystemNetCookie());
+            cookieResult.Append($"\n{cookie.Name} {cookie.Value} {(cookie.IsSession ? "[session cookie]" : cookie.Expires.ToString("G"))}");
+        }
+        MessageBox.Show(this, cookieResult.ToString(), "GetCookiesAsync");
+        // </GetCookies>
+    }
+
+    void AddOrUpdateCookieMenuItem_Click(object sender, EventArgs e, string domain)
+    {
+        // <AddOrUpdateCookie>
+        CoreWebView2Cookie cookie = this.webView2Control.CoreWebView2.CookieManager.CreateCookie("CookieName", "CookieValue", domain, "/");
+        this.webView2Control.CoreWebView2.CookieManager.AddOrUpdateCookie(cookie);
+        // </AddOrUpdateCookie>
+    }
+
+    void DeleteAllCookiesMenuItem_Click(object sender, EventArgs e)
+    {
+        this.webView2Control.CoreWebView2.CookieManager.DeleteAllCookies();
+    }
+
+    void DeleteCookiesMenuItem_Click(object sender, EventArgs e, string domain)
+    {
+        this.webView2Control.CoreWebView2.CookieManager.DeleteCookiesWithDomainAndPath("CookieName", domain, "/");
+    }
+
     private void showBrowserProcessInfoMenuItem_Click(object sender, EventArgs e)
     {
       var browserInfo = this.webView2Control.CoreWebView2.BrowserProcessId;
@@ -1131,6 +1302,107 @@ namespace WebView2WindowsFormsBrowser
                     MessageBox.Show(this, scriptId, "Invalid ScriptId, should be Integer");
 
                 }
+            }
+        }
+
+        // Prompt the user for a string and then post it as a web message.
+        private void postMessageStringMenuItem_Click(object sender, EventArgs e)
+        {
+            var dialog = new TextInputDialog(
+                title: "Post Web Message String",
+                description: "Web message string:\r\nEnter the web message as a string.");
+
+            try
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    this.webView2Control.CoreWebView2.PostWebMessageAsString(dialog.inputBox());
+                }
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(this, "PostMessageAsString Failed: " + exception.Message,
+                   "Post Message As String");
+            }
+        }
+
+        // Prompt the user for some JSON and then post it as a web message.
+        private void postMessageJsonMenuItem_Click(object sender, EventArgs e)
+        {
+            var dialog = new TextInputDialog(
+                title: "Post Web Message JSON",
+                description: "Web message JSON:\r\nEnter the web message as JSON.",
+                 defaultInput: "{\"SetColor\":\"blue\"}");
+
+            try
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    this.webView2Control.CoreWebView2.PostWebMessageAsJson(dialog.inputBox());
+                }
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(this, "PostMessageAsJSON Failed: " + exception.Message,
+                   "Post Message As JSON");
+            }
+        }
+
+        // Prompt the user for a string and then post it as a web message to the first iframe.
+        private void postMessageStringIframeMenuItem_Click(object sender, EventArgs e)
+        {
+            var dialog = new TextInputDialog(
+                title: "Post Web Message String Iframe",
+                description: "Web message string:\r\nEnter the web message as a string.");
+
+            try
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    if (_webViewFrames.Count != 0)
+                    {
+                        _webViewFrames[0].PostWebMessageAsString(dialog.inputBox());
+                    }
+                    else
+                    {
+                        MessageBox.Show("No iframes found");
+                    }
+                }
+
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(this, "PostMessageAsStringIframe Failed: " + exception.Message,
+                   "Post Message As String");
+            }
+        }
+
+        // Prompt the user for some JSON and then post it as a web message to the first iframe.
+        private void postMessageJsonIframeMenuItem_Click(object sender, EventArgs e)
+        {
+            var dialog = new TextInputDialog(
+                title: "Post Web Message JSON Iframe",
+                description: "Web message JSON:\r\nEnter the web message as JSON.",
+                 defaultInput: "{\"SetColor\":\"blue\"}");
+
+            try
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                     if (_webViewFrames.Count != 0)
+                    {
+                        _webViewFrames[0].PostWebMessageAsJson(dialog.inputBox());
+                    }
+                    else
+                    {
+                        MessageBox.Show("No iframes found");
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(this, "PostMessageAsJSONIframe Failed: " + exception.Message,
+                   "Post Message As JSON");
             }
         }
         #endregion

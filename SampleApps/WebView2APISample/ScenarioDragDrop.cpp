@@ -23,10 +23,10 @@ ScenarioDragDrop::ScenarioDragDrop(AppWindow* appWindow) : m_appWindow(appWindow
         Callback<ICoreWebView2WebMessageReceivedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args)
             {
-                wil::com_ptr<ICoreWebView2ExperimentalWebMessageReceivedEventArgs> args2 =
+                wil::com_ptr<ICoreWebView2WebMessageReceivedEventArgs2> args2 =
                     wil::com_ptr<ICoreWebView2WebMessageReceivedEventArgs>(args)
-                        .query<ICoreWebView2ExperimentalWebMessageReceivedEventArgs>();
-                wil::com_ptr<ICoreWebView2ExperimentalObjectCollectionView> objectsCollection;
+                        .query<ICoreWebView2WebMessageReceivedEventArgs2>();
+                wil::com_ptr<ICoreWebView2ObjectCollectionView> objectsCollection;
                 args2->get_AdditionalObjects(&objectsCollection);
                 unsigned int length;
                 objectsCollection->get_Count(&length);
@@ -38,8 +38,7 @@ ScenarioDragDrop::ScenarioDragDrop(AppWindow* appWindow) : m_appWindow(appWindow
                     wil::com_ptr<IUnknown> object;
                     objectsCollection->GetValueAtIndex(i, &object);
 
-                    wil::com_ptr<ICoreWebView2ExperimentalFile> file =
-                        object.query<ICoreWebView2ExperimentalFile>();
+                    wil::com_ptr<ICoreWebView2File> file = object.query<ICoreWebView2File>();
                     if (file)
                     {
                         // Add the file to message to be sent back to webview

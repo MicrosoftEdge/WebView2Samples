@@ -31,10 +31,9 @@ ScenarioCookieManagement::ScenarioCookieManagement(AppWindow* appWindow, bool is
         CHECK_FEATURE_RETURN_EMPTY(webView2_13);
         wil::com_ptr<ICoreWebView2Profile> webView2Profile;
         CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
-        auto webView2ExperimentalProfile8 =
-            webView2Profile.try_query<ICoreWebView2ExperimentalProfile8>();
-        CHECK_FEATURE_RETURN_EMPTY(webView2ExperimentalProfile8);
-        CHECK_FAILURE(webView2ExperimentalProfile8->get_CookieManager(&m_cookieManager));
+        auto webView2Profile5 = webView2Profile.try_query<ICoreWebView2Profile5>();
+        CHECK_FEATURE_RETURN_EMPTY(webView2Profile5);
+        CHECK_FAILURE(webView2Profile5->get_CookieManager(&m_cookieManager));
         //! [CookieManagerProfile]
     }
     else

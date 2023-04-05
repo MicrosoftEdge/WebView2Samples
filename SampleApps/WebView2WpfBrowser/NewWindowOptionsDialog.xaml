@@ -15,7 +15,7 @@ found in the LICENSE file.
         Height="260"
         Width="500">
     <StackPanel Margin="0,0,0,1" Orientation="Vertical">
-        <StackPanel Height="184" Width="450">
+        <StackPanel Height="190" Width="450">
             <Grid Height="32">
                 <Label Content="BrowserExecutableFolder:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Height="30"/>
                 <TextBox x:Name="BrowserExecutableFolder" HorizontalAlignment="Left" Margin="155,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" Width="285" Height="25"/>
@@ -31,6 +31,10 @@ found in the LICENSE file.
             <Grid Height="32">
                 <Label Content="ProfileName:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Height="30"/>
                 <TextBox x:Name="ProfileName" HorizontalAlignment="Left" Margin="155,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" Width="285" Height="25"/>
+            </Grid>
+            <Grid Height="32">
+                <Label Content="ScriptLocale:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Height="30"/>
+                <TextBox x:Name="ScriptLocale" HorizontalAlignment="Left" Margin="155,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" Width="285" Height="25"/>
             </Grid>
             <Grid Height="32">
                 <Label Content="IsInPrivateModeEnabled:" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Width="148" Height="28"/>

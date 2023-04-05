@@ -50,6 +50,7 @@ namespace WebView2WpfBrowser
                     EnvLanguage.Text = null;
                     ProfileName.Text = null;
                     comboBox_IsInPrivateModeEnabled.SelectedIndex = 2;
+                    ScriptLocale.Text = null;
                 }
                 else
                 {
@@ -58,6 +59,7 @@ namespace WebView2WpfBrowser
                     UserDataFolder.Text = _creationProperties.UserDataFolder;
                     EnvLanguage.Text = _creationProperties.Language;
                     ProfileName.Text = _creationProperties.ProfileName;
+                    ScriptLocale.Text = _creationProperties.ScriptLocale;
                     if (_creationProperties.IsInPrivateModeEnabled == null)
                     {
                         comboBox_IsInPrivateModeEnabled.SelectedIndex = 2;
@@ -79,6 +81,7 @@ namespace WebView2WpfBrowser
             CreationProperties.UserDataFolder = UserDataFolder.Text == "" ? null : UserDataFolder.Text;
             CreationProperties.Language = EnvLanguage.Text == "" ? null : EnvLanguage.Text;
             CreationProperties.ProfileName = ProfileName.Text == "" ? null : ProfileName.Text;
+            CreationProperties.ScriptLocale = ScriptLocale.Text == "" ? null : ScriptLocale.Text;
             if (comboBox_IsInPrivateModeEnabled.SelectedIndex == 0)
             {
                 CreationProperties.IsInPrivateModeEnabled = true;
