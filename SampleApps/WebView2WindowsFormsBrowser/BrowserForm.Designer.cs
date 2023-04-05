@@ -44,7 +44,6 @@ namespace WebView2WindowsFormsBrowser
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.windowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeWebViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.createWebViewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createNewWindowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createNewWindowWithOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createNewThreadToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -83,11 +82,6 @@ namespace WebView2WindowsFormsBrowser
             this.domContentLoadedMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.navigateWithWebResourceRequestMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.webMessageMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.processToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.showBrowserProcessInfoMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.crashBrowserProcessMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.crashRendererProcessMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.showPerformanceInfoMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.audioToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toggleMuteStateMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -184,7 +178,6 @@ namespace WebView2WindowsFormsBrowser
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.processToolStripMenuItem,
             this.windowToolStripMenuItem,
             this.controlToolStripMenuItem,
             this.viewToolStripMenuItem,
@@ -252,11 +245,7 @@ namespace WebView2WindowsFormsBrowser
             // windowToolStripMenuItem
             //
             this.windowToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-              this.closeWebViewToolStripMenuItem,
-              this.createWebViewToolStripMenuItem,
-              this.createNewWindowToolStripMenuItem,
-              this.createNewWindowWithOptionsToolStripMenuItem,
-              this.createNewThreadToolStripMenuItem});
+            this.closeWebViewToolStripMenuItem, this.createNewWindowToolStripMenuItem, this.createNewWindowWithOptionsToolStripMenuItem, this.createNewThreadToolStripMenuItem});
             this.windowToolStripMenuItem.Name = "windowToolStripMenuItem";
             this.windowToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
             this.windowToolStripMenuItem.Text = "Window";
@@ -267,13 +256,6 @@ namespace WebView2WindowsFormsBrowser
             this.closeWebViewToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.closeWebViewToolStripMenuItem.Text = "Close WebView";
             this.closeWebViewToolStripMenuItem.Click += new System.EventHandler(this.closeWebViewToolStripMenuItem_Click);
-            //
-            // createWebViewToolStripMenuItem
-            //
-            this.createWebViewToolStripMenuItem.Name = "createWebViewToolStripMenuItem";
-            this.createWebViewToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.createWebViewToolStripMenuItem.Text = "Create WebView";
-            this.createWebViewToolStripMenuItem.Click += new System.EventHandler(this.createWebViewToolStripMenuItem_Click);
             //
             // createNewWindowToolStripMenuItem
             //
@@ -558,45 +540,6 @@ namespace WebView2WindowsFormsBrowser
             this.webMessageMenuItem.Text = "Web Message";
             this.webMessageMenuItem.Click += new System.EventHandler(this.webMessageMenuItem_Click);
             //
-            // processToolStripMenuItem
-            //
-            this.processToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-                this.showBrowserProcessInfoMenuItem,
-                this.crashBrowserProcessMenuItem,
-                this.crashRendererProcessMenuItem,
-                this.showPerformanceInfoMenuItem});
-            this.processToolStripMenuItem.Name = "processToolStripMenuItem";
-            this.processToolStripMenuItem.Size = new System.Drawing.Size(72, 38);
-            this.processToolStripMenuItem.Text = "Process";
-            //
-            // showBrowserProcessInfoMenuItem
-            //
-            this.showBrowserProcessInfoMenuItem.Name = "showBrowserProcessInfoMenuItem";
-            this.showBrowserProcessInfoMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.showBrowserProcessInfoMenuItem.Text = "Show Browser Process Info";
-            this.showBrowserProcessInfoMenuItem.Click += new System.EventHandler(this.showBrowserProcessInfoMenuItem_Click);
-            //
-            // crashBrowserProcessMenuItem
-            //
-            this.crashBrowserProcessMenuItem.Name = "crashBrowserProcessMenuItem";
-            this.crashBrowserProcessMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.crashBrowserProcessMenuItem.Text = "Crash Browser Process";
-            this.crashBrowserProcessMenuItem.Click += new System.EventHandler(this.crashBrowserProcessMenuItem_Click);
-            //
-            // crashRendererProcessMenuItem
-            //
-            this.crashRendererProcessMenuItem.Name = "crashRendererProcessMenuItem";
-            this.crashRendererProcessMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.crashRendererProcessMenuItem.Text = "Crash Renderer Process";
-            this.crashRendererProcessMenuItem.Click += new System.EventHandler(this.crashRendererProcessMenuItem_Click);
-            //
-            // showPerformanceInfoMenuItem
-            //
-            this.showPerformanceInfoMenuItem.Name = "showPerformanceInfoMenuItem";
-            this.showPerformanceInfoMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.showPerformanceInfoMenuItem.Text = "Show Performance Info";
-            this.showPerformanceInfoMenuItem.Click += new System.EventHandler(this.showPerformanceInfoMenuItem_Click);
-            //
             // audioToolStripMenuItem
             //
             this.audioToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripMenuItem[] {
@@ -683,7 +626,6 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem windowToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem closeWebViewToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem createWebViewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem createNewWindowToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem createNewWindowWithOptionsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem createNewThreadToolStripMenuItem;
@@ -722,11 +664,6 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem domContentLoadedMenuItem;
         private System.Windows.Forms.ToolStripMenuItem navigateWithWebResourceRequestMenuItem;
         private System.Windows.Forms.ToolStripMenuItem webMessageMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem processToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem showBrowserProcessInfoMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem crashBrowserProcessMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem crashRendererProcessMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem showPerformanceInfoMenuItem;
         private System.Windows.Forms.ToolStripMenuItem audioToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toggleMuteStateMenuItem;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
