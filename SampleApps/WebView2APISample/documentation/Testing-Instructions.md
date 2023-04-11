@@ -90,6 +90,7 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Open Link in New Window From PDF](#Open-Link-in-New-Window-from-PDF)
     * [WebView Does Not Crash](#WebView-Does-Not-Crash)
     * [Draggable Regions](#Draggable-Regions)
+    * [Drag and Drop](#Drag-and-Drop)
 
 ## Getting started
 
@@ -1404,3 +1405,20 @@ this the `appRegion` changes would not take place until some document element wa
 1. Expected: Sample app will maximize
 1. Right click 'Microsoft Edge WebView2' element and select `restore`
 1. Expected: Sample app will restore.
+
+#### Drag and Drop
+Test that Drag and Drop is supported in WebView2 using both hosting modes.
+1. Launch the sample app.
+1. Select text "Runtime version".
+1. Click, hold, and drag the selected text to the Query text box.
+1. Release mouse over text box to drop text.
+1. Expected: "Runtime version" text is inserted into Query text box.
+1. Go to `Window -> Close WebView.`
+1. Go to `Window -> WebView Creation Mode -> Visual - DComp.`
+1. Go to `Window -> Create WebView.`
+1. Select text "Runtime version".
+1. Click, hold, and drag the selected text to the Query text box.
+1. Release mouse over text box to drop text.
+1. Expected: "Runtime version" text is inserted into Query text box.
+1. Go to `Window -> Close WebView.`
+1. Expected: App does not crash.

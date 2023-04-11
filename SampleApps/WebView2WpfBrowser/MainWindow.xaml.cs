@@ -2365,7 +2365,7 @@ namespace WebView2WpfBrowser
             }
         }
 
-        private void ThreadProc(string browserExecutableFolder, string userDataFolder, string language, string additionalBrowserArguments, string profileName, bool? isInPrivateModeEnabled)
+        private void ThreadProc(string browserExecutableFolder, string userDataFolder, string language, string additionalBrowserArguments, string profileName, bool? isInPrivateModeEnabled, string scriptLocale)
         {
             try
             {
@@ -2378,6 +2378,7 @@ namespace WebView2WpfBrowser
                 creationProperties.AdditionalBrowserArguments = additionalBrowserArguments;
                 creationProperties.ProfileName = profileName;
                 creationProperties.IsInPrivateModeEnabled = isInPrivateModeEnabled;
+                creationProperties.ScriptLocale = scriptLocale;
                 var tempWindow = new MainWindow(creationProperties);
                 tempWindow.Show();
                 // Causes dispatcher to shutdown when window is closed.
@@ -2402,9 +2403,10 @@ namespace WebView2WpfBrowser
             string additionalBrowserArguments = webView.CreationProperties.AdditionalBrowserArguments;
             string profileName = webView.CreationProperties.ProfileName;
             bool? isInPrivateModeEnabled = webView.CreationProperties.IsInPrivateModeEnabled;
+            string scriptLocale = webView.CreationProperties.ScriptLocale;
             Thread newWindowThread = new Thread(() =>
             {
-                ThreadProc(browserExecutableFolder, userDataFolder, language, additionalBrowserArguments, profileName, isInPrivateModeEnabled);
+                ThreadProc(browserExecutableFolder, userDataFolder, language, additionalBrowserArguments, profileName, isInPrivateModeEnabled, scriptLocale);
             });
             newWindowThread.SetApartmentState(ApartmentState.STA);
             newWindowThread.IsBackground = false;

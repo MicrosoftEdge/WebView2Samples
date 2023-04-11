@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 using System;
+using Microsoft.Web.WebView2.Core;
 
 namespace WebView2WindowsFormsBrowser
 {
@@ -53,6 +54,9 @@ namespace WebView2WindowsFormsBrowser
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scriptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.zoomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clearBrowsingDataStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.clientCertificateRequestedStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cookieManagementStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.xToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.xToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.xToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
@@ -97,6 +101,25 @@ namespace WebView2WindowsFormsBrowser
             this.injectScriptIntoFrameMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addInitializeScriptMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeInitializeScriptMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AuthenticationMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearAllDOMStorageMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearAllProfileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearAllSiteMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearAutofillMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearBrowsingHistoryMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearCookiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearDiskCacheMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ClearDownloadHistoryMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.CustomClientCertificateSelectionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DeferredCustomCertificateDialogMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.GetCookiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.AddOrUpdateCookieMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DeleteCookiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DeleteAllCookiesMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.postMessageStringMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.postMessageJsonMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.postMessageStringIframeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.postMessageJsonIframeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.webViewLogoBitmap = new System.Drawing.Bitmap(@"assets\AppStartPageBackground.png");
             this.webView2Control = new Microsoft.Web.WebView2.WinForms.WebView2();
             this.menuStrip1.SuspendLayout();
@@ -384,11 +407,39 @@ namespace WebView2WindowsFormsBrowser
                 this.injectScriptIntoFrameMenuItem,
                 this.methodCDPToolStripMenuItem, 
                 this.taskManagerToolStripMenuItem,
+                this.postMessageStringMenuItem,
+                this.postMessageJsonMenuItem,
+                this.postMessageStringIframeMenuItem,
+                this.postMessageJsonIframeMenuItem,
                 this.addInitializeScriptMenuItem,
                 this.removeInitializeScriptMenuItem});
             this.scriptToolStripMenuItem.Name = "scriptToolStripMenuItem";
             this.scriptToolStripMenuItem.Size = new System.Drawing.Size(86, 38);
             this.scriptToolStripMenuItem.Text = "Script";
+            //
+            // clearBrowsingDataStripMenuItem
+            //
+            this.clearBrowsingDataStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.ClearAllDOMStorageMenuItem, this.ClearAllProfileMenuItem, this.ClearAllSiteMenuItem, this.ClearAutofillMenuItem, this.ClearBrowsingHistoryMenuItem, this.ClearCookiesMenuItem, this.ClearDiskCacheMenuItem, this.ClearDownloadHistoryMenuItem});
+            this.clearBrowsingDataStripMenuItem.Name = "clearBrowsingDataStripMenuItem";
+            this.clearBrowsingDataStripMenuItem.Size = new System.Drawing.Size(86, 38);
+            this.clearBrowsingDataStripMenuItem.Text = "Clear Browsing Data";
+            //
+            // clientCertificateRequestedStripMenuItem
+            //
+            this.clientCertificateRequestedStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.CustomClientCertificateSelectionMenuItem, this.DeferredCustomCertificateDialogMenuItem});
+            this.clientCertificateRequestedStripMenuItem.Name = "clientCertificateRequestedStripMenuItem";
+            this.clientCertificateRequestedStripMenuItem.Size = new System.Drawing.Size(86, 38);
+            this.clientCertificateRequestedStripMenuItem.Text = "Client Certificate Request";
+            //
+            // cookieManagementStripMenuItem
+            //
+            this.cookieManagementStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+                this.GetCookiesMenuItem, this.AddOrUpdateCookieMenuItem, this.DeleteCookiesMenuItem, this.DeleteAllCookiesMenuItem});
+            this.cookieManagementStripMenuItem.Name = "cookieManagementStripMenuItem";
+            this.cookieManagementStripMenuItem.Size = new System.Drawing.Size(86, 38);
+            this.cookieManagementStripMenuItem.Text = "Cookie Management";
             //
             // toggleVisibilityMenuItem
             //
@@ -512,6 +563,34 @@ namespace WebView2WindowsFormsBrowser
             this.removeInitializeScriptMenuItem.Text = "Remove Initialize Script";
             this.removeInitializeScriptMenuItem.Click += new System.EventHandler(this.removeInitializeScriptMenuItem_Click);
             //
+            // postMessageStringMenuItem
+            //
+            this.postMessageStringMenuItem.Name = "postMessageStringMenuItem";
+            this.postMessageStringMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.postMessageStringMenuItem.Text = "Post Message String";
+            this.postMessageStringMenuItem.Click += new System.EventHandler(this.postMessageStringMenuItem_Click);
+            //
+            // postMessageJsonMenuItem
+            //
+            this.postMessageJsonMenuItem.Name = "postMessageJsonMenuItem";
+            this.postMessageJsonMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.postMessageJsonMenuItem.Text = "Post Message JSON";
+            this.postMessageJsonMenuItem.Click += new System.EventHandler(this.postMessageJsonMenuItem_Click);
+            //
+            // postMessageStringIframeMenuItem
+            //
+            this.postMessageStringIframeMenuItem.Name = "postMessageStringIframeMenuItem";
+            this.postMessageStringIframeMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.postMessageStringIframeMenuItem.Text = "Post Message String Iframe";
+            this.postMessageStringIframeMenuItem.Click += new System.EventHandler(this.postMessageStringIframeMenuItem_Click);
+            //
+            // postMessageJsonIframeMenuItem
+            //
+            this.postMessageJsonIframeMenuItem.Name = "postMessageJsonIframeMenuItem";
+            this.postMessageJsonIframeMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.postMessageJsonIframeMenuItem.Text = "Post Message JSON Iframe";
+            this.postMessageJsonIframeMenuItem.Click += new System.EventHandler(this.postMessageJsonIframeMenuItem_Click);
+            //
             // transparentBackgroundColorMenuItem
             //
             this.transparentBackgroundColorMenuItem.Name = "transparentBackgroundColorMenuItem";
@@ -522,6 +601,10 @@ namespace WebView2WindowsFormsBrowser
             // scenarioToolStripMenuItem
             //
             this.scenarioToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripMenuItem[] {
+                this.AuthenticationMenuItem,
+                this.clearBrowsingDataStripMenuItem,
+                this.clientCertificateRequestedStripMenuItem,
+                this.cookieManagementStripMenuItem,
                 this.addRemoteObjectMenuItem,
                 this.domContentLoadedMenuItem,
                 this.navigateWithWebResourceRequestMenuItem,
@@ -628,6 +711,111 @@ namespace WebView2WindowsFormsBrowser
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            //
+            // AuthenticationMenuItem
+            //
+            this.AuthenticationMenuItem.Name = "AuthenticationMenuItem";
+            this.AuthenticationMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.AuthenticationMenuItem.Text = "Authentication";
+            this.AuthenticationMenuItem.Click += new System.EventHandler(this.AuthenticationMenuItem_Click);
+            //
+            // ClearAllDOMStorageMenuItem
+            //
+            this.ClearAllDOMStorageMenuItem.Name = "ClearAllDOMStorageMenuItem";
+            this.ClearAllDOMStorageMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.ClearAllDOMStorageMenuItem.Text = "All DOM Storage";
+            this.ClearAllDOMStorageMenuItem.Click += new System.EventHandler((sender, e) => ClearBrowsingData(sender, e, CoreWebView2BrowsingDataKinds.AllDomStorage));
+            //
+            // ClearAllProfileMenuItem
+            //
+            this.ClearAllProfileMenuItem.Name = "ClearAllProfileMenuItem";
+            this.ClearAllProfileMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.ClearAllProfileMenuItem.Text = "All Profile";
+            this.ClearAllProfileMenuItem.Click += new System.EventHandler((sender, e) => ClearBrowsingData(sender, e, CoreWebView2BrowsingDataKinds.AllProfile));
+            //
+            // ClearAllSiteMenuItem
+            //
+            this.ClearAllSiteMenuItem.Name = "ClearAllSiteMenuItem";
+            this.ClearAllSiteMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.ClearAllSiteMenuItem.Text = "All Site";
+            this.ClearAllSiteMenuItem.Click += new System.EventHandler((sender, e) => ClearBrowsingData(sender, e, CoreWebView2BrowsingDataKinds.AllSite));
+            //
+            // ClearAutofillMenuItem
+            //
+            this.ClearAutofillMenuItem.Name = "ClearAutofillMenuItem";
+            this.ClearAutofillMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.ClearAutofillMenuItem.Text = "Autofill";
+            this.ClearAutofillMenuItem.Click += new System.EventHandler((sender, e) => ClearBrowsingData(sender, e, (CoreWebView2BrowsingDataKinds)(CoreWebView2BrowsingDataKinds.GeneralAutofill | CoreWebView2BrowsingDataKinds.PasswordAutosave)));
+            //
+            // ClearBrowsingHistoryMenuItem
+            //
+            this.ClearBrowsingHistoryMenuItem.Name = "ClearBrowsingHistoryMenuItem";
+            this.ClearBrowsingHistoryMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.ClearBrowsingHistoryMenuItem.Text = "Browsing History";
+            this.ClearBrowsingHistoryMenuItem.Click += new System.EventHandler((sender, e) => ClearBrowsingData(sender, e, CoreWebView2BrowsingDataKinds.BrowsingHistory));
+            //
+            // ClearCookiesMenuItem
+            //
+            this.ClearCookiesMenuItem.Name = "ClearCookiesMenuItem";
+            this.ClearCookiesMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.ClearCookiesMenuItem.Text = "Cookies";
+            this.ClearCookiesMenuItem.Click += new System.EventHandler((sender, e) => ClearBrowsingData(sender, e, CoreWebView2BrowsingDataKinds.Cookies));
+            //
+            // ClearDiskCacheMenuItem
+            //
+            this.ClearDiskCacheMenuItem.Name = "ClearDiskCacheMenuItem";
+            this.ClearDiskCacheMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.ClearDiskCacheMenuItem.Text = "Disk Cache";
+            this.ClearDiskCacheMenuItem.Click += new System.EventHandler((sender, e) => ClearBrowsingData(sender, e, CoreWebView2BrowsingDataKinds.DiskCache));
+            //
+            // ClearDownloadHistoryMenuItem
+            //
+            this.ClearDownloadHistoryMenuItem.Name = "ClearDownloadHistoryMenuItem";
+            this.ClearDownloadHistoryMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.ClearDownloadHistoryMenuItem.Text = "Download History";
+            this.ClearDownloadHistoryMenuItem.Click += new System.EventHandler((sender, e) => ClearBrowsingData(sender, e, CoreWebView2BrowsingDataKinds.DownloadHistory));
+            //
+            // CustomClientCertificateSelectionMenuItem
+            //
+            this.CustomClientCertificateSelectionMenuItem.Name = "CustomClientCertificateSelectionMenuItem";
+            this.CustomClientCertificateSelectionMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.CustomClientCertificateSelectionMenuItem.Text = "Custom Client Certificate Selection";
+            this.CustomClientCertificateSelectionMenuItem.Click += new System.EventHandler(this.CustomClientCertificateSelectionMenuItem_Click);
+            //
+            // DeferredCustomCertificateDialogMenuItem
+            //
+            this.DeferredCustomCertificateDialogMenuItem.Name = "DeferredCustomCertificateDialogMenuItem";
+            this.DeferredCustomCertificateDialogMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.DeferredCustomCertificateDialogMenuItem.Text = "Deferred Custom Client Certificate Selection Dialog";
+            this.DeferredCustomCertificateDialogMenuItem.Click += new System.EventHandler(this.DeferredCustomCertificateDialogMenuItem_Click);
+            //
+            // GetCookiesMenuItem
+            //
+            this.GetCookiesMenuItem.Name = "GetCookiesMenuItem";
+            this.GetCookiesMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.GetCookiesMenuItem.Text = "Get Cookies";
+            this.GetCookiesMenuItem.Click += new System.EventHandler((sender, e) => GetCookiesMenuItem_Click(sender, e, txtUrl.Text));
+            //
+            // AddOrUpdateCookieMenuItem
+            //
+            this.AddOrUpdateCookieMenuItem.Name = "AddOrUpdateCookieMenuItem";
+            this.AddOrUpdateCookieMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.AddOrUpdateCookieMenuItem.Text = "Add Or Update Cookie";
+            this.AddOrUpdateCookieMenuItem.Click += new System.EventHandler((sender, e) => AddOrUpdateCookieMenuItem_Click(sender, e, new Uri(txtUrl.Text).Host));
+            //
+            // DeleteCookiesMenuItem
+            //
+            this.DeleteCookiesMenuItem.Name = "DeleteCookiesMenuItem";
+            this.DeleteCookiesMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.DeleteCookiesMenuItem.Text = "Delete Cookie";
+            this.DeleteCookiesMenuItem.Click += new System.EventHandler((sender, e) => DeleteCookiesMenuItem_Click(sender, e, new Uri(txtUrl.Text).Host));
+            //
+            // DeleteAllCookiesMenuItem
+            //
+            this.DeleteAllCookiesMenuItem.Name = "DeleteAllCookiesMenuItem";
+            this.DeleteAllCookiesMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.DeleteAllCookiesMenuItem.Text = "Delete All Cookies";
+            this.DeleteAllCookiesMenuItem.Click += new System.EventHandler(this.DeleteAllCookiesMenuItem_Click);
 
             //
             // webView2Control
@@ -691,6 +879,9 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem acceleratorKeysEnabledToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem zoomToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem clearBrowsingDataStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem clientCertificateRequestedStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cookieManagementStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem scriptToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem xToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem xToolStripMenuItem1;
@@ -736,6 +927,25 @@ namespace WebView2WindowsFormsBrowser
         private System.Windows.Forms.ToolStripMenuItem injectScriptIntoFrameMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addInitializeScriptMenuItem;
         private System.Windows.Forms.ToolStripMenuItem removeInitializeScriptMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem AuthenticationMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ClearAllDOMStorageMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ClearAllProfileMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ClearAllSiteMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ClearAutofillMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ClearBrowsingHistoryMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ClearCookiesMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ClearDiskCacheMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem ClearDownloadHistoryMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem CustomClientCertificateSelectionMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem DeferredCustomCertificateDialogMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem GetCookiesMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem AddOrUpdateCookieMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem DeleteCookiesMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem DeleteAllCookiesMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem postMessageStringMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem postMessageJsonMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem postMessageStringIframeMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem postMessageJsonIframeMenuItem;
 
     }
 }
