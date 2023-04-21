@@ -8,6 +8,8 @@ found in the LICENSE file.
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:e="experimental-mode"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         xmlns:local="clr-namespace:WebView2WpfBrowser"
         x:Name="MyWindow"
@@ -35,8 +37,12 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.OpenDevToolsCommand}" Executed="OpenDevToolsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.OpenTaskManagerCommand}" Executed="OpenTaskManagerCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.InjectScriptWithResultCommand}" Executed="InjectScriptWithResultCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
-        <CommandBinding Command="{x:Static local:MainWindow.SetCustomDataPartitionCommand}" Executed="SetCustomDataPartitionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
-        <CommandBinding Command="{x:Static local:MainWindow.ClearCustomDataPartitionCommand}" Executed="ClearCustomDataPartitionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <mc:AlternateContent>
+            <mc:Choice Requires="e">
+                <CommandBinding Command="{x:Static local:MainWindow.SetCustomDataPartitionCommand}" Executed="SetCustomDataPartitionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+                <CommandBinding Command="{x:Static local:MainWindow.ClearCustomDataPartitionCommand}" Executed="ClearCustomDataPartitionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+            </mc:Choice>
+        </mc:AlternateContent>
         <CommandBinding Command="{x:Static local:MainWindow.SetUserAgentCommand}" Executed="SetUserAgentCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GetCookiesCommand}" Executed="GetCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DOMContentLoadedCommand}" Executed="DOMContentLoadedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>

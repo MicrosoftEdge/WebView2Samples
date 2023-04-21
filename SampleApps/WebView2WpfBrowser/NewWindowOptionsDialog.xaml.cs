@@ -59,7 +59,9 @@ namespace WebView2WpfBrowser
                     UserDataFolder.Text = _creationProperties.UserDataFolder;
                     EnvLanguage.Text = _creationProperties.Language;
                     ProfileName.Text = _creationProperties.ProfileName;
+#if USE_WEBVIEW2_EXPERIMENTAL
                     ScriptLocale.Text = _creationProperties.ScriptLocale;
+#endif
                     if (_creationProperties.IsInPrivateModeEnabled == null)
                     {
                         comboBox_IsInPrivateModeEnabled.SelectedIndex = 2;
@@ -81,7 +83,9 @@ namespace WebView2WpfBrowser
             CreationProperties.UserDataFolder = UserDataFolder.Text == "" ? null : UserDataFolder.Text;
             CreationProperties.Language = EnvLanguage.Text == "" ? null : EnvLanguage.Text;
             CreationProperties.ProfileName = ProfileName.Text == "" ? null : ProfileName.Text;
+#if USE_WEBVIEW2_EXPERIMENTAL
             CreationProperties.ScriptLocale = ScriptLocale.Text == "" ? null : ScriptLocale.Text;
+#endif
             if (comboBox_IsInPrivateModeEnabled.SelectedIndex == 0)
             {
                 CreationProperties.IsInPrivateModeEnabled = true;

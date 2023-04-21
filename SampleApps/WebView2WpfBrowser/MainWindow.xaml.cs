@@ -66,6 +66,9 @@ namespace WebView2WpfBrowser
         public static RoutedCommand GeneralAutofillCommand = new RoutedCommand();
         public static RoutedCommand PinchZoomCommand = new RoutedCommand();
         public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
+#if USE_WEBVIEW2_EXPERIMENTAL
+        public static RoutedCommand DeleteProfileCommand = new RoutedCommand();
+#endif
         public static RoutedCommand ToggleMuteStateCommand = new RoutedCommand();
         public static RoutedCommand AllowExternalDropCommand = new RoutedCommand();
         public static RoutedCommand LaunchingExternalUriSchemeCommand = new RoutedCommand();
@@ -74,6 +77,9 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
         public static RoutedCommand NewWindowWithOptionsCommand = new RoutedCommand();
         public static RoutedCommand CreateNewThreadCommand = new RoutedCommand();
+#if USE_WEBVIEW2_EXPERIMENTAL
+        public static RoutedCommand ExtensionsCommand = new RoutedCommand();
+#endif
         public static RoutedCommand TrackingPreventionLevelCommand = new RoutedCommand();
         public static RoutedCommand PrintDialogCommand = new RoutedCommand();
         public static RoutedCommand PrintToDefaultPrinterCommand = new RoutedCommand();
@@ -865,6 +871,7 @@ namespace WebView2WpfBrowser
             }
         }
 
+#if USE_WEBVIEW2_EXPERIMENTAL
         void SetCustomDataPartitionCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             // <CustomDataPartitionId>
@@ -902,6 +909,7 @@ namespace WebView2WpfBrowser
             }
             // </ClearCustomDataPartition>
         }
+#endif
 
         void WebMessagesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -1543,6 +1551,7 @@ namespace WebView2WpfBrowser
             // Safeguarding the handler when unsupported runtime is used.
             try
             {
+#if USE_WEBVIEW2_EXPERIMENTAL
                 if (!_isLaunchingExternalUriSchemeEnabled)
                 {
                     webView.CoreWebView2.LaunchingExternalUriScheme += WebView_LaunchingExternalUriScheme;
@@ -1551,6 +1560,7 @@ namespace WebView2WpfBrowser
                 {
                     webView.CoreWebView2.LaunchingExternalUriScheme -= WebView_LaunchingExternalUriScheme;
                 }
+#endif
                 _isLaunchingExternalUriSchemeEnabled = !_isLaunchingExternalUriSchemeEnabled;
                 MessageBox.Show(this,
                 _isLaunchingExternalUriSchemeEnabled ? "Launching Registered URI Scheme support has been enabled" : "Launching Registered URI Scheme support has been disabled",
@@ -1562,6 +1572,7 @@ namespace WebView2WpfBrowser
             }
         }
 
+#if USE_WEBVIEW2_EXPERIMENTAL
         void WebView_LaunchingExternalUriScheme(object target, CoreWebView2LaunchingExternalUriSchemeEventArgs args)
         {
             // A deferral may be taken for the event so that the CoreWebView2
@@ -1635,6 +1646,8 @@ namespace WebView2WpfBrowser
             //     }
             // }, null);
         }
+#endif
+
         // <ServerCertificateErrorDetected>
         // When WebView2 doesn't trust a TLS certificate but host app does, this example bypasses
         // the default TLS interstitial page using the ServerCertificateErrorDetected event handler and
@@ -1775,15 +1788,20 @@ namespace WebView2WpfBrowser
             }
         }
 
-        async void CheckUpdateCmdExecuted(object target, ExecutedRoutedEventArgs e)
+#if USE_WEBVIEW2_EXPERIMENTAL
+        async
+#endif        
+        void CheckUpdateCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             try
             {
+#if USE_WEBVIEW2_EXPERIMENTAL
                 // <UpdateRuntime>
                 CoreWebView2UpdateRuntimeResult result = await webView.CoreWebView2.Environment.UpdateRuntimeAsync();
                 string update_result = "status: " + result.Status + ", extended error:" + result.ExtendedError;
                 MessageBox.Show(this, update_result, "UpdateRuntimeAsync result");
                 // </UpdateRuntime>
+#endif
             }
             catch (System.Runtime.InteropServices.COMException exception)
             {
@@ -1842,10 +1860,12 @@ namespace WebView2WpfBrowser
             _isNavigating = true;
             RequeryCommands();
 
+#if USE_WEBVIEW2_EXPERIMENTAL
             // <NavigationKind>
             CoreWebView2NavigationKind kind = e.NavigationKind;
             Debug.WriteLine($"CoreWebView2_NavigationStarting: NavigationKind({kind})");
             // </NavigationKind>
+#endif
         }
 
         void WebView_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -1975,7 +1995,9 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
+#if USE_WEBVIEW2_EXPERIMENTAL
                 WebViewProfile.Deleted += WebViewProfile_Deleted;
+#endif
                 return;
             }
 
@@ -2359,6 +2381,7 @@ namespace WebView2WpfBrowser
         void NewWindowWithOptionsCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             var dialog = new NewWindowOptionsDialog();
+            dialog.CreationProperties = webView.CreationProperties;
             if (dialog.ShowDialog() == true)
             {
                 new MainWindow(dialog.CreationProperties).Show();
@@ -2735,7 +2758,10 @@ namespace WebView2WpfBrowser
         }
 
 
-        async void InjectScriptWithResultCmdExecuted(object target, ExecutedRoutedEventArgs e)
+#if USE_WEBVIEW2_EXPERIMENTAL
+        async
+#endif        
+        void InjectScriptWithResultCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             // <ExecuteScriptWithResult>
             var dialog = new TextInputDialog(
@@ -2745,6 +2771,7 @@ namespace WebView2WpfBrowser
             );
             if (dialog.ShowDialog() == true)
             {
+#if USE_WEBVIEW2_EXPERIMENTAL
                 var result = await webView.CoreWebView2.ExecuteScriptWithResultAsync(dialog.Input.Text);
                 if (result.Succeeded)
                 {
@@ -2770,6 +2797,7 @@ namespace WebView2WpfBrowser
                     var location_info = "LineNumber:" + exception.LineNumber + ", ColumnNumber:" + exception.ColumnNumber;
                     MessageBox.Show(this, location_info, "ExecuteScript Exception Location");
                 }
+#endif
             }
             // </ExecuteScriptWithResult>
         }
