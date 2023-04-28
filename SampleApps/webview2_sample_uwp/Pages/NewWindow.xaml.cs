@@ -34,7 +34,7 @@ namespace WebView2_UWP.Pages
                 OptionEnum = OptionEnum.DoNothing,
                 Name = "Open In WebView2 Window",
                 Description = "Take no action and allow the WebView to handle the creation of the new window. WebView2 will open its own mini-browser window. " +
-                "On Hololens 2, this will forward navigate to the requested URI instead of opening a new window."
+                "On HoloLens 2, this will forward navigate to the requested URI instead of opening a new window."
             },
             new Option()
             {
