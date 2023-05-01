@@ -20,9 +20,9 @@ urlFragment: WebView2HoloLensSample
 
 The WebView2HoloLensSample is a Unity application designed for HoloLens 2, featuring an embedded WebView2 control. This sample demonstrates a simple web browser that allows users to navigate to URLs via a text input control and navigate between previous pages.
 
-> Note: Input within the web page itself is not functional in this demo. However, with some additional effort, developers can modify the sample to support it. You can find an overview of input handling for WebView2 inside Unity in our [Getting Started](https://learn.microsoft.com/microsoft-edge/webview2/gettingstarted/hololens2) documentation.
+Note: Input within the web page itself is not functional in this demo. However, with some additional effort, developers can modify the sample to support it. You can find an overview of [input handling](https://learn.microsoft.com/en-us/microsoft-edge/webview2/get-started/hololens2#input) for WebView2 inside Unity in our [Getting Started](https://learn.microsoft.com/en-us/microsoft-edge/webview2/get-started/hololens2#input) tutorials.
 
-If you're new to using WebView2 on HoloLens, we recommend starting with the [Getting Started](https://learn.microsoft.com/microsoft-edge/webview2/gettingstarted/hololens2) guide.
+If you're new to using WebView2 on HoloLens, we recommend starting with the [Getting Started](https://learn.microsoft.com/en-us/microsoft-edge/webview2/get-started/hololens2) tutorials.
 
 ## Prerequisites
 
@@ -37,28 +37,28 @@ If you're new to using WebView2 on HoloLens, we recommend starting with the [Get
 Follow these steps to get started with this sample code. WebView2 is already included as a Unity package, but you will need to load it via the Mixed Reality Feature Tool.
 
 1. Clone this repository
-1. Launch the Microsoft Mixed Reality Feature Tool
+2. Launch the Microsoft Mixed Reality Feature Tool
     - Click **Start**
     - Click the **...** button, navigate to the `WebView2HoloLensSample` folder, and select **Open**
     - With the project path selected, click **Restore Features** to load the required packages for the Mixed Reality Toolkit and the WebView2 plugin package.
-1. Close the Mixed Reality Feature Tool
-1. Launch Unity Hub
-1. In Unity Hub, click **Open**, navigate to the `WebView2HoloLensSample` folder, and select **Open**. This should open the project in the Unity Editor.
-1. In the Unity Editor, find the SampleScene in the `Assets/Scenes` folder and double-click to load it.
-1. Click the play button in the Unity Editor to quickly test the app.
+3. Close the Mixed Reality Feature Tool
+4. Launch Unity Hub
+5. In Unity Hub, click **Open**, navigate to the `WebView2HoloLensSample` folder, and select **Open**. This should open the project in the Unity Editor.
+6. In the Unity Editor, find the SampleScene in the `Assets/Scenes` folder and double-click to load it.
+7. Click the play button in the Unity Editor to quickly test the app.
 
 ## Build and Deploy the app to a HoloLens device
 
 Continuing from the above instructions, proceed with the following steps to deploy to a HoloLens device:
 
 1. In the Unity Editor, select **File > Build Settings...**
-1. Ensure *Universal App Platform* is selected as the platform. If not, select it and click **Switch Platform**.
-1. Select HoloLens as the **Target Device**, then click **Build**.
-1. Open the generated Visual Studio solution in Visual Studio.
-1. Select **Release** or **Master** for the Solution Configuration. (Debug is available, but not recommended for performance reasons.)
-1. Select **ARM64** as the Solution Platform.
-1. Build the solution.
-1. To deploy, choose either **Remote Machine** (over WiFi) or **Device** (over USB). [Read here](https://learn.microsoft.com/en-us/windows/mixed-reality/develop/advanced-concepts/using-visual-studio?tabs=hl2) for more detailed information on deploying to a HoloLens device.
+2. Ensure *Universal App Platform* is selected as the platform. If not, select it and click **Switch Platform**.
+3. Select HoloLens as the **Target Device**, then click **Build**.
+4. Open the generated Visual Studio solution in Visual Studio.
+5. Select **Release** or **Master** for the Solution Configuration. (Debug is available, but not recommended for performance reasons.)
+6. Select **ARM64** as the Solution Platform.
+7. Build the solution.
+8. To deploy, choose either **Remote Machine** (over WiFi) or **Device** (over USB). [Read here](https://learn.microsoft.com/en-us/windows/mixed-reality/develop/advanced-concepts/using-visual-studio?tabs=hl2) for more detailed information on deploying to a HoloLens device.
 
 ## Code of Conduct
 
