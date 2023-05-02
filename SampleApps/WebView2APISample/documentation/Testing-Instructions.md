@@ -49,6 +49,8 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Toggle builtin error page enabled](#Toggle-builtin-error-page-enabled)
     * [Toggle general autofill enabled](#Toggle-general-autofill-enabled)
     * [Toggle password autosave enabled](#Toggle-password-autosave-enabled)
+    * [Toggle profile general autofill enabled](#Toggle-profile-general-autofill-enabled)
+    * [Toggle profile password autosave enabled](#Toggle-profile-password-autosave-enabled)
     * [Toggle browser accelerator keys enabled](#Toggle-browser-accelerator-keys-enabled)
     * [Toggle Swipe Navigation enabled](#Toggle-Swipe-Navigation-enabled)
     * [Toggle SmartScreen enabled](#Toggle-SmartScreen-enabled)
@@ -693,6 +695,86 @@ Test that enables/disables password autosave
 27. Expected: Only the information entered from step 14 is auto-populated.
 28. Repeat step 9.
 29. Expected: There is not an additional drop down box that has been added.
+
+### Toggle profile general autofill enabled
+
+Test that enables/disables profile general autofill
+_General autofill is enabled by default._
+
+1. Launch the sample app.
+2. Go to `Window -> Create New Window With Option`.
+3. Type in profile name and uncheck InPrivate, then click `OK`.
+4. Expected: A new app window opened with profile name in its title bar, we call this window as window1.
+5. In sample app, repeat step 2.
+6. Type in the same profile name as typed in step 3 and uncheck InPrivate, then click OK.
+7. Expected: A new app window opened with profile name in its title bar, we call this window as window2.
+8. In sample app, repeat step 2.
+9. Type in the same profile name as typed in step 3 but check InPrivate, then click OK.
+10. Expected: A new window opened with the same profile name in its title bar and the app icon should be different that can indicate it's in private mode, we call this window as window3.
+11. In all windows(1-3) navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+12. In window1 enter in any test information into the Profile Autofill section and click `Submit`.
+13. In window1 navigate to <https://rsolomakhin.github.io/autofill/>.
+14. In all windows(1-3) click on the Name field.
+15. Expected: A drop down box with the saved profile information is shown.
+16. In all windows(1-3) click on the box.
+17. Expected: The profile information is autofilled.
+18. In window1 go to `Settings -> Toggle Profile General Autofill`.
+19. Expected: Message box that says `General autofill will be disabled immediately in all WebView2 with the same profile.`.
+20. Click `OK` inside the popup dialog.
+21. In all windows(1-3) click on the Name field.
+22. Expected: No drop down box appears.
+23. Repeat step 12-14.
+24. Expected: No drop down box appears.
+25. In window1 go to `Settings -> Toggle Profile General Autofill`.
+26. Expected: Message box that says `General autofill will be enabled immediately in all WebView2 with the same profile.`.
+27. Click `OK` inside the popup dialog.
+28. In all windows(1-3) click on the Name field.
+15. Expected: A drop down box with the original saved profile information from step 12 is shown.
+16. In all windows(1-3) click on the box.
+17. Expected: The profile information is autofilled.
+
+### Toggle profile password autosave enabled
+
+Test that enables/disables password autosave
+ _Password autosave is disabled by default._
+
+1. Launch the sample app.
+2. Go to `Settings -> Toggle Profile General Autofill`.
+3. Expected: Message Box that says `General autofill will be disabled immediately in all WebView2 with the same profile.`.
+4. Go to `Window -> Create New Window With Option`.
+5. Type in profile name and uncheck InPrivate, then click `OK`.
+6. Expected: A new app window opened with profile name in its title bar, we call this window as window1.
+7. In sample app, repeat step 2.
+8. Type in the same profile name as typed in step 3 and uncheck InPrivate, then click OK.
+9. Expected: A new app window opened with profile name in its title bar, we call this window as window2.
+10. In sample app, repeat step 2.
+11. Type in the same profile name as typed in step 3 but check InPrivate, then click OK.
+12. Expected: A new window opened with the same profile name in its title bar and the app icon should be different that can indicate it's in private mode, we call this window as window3.
+13. In all windows(1-3) navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+14. In window1 enter in any test information into the Username/Password section and click `Submit`.
+15. Expected: The window1 navigates to <https://example.com/> and no save password prompt is shown.
+16. In window1, navigate to <https://rsolomakhin.github.io/autofill/>.
+17. In all windows(1-3) click on the username field.
+18. Expected: No drop down box appears. (note: if password information has previously been saved when the password autosave has been enabled, a drop down box will appear.)
+19. In window1, go to `Settings -> Toogle Profile Password Autosave`.
+20. Expected: Message Box that says `Password autosave will be enabled after the next navigation in all WebView2 with the same profile.`.
+21. Click `OK` inside the popup dialog.
+22. In window1 enter in any test information into the Username/Password section and click `Submit`.
+23. Expected: The app navigates to <https://example.com> and a save password prompt will popup.
+24. Click `Save`.
+25. In all windows(1-3) navigate to <https://rsolomakhin.github.io/autofill/>.
+26. Expected: In window1 see the username and password information is auto-populated.
+27. In all windows(1-3) click on the username field.
+28. Expected: A drop down box with the saved password information is shown.
+29. In window1 go to `Settings -> Toggle Profile Password Autosave`.
+30. Expected: Message Box that says `Password autosave will be disabled after the next navigation in all WebView2 with the same profile.`.
+31. Click `OK` inside the popup dialog.
+32. In window1 delete the information from the username and password fields and enter in new test information and click submit.
+33. Expected: No save password prompt is shown.
+34. In window1 navigate to <https://rsolomakhin.github.io/autofill/>.
+35. Expected: Only the information entered from step 22 is auto-populated.
+36. In all windows(1-3) click on the username field.
+37. Expected: There is not an additional drop down box that has been added.
 
 ### Toggle browser accelerator keys enabled
 

@@ -845,14 +845,14 @@ bool SettingsComponent::HandleWindowMessage(
             {
                 CHECK_FAILURE(m_settings4->put_IsPasswordAutosaveEnabled(FALSE));
                 MessageBox(
-                    nullptr, L"Password autosave will be disabled after the next navigation.",
+                    nullptr, L"Password autosave will be disabled immediately.",
                     L"Settings change", MB_OK);
             }
             else
             {
                 CHECK_FAILURE(m_settings4->put_IsPasswordAutosaveEnabled(TRUE));
                 MessageBox(
-                    nullptr, L"Password autosave will be enabled after the next navigation.",
+                    nullptr, L"Password autosave will be enabled immediately.",
                     L"Settings change", MB_OK);
             }
             //! [PasswordAutosaveEnabled]
@@ -869,14 +869,14 @@ bool SettingsComponent::HandleWindowMessage(
             {
                 CHECK_FAILURE(m_settings4->put_IsGeneralAutofillEnabled(FALSE));
                 MessageBox(
-                    nullptr, L"General autofill will be disabled after the next navigation.",
+                    nullptr, L"General autofill will be disabled immediately.",
                     L"Settings change", MB_OK);
             }
             else
             {
                 CHECK_FAILURE(m_settings4->put_IsGeneralAutofillEnabled(TRUE));
                 MessageBox(
-                    nullptr, L"General autofill will be enabled after the next navigation.",
+                    nullptr, L"General autofill will be enabled immediately.",
                     L"Settings change", MB_OK);
             }
             //! [GeneralAutofillEnabled]
@@ -1046,6 +1046,78 @@ bool SettingsComponent::HandleWindowMessage(
             //! [ToggleSmartScreen]
             return true;
         }
+        case ID_SETTINGS_PROFILE_PASSWORD_AUTOSAVE_ENABLED:
+        {
+            //! [ToggleProfilePasswordAutosaveEnabled]
+            // Get the profile object.
+            auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+            CHECK_FEATURE_RETURN(webView2_13);
+            wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+            CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
+            CHECK_FEATURE_RETURN(webView2Profile);
+            auto webView2Profile6 = webView2Profile.try_query<ICoreWebView2Profile6>();
+            CHECK_FEATURE_RETURN(webView2Profile6);
+
+            BOOL enabled;
+            CHECK_FAILURE(webView2Profile6->get_IsPasswordAutosaveEnabled(&enabled));
+            // Set password-autosave property to the opposite value to current value.
+            if (enabled)
+            {
+                CHECK_FAILURE(webView2Profile6->put_IsPasswordAutosaveEnabled(FALSE));
+                MessageBox(
+                    nullptr,
+                    L"Password autosave will be disabled immediately in all "
+                    L"WebView2 with the same profile.",
+                    L"Profile settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(webView2Profile6->put_IsPasswordAutosaveEnabled(TRUE));
+                MessageBox(
+                    nullptr,
+                    L"Password autosave will be enabled immediately in all "
+                    L"WebView2 with the same profile.",
+                    L"Profile settings change", MB_OK);
+            }
+            //! [ToggleProfilePasswordAutosaveEnabled]
+            return true;
+        }
+        case ID_SETTINGS_PROFILE_GENERAL_AUTOFILL_ENABLED:
+        {
+            //! [ToggleProfileGeneralAutofillEnabled]
+            // Get the profile object.
+            auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+            CHECK_FEATURE_RETURN(webView2_13);
+            wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+            CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
+            CHECK_FEATURE_RETURN(webView2Profile);
+            auto webView2Profile6 = webView2Profile.try_query<ICoreWebView2Profile6>();
+            CHECK_FEATURE_RETURN(webView2Profile6);
+
+            BOOL enabled;
+            CHECK_FAILURE(webView2Profile6->get_IsGeneralAutofillEnabled(&enabled));
+            // Set general-autofill property to the opposite value to current value.
+            if (enabled)
+            {
+                CHECK_FAILURE(webView2Profile6->put_IsGeneralAutofillEnabled(FALSE));
+                MessageBox(
+                    nullptr,
+                    L"General autofill will be disabled immediately in all WebView2 with the "
+                    L"same profile.",
+                    L"Profile settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(webView2Profile6->put_IsGeneralAutofillEnabled(TRUE));
+                MessageBox(
+                    nullptr,
+                    L"General autofill will be enabled immediately in all WebView2 with the "
+                    L"same profile.",
+                    L"Profile settings change", MB_OK);
+            }
+            //! [ToggleProfileGeneralAutofillEnabled]
+            return true;
+        }
         case ID_TOGGLE_LAUNCHING_EXTERNAL_URI_SCHEME_ENABLED:
         {
             //! [ToggleLaunchingExternalUriScheme]
@@ -1143,6 +1215,7 @@ bool SettingsComponent::HandleWindowMessage(
                                 // a deferral is commented out here.
                                 // wil::com_ptr<ICoreWebView2Deferral> deferral;
                                 // CHECK_FAILURE(args->GetDeferral(&deferral));
+
                                 // m_appWindow->RunAsync(
                                 //     [deferral, showDialog]()
                                 //     {
