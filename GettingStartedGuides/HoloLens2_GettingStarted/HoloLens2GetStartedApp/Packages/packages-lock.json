@@ -28,7 +28,7 @@
       }
     },
     "com.microsoft.mixedreality.webview.unity": {
-      "version": "file:MixedReality/com.microsoft.mixedreality.webview.unity-0.17.1-pre.2.tgz",
+      "version": "file:MixedReality/com.microsoft.mixedreality.webview.unity-0.17.1-pre.3.tgz",
       "depth": 0,
       "source": "local-tarball",
       "dependencies": {}
