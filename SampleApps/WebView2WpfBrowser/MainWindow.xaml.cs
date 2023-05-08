@@ -2359,6 +2359,7 @@ namespace WebView2WpfBrowser
         void NewWindowWithOptionsCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             var dialog = new NewWindowOptionsDialog();
+            dialog.CreationProperties = webView.CreationProperties;
             if (dialog.ShowDialog() == true)
             {
                 new MainWindow(dialog.CreationProperties).Show();

@@ -137,6 +137,8 @@ BEGIN
         MENUITEM "Toggle JavaScript",           IDM_TOGGLE_JAVASCRIPT
         MENUITEM "Toggle Password Autosave",    ID_SETTINGS_PASSWORD_AUTOSAVE_ENABLED
         MENUITEM "Toggle Pinch Zoom Enabled",   ID_SETTINGS_PINCH_ZOOM_ENABLED
+        MENUITEM "Toggle Profile General Autofill",     ID_SETTINGS_PROFILE_GENERAL_AUTOFILL_ENABLED
+        MENUITEM "Toggle Profile Password Autosave",    ID_SETTINGS_PROFILE_PASSWORD_AUTOSAVE_ENABLED
         MENUITEM "Toggle Profile Smart Screen",    ID_SETTINGS_SMART_SCREEN_ENABLED
         MENUITEM "Toggle Replace Images",       ID_SETTINGS_REPLACEALLIMAGES
         POPUP "Server Certificate Error"

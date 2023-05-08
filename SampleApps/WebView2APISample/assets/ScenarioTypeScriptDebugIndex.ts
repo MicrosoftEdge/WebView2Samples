@@ -1,7 +1,7 @@
 function onHeaderClick() {
     console.log("onHeaderClick+");
     const header = document.getElementById('header');
-    document.getElementById('HeaderSpace').innerHTML = header.innerHTML;
+    document.getElementById('HeaderSpace').textContent = header.textContent;
     console.log("onHeaderClick-");
 }
 
