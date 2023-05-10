@@ -8,7 +8,13 @@
     <Product>WebView2 WPF Sample Browser App</Product>
     <Copyright>Copyright ©2020</Copyright>
     <NoWin32Manifest>true</NoWin32Manifest>
-    <Configurations>Debug;Release</Configurations>
+    <Configurations>Debug Stable APIs;Release Stable APIs;Debug Experimental APIs;Release Experimental APIs</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug Experimental APIs'">
+	<DefineConstants>USE_WEBVIEW2_EXPERIMENTAL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release Experimental APIs'">
+	<DefineConstants>USE_WEBVIEW2_EXPERIMENTAL</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Platform)'=='x64'">
     <PlatformTarget>x64</PlatformTarget>
