@@ -1804,7 +1804,7 @@ void AppWindow::RegisterEventHandlers()
                     [this]
                     {
                         std::wstring message =
-                            L"A new version of Microsoft Edge is available on this machine. ";
+                            L"A new version of the Microsoft Edge WebView2 Runtime is available on this machine. ";
                         if (m_webView)
                         {
                             message += L"Do you want to restart the WebView2APISample app? \n\n";
