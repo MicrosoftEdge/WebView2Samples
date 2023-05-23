@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioWebMessage</title>
+    <script>
+        "use strict";
+        window.chrome.webview.addEventListener('message', arg => {
+            if ("WindowBounds" in arg.data) {
+                document.getElementById("window-bounds").value = arg.data.WindowBounds;
+            }
+            if ("SetColor" in arg.data) {
+                document.getElementById("colorable").style.color = arg.data.SetColor;
+            }
+        });
+
+        function SetTitleText() {
+            let titleText = document.getElementById("title-text");
+            window.chrome.webview.postMessage(`SetTitleText ${titleText.value}`);
+        }
+
+        function GetWindowBounds() {
+            window.chrome.webview.postMessage("GetWindowBounds");
+        }
+        function createIFrame() {
+            var i = document.createElement("iframe");
+            i.src = "https://appassets.example/webMessages.html";
+            i.scrolling = "auto";
+            i.frameborder = "0";
+            i.height = "90%";
+            i.width = "100%";
+            i.name = "iframe_name";
+            var div = document.getElementById("div_iframe");
+            div.appendChild(i); div.style.display = 'block';
+        };
+        window.onload = function () {
+            var class_value;
+            var menu_item;
+            var description;
+            if (window.top === window) {
+                var div_summary = document.getElementById("div_summary");
+                div_summary.style.display = 'block';
+                createIFrame();
+                class_value = "ICoreWebView2";
+                menu_item = "Post Message JSON";
+                description = "page";
+            }
+            else {
+                class_value = "ICoreWebView2Frame";
+                menu_item = "IFrame Post Message JSON";
+                description = "iframe";
+            }
+
+            document.getElementById("class1").innerHTML = class_value;
+            document.getElementById("class2").innerHTML = class_value;
+            document.getElementById("class3").innerHTML = class_value;
+            document.getElementById("menu").innerHTML = menu_item;
+            document.getElementById("page").innerHTML = description;
+        };
+    </script>
+</head>
+<body>
+    <div id="div_summary" style="display: none;">
+        <h1>WebMessage sample page</h1>
+        <p>
+            This page demonstrates basic interaction between the host app and the webview by
+            means of Web Messages.
+        </p>
+    </div>
+
+    <h2>Posting Messages</h2>
+    <p id="colorable">
+        Messages can be posted from the host app to this <label id="page"></label> using the
+        functions <code><label id="class1"></label>::PostWebMessageAsJson</code> and
+        <code><label id="class2"></label>::PostWebMessageAsString</code>. Try using the menu item
+        "Script-&gt;<label id="menu"></label>" to send the message <code>{"SetColor":"blue"}</code>.
+        It should change the text color of this paragraph.
+    </p>
+
+    <h2>Receiving Messages</h2>
+    <p>The host app can receive messages by registering an event handler with
+        <code><label id="class3"></label>::HandleWebMessage</code>. If you enter text and click
+    "Send", this <label id="page"></label> will send a message to the host app which will change the text of
+    the title bar.</p>
+    <input type="text" id="title-text" />
+    <button onclick="SetTitleText()">Send</button>
+
+    <h2>Round trip</h2>
+    <p>
+        The host app can send messages back in response to received messages. If you click
+        "Get window bounds", the host app will report back the bounds of its window, which will
+        appear in the text box.
+    </p>
+    <button onclick="GetWindowBounds()">Get window bounds</button><br>
+    <textarea id="window-bounds" rows="4" readonly></textarea>
+
+    <div id="div_iframe" style="display: none;">
+        <h2>IFrame</h2>
+    </div>
+</body>
+</html>
