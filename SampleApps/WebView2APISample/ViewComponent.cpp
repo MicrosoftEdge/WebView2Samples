@@ -449,8 +449,8 @@ void ViewComponent::Suspend()
 //! [MemoryUsageTargetLevel]
 void ViewComponent::ToggleMemoryUsageTargetLevel()
 {
-    wil::com_ptr<ICoreWebView2Experimental5> webView;
-    webView = m_webView.try_query<ICoreWebView2Experimental5>();
+    wil::com_ptr<ICoreWebView2_19> webView;
+    webView = m_webView.try_query<ICoreWebView2_19>();
     if (!webView)
     {
         ShowFailure(E_NOINTERFACE, L"MemoryUsageTargetLevel API not available");

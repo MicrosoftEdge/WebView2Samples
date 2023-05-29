@@ -1562,6 +1562,7 @@ namespace WebView2WpfBrowser
             }
         }
 
+        // <LaunchingExternalUriScheme>
         void WebView_LaunchingExternalUriScheme(object target, CoreWebView2LaunchingExternalUriSchemeEventArgs args)
         {
             // A deferral may be taken for the event so that the CoreWebView2
@@ -1635,6 +1636,7 @@ namespace WebView2WpfBrowser
             //     }
             // }, null);
         }
+        // </LaunchingExternalUriScheme>
         // <ServerCertificateErrorDetected>
         // When WebView2 doesn't trust a TLS certificate but host app does, this example bypasses
         // the default TLS interstitial page using the ServerCertificateErrorDetected event handler and
