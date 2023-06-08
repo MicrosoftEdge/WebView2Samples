@@ -41,7 +41,7 @@ SettingsComponent::SettingsComponent(
     m_webView2_13 = m_webView.try_query<ICoreWebView2_13>();
     m_webView2_14 = m_webView.try_query<ICoreWebView2_14>();
     m_webView2_15 = m_webView.try_query<ICoreWebView2_15>();
-    m_webViewExperimental5 = m_webView.try_query<ICoreWebView2Experimental5>();
+    m_webView2_18 = m_webView.try_query<ICoreWebView2_18>();
     // Copy old settings if desired
     if (old)
     {
@@ -169,12 +169,12 @@ SettingsComponent::SettingsComponent(
                 }
                 //! [UserAgent]
                 // [NavigationKind]
-                wil::com_ptr<ICoreWebView2ExperimentalNavigationStartingEventArgs2> args2;
-                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))))
+                wil::com_ptr<ICoreWebView2NavigationStartingEventArgs3> args3;
+                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args3))))
                 {
                     COREWEBVIEW2_NAVIGATION_KIND kind =
                         COREWEBVIEW2_NAVIGATION_KIND_NEW_DOCUMENT;
-                    CHECK_FAILURE(args2->get_NavigationKind(&kind));
+                    CHECK_FAILURE(args3->get_NavigationKind(&kind));
                 }
                 // ! [NavigationKind]
                 return S_OK;
@@ -957,21 +957,17 @@ bool SettingsComponent::HandleWindowMessage(
                 CHECK_FAILURE(
                     m_settings7->put_HiddenPdfToolbarItems(
                         COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_BOOKMARKS |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FIT_PAGE |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_LAYOUT |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ROTATE |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SEARCH |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_IN |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_OUT |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE_AS |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_SELECTOR) |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE) |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_BOOKMARKS |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FIT_PAGE |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_LAYOUT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ROTATE |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SEARCH |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_IN |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_OUT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE_AS |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_SELECTOR |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FULL_SCREEN |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
                         COREWEBVIEW2_PDF_TOOLBAR_ITEMS_MORE_SETTINGS);
@@ -1122,30 +1118,69 @@ bool SettingsComponent::HandleWindowMessage(
         {
             //! [ToggleLaunchingExternalUriScheme]
             m_launchingExternalUriScheme = !m_launchingExternalUriScheme;
-            m_webViewExperimental21 = m_webView.try_query<ICoreWebView2Experimental21>();
-            if (m_webViewExperimental21)
+            CHECK_FEATURE_RETURN(m_webView2_18);
+            if (m_launchingExternalUriScheme)
             {
-                if (m_launchingExternalUriScheme)
-                {
-                    CHECK_FAILURE(m_webViewExperimental21->add_LaunchingExternalUriScheme(
-                        Callback<
-                            ICoreWebView2ExperimentalLaunchingExternalUriSchemeEventHandler>(
-                            [this](
-                                ICoreWebView2* sender,
-                                ICoreWebView2ExperimentalLaunchingExternalUriSchemeEventArgs*
-                                    args)
+                CHECK_FAILURE(m_webView2_18->add_LaunchingExternalUriScheme(
+                    Callback<ICoreWebView2LaunchingExternalUriSchemeEventHandler>(
+                        [this](
+                            ICoreWebView2* sender,
+                            ICoreWebView2LaunchingExternalUriSchemeEventArgs* args)
+                        {
+                            auto showDialog = [this, args]
                             {
-                                auto showDialog = [this, args]
+                                wil::unique_cotaskmem_string uri;
+                                CHECK_FAILURE(args->get_Uri(&uri));
+                                if (wcscmp(uri.get(), L"calculator://") == 0)
                                 {
-                                    wil::unique_cotaskmem_string uri;
-                                    CHECK_FAILURE(args->get_Uri(&uri));
-                                    if (wcscmp(uri.get(), L"calculator://") == 0)
+                                    // Set the event args to cancel the event and launch the
+                                    // calculator app. This will always allow the external
+                                    // URI scheme launch.
+                                    args->put_Cancel(true);
+                                    std::wstring schemeUrl = L"calculator://";
+                                    SHELLEXECUTEINFO info = {sizeof(info)};
+                                    info.fMask = SEE_MASK_NOASYNC;
+                                    info.lpVerb = L"open";
+                                    info.lpFile = schemeUrl.c_str();
+                                    info.nShow = SW_SHOWNORMAL;
+                                    ::ShellExecuteEx(&info);
+                                }
+                                else if (wcscmp(uri.get(), L"malicious://") == 0)
+                                {
+                                    // Always block the request in this case by cancelling
+                                    // the event.
+                                    args->put_Cancel(true);
+                                }
+                                else if (wcscmp(uri.get(), L"contoso://") == 0)
+                                {
+                                    // To display a custom dialog we cancel the launch,
+                                    // display a custom dialog, and then manually launch the
+                                    // external URI scheme depending on the user's
+                                    // selection.
+                                    args->put_Cancel(true);
+                                    wil::unique_cotaskmem_string initiatingOrigin;
+                                    CHECK_FAILURE(
+                                        args->get_InitiatingOrigin(&initiatingOrigin));
+                                    std::wstring message =
+                                        L"Launching External URI Scheme request";
+                                    std::wstring initiatingOriginString =
+                                        initiatingOrigin.get();
+                                    if (initiatingOriginString.empty())
                                     {
-                                        // Set the event args to cancel the event and launch the
-                                        // calculator app. This will always allow the external
-                                        // URI scheme launch.
-                                        args->put_Cancel(true);
-                                        std::wstring schemeUrl = L"calculator://";
+                                        message += L" from ";
+                                        message += initiatingOriginString;
+                                    }
+                                    message += L" to ";
+                                    message += uri.get();
+                                    message += L"?\n\n";
+                                    message += L"Do you want to grant permission?\n";
+                                    int response = MessageBox(
+                                        nullptr, message.c_str(),
+                                        L"Launching External URI Scheme",
+                                        MB_YESNO | MB_ICONWARNING);
+                                    if (response == IDYES)
+                                    {
+                                        std::wstring schemeUrl = uri.get();
                                         SHELLEXECUTEINFO info = {sizeof(info)};
                                         info.fMask = SEE_MASK_NOASYNC;
                                         info.lpVerb = L"open";
@@ -1153,92 +1188,48 @@ bool SettingsComponent::HandleWindowMessage(
                                         info.nShow = SW_SHOWNORMAL;
                                         ::ShellExecuteEx(&info);
                                     }
-                                    else if (wcscmp(uri.get(), L"malicious://") == 0)
-                                    {
-                                        // Always block the request in this case by cancelling
-                                        // the event.
-                                        args->put_Cancel(true);
-                                    }
-                                    else if (wcscmp(uri.get(), L"contoso://") == 0)
-                                    {
-                                        // To display a custom dialog we cancel the launch,
-                                        // display a custom dialog, and then manually launch the
-                                        // external URI scheme depending on the user's
-                                        // selection.
-                                        args->put_Cancel(true);
-                                        wil::unique_cotaskmem_string initiatingOrigin;
-                                        CHECK_FAILURE(
-                                            args->get_InitiatingOrigin(&initiatingOrigin));
-                                        std::wstring message =
-                                            L"Launching External URI Scheme request";
-                                        std::wstring initiatingOriginString =
-                                            initiatingOrigin.get();
-                                        if (initiatingOriginString.empty())
-                                        {
-                                            message += L" from ";
-                                            message += initiatingOriginString;
-                                        }
-                                        message += L" to ";
-                                        message += uri.get();
-                                        message += L"?\n\n";
-                                        message += L"Do you want to grant permission?\n";
-                                        int response = MessageBox(
-                                            nullptr, message.c_str(),
-                                            L"Launching External URI Scheme",
-                                            MB_YESNO | MB_ICONWARNING);
-                                        if (response == IDYES)
-                                        {
-                                            std::wstring schemeUrl = uri.get();
-                                            SHELLEXECUTEINFO info = {sizeof(info)};
-                                            info.fMask = SEE_MASK_NOASYNC;
-                                            info.lpVerb = L"open";
-                                            info.lpFile = schemeUrl.c_str();
-                                            info.nShow = SW_SHOWNORMAL;
-                                            ::ShellExecuteEx(&info);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // Do not cancel the event, allowing the request to use
-                                        // the default dialog.
-                                    }
-                                    return S_OK;
-                                };
-                                showDialog();
+                                }
+                                else
+                                {
+                                    // Do not cancel the event, allowing the request to use
+                                    // the default dialog.
+                                }
                                 return S_OK;
-                                // A deferral may be taken for the event so that the
-                                // CoreWebView2 doesn't examine the properties we set on the
-                                // event args until after we call the Complete method
-                                // asynchronously later. This will give the user more time to
-                                // decide whether to launch the external URI scheme or not.
-                                // A deferral doesn't need to be taken in this case, so taking
-                                // a deferral is commented out here.
-                                // wil::com_ptr<ICoreWebView2Deferral> deferral;
-                                // CHECK_FAILURE(args->GetDeferral(&deferral));
+                            };
+                            showDialog();
+                            return S_OK;
+                            // A deferral may be taken for the event so that the
+                            // CoreWebView2 doesn't examine the properties we set on the
+                            // event args until after we call the Complete method
+                            // asynchronously later. This will give the user more time to
+                            // decide whether to launch the external URI scheme or not.
+                            // A deferral doesn't need to be taken in this case, so taking
+                            // a deferral is commented out here.
+                            // wil::com_ptr<ICoreWebView2Deferral> deferral;
+                            // CHECK_FAILURE(args->GetDeferral(&deferral));
 
-                                // m_appWindow->RunAsync(
-                                //     [deferral, showDialog]()
-                                //     {
-                                //         showDialog();
-                                // CHECK_FAILURE(deferral->Complete());
-                                //     });
-                                // return S_OK;
-                            })
-                            .Get(),
-                        &m_launchingExternalUriSchemeToken));
-                }
-                else
-                {
-                    m_webViewExperimental21->remove_LaunchingExternalUriScheme(
-                        m_launchingExternalUriSchemeToken);
-                }
-                MessageBox(
-                    nullptr,
-                    (std::wstring(L"Launching External URI Scheme support has been ") +
-                     (m_launchingExternalUriScheme ? L"enabled." : L"disabled."))
-                        .c_str(),
-                    L"Launching External URI Scheme", MB_OK);
+                            // m_appWindow->RunAsync(
+                            //     [deferral, showDialog]()
+                            //     {
+                            //         showDialog();
+                            // CHECK_FAILURE(deferral->Complete());
+                            //     });
+                            // return S_OK;
+                        })
+                        .Get(),
+                    &m_launchingExternalUriSchemeToken));
             }
+            else
+            {
+                m_webView2_18->remove_LaunchingExternalUriScheme(
+                    m_launchingExternalUriSchemeToken);
+            }
+            MessageBox(
+                nullptr,
+                (std::wstring(L"Launching External URI Scheme support has been ") +
+                 (m_launchingExternalUriScheme ? L"enabled." : L"disabled."))
+                    .c_str(),
+                L"Launching External URI Scheme", MB_OK);
             return true;
             //! [ToggleLaunchingExternalUriScheme]
         }

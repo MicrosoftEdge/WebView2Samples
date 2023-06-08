@@ -422,11 +422,7 @@ void ViewComponent::Suspend()
 {
     wil::com_ptr<ICoreWebView2_3> webView;
     webView = m_webView.try_query<ICoreWebView2_3>();
-    if (!webView)
-    {
-        ShowFailure(E_NOINTERFACE, L"TrySuspend API not available");
-        return;
-    }
+    CHECK_FEATURE_RETURN_EMPTY(webView);
     HRESULT hr = webView->TrySuspend(
         Callback<ICoreWebView2TrySuspendCompletedHandler>(
             [this](HRESULT errorCode, BOOL isSuccessful) -> HRESULT {
@@ -449,13 +445,9 @@ void ViewComponent::Suspend()
 //! [MemoryUsageTargetLevel]
 void ViewComponent::ToggleMemoryUsageTargetLevel()
 {
-    wil::com_ptr<ICoreWebView2Experimental5> webView;
-    webView = m_webView.try_query<ICoreWebView2Experimental5>();
-    if (!webView)
-    {
-        ShowFailure(E_NOINTERFACE, L"MemoryUsageTargetLevel API not available");
-        return;
-    }
+    wil::com_ptr<ICoreWebView2_19> webView;
+    webView = m_webView.try_query<ICoreWebView2_19>();
+    CHECK_FEATURE_RETURN_EMPTY(webView);
     COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL memory_target_level =
         COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL_NORMAL;
     CHECK_FAILURE(webView->get_MemoryUsageTargetLevel(&memory_target_level));
@@ -477,11 +469,7 @@ void ViewComponent::Resume()
 {
     wil::com_ptr<ICoreWebView2_3> webView;
     webView = m_webView.try_query<ICoreWebView2_3>();
-    if (!webView)
-    {
-        ShowFailure(E_NOINTERFACE, L"Resume API not available");
-        return;
-    }
+    CHECK_FEATURE_RETURN_EMPTY(webView);
     webView->Resume();
 }
 //! [Resume]

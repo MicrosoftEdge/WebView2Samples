@@ -180,9 +180,9 @@ bool ProcessComponent::HandleWindowMessage(
     }
     return false;
 }
-
 // Show the WebView's PID to the user.
-void ProcessComponent::ShowBrowserProcessInfo() {
+void ProcessComponent::ShowBrowserProcessInfo()
+{
     UINT32 processId;
     m_webView->get_BrowserProcessId(&processId);
 

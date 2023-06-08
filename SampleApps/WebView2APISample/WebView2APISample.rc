@@ -33,7 +33,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // remains consistent on all systems.
 IDI_WEBVIEW2APISAMPLE   ICON                    "WebView2APISample.ico"
 IDI_WEBVIEW2APISAMPLE_INPRIVATE ICON            "WebView2APISample_Inprivate.ico"
-IDI_SMALL               ICON                    "small.ico"
 
 IDI_WEBVIEW2_BACKGROUND BITMAP                   "AppBackground.bmp"
 

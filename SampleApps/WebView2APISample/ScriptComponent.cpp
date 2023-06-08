@@ -1014,6 +1014,7 @@ void ScriptComponent::HandleIFrames()
                 })
                 .Get(),
             NULL));
+
         //! [AdditionalAllowedFrameAncestors_2]
         // Set up the event listeners to handle site embedding scenario. The code will take effect
         // when the site embedding page is navigated to and the embedding iframe navigates to the
