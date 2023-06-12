@@ -32,7 +32,6 @@ public:
     void CrashBrowserProcess();
     void CrashRenderProcess();
     void PerformanceInfo();
-
     ~ProcessComponent() override;
 
     // Wait for process to exit for timeoutMs, then force quit it if it hasn't.
@@ -50,7 +49,6 @@ private:
 
     UINT m_browserProcessId = 0;
     wil::com_ptr<ICoreWebView2ProcessInfoCollection> m_processCollection;
-
     EventRegistrationToken m_processFailedToken = {};
     EventRegistrationToken m_processInfosChangedToken = {};
 };

@@ -290,7 +290,7 @@ PCWSTR AppWindow::GetWindowClass()
         wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
         wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_WEBVIEW2APISAMPLE);
         wcex.lpszClassName = windowClass;
-        wcex.hIconSm = LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_SMALL));
+        wcex.hIconSm = LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_WEBVIEW2APISAMPLE));
 
         RegisterClassExW(&wcex);
         return windowClass;
@@ -1465,26 +1465,13 @@ HRESULT AppWindow::CreateControllerWithOptions()
 
 void AppWindow::SetAppIcon(bool inPrivate)
 {
-    HICON newSmallIcon = nullptr;
-    HICON newBigIcon = nullptr;
-    if (inPrivate)
-    {
-        static HICON smallInPrivateIcon = reinterpret_cast<HICON>(LoadImage(
-            g_hInstance, MAKEINTRESOURCEW(IDI_WEBVIEW2APISAMPLE_INPRIVATE), IMAGE_ICON, 16, 16,
-            LR_DEFAULTCOLOR));
-        static HICON bigInPrivateIcon = reinterpret_cast<HICON>(LoadImage(
-            g_hInstance, MAKEINTRESOURCEW(IDI_WEBVIEW2APISAMPLE_INPRIVATE), IMAGE_ICON, 32, 32,
-            LR_DEFAULTCOLOR));
-        newSmallIcon = smallInPrivateIcon;
-        newBigIcon = bigInPrivateIcon;
-    }
-    else
-    {
-        static HICON smallIcon = LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_WEBVIEW2APISAMPLE));
-        static HICON bigIcon = LoadIcon(g_hInstance, MAKEINTRESOURCE(IDI_SMALL));
-        newSmallIcon = smallIcon;
-        newBigIcon = bigIcon;
-    }
+    int iconID = inPrivate ? IDI_WEBVIEW2APISAMPLE_INPRIVATE : IDI_WEBVIEW2APISAMPLE;
+
+    HICON newSmallIcon = reinterpret_cast<HICON>(
+        LoadImage(g_hInstance, MAKEINTRESOURCEW(iconID), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR));
+    HICON newBigIcon = reinterpret_cast<HICON>(
+        LoadImage(g_hInstance, MAKEINTRESOURCEW(iconID), IMAGE_ICON, 32, 32, LR_DEFAULTCOLOR));
+
     reinterpret_cast<HICON>(SendMessage(
         m_mainWindow, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(newSmallIcon)));
     reinterpret_cast<HICON>(
@@ -1804,10 +1791,10 @@ void AppWindow::RegisterEventHandlers()
                     [this]
                     {
                         std::wstring message =
-                            L"A new version of the Microsoft Edge WebView2 Runtime is available on this machine. ";
+                            L"We detected there is a new version for the browser.";
                         if (m_webView)
                         {
-                            message += L"Do you want to restart the WebView2APISample app? \n\n";
+                            message += L"Do you want to restart the app? \n\n";
                             message +=
                                 L"Click No if you only want to re-create the webviews. \n";
                             message += L"Click Cancel for no action. \n";

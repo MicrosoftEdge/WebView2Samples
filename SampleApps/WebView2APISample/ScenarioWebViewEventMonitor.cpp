@@ -20,6 +20,7 @@ using namespace Microsoft::WRL;
 using namespace std;
 
 static constexpr wchar_t c_samplePath[] = L"ScenarioWebViewEventMonitor.html";
+
 std::wstring WebResourceSourceToString(COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS source)
 {
     switch (source)

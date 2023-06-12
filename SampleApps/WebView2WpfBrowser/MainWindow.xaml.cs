@@ -114,7 +114,6 @@ namespace WebView2WpfBrowser
 
         public static RoutedCommand SetCustomDataPartitionCommand = new RoutedCommand();
         public static RoutedCommand ClearCustomDataPartitionCommand = new RoutedCommand();
-
         bool _isNavigating = false;
 
         // for add/remove initialize script
@@ -1562,15 +1561,16 @@ namespace WebView2WpfBrowser
             }
         }
 
+        // <LaunchingExternalUriScheme>
         void WebView_LaunchingExternalUriScheme(object target, CoreWebView2LaunchingExternalUriSchemeEventArgs args)
         {
             // A deferral may be taken for the event so that the CoreWebView2
             // doesn't examine the properties we set on the event args until
             // after we call the Complete method asynchronously later.
             // This will give the user more time to decide whether to launch
-            // the external URI scheme or not. 
+            // the external URI scheme or not.
             // A deferral doesn't need to be taken in this case, so taking
-            // a deferral is commented out here. 
+            // a deferral is commented out here.
             // CoreWebView2Deferral deferral = args.GetDeferral();
             // System.Threading.SynchronizationContext.Current.Post((_) =>
             // {
@@ -1579,7 +1579,7 @@ namespace WebView2WpfBrowser
                         if (String.Equals(args.Uri, "calculator:///", StringComparison.OrdinalIgnoreCase))
                         {
                             // Set the event args to cancel the event and launch the
-                            // calculator app. This will always allow the external URI scheme launch. 
+                            // calculator app. This will always allow the external URI scheme launch.
                             args.Cancel = true;
                             ProcessStartInfo info = new ProcessStartInfo
                             {
@@ -1587,7 +1587,7 @@ namespace WebView2WpfBrowser
                                 UseShellExecute = true
                             };
                             Process.Start(info);
-                        } 
+                        }
                         else if (String.Equals(args.Uri, "malicious:///", StringComparison.OrdinalIgnoreCase)) {
                             // Always block the request in this case by cancelling the event.
                             args.Cancel = true;
@@ -1596,7 +1596,7 @@ namespace WebView2WpfBrowser
                         {
                             // To display a custom dialog we cancel the launch, display
                             // a custom dialog, and then manually launch the external URI scheme
-                            // depending on the user's selection. 
+                            // depending on the user's selection.
                             args.Cancel = true;
                             string text = "Launching External URI Scheme";
                             if (args.InitiatingOrigin != "")
@@ -1627,14 +1627,15 @@ namespace WebView2WpfBrowser
                                     break;
                             }
 
-                        } 
-                        else 
+                        }
+                        else
                         {
                             // Do not cancel the event, allowing the request to use the default dialog.
                         }
             //     }
             // }, null);
         }
+        // </LaunchingExternalUriScheme>
         // <ServerCertificateErrorDetected>
         // When WebView2 doesn't trust a TLS certificate but host app does, this example bypasses
         // the default TLS interstitial page using the ServerCertificateErrorDetected event handler and
@@ -2045,13 +2046,12 @@ namespace WebView2WpfBrowser
         void WebView_HandleIFrames(object sender, CoreWebView2FrameCreatedEventArgs args)
         {
             _webViewFrames.Add(args.Frame);
-            args.Frame.Destroyed += WebViewFrames_DestoryedNestedIFrames;
-        }
-        void WebViewFrames_DestoryedNestedIFrames(object sender, object args)
-        {
-            var frameToRemove = _webViewFrames.SingleOrDefault(r => r.IsDestroyed() == 1);
-            if (frameToRemove != null)
-                _webViewFrames.Remove(frameToRemove);
+            args.Frame.Destroyed += (frameDestroyedSender, frameDestroyedArgs) =>
+            {
+                var frameToRemove = _webViewFrames.SingleOrDefault(r => r.IsDestroyed() == 1);
+                if (frameToRemove != null)
+                    _webViewFrames.Remove(frameToRemove);
+            };
         }
         string WebViewFrames_ToString()
         {
@@ -2300,7 +2300,6 @@ namespace WebView2WpfBrowser
             MessageBox.Show(this, result, "Process List");
         }
         // </GetProcessInfos>
-
         void CreateDownloadsButtonCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             Button downloadsButton = new Button();

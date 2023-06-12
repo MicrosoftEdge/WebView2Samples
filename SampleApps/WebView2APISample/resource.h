@@ -9,7 +9,7 @@
 #define IDM_ABOUT                       104
 #define IDM_EXIT                        105
 #define IDI_WEBVIEW2APISAMPLE           107
-#define IDI_SMALL                       108
+//#define IDI_SMALL                       108 - UNUSED
 #define IDC_WEBVIEW2APISAMPLE           109
 #define IDC_WEBVIEW2APISAMPLEHOST       110
 #define IDM_ZOOM_05                     111
