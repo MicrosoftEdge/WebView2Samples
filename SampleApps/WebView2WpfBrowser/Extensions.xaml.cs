@@ -43,7 +43,19 @@ namespace WebView2WpfBrowser
 
         private async System.Threading.Tasks.Task FillViewAsync()
         {
-            await Task.CompletedTask;
+            IReadOnlyList<CoreWebView2BrowserExtension> extensionsList = await m_coreWebView2.Profile.GetBrowserExtensionsAsync();
+
+            m_listData.Clear();
+            for (int i = 0; i < extensionsList.Count; ++i)
+            {
+                ListEntry entry = new ListEntry();
+                entry.Name = extensionsList[i].Name;
+                entry.Id = extensionsList[i].Id;
+                entry.Enabled = extensionsList[i].IsEnabled;
+                m_listData.Add(entry);
+            }
+            ExtensionsList.ItemsSource = m_listData;
+            ExtensionsList.Items.Refresh();
         }
 
         private void ExtensionsToggleEnabled(object sender, RoutedEventArgs e)
@@ -53,8 +65,32 @@ namespace WebView2WpfBrowser
 
         private async System.Threading.Tasks.Task ExtensionsToggleEnabledAsync(object sender, RoutedEventArgs e)
         {
+            ListEntry entry = (ListEntry)ExtensionsList.SelectedItem;
+            IReadOnlyList<CoreWebView2BrowserExtension> extensionsList = await m_coreWebView2.Profile.GetBrowserExtensionsAsync();
+            bool found = false;
+            for (int i = 0; i < extensionsList.Count; ++i)
+            {
+                if (extensionsList[i].Id == entry.Id)
+                {
+                    try
+                    {
+                        await extensionsList[i].EnableAsync(extensionsList[i].IsEnabled ? false : true);
+                    }
+                    catch (Exception exception)
+                    {
+                        MessageBox.Show("Failed to toggle extension enabled: " + exception);
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                MessageBox.Show("Failed to find extension");
+            }
             await FillViewAsync();
         }
+
         private void ExtensionsAdd(object sender, RoutedEventArgs e)
         {
             _ = ExtensionsAddAsync(sender, e);
@@ -62,7 +98,23 @@ namespace WebView2WpfBrowser
 
         private async System.Threading.Tasks.Task ExtensionsAddAsync(object sender, RoutedEventArgs e)
         {
-            await Task.CompletedTask;
+            var dialog = new TextInputDialog(
+                title: "Add extension",
+                description: "Enter the absolute Windows file path to the unpackaged browser extension",
+                defaultInput: "");
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    CoreWebView2BrowserExtension extension = await m_coreWebView2.Profile.AddBrowserExtensionAsync(dialog.Input.Text);
+                    MessageBox.Show("Added extension " + extension.Name + " (" + extension.Id + ")");
+                    await FillViewAsync();
+                }
+                catch (Exception exception)
+                {
+                    MessageBox.Show("Failed to add extension: " + exception);
+                }
+            }
         }
 
         private void ExtensionsRemove(object sender, RoutedEventArgs e)
@@ -72,6 +124,32 @@ namespace WebView2WpfBrowser
 
         private async System.Threading.Tasks.Task ExtensionsRemoveAsync(object sender, RoutedEventArgs e)
         {
+            ListEntry entry = (ListEntry)ExtensionsList.SelectedItem;
+            if (MessageBox.Show("Remove extension " + entry + "?", "Confirm removal", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
+            {
+                IReadOnlyList<CoreWebView2BrowserExtension> extensionsList = await m_coreWebView2.Profile.GetBrowserExtensionsAsync();
+                bool found = false;
+                for (int i = 0; i < extensionsList.Count; ++i)
+                {
+                    if (extensionsList[i].Id == entry.Id)
+                    {
+                        try
+                        {
+                            await extensionsList[i].RemoveAsync();
+                        }
+                        catch (Exception exception)
+                        {
+                            MessageBox.Show("Failed to remove extension: " + exception);
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    MessageBox.Show("Failed to find extension");
+                }
+            }
             await FillViewAsync();
         }
     }

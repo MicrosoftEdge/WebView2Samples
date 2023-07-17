@@ -1,4 +1,4 @@
-﻿// Copyright (C) Microsoft Corporation. All rights reserved.
+// Copyright (C) Microsoft Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -74,6 +74,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
         public static RoutedCommand NewWindowWithOptionsCommand = new RoutedCommand();
         public static RoutedCommand CreateNewThreadCommand = new RoutedCommand();
+        public static RoutedCommand ExtensionsCommand = new RoutedCommand();
         public static RoutedCommand TrackingPreventionLevelCommand = new RoutedCommand();
         public static RoutedCommand PrintDialogCommand = new RoutedCommand();
         public static RoutedCommand PrintToDefaultPrinterCommand = new RoutedCommand();
@@ -111,6 +112,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand OpenTaskManagerCommand = new RoutedCommand();
 
         public static RoutedCommand PermissionManagementCommand = new RoutedCommand();
+        public static RoutedCommand NotificationReceivedCommand = new RoutedCommand();
 
         public static RoutedCommand SetCustomDataPartitionCommand = new RoutedCommand();
         public static RoutedCommand ClearCustomDataPartitionCommand = new RoutedCommand();
@@ -388,6 +390,7 @@ namespace WebView2WpfBrowser
             {
                 replacementControl.CreationProperties = webView.CreationProperties;
             }
+                replacementControl.CreationProperties.AreBrowserExtensionsEnabled = true;
             Binding urlBinding = new Binding()
             {
                 Source = replacementControl,
@@ -706,7 +709,7 @@ namespace WebView2WpfBrowser
         }
 
         // Function to get print settings for the selected printer.
-        // You may also choose get the capabilties from the native printer API, display to the user to get
+        // You may also choose get the capabilities from the native printer API, display to the user to get
         // the print settings for the current web page and for the selected printer.
         CoreWebView2PrintSettings GetSelectedPrinterPrintSettings(string printerName)
         {
@@ -1948,7 +1951,9 @@ namespace WebView2WpfBrowser
                 // </PermissionRequested>
                 webView.CoreWebView2.DOMContentLoaded += WebView_PermissionManager_DOMContentLoaded;
                 webView.CoreWebView2.WebMessageReceived += WebView_PermissionManager_WebMessageReceived;
-
+                // <NotificationReceived>
+                webView.CoreWebView2.NotificationReceived += WebView_NotificationReceived;
+                // </NotificationReceived>
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
                 // instance has changed.
@@ -2412,6 +2417,30 @@ namespace WebView2WpfBrowser
             newWindowThread.IsBackground = false;
             newWindowThread.Start();
         }
+
+        void ExtensionsCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            if (_isControlInVisualTree)
+            {
+                RemoveControlFromVisualTree(webView);
+            }
+            webView.Dispose();
+            webView = GetReplacementControl(false);
+            AttachControlToVisualTree(webView);
+            webView.CoreWebView2InitializationCompleted += (sender, err) =>
+            {
+                if (err.IsSuccess)
+                {
+                    new Extensions(webView.CoreWebView2).Show();
+                }
+            };
+        }
+
+        void ExtensionsCommandCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
         // Commands(V2)
         void AboutCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -2891,6 +2920,13 @@ namespace WebView2WpfBrowser
             webView.Source = new Uri("https://appassets.example/ScenarioPermissionManagement.html");
         }
 
+        void NotificationReceivedExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "appassets.example", "assets", CoreWebView2HostResourceAccessKind.DenyCors);
+            webView.Source = new Uri("https://appassets.example/ScenarioNotificationReceived.html");
+        }
+
         string PermissionStateToString(CoreWebView2PermissionState state)
         {
             switch (state)
@@ -2987,5 +3023,51 @@ namespace WebView2WpfBrowser
                 kind, origin, state);
             webView.Reload();
         }
+
+        // <OnNotificationReceived>
+        void WebView_NotificationReceived(object sender, CoreWebView2NotificationReceivedEventArgs args)
+        {
+            CoreWebView2Deferral deferral = args.GetDeferral();
+            var notification = args.Notification;
+
+            StringBuilder messageBuilder = new StringBuilder();
+
+            messageBuilder.AppendLine($"WebView2 has received an Notification:");
+            messageBuilder.AppendLine($"\tSender origin: {args.SenderOrigin}");
+            messageBuilder.AppendLine($"\tTitle: {notification.Title}");
+            messageBuilder.AppendLine($"\tBody: {notification.Body}");
+            messageBuilder.AppendLine($"\tLanguage: {notification.Language}");
+            messageBuilder.AppendLine($"\tTag: {notification.Tag}");
+            messageBuilder.AppendLine($"\tIconUri: {notification.IconUri}");
+            messageBuilder.AppendLine($"\tBadgeUri: {notification.BadgeUri}");
+            messageBuilder.AppendLine($"\tImageUri: {notification.BodyImageUri}");
+            messageBuilder.AppendLine($"\tTimestamp: {notification.Timestamp.ToString("G")}");
+            messageBuilder.AppendLine($"\tVibration pattern: {string.Join(",", notification.VibrationPattern)}");
+            messageBuilder.AppendLine($"\tRequireInteraction: {notification.RequiresInteraction}");
+            messageBuilder.AppendLine($"\tSilent: {notification.IsSilent}");
+            messageBuilder.AppendLine($"\tRenotify: {notification.ShouldRenotify}");
+
+            args.Handled = true;
+            System.Threading.SynchronizationContext.Current.Post((_) =>
+            {
+                using (deferral)
+                {
+                    // Hide the default notification UI.
+                    args.Handled = true;
+                    var notificationDialog = MessageBox.Show(this, messageBuilder.ToString(), "New Web Notification", MessageBoxButton.YesNo);
+                    notification.ReportShown();
+                    if (notificationDialog == MessageBoxResult.Yes)
+                    {
+                        notification.ReportClicked();
+                        notification.ReportClosed();
+                    }
+                    else
+                    {
+                        notification.ReportClosed();
+                    }
+                }
+            }, null);
+        }
+        // </OnNotificationReceived>
     }
 }
