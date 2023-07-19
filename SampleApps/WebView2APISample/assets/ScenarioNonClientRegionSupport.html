@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioNonClientRegionSupport</title>
+    <style>
+        body {
+            background-color: white;
+        }
+
+        .draggable {
+            padding: 10px;
+            border: 1px solid black;
+            background-color: lightgrey;
+            app-region: drag;
+            margin-top: 10px;
+            margin-bottom: 10px
+        }
+
+        .draggable p {
+            width: 150px;
+            height: auto;
+            margin: 0 auto;
+            position: relative;
+            text-align: center;
+            app-region: no-drag;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="center">Non-Client Region Support</h1>
+    <div class="draggable">
+        <p>Draggable Region</p>
+    </div>
+    <p> 
+        Note: This site will always have non-client region support enabled.
+        Upon navigating away from this site, non-client region support will be disabled.
+    </p>
+
+</body>
+</html>
