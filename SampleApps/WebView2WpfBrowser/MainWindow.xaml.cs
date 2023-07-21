@@ -1,4 +1,4 @@
-﻿// Copyright (C) Microsoft Corporation. All rights reserved.
+// Copyright (C) Microsoft Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -66,6 +66,9 @@ namespace WebView2WpfBrowser
         public static RoutedCommand GeneralAutofillCommand = new RoutedCommand();
         public static RoutedCommand PinchZoomCommand = new RoutedCommand();
         public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
+        public static RoutedCommand DeleteProfileCommand = new RoutedCommand();
+        public static RoutedCommand NonClientRegionSupportCommand = new RoutedCommand();
+        public static RoutedCommand NonClientRegionSupportEnabledCommand = new RoutedCommand();
         public static RoutedCommand ToggleMuteStateCommand = new RoutedCommand();
         public static RoutedCommand AllowExternalDropCommand = new RoutedCommand();
         public static RoutedCommand LaunchingExternalUriSchemeCommand = new RoutedCommand();
@@ -74,6 +77,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ClearServerCertificateErrorActionsCommand = new RoutedCommand();
         public static RoutedCommand NewWindowWithOptionsCommand = new RoutedCommand();
         public static RoutedCommand CreateNewThreadCommand = new RoutedCommand();
+        public static RoutedCommand ExtensionsCommand = new RoutedCommand();
         public static RoutedCommand TrackingPreventionLevelCommand = new RoutedCommand();
         public static RoutedCommand PrintDialogCommand = new RoutedCommand();
         public static RoutedCommand PrintToDefaultPrinterCommand = new RoutedCommand();
@@ -111,9 +115,12 @@ namespace WebView2WpfBrowser
         public static RoutedCommand OpenTaskManagerCommand = new RoutedCommand();
 
         public static RoutedCommand PermissionManagementCommand = new RoutedCommand();
+        public static RoutedCommand NotificationReceivedCommand = new RoutedCommand();
 
         public static RoutedCommand SetCustomDataPartitionCommand = new RoutedCommand();
         public static RoutedCommand ClearCustomDataPartitionCommand = new RoutedCommand();
+        public static RoutedCommand ProcessFrameInfoCommand = new RoutedCommand();
+
         bool _isNavigating = false;
 
         // for add/remove initialize script
@@ -388,6 +395,7 @@ namespace WebView2WpfBrowser
             {
                 replacementControl.CreationProperties = webView.CreationProperties;
             }
+                replacementControl.CreationProperties.AreBrowserExtensionsEnabled = true;
             Binding urlBinding = new Binding()
             {
                 Source = replacementControl,
@@ -706,7 +714,7 @@ namespace WebView2WpfBrowser
         }
 
         // Function to get print settings for the selected printer.
-        // You may also choose get the capabilties from the native printer API, display to the user to get
+        // You may also choose get the capabilities from the native printer API, display to the user to get
         // the print settings for the current web page and for the selected printer.
         CoreWebView2PrintSettings GetSelectedPrinterPrintSettings(string printerName)
         {
@@ -866,6 +874,7 @@ namespace WebView2WpfBrowser
 
         void SetCustomDataPartitionCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
             // <CustomDataPartitionId>
             var dialog = new TextInputDialog(
                 title: "Custom Data Partition",
@@ -876,10 +885,12 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.CustomDataPartitionId = dialog.Input.Text;
             }
             // </CustomDataPartitionId>
+#endif
         }
 
         async void ClearCustomDataPartitionCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
             // <ClearCustomDataPartition>
             var dialog = new TextInputDialog(
                 title: "Clear Custom Data Partition",
@@ -900,6 +911,9 @@ namespace WebView2WpfBrowser
                 }
             }
             // </ClearCustomDataPartition>
+#else
+            await Task.CompletedTask;
+#endif
         }
 
         void WebMessagesCmdExecuted(object target, ExecutedRoutedEventArgs e)
@@ -1251,6 +1265,21 @@ namespace WebView2WpfBrowser
             }
         }
 
+        void DeleteProfileExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        void NonClientRegionSupportCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        void NonClientRegionSupportEnabledCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        void WebView_DOMContentLoadedNonClientRegionSupport(object sender, CoreWebView2DOMContentLoadedEventArgs e)
+        {
+        }
+        void WebView_NavigationStartingNonClientRegionSupport(object sender, CoreWebView2NavigationStartingEventArgs e)
+        {
+        }
         void PdfToolbarSaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             // <ToggleHiddenPdfToolbarItems>
@@ -1778,6 +1807,7 @@ namespace WebView2WpfBrowser
 
         async void CheckUpdateCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
             try
             {
                 // <UpdateRuntime>
@@ -1790,6 +1820,9 @@ namespace WebView2WpfBrowser
             {
                 MessageBox.Show(this, "UpdateRuntimeAsync failed:" + exception.Message, "UpdateRuntimeAsync");
             }
+#else
+            await Task.CompletedTask;
+#endif
         }
 
         bool _allowWebViewShortcutKeys = true;
@@ -1976,10 +2009,8 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
-                WebViewProfile.Deleted += WebViewProfile_Deleted;
                 return;
             }
-
             // ERROR_DELETE_PENDING(0x8007012f)
             if (e.InitializationException.HResult == -2147024593)
             {
@@ -2300,6 +2331,11 @@ namespace WebView2WpfBrowser
             MessageBox.Show(this, result, "Process List");
         }
         // </GetProcessInfos>
+
+        private async void ProcessFrameInfoCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            await Task.CompletedTask;
+        }
         void CreateDownloadsButtonCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             Button downloadsButton = new Button();
@@ -2412,6 +2448,30 @@ namespace WebView2WpfBrowser
             newWindowThread.IsBackground = false;
             newWindowThread.Start();
         }
+
+        void ExtensionsCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            if (_isControlInVisualTree)
+            {
+                RemoveControlFromVisualTree(webView);
+            }
+            webView.Dispose();
+            webView = GetReplacementControl(false);
+            AttachControlToVisualTree(webView);
+            webView.CoreWebView2InitializationCompleted += (sender, err) =>
+            {
+                if (err.IsSuccess)
+                {
+                    new Extensions(webView.CoreWebView2).Show();
+                }
+            };
+        }
+
+        void ExtensionsCommandCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
         // Commands(V2)
         void AboutCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -2737,6 +2797,7 @@ namespace WebView2WpfBrowser
 
         async void InjectScriptWithResultCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
             // <ExecuteScriptWithResult>
             var dialog = new TextInputDialog(
                 title: "Inject Script With Result",
@@ -2772,6 +2833,9 @@ namespace WebView2WpfBrowser
                 }
             }
             // </ExecuteScriptWithResult>
+#else
+            await Task.CompletedTask;
+#endif
         }
 
         string NameOfPermissionKind(CoreWebView2PermissionKind kind)
@@ -2891,6 +2955,13 @@ namespace WebView2WpfBrowser
             webView.Source = new Uri("https://appassets.example/ScenarioPermissionManagement.html");
         }
 
+        void NotificationReceivedExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "appassets.example", "assets", CoreWebView2HostResourceAccessKind.DenyCors);
+            webView.Source = new Uri("https://appassets.example/ScenarioNotificationReceived.html");
+        }
+
         string PermissionStateToString(CoreWebView2PermissionState state)
         {
             switch (state)
@@ -2987,5 +3058,54 @@ namespace WebView2WpfBrowser
                 kind, origin, state);
             webView.Reload();
         }
+
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        // <OnNotificationReceived>
+        void WebView_NotificationReceived(object sender, CoreWebView2NotificationReceivedEventArgs args)
+        {
+            CoreWebView2Deferral deferral = args.GetDeferral();
+            var notification = args.Notification;
+
+            StringBuilder messageBuilder = new StringBuilder();
+
+            messageBuilder.AppendLine($"WebView2 has received an Notification:");
+            messageBuilder.AppendLine($"\tSender origin: {args.SenderOrigin}");
+            messageBuilder.AppendLine($"\tTitle: {notification.Title}");
+            messageBuilder.AppendLine($"\tBody: {notification.Body}");
+            messageBuilder.AppendLine($"\tLanguage: {notification.Language}");
+            messageBuilder.AppendLine($"\tTag: {notification.Tag}");
+            messageBuilder.AppendLine($"\tIconUri: {notification.IconUri}");
+            messageBuilder.AppendLine($"\tBadgeUri: {notification.BadgeUri}");
+            messageBuilder.AppendLine($"\tImageUri: {notification.BodyImageUri}");
+            messageBuilder.AppendLine($"\tTimestamp: {notification.Timestamp.ToString("G")}");
+            messageBuilder.AppendLine($"\tVibration pattern: {string.Join(",", notification.VibrationPattern)}");
+            messageBuilder.AppendLine($"\tRequireInteraction: {notification.RequiresInteraction}");
+            messageBuilder.AppendLine($"\tSilent: {notification.IsSilent}");
+            messageBuilder.AppendLine($"\tRenotify: {notification.ShouldRenotify}");
+
+            args.Handled = true;
+            System.Threading.SynchronizationContext.Current.Post((_) =>
+            {
+                using (deferral)
+                {
+                    // Hide the default notification UI.
+                    args.Handled = true;
+                    var notificationDialog = MessageBox.Show(this, messageBuilder.ToString(), "New Web Notification", MessageBoxButton.YesNo);
+                    notification.ReportShown();
+                    if (notificationDialog == MessageBoxResult.Yes)
+                    {
+                        notification.ReportClicked();
+                        notification.ReportClosed();
+                    }
+                    else
+                    {
+                        notification.ReportClosed();
+                    }
+                }
+            }, null);
+        }
+        // </OnNotificationReceived>
+#endif
     }
 }

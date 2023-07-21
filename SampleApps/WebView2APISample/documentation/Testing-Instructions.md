@@ -32,6 +32,8 @@ These are instructions for manually testing all the features of the WebView2 API
     * [Browser Process Info](#Browser-Process-Info)
     * [Crash Browser Process](#Crash-Browser-Process)
     * [Unresponsive Browser Process](#Unresponsive-Browser-Process)
+    * [Show Performance Info](#Show-Performance-Info)
+    * [Process Info With Frame](#Process-Info-With-Frame)
   * [Setting](#Setting)
     * [Blocked Domains](#Blocked-Domains)
     * [Set User Agent](#Set-User-Agent)
@@ -1455,14 +1457,14 @@ Test that there is no crash in WebView processes for some of the error prone sce
 
 #### Draggable Regions
 Test that draggable regions work on WebView2.
-
-1. Launch the sample app.
+1. Enable Draggable Regions by adding the feature flag `msWebView2EnableDraggableRegions` to `put_AdditionalBrowserArguments` args in `AppWindow::InitializeWebView`.
+1. Build and launch the sample app.
 1. Select `Script > Inject Script` and paste this code into the text box:
 
     ```javascript
     document.getElementsByClassName('header')[0].style.appRegion = "drag";
     document.getElementsByClassName('center')[0].style.appRegion = "no-drag";
-    header.style.width = "99%";
+    document.getElementsByClassName('header')[0].style.width = "99%";
     setTimeout(1, function() { document.getElementsByClassName('header')[0].style.width = "100%";});
     ```
 

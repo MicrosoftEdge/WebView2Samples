@@ -2,24 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include <ctime>
 #include <Windows.h>
 
 #include "stdafx.h"
 
 #include "App.h"
-#include "resource.h"
 #include "ClientCertificateSelectionDialog.h"
-
-std::wstring UnixEpochToDateTime(double value) {
-    WCHAR rawResult[32] = {};
-    std::time_t rawTime = std::time_t(value);
-    struct tm timeStruct = {};
-    gmtime_s(&timeStruct, &rawTime);
-    _wasctime_s(rawResult, 32, &timeStruct);
-    std::wstring result(rawResult);
-    return result;
-}
+#include "Util.h"
+#include "resource.h"
 
 static INT_PTR CALLBACK ClientCertificateSelectionBoxDlg(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -95,9 +85,13 @@ static INT_PTR CALLBACK ClientCertificateSelectionBoxDlg(HWND hDlg, UINT message
                 int i = (int)SendMessage(hwndList, LB_GETITEMDATA, lbItem, 0);
 
                 TCHAR buff[MAX_PATH];
-                StringCbPrintf(buff, ARRAYSIZE(buff),
+                StringCbPrintf(
+                    buff, ARRAYSIZE(buff),
                     TEXT("Subject: %s\nValid From: %s\nValid To: %s\nCertificate Kind: %s"),
-                    self->clientCertificates[i].Subject, UnixEpochToDateTime(self->clientCertificates[i].ValidFrom).c_str(), UnixEpochToDateTime(self->clientCertificates[i].ValidTo).c_str(), self->clientCertificates[i].CertificateKind);
+                    self->clientCertificates[i].Subject,
+                    Util::UnixEpochToDateTime(self->clientCertificates[i].ValidFrom).c_str(),
+                    Util::UnixEpochToDateTime(self->clientCertificates[i].ValidTo).c_str(),
+                    self->clientCertificates[i].CertificateKind);
 
                 SetDlgItemText(hDlg, IDC_CERTIFICATE_STATIC, buff);
                 return TRUE;
