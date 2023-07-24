@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <title>ScenarioNotificationReceived</title>
+</head>
+<body>
+  <h1>Notification Test Page</h1>
+  <button onclick="requestNotificationPermission()">Request Notification Permission</button>
+  <button onclick="showNonPersistentNotification()">Show Non-Persistent Permission</button>
+  <h2>Notification log</h2>
+  <dl id="notificationLog"></dl>
+  <script>
+    function clearList() {
+      let log = document.getElementById('notificationLog');
+      log.innerHTML = '';
+    }
+    function createListItem(name) {
+      let dt = document.createElement('dt');
+      dt.textContent = name;
+      return dt;
+    }
+    function addItem(name) {
+      const log = document.querySelector('#notificationLog');
+      log.appendChild(createListItem(name));
+    }
+
+    chrome.webview.addEventListener("message", args => {
+      addItem(args.data);
+    });
+    window.addEventListener("unload", (event) => {
+      clearList();
+    });
+
+    async function requestNotificationPermission() {
+      if (Notification.permission !== 'granted') {
+        addItem('Requesting notification permission...')
+        Notification.requestPermission().then((result) => {
+          if (result === 'granted') {
+            addItem('Notification permission granted.')
+          } else {
+            addItem('Notification permission denied.')
+          }
+        })
+      } else {
+        addItem('Notification permission is already granted.')
+      }
+    }
+
+    function showNonPersistentNotification() {
+        const notification = new Notification(`${nonPersistentTitle} ${nonPersistentNotificationCount}`, options);
+        ++nonPersistentNotificationCount;
+
+        notification.addEventListener('show', function() {
+            addItem(`"${notification.title}" shown`);
+        });
+
+        notification.addEventListener('click', function() {
+            addItem(`"${notification.title}" clicked`);
+            notification.close();
+        });
+
+        notification.addEventListener('close', function() {
+            addItem(`"${notification.title}" closed`);
+        });
+    }
+
+    var nonPersistentNotificationCount = 0;
+    var nonPersistentTitle = 'Test Non-Persistent Notification Title';
+    var options = {
+        body: 'Test Notification Body',
+        icon: 'images/icon.png',
+        image: 'images/image.png',
+        badge: 'images/badge.png',
+        tag: 'notification-tag',
+        renotify: false,
+        requireInteraction: false,
+        silent: false,
+        vibrate: [100, 50, 100],
+        timestamp: Date.now(),
+    };
+  </script>
+</body>
+</html>

@@ -40,7 +40,6 @@ private:
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2> m_webView;
     Toolbar* m_toolbar;
-
     std::vector<std::pair<HWND, WNDPROC>> m_tabbableWindows;
 
     EventRegistrationToken m_navigationStartingToken = {};
@@ -49,5 +48,6 @@ private:
     EventRegistrationToken m_navigationCompletedToken = {};
     EventRegistrationToken m_moveFocusRequestedToken = {};
     EventRegistrationToken m_acceleratorKeyPressedToken = {};
+    EventRegistrationToken m_unhandledKeyPressedToken = {};
     EventRegistrationToken m_frameNavigationCompletedToken = {};
 };

@@ -32,6 +32,8 @@ public:
     void CrashBrowserProcess();
     void CrashRenderProcess();
     void PerformanceInfo();
+    void ShowProcessFrameInfo();
+
     ~ProcessComponent() override;
 
     // Wait for process to exit for timeoutMs, then force quit it if it hasn't.
@@ -51,4 +53,12 @@ private:
     wil::com_ptr<ICoreWebView2ProcessInfoCollection> m_processCollection;
     EventRegistrationToken m_processFailedToken = {};
     EventRegistrationToken m_processInfosChangedToken = {};
+    void AppendAncestorFrameInfo(
+        wil::com_ptr<ICoreWebView2FrameInfo> frameInfo, std::wstring& result);
+    void AppendFrameInfo(wil::com_ptr<ICoreWebView2FrameInfo> frameInfo, std::wstring& result);
+    wil::com_ptr<ICoreWebView2FrameInfo> GetAncestorFirstLevelFrameInfo(
+        wil::com_ptr<ICoreWebView2FrameInfo> frameInfo);
+    wil::com_ptr<ICoreWebView2FrameInfo> GetAncestorMainFrameInfo(
+        wil::com_ptr<ICoreWebView2FrameInfo> frameInfo);
+    std::wstring FrameKindToString(const COREWEBVIEW2_FRAME_KIND kind);
 };

@@ -44,7 +44,7 @@ private:
     // assets/extensions. This extension is treated as the default extension for the
     // `InstallDefaultExtensions` and `OffloadDefaultExtensionsIfExtraExtensionsInstalled`
     // scenarios.
-    const std::wstring m_extensionId = L"emncjacmognpbmnnjciakjihgcahddgc";
+    const std::wstring m_extensionId = L"apaahjmopbjicnjjcnionchiganhjpcd";
 
     // `m_maxInstalledExtensions` is considered to be the maximum number of extensions we can
     // have installed, before we have the case of "too many extensions". If we have too many
