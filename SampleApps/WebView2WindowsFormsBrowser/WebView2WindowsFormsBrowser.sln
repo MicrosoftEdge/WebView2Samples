@@ -3,18 +3,24 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebView2WindowsFormsBrowser", "WebView2WindowsFormsBrowser.csproj", "{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebView2WindowsFormsBrowser", "WebView2WindowsFormsBrowser.csproj", "{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug Experimental APIs|Any CPU = Debug Experimental APIs|Any CPU
+		Debug Stable APIs|Any CPU = Debug Stable APIs|Any CPU
+		Release Experimental APIs|Any CPU = Release Experimental APIs|Any CPU
+		Release Stable APIs|Any CPU = Release Stable APIs|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Debug Experimental APIs|Any CPU.ActiveCfg = Debug Experimental APIs|Any CPU
+		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Debug Experimental APIs|Any CPU.Build.0 = Debug Experimental APIs|Any CPU
+		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Debug Stable APIs|Any CPU.ActiveCfg = Debug Stable APIs|Any CPU
+		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Debug Stable APIs|Any CPU.Build.0 = Debug Stable APIs|Any CPU
+		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Release Experimental APIs|Any CPU.ActiveCfg = Release Experimental APIs|Any CPU
+		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Release Experimental APIs|Any CPU.Build = Release Experimental APIs|Any CPU
+		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Release Stable APIs|Any CPU.ActiveCfg = Release Stable APIs|Any CPU
+		{86BC1812-7A58-43C1-B0BB-D8EC7AC1A2CF}.Release Stable APIs|Any CPU.Build.0 = Release Stable APIs|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
