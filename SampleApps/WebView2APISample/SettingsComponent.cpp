@@ -42,7 +42,6 @@ SettingsComponent::SettingsComponent(
     m_webView2_14 = m_webView.try_query<ICoreWebView2_14>();
     m_webView2_15 = m_webView.try_query<ICoreWebView2_15>();
     m_webView2_18 = m_webView.try_query<ICoreWebView2_18>();
-
     // Copy old settings if desired
     if (old)
     {
@@ -207,7 +206,7 @@ SettingsComponent::SettingsComponent(
     //! [FaviconChanged]
     // Register a handler for the FaviconUriChanged event.
     // This will provided the current favicon of the page, as well
-    // as any changes that occur during the page lifetime
+    // as any changes that occour during the page lifetime
     if (m_webView2_15)
     {
         Gdiplus::GdiplusStartupInput gdiplusStartupInput;

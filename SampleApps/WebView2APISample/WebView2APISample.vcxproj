@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -232,7 +232,6 @@
     <ClInclude Include="ScenarioIFrameDevicePermission.h" />
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
     <ClInclude Include="ScenarioNonClientRegionSupport.h" />
-    <ClInclude Include="ScenarioNotificationReceived.h" />
     <ClInclude Include="ScenarioPermissionManagement.h" />
     <ClInclude Include="ScenarioSharedBuffer.h" />
     <ClInclude Include="ScenarioSharedWorkerWRR.h" />
@@ -246,7 +245,6 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TextInputDialog.h" />
     <ClInclude Include="Toolbar.h" />
-    <ClInclude Include="Util.h" />
     <ClInclude Include="ViewComponent.h" />
   </ItemGroup>
   <ItemGroup>
@@ -278,7 +276,6 @@
     <ClCompile Include="ScenarioIFrameDevicePermission.cpp" />
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
     <ClCompile Include="ScenarioNonClientRegionSupport.cpp" />
-    <ClCompile Include="ScenarioNotificationReceived.cpp" />
     <ClCompile Include="ScenarioPermissionManagement.cpp" />
     <ClCompile Include="ScenarioSharedBuffer.cpp" />
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp" />
@@ -298,7 +295,6 @@
     </ClCompile>
     <ClCompile Include="TextInputDialog.cpp" />
     <ClCompile Include="Toolbar.cpp" />
-    <ClCompile Include="Util.cpp" />
     <ClCompile Include="ViewComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -306,7 +302,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="AppBackground.bmp" />
-    <Image Include="small.ico" />
     <Image Include="WebView2APISample.ico" />
     <Image Include="WebView2APISample_Inprivate.ico" />
   </ItemGroup>
@@ -336,9 +331,6 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioNonClientRegionSupport.html">
-      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="assets/ScenarioNotificationReceived.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioSharedBuffer.html">

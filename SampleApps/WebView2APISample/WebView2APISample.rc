@@ -83,10 +83,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Open DevTools Window",        IDM_OPEN_DEVTOOLS_WINDOW
         MENUITEM "Open Task Manager Window",    IDM_OPEN_TASK_MANAGER_WINDOW
-        MENUITEM SEPARATOR
-        MENUITEM "Add Browser Extension",       IDM_ADD_EXTENSION
-        MENUITEM "Remove Browser Extension",    IDM_REMOVE_EXTENSION
-        MENUITEM "Enable/Disable Extension",    IDM_DISABLE_EXTENSION
     END
     POPUP "&Window"
     BEGIN
@@ -117,7 +113,6 @@ BEGIN
         MENUITEM "Crash Browser Process",       IDM_CRASH_PROCESS
         MENUITEM "Crash Render Process",        IDM_CRASH_RENDER_PROCESS
         MENUITEM "Show Performance Info",       IDM_PERFORMANCE_INFO
-        MENUITEM "Process Info with Frame",     IDM_PROCESS_FRAME_INFO
     END
     POPUP "S&ettings"
     BEGIN
@@ -253,11 +248,6 @@ BEGIN
         END
         MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
         MENUITEM "Cookie Management(Profile)",           IDM_SCENARIO_COOKIE_MANAGEMENT_PROFILE
-        POPUP "Extensions Management"
-        BEGIN
-            MENUITEM "Install Default Extensions",      IDM_SCENARIO_EXTENSIONS_MANAGEMENT_INSTALL_DEFAULT
-            MENUITEM "Offload Default Extensions",      IDM_SCENARIO_EXTENSIONS_MANAGEMENT_OFFLOAD_DEFAULT
-        END
         MENUITEM "Custom scheme WebResourceRequested CORS", IDM_SCENARIO_CUSTOM_SCHEME
         MENUITEM "Navigate to custom scheme via WebResourceRequested",   IDM_SCENARIO_CUSTOM_SCHEME_NAVIGATE
         MENUITEM "Shared worker WebResourceRequested",   IDM_SCENARIO_SHARED_WORKER
@@ -269,7 +259,6 @@ BEGIN
         MENUITEM "Host Objects",                IDM_SCENARIO_ADD_HOST_OBJECT
         MENUITEM "IFrame Device Permission",    IDM_SCENARIO_IFRAME_DEVICE_PERMISSION
         MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
-        MENUITEM "NotificationReceived",        IDM_SCENARIO_NOTIFICATION
         MENUITEM "Permission Management",       IDM_PERMISSION_MANAGEMENT
         POPUP "Print"
         BEGIN

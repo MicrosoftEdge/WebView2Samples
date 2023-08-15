@@ -39,7 +39,6 @@
 #include "ScenarioExtensionsManagement.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
-#include "ScenarioNotificationReceived.h"
 #include "ScenarioPermissionManagement.h"
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
@@ -554,16 +553,6 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
             L"CookieManagement", MB_OK);
         return true;
     }
-    case IDM_SCENARIO_EXTENSIONS_MANAGEMENT_INSTALL_DEFAULT:
-    {
-        NewComponent<ScenarioExtensionsManagement>(this, false);
-        return true;
-    }
-    case IDM_SCENARIO_EXTENSIONS_MANAGEMENT_OFFLOAD_DEFAULT:
-    {
-        NewComponent<ScenarioExtensionsManagement>(this, true);
-        return true;
-    }
     case IDM_SCENARIO_CUSTOM_SCHEME:
     {
         NewComponent<ScenarioCustomScheme>(this);
@@ -592,11 +581,6 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST:
     {
         NewComponent<ScenarioNavigateWithWebResourceRequest>(this);
-        return true;
-    }
-    case IDM_SCENARIO_NOTIFICATION:
-    {
-        NewComponent<ScenarioNotificationReceived>(this);
         return true;
     }
     case IDM_SCENARIO_TESTING_FOCUS:
@@ -979,7 +963,7 @@ bool AppWindow::PrintToDefaultPrinter()
                              printStatus == COREWEBVIEW2_PRINT_STATUS_SUCCEEDED)
                          {
                              message = L"Printing " + std::wstring(title.get()) +
-                                       L" document to printer is succeeded";
+                                       L" document to printer is succedded";
                          }
                          else if (
                              errorCode == S_OK &&
@@ -1105,7 +1089,7 @@ bool AppWindow::PrintToPrinter()
                 if (errorCode == S_OK && printStatus == COREWEBVIEW2_PRINT_STATUS_SUCCEEDED)
                 {
                     message = L"Printing " + std::wstring(title.get()) +
-                              L" document to printer is succeeded";
+                              L" document to printer is succedded";
                 }
                 else if (
                     errorCode == S_OK &&
@@ -1311,12 +1295,6 @@ void AppWindow::InitializeWebView()
     {
         CHECK_FAILURE(
             options5->put_EnableTrackingPrevention(m_TrackingPreventionEnabled ? TRUE : FALSE));
-    }
-
-    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions> optionsExperimental;
-    if (options.As(&optionsExperimental) == S_OK)
-    {
-        CHECK_FAILURE(optionsExperimental->put_AreBrowserExtensionsEnabled(TRUE));
     }
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
@@ -1568,7 +1546,6 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(
             //! [AddVirtualHostNameToFolderMapping]
         }
         NewComponent<ScenarioPermissionManagement>(this);
-        NewComponent<ScenarioNotificationReceived>(this);
 
         // We have a few of our own event handlers to register here as well
         RegisterEventHandlers();

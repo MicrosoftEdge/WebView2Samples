@@ -429,6 +429,7 @@ ControlComponent::~ControlComponent()
     m_webView->remove_FrameNavigationCompleted(m_frameNavigationCompletedToken);
     m_controller->remove_MoveFocusRequested(m_moveFocusRequestedToken);
     m_controller->remove_AcceleratorKeyPressed(m_acceleratorKeyPressedToken);
+
     // Undo our modifications to the toolbar elements
     for (auto pair : m_tabbableWindows)
     {
