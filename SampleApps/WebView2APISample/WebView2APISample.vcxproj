@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -234,6 +234,7 @@
     <ClInclude Include="ScenarioNonClientRegionSupport.h" />
     <ClInclude Include="ScenarioNotificationReceived.h" />
     <ClInclude Include="ScenarioPermissionManagement.h" />
+    <ClInclude Include="ScenarioSaveAs.h" />
     <ClInclude Include="ScenarioSharedBuffer.h" />
     <ClInclude Include="ScenarioSharedWorkerWRR.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h" />
@@ -280,6 +281,7 @@
     <ClCompile Include="ScenarioNonClientRegionSupport.cpp" />
     <ClCompile Include="ScenarioNotificationReceived.cpp" />
     <ClCompile Include="ScenarioPermissionManagement.cpp" />
+    <ClCompile Include="ScenarioSaveAs.cpp" />
     <ClCompile Include="ScenarioSharedBuffer.cpp" />
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp" />
@@ -306,7 +308,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="AppBackground.bmp" />
-    <Image Include="small.ico" />
     <Image Include="WebView2APISample.ico" />
     <Image Include="WebView2APISample_Inprivate.ico" />
   </ItemGroup>
@@ -315,6 +316,18 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/DemoWorker.js">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/extensions/example-devtools-extension/devtools.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/extensions/example-devtools-extension/manifest.json">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/extensions/example-devtools-extension/panel.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/extensions/example-devtools-extension/panel.js">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioCustomScheme.html">
@@ -342,6 +355,15 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioSharedBuffer.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/sw_scope/index.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/sw_scope/simple.txt">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/sw_scope/sw.js">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <None Include="packages.config" />
