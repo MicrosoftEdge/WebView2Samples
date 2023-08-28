@@ -1,0 +1,9 @@
+{
+    "manifest_version": 2,
+    "name": "Example Developer Tools",
+    "version": "0.1",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArRkuE54mFLpFQWdzxe4KM9HeO4RqaoQPyi2cq1bfEVC0KkK6pRJhzRF5HtJ6i9QB/oZz2DJB+b4PfLbebJJPq9CmFc9UyEWVj7+WtdHVi+hvK9Iihyfnha3HhXIAH75WSo99u+Y1Zjo+XcoeLbDr93t/wZ6TePAzCosOJ4uzKqtzV+O5J6RaquutqOaN5Qm0tcvfRmqPxprGI1IeIIuS1UZvEsYbgHJ8uj1h3SfC3tHvi8qPpzW6ktgtrdrUtNLMnPg5Mu8WkV/9M/0y+mA3RBRnXeUo8l1uxXRCvpPQX8554SaCmg9Foow0jcXiv+1Lzv+Rwq4AT+Fb8hUeDPB/PQIDAQAB",
+    "description": "Example developer tools extension",  
+    "devtools_page": "devtools.html",  
+    "minimum_chrome_version": "10.0"
+}

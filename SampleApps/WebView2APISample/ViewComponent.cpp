@@ -173,7 +173,6 @@ ViewComponent::ViewComponent(
                         }
                         //! [SystemCursorId]
                     }
-
                     if (SUCCEEDED(hr))
                     {
                         SetClassLongPtr(
@@ -357,7 +356,8 @@ bool ViewComponent::HandleWindowMessage(
         }
     }
     //! [ToggleIsVisibleOnMinimize]
-    if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST) || message == WM_MOUSELEAVE)
+    if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST)
+        || message == WM_MOUSELEAVE)
     {
         return OnMouseMessage(message, wParam, lParam);
     }
@@ -377,7 +377,6 @@ bool ViewComponent::HandleWindowMessage(
     //! [NotifyParentWindowPositionChanged]
     return false;
 }
-
 //! [SetPreferredColorScheme]
 void ViewComponent::SetPreferredColorScheme(COREWEBVIEW2_PREFERRED_COLOR_SCHEME value)
 {
@@ -707,7 +706,9 @@ bool ViewComponent::OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
     {
         POINT point;
         POINTSTOPOINT(point, lParam);
-        if (message == WM_MOUSEWHEEL || message == WM_MOUSEHWHEEL)
+        if (message == WM_MOUSEWHEEL ||
+            message == WM_MOUSEHWHEEL
+        )
         {
             // Mouse wheel messages are delivered in screen coordinates.
             // SendMouseInput expects client coordinates for the WebView, so convert

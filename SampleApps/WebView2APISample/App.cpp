@@ -42,6 +42,7 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
     std::wstring userDataFolder(L"");
     std::wstring initialUri;
     DWORD creationModeId = IDM_CREATION_MODE_WINDOWED;
+    WebViewCreateOption opt;
 
     if (lpCmdLine && lpCmdLine[0])
     {
@@ -120,7 +121,7 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
 
     DpiUtil::SetProcessDpiAwarenessContext(dpiAwarenessContext);
 
-    new AppWindow(creationModeId, WebViewCreateOption(), initialUri, userDataFolder, true);
+    new AppWindow(creationModeId, opt, initialUri, userDataFolder, true);
 
     int retVal = RunMessagePump();
 

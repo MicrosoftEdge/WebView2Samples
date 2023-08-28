@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VirtualHostMappingForServiceWorker</title>
+    <script>
+        "use strict";
+        function FetchSimpleTxt() {
+            fetch('./txt_from_local_asset').then(response => {
+                response.text().then(text => {
+                    document.getElementById("simple_txt_content").value = "Fetch got: " + text; });
+            }).catch(err => {
+                document.getElementById("simple_txt_content").value = "Fetch failed: " + err; });            
+        }
+        function FetchCachedImage() {            
+            let img = document.createElement('img');
+            img.width = 40;
+            img.height = 40;
+            img.src = './image_from_cache';
+            document.getElementById("imageContainer1").appendChild(img);
+        }
+        function FetchImage() {            
+            let img = document.createElement('img');
+            img.width = 40;
+            img.height = 40;
+            img.src = 'https://pluspng.com/img-png/microsoft-windows-png-windows-logo-png-800.png';
+            document.getElementById("imageContainer2").appendChild(img);
+        }
+
+        // sw.js will be served by virtual host mapping as type of kServiceWorkerScript.
+        navigator.serviceWorker.register('sw.js', { scope: '.' }).then(reg => {
+            let elem = document.getElementById("sw_reg_status");
+            elem.style.color = "blue";
+            elem.textContent = "Registered sw.js!";
+        }).catch(err => {
+            let elem = document.getElementById("sw_reg_status");
+            elem.style.color = "red";
+            elem.textContent = "Failed to register sw.js!";
+        });    
+    </script>
+</head>
+<body>
+    <h2 id="sw_reg_status">Start to register sw.js</h2>
+
+    <h2>Fetch via virtual host</h2>
+    <p>Click the fetch button to get "./txt_from_local_asset", which will be fulfilled by SW
+        fetching a kServiceWorkerSubResource via virtual host mapping.</p>
+    <button onclick="FetchSimpleTxt()">Fetch</button><br><br>
+    <textarea id="simple_txt_content" rows="2" cols="70" readonly></textarea>
+
+    <h2>Fetch from service worker cache</h2>
+    <p>Click the fetch button to get "./image_from_cache", the image cached previously by SW's install handler
+        will be served.</p>
+    <button onclick="FetchCachedImage()">Fetch</button><br><br>
+    <div id="imageContainer1"></div>
+
+    <h2>Fetch from network</h2>
+    <p>Click the fetch button to get an image from external network, without involving cache and virtual host mapping.</p>
+    <button onclick="FetchImage()">Fetch</button><br><br>
+    <div id="imageContainer2"></div>
+</body>
+</html>
