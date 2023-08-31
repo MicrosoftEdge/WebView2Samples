@@ -1371,11 +1371,7 @@ void AppWindow::InitializeWebView()
 HRESULT AppWindow::OnCreateEnvironmentCompleted(
     HRESULT result, ICoreWebView2Environment* environment)
 {
-    if (result != S_OK)
-    {
-        ShowFailure(result, L"Failed to create environment object.");
-        return S_OK;
-    }
+    CHECK_FAILURE(result);
     m_webViewEnvironment = environment;
 
     if (m_webviewOption.entry == WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU
@@ -2205,6 +2201,7 @@ std::wstring AppWindow::GetLocalUri(
     else
     {
         std::wstring path = GetLocalPath(L"assets\\" + relativePath, false);
+
         wil::com_ptr<IUri> uri;
         CHECK_FAILURE(CreateUri(path.c_str(), Uri_CREATE_ALLOW_IMPLICIT_FILE_SCHEME, 0, &uri));
 
