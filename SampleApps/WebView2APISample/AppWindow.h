@@ -41,6 +41,7 @@ struct WebViewCreateOption
     WebViewCreateOption()
     {
     }
+
     WebViewCreateOption(
         const std::wstring& profile_, bool inPrivate, const std::wstring& downloadPath,
         const std::wstring& scriptLocale_, WebViewCreateEntry entry_, bool useOSRegion_)
@@ -58,6 +59,7 @@ struct WebViewCreateOption
         entry = opt.entry;
         useOSRegion = opt.useOSRegion;
     }
+
     void PopupDialog(AppWindow* app);
 };
 

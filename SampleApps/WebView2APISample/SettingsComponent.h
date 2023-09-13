@@ -14,9 +14,6 @@
 #include "ComponentBase.h"
 #include "CustomStatusBar.h"
 
-// Some utility functions
-wil::unique_bstr GetDomainOfUri(PWSTR uri);
-
 // This component handles commands from the Settings menu.  It also handles the
 // NavigationStarting, FrameNavigationStarting, WebResourceRequested, ScriptDialogOpening,
 // and PermissionRequested events.

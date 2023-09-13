@@ -16,6 +16,9 @@
 
 using namespace Microsoft::WRL;
 
+// Some utility functions
+static wil::unique_bstr GetDomainOfUri(PWSTR uri);
+
 SettingsComponent::SettingsComponent(
     AppWindow* appWindow, ICoreWebView2Environment* environment, SettingsComponent* old)
     : m_appWindow(appWindow), m_webViewEnvironment(environment),
@@ -1763,7 +1766,7 @@ SettingsComponent::~SettingsComponent()
     m_webView->remove_PermissionRequested(m_permissionRequestedToken);
 }
 // Take advantage of urlmon's URI library to parse a URI
-wil::unique_bstr GetDomainOfUri(PWSTR uri)
+static wil::unique_bstr GetDomainOfUri(PWSTR uri)
 {
     wil::com_ptr<IUri> uriObject;
     CreateUri(uri, Uri_CREATE_CANONICALIZE | Uri_CREATE_NO_DECODE_EXTRA_INFO, 0, &uriObject);

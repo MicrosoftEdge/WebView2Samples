@@ -1371,11 +1371,7 @@ void AppWindow::InitializeWebView()
 HRESULT AppWindow::OnCreateEnvironmentCompleted(
     HRESULT result, ICoreWebView2Environment* environment)
 {
-    if (result != S_OK)
-    {
-        ShowFailure(result, L"Failed to create environment object.");
-        return S_OK;
-    }
+    CHECK_FAILURE(result);
     m_webViewEnvironment = environment;
 
     if (m_webviewOption.entry == WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU
@@ -1724,32 +1720,6 @@ void AppWindow::RegisterEventHandlers()
                     args->put_Handled(FALSE);
                     return S_OK;
                 }
-                wil::com_ptr<ICoreWebView2ExperimentalNewWindowRequestedEventArgs2>
-                    experimental_args;
-                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&experimental_args))))
-                {
-                    wil::com_ptr<ICoreWebView2FrameInfo> frame_info;
-                    CHECK_FAILURE(experimental_args->get_OriginalSourceFrameInfo(&frame_info));
-                    wil::unique_cotaskmem_string source;
-                    CHECK_FAILURE(frame_info->get_Source(&source));
-                    // The host can decide how to open based on source frame info,
-                    // such as URI.
-                    static const wchar_t* browser_launching_domain = L"www.example.com";
-                    wil::unique_bstr source_domain = GetDomainOfUri(source.get());
-                    const wchar_t* source_domain_as_wchar = source_domain.get();
-                    if (wcscmp(browser_launching_domain, source_domain_as_wchar) == 0)
-                    {
-                        // Open the URI in the default browser.
-                        wil::unique_cotaskmem_string target_uri;
-                        CHECK_FAILURE(args->get_Uri(&target_uri));
-                        ShellExecute(
-                            nullptr, L"open", target_uri.get(), nullptr, nullptr,
-                            SW_SHOWNORMAL);
-                        CHECK_FAILURE(args->put_Handled(TRUE));
-                        return S_OK;
-                    }
-                }
-
                 wil::com_ptr<ICoreWebView2Deferral> deferral;
                 CHECK_FAILURE(args->GetDeferral(&deferral));
                 AppWindow* newAppWindow;
@@ -2205,6 +2175,7 @@ std::wstring AppWindow::GetLocalUri(
     else
     {
         std::wstring path = GetLocalPath(L"assets\\" + relativePath, false);
+
         wil::com_ptr<IUri> uri;
         CHECK_FAILURE(CreateUri(path.c_str(), Uri_CREATE_ALLOW_IMPLICIT_FILE_SCHEME, 0, &uri));
 

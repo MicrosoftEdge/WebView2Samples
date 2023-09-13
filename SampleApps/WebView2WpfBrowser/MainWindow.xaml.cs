@@ -169,7 +169,6 @@ namespace WebView2WpfBrowser
             }
         }
 
-        bool _isNewWindowRequest = false;
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
         IReadOnlyList<CoreWebView2ProcessInfo> _processList = new List<CoreWebView2ProcessInfo>();
 
@@ -204,31 +203,20 @@ namespace WebView2WpfBrowser
         public MainWindow()
         {
             DataContext = this;
-            Loaded += MainWindow_Loaded;
             InitializeComponent();
-        }
-
-        public MainWindow(
-            CoreWebView2CreationProperties creationProperties = null,
-            bool isNewWindowRequest = false)
-        {
-            this.CreationProperties = creationProperties;
-            DataContext = this;
-            Loaded += MainWindow_Loaded;
-            _isNewWindowRequest = isNewWindowRequest;
-            InitializeComponent();
-        }
-
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            await InitializeWebView();
-        }
-
-        async System.Threading.Tasks.Task InitializeWebView() {
             AttachControlEventHandlers(webView);
             // Set background transparent
             webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
-            await webView.EnsureCoreWebView2Async();
+        }
+
+        public MainWindow(CoreWebView2CreationProperties creationProperties = null)
+        {
+            this.CreationProperties = creationProperties;
+            DataContext = this;
+            InitializeComponent();
+            AttachControlEventHandlers(webView);
+            // Set background transparent
+            webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
         }
 
         void AttachControlEventHandlers(WebView2 control)
@@ -1971,20 +1959,14 @@ namespace WebView2WpfBrowser
             return newUri;
         }
 
-#if USE_WEBVIEW2_EXPERIMENTAL
-    Action OnWebViewFirstInitialized;
-#endif
         void WebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             if (e.IsSuccess)
             {
                 // Setup host resource mapping for local files
                 webView.CoreWebView2.SetVirtualHostNameToFolderMapping("appassets.example", "assets", CoreWebView2HostResourceAccessKind.DenyCors);
-                // Set StartPage Uri, unless this WebView will be used for a new window request
-                if (!_isNewWindowRequest)
-                {
-                    webView.Source = new Uri(GetStartPageUri(webView.CoreWebView2));
-                }
+                // Set StartPage Uri
+                webView.Source = new Uri(GetStartPageUri(webView.CoreWebView2));
 
                 // <ProcessFailed>
                 webView.CoreWebView2.ProcessFailed += WebView_ProcessFailed;
@@ -2031,48 +2013,8 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
-#if USE_WEBVIEW2_EXPERIMENTAL
-                OnWebViewFirstInitialized?.Invoke();
-
-                webView.CoreWebView2.NewWindowRequested += delegate (
-                    object webview2, CoreWebView2NewWindowRequestedEventArgs args)
-                {
-                    // The host can decide how to open based on source frame info,
-                    // such as URI.
-                    string sampleUri = "https://www.example.com/";
-                    bool useDefaultBrowser =
-                        (args.OriginalSourceFrameInfo.Source == sampleUri);
-                    if (useDefaultBrowser)
-                    {
-                        ProcessStartInfo startInfo = new ProcessStartInfo
-                        {
-                            FileName = args.Uri,
-                            // Open the URI in the default browser.
-                            UseShellExecute = true
-                        };
-                        Process.Start(startInfo);
-                        args.Handled = true;
-                    }
-                    else
-                    {
-                        CoreWebView2Deferral deferral = args.GetDeferral();
-                        MainWindow main_window = new MainWindow(
-                            webView.CreationProperties, true /*isNewWindowRequest*/);
-                        main_window.OnWebViewFirstInitialized = () =>
-                        {
-                            using (deferral)
-                            {
-                                args.Handled = true;
-                                args.NewWindow = main_window.webView.CoreWebView2;
-                            }
-                        };
-                        main_window.Show();
-                  }
-                };
-#endif
                 return;
             }
-
             // ERROR_DELETE_PENDING(0x8007012f)
             if (e.InitializationException.HResult == -2147024593)
             {

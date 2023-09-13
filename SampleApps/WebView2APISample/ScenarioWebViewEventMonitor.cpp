@@ -656,44 +656,16 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                     encodedName = EncodeQuote(name.get());
                 }
 
-                wil::com_ptr<ICoreWebView2ExperimentalNewWindowRequestedEventArgs2>
-                    experimental_args;
-                std::wstring frameName = EncodeQuote(L"");
-                std::wstring frameUri = EncodeQuote(L"");
-                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&experimental_args))))
-                {
-                    wil::com_ptr<ICoreWebView2FrameInfo> frame_info;
-                    CHECK_FAILURE(experimental_args->get_OriginalSourceFrameInfo(&frame_info));
-                    wil::unique_cotaskmem_string name;
-                    CHECK_FAILURE(frame_info->get_Name(&name));
-                    frameName = EncodeQuote(name.get());
-                    wil::unique_cotaskmem_string source;
-                    CHECK_FAILURE(frame_info->get_Source(&source));
-                    frameUri = EncodeQuote(source.get());
-                }
-
                 std::wstring message =
                     L"{ \"kind\": \"event\", \"name\": \"NewWindowRequested\", \"args\": {"
-                    L"\"handled\": " +
-                    BoolToString(handled) +
-                    L", "
-                    L"\"isUserInitiated\": " +
-                    BoolToString(isUserInitiated) +
-                    L", "
-                    L"\"uri\": " +
-                    EncodeQuote(uri.get()) +
-                    L", "
-                    L"\"name\": " +
-                    encodedName +
-                    L", "
-                    L"\"newWindow\": null" +
-                    L", "
-                    L"\"frameName\": " +
-                    frameName +
-                    L", "
-                    L"\"frameUri\": " +
-                    frameUri + L"}" +
-                    WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                    L"\"handled\": " + BoolToString(handled) + L", "
+                    L"\"isUserInitiated\": " + BoolToString(isUserInitiated) + L", "
+                    L"\"uri\": " + EncodeQuote(uri.get()) + L", "
+                    L"\"name\": " + encodedName + L", "
+                    L"\"newWindow\": null"
+                    L"}"
+                    + WebViewPropertiesToJsonString(m_webviewEventSource.get())
+                    + L"}";
                 PostEventMessage(message);
 
                 return S_OK;
