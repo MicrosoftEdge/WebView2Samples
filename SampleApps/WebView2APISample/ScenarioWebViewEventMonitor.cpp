@@ -656,14 +656,13 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                     encodedName = EncodeQuote(name.get());
                 }
 
-                wil::com_ptr<ICoreWebView2ExperimentalNewWindowRequestedEventArgs2>
-                    experimental_args;
+                wil::com_ptr<ICoreWebView2NewWindowRequestedEventArgs3> args3;
                 std::wstring frameName = EncodeQuote(L"");
                 std::wstring frameUri = EncodeQuote(L"");
-                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&experimental_args))))
+                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args3))))
                 {
                     wil::com_ptr<ICoreWebView2FrameInfo> frame_info;
-                    CHECK_FAILURE(experimental_args->get_OriginalSourceFrameInfo(&frame_info));
+                    CHECK_FAILURE(args3->get_OriginalSourceFrameInfo(&frame_info));
                     wil::unique_cotaskmem_string name;
                     CHECK_FAILURE(frame_info->get_Name(&name));
                     frameName = EncodeQuote(name.get());

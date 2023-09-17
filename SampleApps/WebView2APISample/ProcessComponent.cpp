@@ -106,10 +106,11 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
                     CHECK_FAILURE(args2->get_ExitCode(&exitCode));
 
                     std::wstringstream message;
-                    message << L"Kind: "                << ProcessFailedKindToString(kind) << L"\n"
-                            << L"Reason: "              << ProcessFailedReasonToString(reason) << L"\n"
-                            << L"Exit code: "           << std::to_wstring(exitCode) << L"\n"
-                            << L"Process description: " << processDescription.get() << std::endl;
+                    message << L"Kind: " << ProcessFailedKindToString(kind) << L"\n"
+                            << L"Reason: " << ProcessFailedReasonToString(reason) << L"\n"
+                            << L"Exit code: " << exitCode << L"\n"
+                            << L"Process description: " << processDescription.get()
+                            << std::endl;
                     m_appWindow->AsyncMessageBox( std::move(message.str()), L"Child process failed");
                 }
                 return S_OK;
@@ -176,8 +177,8 @@ bool ProcessComponent::HandleWindowMessage(
         case IDM_PERFORMANCE_INFO:
             PerformanceInfo();
             return true;
-        case IDM_PROCESS_FRAME_INFO:
-            ShowProcessFrameInfo();
+        case IDM_PROCESS_EXTENDED_INFO:
+            ShowProcessExtendedInfo();
             return true;
         }
     }
@@ -206,7 +207,9 @@ std::wstring ProcessComponent::FrameKindToString(const COREWEBVIEW2_FRAME_KIND k
 
         KIND_ENTRY(COREWEBVIEW2_FRAME_KIND_MAIN_FRAME);
         KIND_ENTRY(COREWEBVIEW2_FRAME_KIND_IFRAME);
-        KIND_ENTRY(COREWEBVIEW2_FRAME_KIND_OTHER);
+        KIND_ENTRY(COREWEBVIEW2_FRAME_KIND_EMBED);
+        KIND_ENTRY(COREWEBVIEW2_FRAME_KIND_OBJECT);
+        KIND_ENTRY(COREWEBVIEW2_FRAME_KIND_UNKNOWN);
 
 #undef KIND_ENTRY
     }
@@ -220,16 +223,16 @@ void ProcessComponent::AppendFrameInfo(
     UINT32 frameId = 0;
     UINT32 parentFrameId = 0;
     UINT32 mainFrameId = 0;
-    UINT32 firstLevelFrameId = 0;
+    UINT32 childFrameId = 0;
     std::wstring type = L"other child frame";
     wil::unique_cotaskmem_string nameRaw;
     wil::unique_cotaskmem_string sourceRaw;
-    COREWEBVIEW2_FRAME_KIND frameKind = COREWEBVIEW2_FRAME_KIND_OTHER;
+    COREWEBVIEW2_FRAME_KIND frameKind = COREWEBVIEW2_FRAME_KIND_UNKNOWN;
 
     CHECK_FAILURE(frameInfo->get_Name(&nameRaw));
-    std::wstring name = ((std::wstring)(nameRaw.get())).empty() ? L"none" : nameRaw.get();
+    std::wstring name = nameRaw.get()[0] ? nameRaw.get() : L"none";
     CHECK_FAILURE(frameInfo->get_Source(&sourceRaw));
-    std::wstring source = ((std::wstring)(sourceRaw.get())).empty() ? L"none" : sourceRaw.get();
+    std::wstring source = sourceRaw.get()[0] ? sourceRaw.get() : L"none";
 
     wil::com_ptr<ICoreWebView2ExperimentalFrameInfo> frameInfoExperimental;
     CHECK_FAILURE(frameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
@@ -252,26 +255,24 @@ void ProcessComponent::AppendFrameInfo(
     CHECK_FAILURE(mainFrameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
     CHECK_FAILURE(frameInfoExperimental->get_FrameId(&mainFrameId));
 
-    wil::com_ptr<ICoreWebView2FrameInfo> firstLevelFrameInfo =
-        GetAncestorFirstLevelFrameInfo(frameInfo);
-    if (firstLevelFrameInfo == frameInfo)
+    wil::com_ptr<ICoreWebView2FrameInfo> childFrameInfo =
+        GetAncestorMainFrameDirectChildFrameInfo(frameInfo);
+    if (childFrameInfo == frameInfo)
     {
         type = L"first level frame";
     }
-    if (firstLevelFrameInfo)
+    if (childFrameInfo)
     {
-        CHECK_FAILURE(
-            firstLevelFrameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
-        CHECK_FAILURE(frameInfoExperimental->get_FrameId(&firstLevelFrameId));
+        CHECK_FAILURE(childFrameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
+        CHECK_FAILURE(frameInfoExperimental->get_FrameId(&childFrameId));
     }
 
-    result << L"{frame name:" << name << L" | frame Id:" << std::to_wstring(frameId)
-           << L" | parent frame Id:"
+    result << L"{frame name:" << name << L" | frame Id:" << frameId << L" | parent frame Id:"
            << ((parentFrameId == 0) ? L"none" : std::to_wstring(parentFrameId))
            << L" | frame type:" << type << L"\n"
-           << L" | ancestor main frame Id:" << std::to_wstring(mainFrameId)
-           << L" | ancestor first level frame Id:"
-           << ((firstLevelFrameId == 0) ? L"none" : std::to_wstring(firstLevelFrameId)) << L"\n"
+           << L" | ancestor main frame Id:" << mainFrameId
+           << L" | ancestor main frame's direct child frame Id:"
+           << ((childFrameId == 0) ? L"none" : std::to_wstring(childFrameId)) << L"\n"
            << L" | frame kind:" << FrameKindToString(frameKind) << L"\n"
            << L" | frame source:" << source << L"}," << std::endl;
 }
@@ -292,34 +293,46 @@ wil::com_ptr<ICoreWebView2FrameInfo> ProcessComponent::GetAncestorMainFrameInfo(
     return mainFrameInfo;
 }
 
-// Get the ancestor first level frameInfo.
-// Return itself if it's a first level frameInfo.
-wil::com_ptr<ICoreWebView2FrameInfo> ProcessComponent::GetAncestorFirstLevelFrameInfo(
+// Get the frame's corresponding main frame's direct child frameInfo.
+// Example:
+//         A (main frame/CoreWebView2)
+//         | \
+// (frame) B  C (frame)
+//         |  |
+// (frame) D  E (frame)
+//            |
+//            F (frame)
+// C GetAncestorMainFrameDirectChildFrameInfo returns C.
+// D GetAncestorMainFrameDirectChildFrameInfo returns B.
+// F GetAncestorMainFrameDirectChildFrameInfo returns C.
+wil::com_ptr<ICoreWebView2FrameInfo> ProcessComponent::GetAncestorMainFrameDirectChildFrameInfo(
     wil::com_ptr<ICoreWebView2FrameInfo> frameInfo)
 {
     wil::com_ptr<ICoreWebView2FrameInfo> mainFrameInfo;
-    wil::com_ptr<ICoreWebView2FrameInfo> firstLevelFrameInfo;
+    wil::com_ptr<ICoreWebView2FrameInfo> childFrameInfo;
     wil::com_ptr<ICoreWebView2ExperimentalFrameInfo> frameInfoExperimental;
     while (frameInfo)
     {
-        firstLevelFrameInfo = mainFrameInfo;
+        childFrameInfo = mainFrameInfo;
         mainFrameInfo = frameInfo;
         CHECK_FAILURE(frameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
         CHECK_FAILURE(frameInfoExperimental->get_ParentFrameInfo(&frameInfo));
     }
-    return firstLevelFrameInfo;
+    return childFrameInfo;
 }
 
-void ProcessComponent::ShowProcessFrameInfo()
+void ProcessComponent::ShowProcessExtendedInfo()
 {
-    auto environmentExperimental11 =
-        m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment11>();
-    if (environmentExperimental11)
+    auto environmentExperimental13 =
+        m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment13>();
+    if (environmentExperimental13)
     {
-        //! [GetProcessInfosWithDetails]
-        CHECK_FAILURE(environmentExperimental11->GetProcessInfosWithDetails(
-            Callback<ICoreWebView2ExperimentalGetProcessInfosWithDetailsCompletedHandler>(
-                [this](HRESULT error, ICoreWebView2ProcessInfoCollection* processCollection)
+        //! [GetProcessExtendedInfos]
+        CHECK_FAILURE(environmentExperimental13->GetProcessExtendedInfos(
+            Callback<ICoreWebView2ExperimentalGetProcessExtendedInfosCompletedHandler>(
+                [this](
+                    HRESULT error,
+                    ICoreWebView2ExperimentalProcessExtendedInfoCollection* processCollection)
                     -> HRESULT
                 {
                     UINT32 processCount = 0;
@@ -329,8 +342,12 @@ void ProcessComponent::ShowProcessFrameInfo()
                     std::wstringstream rendererProcessInfos;
                     for (UINT32 i = 0; i < processCount; i++)
                     {
+                        Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalProcessExtendedInfo>
+                            processExtendedInfo;
+                        CHECK_FAILURE(
+                            processCollection->GetValueAtIndex(i, &processExtendedInfo));
                         Microsoft::WRL::ComPtr<ICoreWebView2ProcessInfo> processInfo;
-                        CHECK_FAILURE(processCollection->GetValueAtIndex(i, &processInfo));
+                        CHECK_FAILURE(processExtendedInfo->get_ProcessInfo(&processInfo));
                         COREWEBVIEW2_PROCESS_KIND kind;
                         CHECK_FAILURE(processInfo->get_Kind(&kind));
                         INT32 processId = 0;
@@ -339,12 +356,8 @@ void ProcessComponent::ShowProcessFrameInfo()
                         {
                             //! [AssociatedFrameInfos]
                             std::wstringstream rendererProcess;
-                            wil::com_ptr<ICoreWebView2ExperimentalProcessInfo>
-                                processInfoExperimental;
-                            CHECK_FAILURE(processInfo->QueryInterface(
-                                IID_PPV_ARGS(&processInfoExperimental)));
                             wil::com_ptr<ICoreWebView2FrameInfoCollection> frameInfoCollection;
-                            CHECK_FAILURE(processInfoExperimental->get_AssociatedFrameInfos(
+                            CHECK_FAILURE(processExtendedInfo->get_AssociatedFrameInfos(
                                 &frameInfoCollection));
                             wil::com_ptr<ICoreWebView2FrameInfoCollectionIterator> iterator;
                             CHECK_FAILURE(frameInfoCollection->GetIterator(&iterator));
@@ -363,34 +376,32 @@ void ProcessComponent::ShowProcessFrameInfo()
                                 frameInfoCount++;
                             }
                             rendererProcessInfos
-                                << std::to_wstring(frameInfoCount)
-                                << L" frameInfo(s) found in Renderer Process ID:"
-                                << std::to_wstring(processId) << L"\n"
+                                << frameInfoCount
+                                << L" frameInfo(s) found in Renderer Process ID:" << processId
+                                << L"\n"
                                 << rendererProcess.str() << std::endl;
                             //! [AssociatedFrameInfos]
                             rendererProcessCount++;
                         }
                         else
                         {
-                            otherProcessInfos << L"Process Id:" << std::to_wstring(processId)
+                            otherProcessInfos << L"Process Id:" << processId
                                               << L" | Process Kind:"
                                               << ProcessKindToString(kind) << std::endl;
                         }
                     }
                     std::wstringstream message;
-                    message << std::to_wstring(processCount)
-                            << L" process(es) found, from which "
-                            << std::to_wstring(rendererProcessCount)
-                            << L" renderer process(es) found\n\n"
+                    message << processCount << L" process(es) found, from which "
+                            << rendererProcessCount << L" renderer process(es) found\n\n"
                             << rendererProcessInfos.str() << L"Remaining Process(es) Infos:\n"
                             << otherProcessInfos.str();
 
                     m_appWindow->AsyncMessageBox(
-                        std::move(message.str()), L"Process Info with Associated Frames");
+                        std::move(message.str()), L"Process Extended Info");
                     return S_OK;
                 })
                 .Get()));
-        //! [GetProcessInfosWithDetails]
+        //! [GetProcessExtendedInfos]
     }
 }
 
