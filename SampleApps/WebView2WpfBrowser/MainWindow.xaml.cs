@@ -119,7 +119,7 @@ namespace WebView2WpfBrowser
 
         public static RoutedCommand SetCustomDataPartitionCommand = new RoutedCommand();
         public static RoutedCommand ClearCustomDataPartitionCommand = new RoutedCommand();
-        public static RoutedCommand ProcessFrameInfoCommand = new RoutedCommand();
+        public static RoutedCommand ProcessExtendedInfoCommand = new RoutedCommand();
 
         public static RoutedCommand OpenSaveAsDialogCommand = new RoutedCommand();
         public static RoutedCommand SaveAsSilentCommand = new RoutedCommand();
@@ -411,7 +411,7 @@ namespace WebView2WpfBrowser
             {
                 replacementControl.CreationProperties = webView.CreationProperties;
             }
-                replacementControl.CreationProperties.AreBrowserExtensionsEnabled = true;
+            replacementControl.CreationProperties.AreBrowserExtensionsEnabled = true;
             Binding urlBinding = new Binding()
             {
                 Source = replacementControl,
@@ -1621,62 +1621,63 @@ namespace WebView2WpfBrowser
             // {
             //     using (deferral)
             //     {
-                        if (String.Equals(args.Uri, "calculator:///", StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(args.Uri, "calculator:///", StringComparison.OrdinalIgnoreCase))
+            {
+                // Set the event args to cancel the event and launch the
+                // calculator app. This will always allow the external URI scheme launch.
+                args.Cancel = true;
+                ProcessStartInfo info = new ProcessStartInfo
+                {
+                    FileName = args.Uri,
+                    UseShellExecute = true
+                };
+                Process.Start(info);
+            }
+            else if (String.Equals(args.Uri, "malicious:///", StringComparison.OrdinalIgnoreCase))
+            {
+                // Always block the request in this case by cancelling the event.
+                args.Cancel = true;
+            }
+            else if (String.Equals(args.Uri, "contoso:///", StringComparison.OrdinalIgnoreCase))
+            {
+                // To display a custom dialog we cancel the launch, display
+                // a custom dialog, and then manually launch the external URI scheme
+                // depending on the user's selection.
+                args.Cancel = true;
+                string text = "Launching External URI Scheme";
+                if (args.InitiatingOrigin != "")
+                {
+                    text += "from ";
+                    text += args.InitiatingOrigin;
+                }
+                text += " to ";
+                text += args.Uri;
+                text += "\n";
+                text += "Do you want to grant permission?";
+                string caption = "Launching External URI Scheme request";
+                MessageBoxButton btnMessageBox = MessageBoxButton.YesNo;
+                MessageBoxImage icnMessageBox = MessageBoxImage.None;
+                MessageBoxResult resultbox = MessageBox.Show(text, caption, btnMessageBox, icnMessageBox);
+                switch (resultbox)
+                {
+                    case MessageBoxResult.Yes:
+                        ProcessStartInfo info = new ProcessStartInfo
                         {
-                            // Set the event args to cancel the event and launch the
-                            // calculator app. This will always allow the external URI scheme launch.
-                            args.Cancel = true;
-                            ProcessStartInfo info = new ProcessStartInfo
-                            {
-                                FileName = args.Uri,
-                                UseShellExecute = true
-                            };
-                            Process.Start(info);
-                        }
-                        else if (String.Equals(args.Uri, "malicious:///", StringComparison.OrdinalIgnoreCase)) {
-                            // Always block the request in this case by cancelling the event.
-                            args.Cancel = true;
-                        }
-                        else if (String.Equals(args.Uri, "contoso:///", StringComparison.OrdinalIgnoreCase))
-                        {
-                            // To display a custom dialog we cancel the launch, display
-                            // a custom dialog, and then manually launch the external URI scheme
-                            // depending on the user's selection.
-                            args.Cancel = true;
-                            string text = "Launching External URI Scheme";
-                            if (args.InitiatingOrigin != "")
-                            {
-                                text += "from ";
-                                text += args.InitiatingOrigin;
-                            }
-                            text += " to ";
-                            text += args.Uri;
-                            text += "\n";
-                            text += "Do you want to grant permission?";
-                            string caption = "Launching External URI Scheme request";
-                            MessageBoxButton btnMessageBox = MessageBoxButton.YesNo;
-                            MessageBoxImage icnMessageBox = MessageBoxImage.None;
-                            MessageBoxResult resultbox = MessageBox.Show(text, caption, btnMessageBox, icnMessageBox);
-                            switch (resultbox)
-                            {
-                                case MessageBoxResult.Yes:
-                                    ProcessStartInfo info = new ProcessStartInfo
-                                    {
-                                        FileName = args.Uri,
-                                        UseShellExecute = true
-                                    };
-                                    Process.Start(info);
-                                    break;
+                            FileName = args.Uri,
+                            UseShellExecute = true
+                        };
+                        Process.Start(info);
+                        break;
 
-                                case MessageBoxResult.No:
-                                    break;
-                            }
+                    case MessageBoxResult.No:
+                        break;
+                }
 
-                        }
-                        else
-                        {
-                            // Do not cancel the event, allowing the request to use the default dialog.
-                        }
+            }
+            else
+            {
+                // Do not cancel the event, allowing the request to use the default dialog.
+            }
             //     }
             // }, null);
         }
@@ -1971,9 +1972,8 @@ namespace WebView2WpfBrowser
             return newUri;
         }
 
-#if USE_WEBVIEW2_EXPERIMENTAL
-    Action OnWebViewFirstInitialized;
-#endif
+        Action OnWebViewFirstInitialized;
+
         void WebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             if (e.IsSuccess)
@@ -2031,7 +2031,6 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
-#if USE_WEBVIEW2_EXPERIMENTAL
                 OnWebViewFirstInitialized?.Invoke();
 
                 webView.CoreWebView2.NewWindowRequested += delegate (
@@ -2041,7 +2040,7 @@ namespace WebView2WpfBrowser
                     // such as URI.
                     string sampleUri = "https://www.example.com/";
                     bool useDefaultBrowser =
-                        (args.OriginalSourceFrameInfo.Source == sampleUri);
+                        (args.OriginalSourceFrameInfo?.Source == sampleUri);
                     if (useDefaultBrowser)
                     {
                         ProcessStartInfo startInfo = new ProcessStartInfo
@@ -2069,7 +2068,6 @@ namespace WebView2WpfBrowser
                         main_window.Show();
                   }
                 };
-#endif
                 return;
             }
 
@@ -2409,9 +2407,9 @@ namespace WebView2WpfBrowser
               type = "main frame";
             }
 
-            CoreWebView2FrameInfo firstLevelFrame = GetAncestorFirstLevelFrameInfo(frameInfo);
-            string firstLevelFrameId = firstLevelFrame == null ? "none" : firstLevelFrame.FrameId.ToString();
-            if (frameInfo == firstLevelFrame) {
+            CoreWebView2FrameInfo childFrame = GetAncestorMainFrameDirectChildFrameInfo(frameInfo);
+            string childFrameId = childFrame == null ? "none" : childFrame.FrameId.ToString();
+            if (frameInfo == childFrame) {
               type = "first level frame";
             }
 
@@ -2420,7 +2418,7 @@ namespace WebView2WpfBrowser
                    $"| frame Type: {type} " +
                    $"| parent frame Id: {parentId} \n" +
                    $"| ancestor main frame Id: {mainFrameId} " +
-                   $"| ancestor first level frame Id: {firstLevelFrameId} \n" +
+                   $"| ancestor first level frame Id: {childFrameId} \n" +
                    $"| frame Kind: {kind} " +
                    $"| frame Source: \"{source}\"}}\n";
         }
@@ -2432,37 +2430,50 @@ namespace WebView2WpfBrowser
           return frameInfo;
         }
 
-        CoreWebView2FrameInfo GetAncestorFirstLevelFrameInfo(CoreWebView2FrameInfo frameInfo) {
+        // Get the frame's corresponding main frame's direct child frameInfo.
+        // Example:
+        //         A (main frame/CoreWebView2)
+        //         | \
+        // (frame) B  C (frame)
+        //         |  |
+        // (frame) D  E (frame)
+        //            |
+        //            F (frame)
+        // C GetAncestorMainFrameDirectChildFrameInfo returns C.
+        // D GetAncestorMainFrameDirectChildFrameInfo returns B.
+        // F GetAncestorMainFrameDirectChildFrameInfo returns C.
+        CoreWebView2FrameInfo GetAncestorMainFrameDirectChildFrameInfo(CoreWebView2FrameInfo frameInfo) {
           if (frameInfo.ParentFrameInfo == null) {
             return null;
           }
 
-          CoreWebView2FrameInfo firstLevelFrameInfo = null;
+          CoreWebView2FrameInfo childFrameInfo = null;
           CoreWebView2FrameInfo mainFrameInfo = null;
           while (frameInfo != null) {
-            firstLevelFrameInfo = mainFrameInfo;
+            childFrameInfo = mainFrameInfo;
             mainFrameInfo = frameInfo;
             frameInfo = frameInfo.ParentFrameInfo;
           }
-          return firstLevelFrameInfo;
+          return childFrameInfo;
         }
 #endif
 
-        private async void ProcessFrameInfoCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        private async void ProcessExtendedInfoCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
 #if USE_WEBVIEW2_EXPERIMENTAL
             try
             {
-                // <GetProcessInfosWithDetails>
-                IReadOnlyList<CoreWebView2ProcessInfo> processList = await webView.CoreWebView2.Environment.GetProcessInfosWithDetailsAsync();
+                // <GetProcessExtendedInfos>
+                IReadOnlyList<CoreWebView2ProcessExtendedInfo> processList = await webView.CoreWebView2.Environment.GetProcessExtendedInfosAsync();
                 int processCount = processList.Count;
                 string rendererProcessInfos = "";
                 string otherProcessInfos = "";
                 int rendererProcessCount = 0;
                 for (int i = 0; i < processCount; ++i)
                 {
-                    CoreWebView2ProcessKind kind = processList[i].Kind;
-                    int processId = processList[i].ProcessId;
+                    CoreWebView2ProcessInfo processInfo = processList[i].ProcessInfo;
+                    CoreWebView2ProcessKind kind = processInfo.Kind;
+                    int processId = processInfo.ProcessId;
                     if (kind == CoreWebView2ProcessKind.Renderer)
                     {
                         int frameInfoCount = 0;
@@ -2484,15 +2495,15 @@ namespace WebView2WpfBrowser
                         otherProcessInfos += $"Process ID: {processId} | Process Kind: {kind}\n";
                     }
                 }
-                // </GetProcessInfosWithDetails>
+                // </GetProcessExtendedInfos>
                 string message = $"{processCount} process(es) found in total, from which {rendererProcessCount} renderer process(es) found\n\n" +
                                  $"{rendererProcessInfos}\nRemaining Process Infos:\n{otherProcessInfos}";
-                MessageBox.Show(this, message, "Process Info with Associated Frames");
+                MessageBox.Show(this, message, "Process Extended Info");
             }
             catch (NotImplementedException exception)
             {
-                MessageBox.Show(this, "GetProcessInfosWithDetailsAsync Failed: " + exception.Message,
-                   "Process Info with Associated Frames");
+                MessageBox.Show(this, "GetProcessExtendedInfosAsync Failed: " + exception.Message,
+                   "Process Extended Info");
             }
 #else
             await Task.CompletedTask;

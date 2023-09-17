@@ -1724,12 +1724,13 @@ void AppWindow::RegisterEventHandlers()
                     args->put_Handled(FALSE);
                     return S_OK;
                 }
-                wil::com_ptr<ICoreWebView2ExperimentalNewWindowRequestedEventArgs2>
-                    experimental_args;
-                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&experimental_args))))
+                wil::com_ptr<ICoreWebView2NewWindowRequestedEventArgs> args_as_comptr = args;
+                auto args3 =
+                    args_as_comptr.try_query<ICoreWebView2NewWindowRequestedEventArgs3>();
+                if (args3)
                 {
                     wil::com_ptr<ICoreWebView2FrameInfo> frame_info;
-                    CHECK_FAILURE(experimental_args->get_OriginalSourceFrameInfo(&frame_info));
+                    CHECK_FAILURE(args3->get_OriginalSourceFrameInfo(&frame_info));
                     wil::unique_cotaskmem_string source;
                     CHECK_FAILURE(frame_info->get_Source(&source));
                     // The host can decide how to open based on source frame info,
