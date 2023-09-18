@@ -20,7 +20,7 @@ found in the LICENSE file.-->
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0" Background="LightGray">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
@@ -43,7 +43,7 @@ found in the LICENSE file.-->
 
         <controls:WebView2 x:Name="WebView2" Grid.Row="1"/>
 
-        <Rectangle Grid.Row="2" Fill="LightGray"/>
+        <Rectangle Grid.Row="2"/>
         <TextBlock x:Name="StatusBar" Text="WebView2" VerticalAlignment="Center" Grid.Row="2" Margin="10,0,10,0"/>
     </Grid>
 </local:BasePage>
