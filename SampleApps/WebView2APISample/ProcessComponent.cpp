@@ -53,7 +53,7 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
                     // needed.
                     ScheduleReloadIfSelectedByUser(
                         L"Browser render process exited unexpectedly. Reload page?",
-                        L"Web page unresponsive");
+                        L"Render process exited");
                 }
                 // Check the runtime event args implements the newer interface.
                 auto args2 = args.try_query<ICoreWebView2ProcessFailedEventArgs2>();
@@ -100,17 +100,18 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
                     COREWEBVIEW2_PROCESS_FAILED_REASON reason;
                     wil::unique_cotaskmem_string processDescription;
                     int exitCode;
+                    wil::unique_cotaskmem_string blockedFile;
 
                     CHECK_FAILURE(args2->get_Reason(&reason));
                     CHECK_FAILURE(args2->get_ProcessDescription(&processDescription));
                     CHECK_FAILURE(args2->get_ExitCode(&exitCode));
-
                     std::wstringstream message;
                     message << L"Kind: " << ProcessFailedKindToString(kind) << L"\n"
                             << L"Reason: " << ProcessFailedReasonToString(reason) << L"\n"
                             << L"Exit code: " << exitCode << L"\n"
-                            << L"Process description: " << processDescription.get()
-                            << std::endl;
+                            << L"Process description: " << processDescription.get() << std::endl
+                            << (blockedFile ? L"Blocked file: " : L"")
+                            << (blockedFile ? blockedFile.get() : L"");
                     m_appWindow->AsyncMessageBox( std::move(message.str()), L"Child process failed");
                 }
                 return S_OK;
