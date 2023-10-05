@@ -48,12 +48,7 @@ namespace WebView2_UWP
                 _localSettings[SettingsVersionKey] = SettingsVersion;
             }
 
-#if USE_WEBVIEW2_SMOKETEST
-            var webViewExecutableFolder = ApplicationData.Current.LocalFolder.Path + "\\EdgeBin";
-            Environment.SetEnvironmentVariable(WebViewExecutableFolderEnvKey, webViewExecutableFolder);
-#else
             InitializeEnvSetting(WebViewExecutableFolderKey, WebViewExecutableFolderEnvKey);
-#endif
             InitializeEnvSetting(WebViewUserDataFolderKey, WebViewUserDataFolderEnvKey);
             InitializeEnvSetting(WebViewReleaseChannelPrefKey, WebViewReleaseChannelPrefEnvKey);
             InitializeEnvSetting(WebViewAdditionalArgumentsKey, WebViewAdditionalArgumentsEnvKey);
