@@ -121,8 +121,7 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_NavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
-                -> HRESULT
-            {
+                -> HRESULT {
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
 
@@ -188,8 +187,7 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_FrameNavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
-                -> HRESULT
-            {
+                -> HRESULT {
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
 
@@ -270,38 +268,35 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_ScriptDialogOpening(
         Callback<ICoreWebView2ScriptDialogOpeningEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2ScriptDialogOpeningEventArgs* args)
-                -> HRESULT
-            {
+                -> HRESULT {
                 AppWindow* appWindow = m_appWindow;
                 wil::com_ptr<ICoreWebView2ScriptDialogOpeningEventArgs> eventArgs = args;
                 wil::com_ptr<ICoreWebView2Deferral> deferral;
                 CHECK_FAILURE(args->GetDeferral(&deferral));
-                appWindow->RunAsync(
-                    [appWindow, eventArgs, deferral]
+                appWindow->RunAsync([appWindow, eventArgs, deferral] {
+                    wil::unique_cotaskmem_string uri;
+                    COREWEBVIEW2_SCRIPT_DIALOG_KIND type;
+                    wil::unique_cotaskmem_string message;
+                    wil::unique_cotaskmem_string defaultText;
+
+                    CHECK_FAILURE(eventArgs->get_Uri(&uri));
+                    CHECK_FAILURE(eventArgs->get_Kind(&type));
+                    CHECK_FAILURE(eventArgs->get_Message(&message));
+                    CHECK_FAILURE(eventArgs->get_DefaultText(&defaultText));
+
+                    std::wstring promptString =
+                        std::wstring(L"The page at '") + uri.get() + L"' says:";
+                    TextInputDialog dialog(
+                        appWindow->GetMainWindow(), L"Script Dialog", promptString.c_str(),
+                        message.get(), defaultText.get(),
+                        /* readonly */ type != COREWEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT);
+                    if (dialog.confirmed)
                     {
-                        wil::unique_cotaskmem_string uri;
-                        COREWEBVIEW2_SCRIPT_DIALOG_KIND type;
-                        wil::unique_cotaskmem_string message;
-                        wil::unique_cotaskmem_string defaultText;
-
-                        CHECK_FAILURE(eventArgs->get_Uri(&uri));
-                        CHECK_FAILURE(eventArgs->get_Kind(&type));
-                        CHECK_FAILURE(eventArgs->get_Message(&message));
-                        CHECK_FAILURE(eventArgs->get_DefaultText(&defaultText));
-
-                        std::wstring promptString =
-                            std::wstring(L"The page at '") + uri.get() + L"' says:";
-                        TextInputDialog dialog(
-                            appWindow->GetMainWindow(), L"Script Dialog", promptString.c_str(),
-                            message.get(), defaultText.get(),
-                            /* readonly */ type != COREWEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT);
-                        if (dialog.confirmed)
-                        {
-                            CHECK_FAILURE(eventArgs->put_ResultText(dialog.input.c_str()));
-                            CHECK_FAILURE(eventArgs->Accept());
-                        }
-                        deferral->Complete();
-                    });
+                        CHECK_FAILURE(eventArgs->put_ResultText(dialog.input.c_str()));
+                        CHECK_FAILURE(eventArgs->Accept());
+                    }
+                    deferral->Complete();
+                });
                 return S_OK;
             })
             .Get(),
@@ -586,8 +581,7 @@ bool SettingsComponent::HandleWindowMessage(
                     Callback<ICoreWebView2ContextMenuRequestedEventHandler>(
                         [this](
                             ICoreWebView2* sender,
-                            ICoreWebView2ContextMenuRequestedEventArgs* eventArgs)
-                        {
+                            ICoreWebView2ContextMenuRequestedEventArgs* eventArgs) {
                             wil::com_ptr<ICoreWebView2ContextMenuRequestedEventArgs> args =
                                 eventArgs;
                             wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items;
@@ -605,8 +599,7 @@ bool SettingsComponent::HandleWindowMessage(
                             if (targetKind ==
                                 COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND_SELECTED_TEXT)
                             {
-                                auto showMenu = [this, args, itemsCount, items, target]
-                                {
+                                auto showMenu = [this, args, itemsCount, items, target] {
                                     CHECK_FAILURE(args->put_Handled(true));
                                     HMENU hPopupMenu = CreatePopupMenu();
                                     AddMenuItems(hPopupMenu, items);
@@ -636,12 +629,10 @@ bool SettingsComponent::HandleWindowMessage(
                                 };
                                 wil::com_ptr<ICoreWebView2Deferral> deferral;
                                 CHECK_FAILURE(args->GetDeferral(&deferral));
-                                m_appWindow->RunAsync(
-                                    [deferral, showMenu]()
-                                    {
-                                        showMenu();
-                                        CHECK_FAILURE(deferral->Complete());
-                                    });
+                                m_appWindow->RunAsync([deferral, showMenu]() {
+                                    showMenu();
+                                    CHECK_FAILURE(deferral->Complete());
+                                });
                             }
                             // Removing the 'Save image as' context menu item for image context
                             // selections.
@@ -689,8 +680,7 @@ bool SettingsComponent::HandleWindowMessage(
                                         Callback<ICoreWebView2CustomItemSelectedEventHandler>(
                                             [appWindow = m_appWindow, target](
                                                 ICoreWebView2ContextMenuItem* sender,
-                                                IUnknown* args)
-                                            {
+                                                IUnknown* args) {
                                                 wil::unique_cotaskmem_string pageUri;
                                                 CHECK_FAILURE(target->get_PageUri(&pageUri));
                                                 appWindow->AsyncMessageBox(
@@ -1259,10 +1249,8 @@ bool SettingsComponent::HandleWindowMessage(
             // certificate errors.
             CHECK_FAILURE(m_webView2_14->ClearServerCertificateErrorActions(
                 Callback<ICoreWebView2ClearServerCertificateErrorActionsCompletedHandler>(
-                    [this](HRESULT result) -> HRESULT
-                    {
-                        auto showDialog = [result]
-                        {
+                    [this](HRESULT result) -> HRESULT {
+                        auto showDialog = [result] {
                             MessageBox(
                                 nullptr,
                                 (result == S_OK)
@@ -1486,8 +1474,8 @@ void SettingsComponent::SetBlockImages(bool blockImages)
             CHECK_FAILURE(m_webView->add_WebResourceRequested(
                 Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                     [this](
-                        ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
-                    {
+                        ICoreWebView2* sender,
+                        ICoreWebView2WebResourceRequestedEventArgs* args) {
                         COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
                         CHECK_FAILURE(args->get_ResourceContext(&resourceContext));
                         // Ensure that the type is image
@@ -1496,8 +1484,7 @@ void SettingsComponent::SetBlockImages(bool blockImages)
                             return E_INVALIDARG;
                         }
                         // Override the response with an empty one to block the image.
-                        // If put_Response is not called, the request will
-                        // continue as normal.
+                        // If put_Response is not called, the request will continue as normal.
                         wil::com_ptr<ICoreWebView2WebResourceResponse> response;
                         wil::com_ptr<ICoreWebView2Environment> environment;
                         wil::com_ptr<ICoreWebView2_2> webview2;
@@ -1537,8 +1524,8 @@ void SettingsComponent::SetReplaceImages(bool replaceImages)
             CHECK_FAILURE(m_webView->add_WebResourceRequested(
                 Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                     [this](
-                        ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
-                    {
+                        ICoreWebView2* sender,
+                        ICoreWebView2WebResourceRequestedEventArgs* args) {
                         COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
                         CHECK_FAILURE(args->get_ResourceContext(&resourceContext));
                         // Ensure that the type is image
@@ -1547,11 +1534,7 @@ void SettingsComponent::SetReplaceImages(bool replaceImages)
                             return E_INVALIDARG;
                         }
                         // Override the response with an another image.
-                        // If put_Response is not called, the request will
-                        // continue as normal.
-                        // It's not required for this scenario, but generally you should examine
-                        // relevant HTTP request headers just like an HTTP server would do when
-                        // producing a response stream.
+                        // If put_Response is not called, the request will continue as normal.
                         wil::com_ptr<IStream> stream;
                         CHECK_FAILURE(SHCreateStreamOnFileEx(
                             L"assets/EdgeWebView2-80.jpg", STGM_READ, FILE_ATTRIBUTE_NORMAL,
@@ -1629,8 +1612,7 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
                 Callback<ICoreWebView2ClientCertificateRequestedEventHandler>(
                     [this](
                         ICoreWebView2* sender,
-                        ICoreWebView2ClientCertificateRequestedEventArgs* args)
-                    {
+                        ICoreWebView2ClientCertificateRequestedEventArgs* args) {
                         wil::com_ptr<ICoreWebView2ClientCertificateCollection>
                             certificateCollection;
                         CHECK_FAILURE(
@@ -1705,8 +1687,7 @@ void SettingsComponent::ToggleCustomServerCertificateSupport()
                 Callback<ICoreWebView2ServerCertificateErrorDetectedEventHandler>(
                     [this](
                         ICoreWebView2* sender,
-                        ICoreWebView2ServerCertificateErrorDetectedEventArgs* args)
-                    {
+                        ICoreWebView2ServerCertificateErrorDetectedEventArgs* args) {
                         COREWEBVIEW2_WEB_ERROR_STATUS errorStatus;
                         CHECK_FAILURE(args->get_ErrorStatus(&errorStatus));
 

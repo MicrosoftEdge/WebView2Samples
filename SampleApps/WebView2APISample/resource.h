@@ -122,7 +122,7 @@
 #define IDC_PERMISSION_KIND             258
 #define IDC_PERMISSION_STATE            259
 #define IDM_TOGGLE_TOPMOST_WINDOW       300
-#define IDM_PROCESS_EXTENDED_INFO       301
+#define IDM_PROCESS_FRAME_INFO          301
 #define IDE_ADDRESSBAR                  1000
 #define IDE_ADDRESSBAR_GO               1001
 #define IDE_BACK                        1002

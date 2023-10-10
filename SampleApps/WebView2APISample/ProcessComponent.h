@@ -32,7 +32,7 @@ public:
     void CrashBrowserProcess();
     void CrashRenderProcess();
     void PerformanceInfo();
-    void ShowProcessExtendedInfo();
+    void ShowProcessFrameInfo();
 
     ~ProcessComponent() override;
 
@@ -55,7 +55,7 @@ private:
     EventRegistrationToken m_processInfosChangedToken = {};
     void AppendFrameInfo(
         wil::com_ptr<ICoreWebView2FrameInfo> frameInfo, std::wstringstream& result);
-    wil::com_ptr<ICoreWebView2FrameInfo> GetAncestorMainFrameDirectChildFrameInfo(
+    wil::com_ptr<ICoreWebView2FrameInfo> GetAncestorFirstLevelFrameInfo(
         wil::com_ptr<ICoreWebView2FrameInfo> frameInfo);
     wil::com_ptr<ICoreWebView2FrameInfo> GetAncestorMainFrameInfo(
         wil::com_ptr<ICoreWebView2FrameInfo> frameInfo);

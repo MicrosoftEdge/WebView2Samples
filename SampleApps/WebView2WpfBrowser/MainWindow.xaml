@@ -72,7 +72,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.CheckUpdateCommand}" Executed="CheckUpdateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AllowExternalDropCommand}" Executed="AllowExternalDropCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PerfInfoCommand}" Executed="PerfInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
-        <CommandBinding Command="{x:Static local:MainWindow.ProcessExtendedInfoCommand}" Executed="ProcessExtendedInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ProcessFrameInfoCommand}" Executed="ProcessFrameInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}" Executed="NewWindowWithOptionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CreateNewThreadCommand}" Executed="CreateNewThreadCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" Executed="TrackingPreventionLevelCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -138,7 +138,7 @@ found in the LICENSE file.
                 <MenuItem Header="Crash Browser Process" Command="{x:Static local:MainWindow.CrashBrowserProcessCommand}"/>
                 <MenuItem Header="Crash Render Process" Command="{x:Static local:MainWindow.CrashRenderProcessCommand}"/>
                 <MenuItem Header="Show _Performance Info" Command="{x:Static local:MainWindow.PerfInfoCommand}"/>
-                <MenuItem Header="Show _Process Extended Info" Command="{x:Static local:MainWindow.ProcessExtendedInfoCommand}"/>
+                <MenuItem Header="Show _Process Info with Associated Frames" Command="{x:Static local:MainWindow.ProcessFrameInfoCommand}"/>
                 <!---TODO-->
             </MenuItem>
             <MenuItem Header="S_ettings">

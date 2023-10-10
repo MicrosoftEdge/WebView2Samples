@@ -119,7 +119,7 @@ namespace WebView2WpfBrowser
 
         public static RoutedCommand SetCustomDataPartitionCommand = new RoutedCommand();
         public static RoutedCommand ClearCustomDataPartitionCommand = new RoutedCommand();
-        public static RoutedCommand ProcessExtendedInfoCommand = new RoutedCommand();
+        public static RoutedCommand ProcessFrameInfoCommand = new RoutedCommand();
 
         public static RoutedCommand OpenSaveAsDialogCommand = new RoutedCommand();
         public static RoutedCommand SaveAsSilentCommand = new RoutedCommand();
@@ -1972,8 +1972,9 @@ namespace WebView2WpfBrowser
             return newUri;
         }
 
-        Action OnWebViewFirstInitialized;
-
+#if USE_WEBVIEW2_EXPERIMENTAL
+    Action OnWebViewFirstInitialized;
+#endif
         void WebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
             if (e.IsSuccess)
@@ -2031,6 +2032,7 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
+#if USE_WEBVIEW2_EXPERIMENTAL
                 OnWebViewFirstInitialized?.Invoke();
 
                 webView.CoreWebView2.NewWindowRequested += delegate (
@@ -2040,7 +2042,7 @@ namespace WebView2WpfBrowser
                     // such as URI.
                     string sampleUri = "https://www.example.com/";
                     bool useDefaultBrowser =
-                        (args.OriginalSourceFrameInfo?.Source == sampleUri);
+                        (args.OriginalSourceFrameInfo.Source == sampleUri);
                     if (useDefaultBrowser)
                     {
                         ProcessStartInfo startInfo = new ProcessStartInfo
@@ -2068,6 +2070,7 @@ namespace WebView2WpfBrowser
                         main_window.Show();
                   }
                 };
+#endif
                 return;
             }
 
@@ -2407,9 +2410,9 @@ namespace WebView2WpfBrowser
               type = "main frame";
             }
 
-            CoreWebView2FrameInfo childFrame = GetAncestorMainFrameDirectChildFrameInfo(frameInfo);
-            string childFrameId = childFrame == null ? "none" : childFrame.FrameId.ToString();
-            if (frameInfo == childFrame) {
+            CoreWebView2FrameInfo firstLevelFrame = GetAncestorFirstLevelFrameInfo(frameInfo);
+            string firstLevelFrameId = firstLevelFrame == null ? "none" : firstLevelFrame.FrameId.ToString();
+            if (frameInfo == firstLevelFrame) {
               type = "first level frame";
             }
 
@@ -2418,7 +2421,7 @@ namespace WebView2WpfBrowser
                    $"| frame Type: {type} " +
                    $"| parent frame Id: {parentId} \n" +
                    $"| ancestor main frame Id: {mainFrameId} " +
-                   $"| ancestor first level frame Id: {childFrameId} \n" +
+                   $"| ancestor first level frame Id: {firstLevelFrameId} \n" +
                    $"| frame Kind: {kind} " +
                    $"| frame Source: \"{source}\"}}\n";
         }
@@ -2430,50 +2433,37 @@ namespace WebView2WpfBrowser
           return frameInfo;
         }
 
-        // Get the frame's corresponding main frame's direct child frameInfo.
-        // Example:
-        //         A (main frame/CoreWebView2)
-        //         | \
-        // (frame) B  C (frame)
-        //         |  |
-        // (frame) D  E (frame)
-        //            |
-        //            F (frame)
-        // C GetAncestorMainFrameDirectChildFrameInfo returns C.
-        // D GetAncestorMainFrameDirectChildFrameInfo returns B.
-        // F GetAncestorMainFrameDirectChildFrameInfo returns C.
-        CoreWebView2FrameInfo GetAncestorMainFrameDirectChildFrameInfo(CoreWebView2FrameInfo frameInfo) {
+        CoreWebView2FrameInfo GetAncestorFirstLevelFrameInfo(CoreWebView2FrameInfo frameInfo) {
           if (frameInfo.ParentFrameInfo == null) {
             return null;
           }
 
-          CoreWebView2FrameInfo childFrameInfo = null;
+          CoreWebView2FrameInfo firstLevelFrameInfo = null;
           CoreWebView2FrameInfo mainFrameInfo = null;
           while (frameInfo != null) {
-            childFrameInfo = mainFrameInfo;
+            firstLevelFrameInfo = mainFrameInfo;
             mainFrameInfo = frameInfo;
             frameInfo = frameInfo.ParentFrameInfo;
           }
-          return childFrameInfo;
+          return firstLevelFrameInfo;
         }
 #endif
 
-        private async void ProcessExtendedInfoCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        private async void ProcessFrameInfoCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
 #if USE_WEBVIEW2_EXPERIMENTAL
             try
             {
-                // <GetProcessExtendedInfos>
-                IReadOnlyList<CoreWebView2ProcessExtendedInfo> processList = await webView.CoreWebView2.Environment.GetProcessExtendedInfosAsync();
+                // <GetProcessInfosWithDetails>
+                IReadOnlyList<CoreWebView2ProcessInfo> processList = await webView.CoreWebView2.Environment.GetProcessInfosWithDetailsAsync();
                 int processCount = processList.Count;
                 string rendererProcessInfos = "";
                 string otherProcessInfos = "";
                 int rendererProcessCount = 0;
                 for (int i = 0; i < processCount; ++i)
                 {
-                    CoreWebView2ProcessInfo processInfo = processList[i].ProcessInfo;
-                    CoreWebView2ProcessKind kind = processInfo.Kind;
-                    int processId = processInfo.ProcessId;
+                    CoreWebView2ProcessKind kind = processList[i].Kind;
+                    int processId = processList[i].ProcessId;
                     if (kind == CoreWebView2ProcessKind.Renderer)
                     {
                         int frameInfoCount = 0;
@@ -2495,15 +2485,15 @@ namespace WebView2WpfBrowser
                         otherProcessInfos += $"Process ID: {processId} | Process Kind: {kind}\n";
                     }
                 }
-                // </GetProcessExtendedInfos>
+                // </GetProcessInfosWithDetails>
                 string message = $"{processCount} process(es) found in total, from which {rendererProcessCount} renderer process(es) found\n\n" +
                                  $"{rendererProcessInfos}\nRemaining Process Infos:\n{otherProcessInfos}";
-                MessageBox.Show(this, message, "Process Extended Info");
+                MessageBox.Show(this, message, "Process Info with Associated Frames");
             }
             catch (NotImplementedException exception)
             {
-                MessageBox.Show(this, "GetProcessExtendedInfosAsync Failed: " + exception.Message,
-                   "Process Extended Info");
+                MessageBox.Show(this, "GetProcessInfosWithDetailsAsync Failed: " + exception.Message,
+                   "Process Info with Associated Frames");
             }
 #else
             await Task.CompletedTask;
