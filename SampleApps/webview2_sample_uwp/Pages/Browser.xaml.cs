@@ -10,13 +10,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using webview2_sample_uwp;
-#if USE_WEBVIEW2_SMOKETEST
-using Windows.Storage;
-#endif
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
-
 namespace WebView2_UWP.Pages
 {
     public sealed partial class Browser : BasePage
@@ -36,22 +32,11 @@ namespace WebView2_UWP.Pages
             WebView2.Source = new Uri(AddressBar.Text);
         }
 
-#if USE_WEBVIEW2_SMOKETEST
-        private async void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
-#else
         private void WebView2_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
-#endif
         {
             if (args.Exception != null)
             {
                 StatusUpdate($"Error initializing WebView2: {args.Exception.Message}");
-
-#if USE_WEBVIEW2_SMOKETEST
-                StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-                StorageFile file = await localFolder.CreateFileAsync(@"Failure.txt", CreationCollisionOption.FailIfExists);
-                await FileIO.WriteTextAsync(file, args.Exception.ToString());
-                Environment.Exit(1);
-#endif
             }
             else
             {
@@ -152,11 +137,7 @@ namespace WebView2_UWP.Pages
             CancelButton.IsEnabled = true;
         }
 
-#if USE_WEBVIEW2_SMOKETEST
-        private async void WebView2_NavigationCompleted(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
-#else
         private void WebView2_NavigationCompleted(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
-#endif
         {
             StatusUpdate("Navigation complete");
 
@@ -165,12 +146,6 @@ namespace WebView2_UWP.Pages
 
             // Update the address bar with the full URL that was navigated to.
             AddressBar.Text = sender.Source.ToString();
-
-#if USE_WEBVIEW2_SMOKETEST
-            StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-            await localFolder.CreateFileAsync(@"Success.txt", CreationCollisionOption.FailIfExists);
-            Environment.Exit(0);
-#endif
         }
 
         private bool TryCreateUri(String potentialUri, out Uri result)
