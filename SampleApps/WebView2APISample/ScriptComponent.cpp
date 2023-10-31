@@ -172,6 +172,7 @@ bool ScriptComponent::HandleWindowMessage(
     }
     return false;
 }
+
 void ScriptComponent::AddBrowserExtension()
 {
 
