@@ -1283,7 +1283,16 @@ namespace WebView2WpfBrowser
 
         void DeleteProfileExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            try
+            {
+                WebViewProfile.Delete();
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Delete profile Failed: " + exception.Message, "Profile Delete");
+            }
         }
+
         void NonClientRegionSupportCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
         }
@@ -2031,6 +2040,8 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
+                WebViewProfile.Deleted += WebViewProfile_Deleted;
+
                 OnWebViewFirstInitialized?.Invoke();
 
                 webView.CoreWebView2.NewWindowRequested += delegate (
