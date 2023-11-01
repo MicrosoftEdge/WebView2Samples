@@ -789,8 +789,7 @@ bool SettingsComponent::HandleWindowMessage(
             wil::com_ptr<ICoreWebView2Profile> webView2ProfileBase;
             m_webView2_13->get_Profile(&webView2ProfileBase);
             CHECK_FEATURE_RETURN(webView2ProfileBase);
-            auto webView2Profile =
-                webView2ProfileBase.try_query<ICoreWebView2ExperimentalProfile10>();
+            auto webView2Profile = webView2ProfileBase.try_query<ICoreWebView2Profile8>();
             CHECK_FEATURE_RETURN(webView2Profile);
             webView2Profile->Delete();
             //! [DeleteProfile]
