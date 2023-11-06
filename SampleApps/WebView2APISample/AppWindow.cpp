@@ -95,7 +95,7 @@ DWORD WINAPI DownloadAndInstallWV2RT(_In_ LPVOID lpParameter)
 
         if (ShellExecuteEx(&shExInfo))
         {
-            returnCode = 0; // Install successfull
+            returnCode = 0; // Install successful
         }
         else
         {
@@ -1313,10 +1313,10 @@ void AppWindow::InitializeWebView()
             options5->put_EnableTrackingPrevention(m_TrackingPreventionEnabled ? TRUE : FALSE));
     }
 
-    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions> optionsExperimental;
-    if (options.As(&optionsExperimental) == S_OK)
+    Microsoft::WRL::ComPtr<ICoreWebView2EnvironmentOptions6> options6;
+    if (options.As(&options6) == S_OK)
     {
-        CHECK_FAILURE(optionsExperimental->put_AreBrowserExtensionsEnabled(TRUE));
+        CHECK_FAILURE(options6->put_AreBrowserExtensionsEnabled(TRUE));
     }
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
@@ -1874,41 +1874,31 @@ void AppWindow::RegisterEventHandlers()
             .Get(),
         nullptr));
     //! [NewBrowserVersionAvailable]
+
     //! [ProfileDeleted]
     auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
-    if (webView2_13)
-    {
-        wil::com_ptr<ICoreWebView2Profile> webView2ProfileBase;
-        webView2_13->get_Profile(&webView2ProfileBase);
-        if (webView2ProfileBase)
-        {
-            auto webView2Profile =
-                webView2ProfileBase.try_query<ICoreWebView2ExperimentalProfile10>();
-            if (webView2Profile)
+    CHECK_FEATURE_RETURN_EMPTY(webView2_13);
+    wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+    CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
+    CHECK_FEATURE_RETURN_EMPTY(webView2Profile);
+    auto webView2Profile8 = webView2Profile.try_query<ICoreWebView2Profile8>();
+    CHECK_FEATURE_RETURN_EMPTY(webView2Profile8);
+    CHECK_FAILURE(webView2Profile8->add_Deleted(
+        Microsoft::WRL::Callback<ICoreWebView2ProfileDeletedEventHandler>(
+            [this](ICoreWebView2Profile* sender, IUnknown* args)
             {
-                CHECK_FAILURE(webView2Profile->add_Deleted(
-                    Microsoft::WRL::Callback<
-                        ICoreWebView2ExperimentalProfileDeletedEventHandler>(
-                        [this](ICoreWebView2Profile* sender, IUnknown* args)
-                        {
-                            RunAsync(
-                                [this]()
-                                {
-                                    std::wstring message =
-                                        L"The profile has been marked for deletion. Any "
-                                        L"associated webview2 objects will be closed.";
-                                    MessageBox(
-                                        m_mainWindow, message.c_str(), L"webview2 closed",
-                                        MB_OK);
-                                    CloseAppWindow();
-                                });
-                            return S_OK;
-                        })
-                        .Get(),
-                    nullptr));
-            }
-        }
-    }
+                RunAsync(
+                    [this]()
+                    {
+                        std::wstring message = L"The profile has been marked for deletion. Any "
+                                               L"associated webview2 objects will be closed.";
+                        MessageBox(m_mainWindow, message.c_str(), L"webview2 closed", MB_OK);
+                        CloseAppWindow();
+                    });
+                return S_OK;
+            })
+            .Get(),
+        nullptr));
     //! [ProfileDeleted]
 }
 

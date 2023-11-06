@@ -179,8 +179,8 @@ void ScriptComponent::AddBrowserExtension()
     auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
     wil::com_ptr<ICoreWebView2Profile> webView2Profile;
     CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
-    auto webView2ExperimentalProfile12 =
-        webView2Profile.try_query<ICoreWebView2ExperimentalProfile12>();
+    auto profile7 = webView2Profile.try_query<ICoreWebView2Profile7>();
+    CHECK_FEATURE_RETURN_EMPTY(profile7);
 
     OPENFILENAME openFileName = {};
     openFileName.lStructSize = sizeof(openFileName);
@@ -196,11 +196,10 @@ void ScriptComponent::AddBrowserExtension()
     {
         // Remove the filename part of the path.
         *wcsrchr(fileName, L'\\') = L'\0';
-        webView2ExperimentalProfile12->AddBrowserExtension(
+        profile7->AddBrowserExtension(
             fileName,
-            Callback<ICoreWebView2ExperimentalProfileAddBrowserExtensionCompletedHandler>(
-                [](HRESULT error,
-                   ICoreWebView2ExperimentalBrowserExtension* extension) -> HRESULT
+            Callback<ICoreWebView2ProfileAddBrowserExtensionCompletedHandler>(
+                [](HRESULT error, ICoreWebView2BrowserExtension* extension) -> HRESULT
                 {
                     if (error != S_OK)
                     {
@@ -231,14 +230,13 @@ void ScriptComponent::RemoveOrDisableBrowserExtension(const bool remove)
     auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
     wil::com_ptr<ICoreWebView2Profile> webView2Profile;
     CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
-    auto webView2ExperimentalProfile12 =
-        webView2Profile.try_query<ICoreWebView2ExperimentalProfile12>();
+    auto profile7 = webView2Profile.try_query<ICoreWebView2Profile7>();
+    CHECK_FEATURE_RETURN_EMPTY(profile7);
 
-    webView2ExperimentalProfile12->GetBrowserExtensions(
-        Callback<ICoreWebView2ExperimentalProfileGetBrowserExtensionsCompletedHandler>(
-            [this, webView2ExperimentalProfile12, remove](
-                HRESULT error,
-                ICoreWebView2ExperimentalBrowserExtensionList* extensions) -> HRESULT
+    profile7->GetBrowserExtensions(
+        Callback<ICoreWebView2ProfileGetBrowserExtensionsCompletedHandler>(
+            [this, profile7,
+             remove](HRESULT error, ICoreWebView2BrowserExtensionList* extensions) -> HRESULT
             {
                 std::wstring extensionIdString;
                 UINT extensionsCount = 0;
@@ -246,7 +244,7 @@ void ScriptComponent::RemoveOrDisableBrowserExtension(const bool remove)
 
                 for (UINT index = 0; index < extensionsCount; ++index)
                 {
-                    wil::com_ptr<ICoreWebView2ExperimentalBrowserExtension> extension;
+                    wil::com_ptr<ICoreWebView2BrowserExtension> extension;
                     extensions->GetValueAtIndex(index, &extension);
 
                     wil::unique_cotaskmem_string id;
@@ -279,7 +277,7 @@ void ScriptComponent::RemoveOrDisableBrowserExtension(const bool remove)
                 {
                     for (UINT index = 0; index < extensionsCount; ++index)
                     {
-                        wil::com_ptr<ICoreWebView2ExperimentalBrowserExtension> extension;
+                        wil::com_ptr<ICoreWebView2BrowserExtension> extension;
                         extensions->GetValueAtIndex(index, &extension);
 
                         wil::unique_cotaskmem_string id;
@@ -292,7 +290,7 @@ void ScriptComponent::RemoveOrDisableBrowserExtension(const bool remove)
                             {
                                 extension->Remove(
                                     Callback<
-                                        ICoreWebView2ExperimentalBrowserExtensionRemoveCompletedHandler>(
+                                        ICoreWebView2BrowserExtensionRemoveCompletedHandler>(
                                         [](HRESULT error) -> HRESULT
                                         {
                                             if (error != S_OK)
@@ -313,7 +311,7 @@ void ScriptComponent::RemoveOrDisableBrowserExtension(const bool remove)
                                 extension->Enable(
                                     !enabled,
                                     Callback<
-                                        ICoreWebView2ExperimentalBrowserExtensionEnableCompletedHandler>(
+                                        ICoreWebView2BrowserExtensionEnableCompletedHandler>(
                                         [](HRESULT error) -> HRESULT
                                         {
                                             if (error != S_OK)

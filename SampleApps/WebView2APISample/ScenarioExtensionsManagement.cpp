@@ -32,19 +32,17 @@ void ScenarioExtensionsManagement::InstallDefaultExtensions()
     CHECK_FEATURE_RETURN_EMPTY(webView2_13);
     wil::com_ptr<ICoreWebView2Profile> webView2Profile;
     CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
-    auto webView2ExperimentalProfile12 =
-        webView2Profile.try_query<ICoreWebView2ExperimentalProfile12>();
-    CHECK_FEATURE_RETURN_EMPTY(webView2ExperimentalProfile12);
+    auto profile7 = webView2Profile.try_query<ICoreWebView2Profile7>();
+    CHECK_FEATURE_RETURN_EMPTY(profile7);
 
     std::wstring extension_path_file = m_appWindow->GetLocalUri(c_samplePath, false);
     // Remove "file:///" from the beginning of extension_path_file
     std::wstring extension_path = extension_path_file.substr(8);
 
-    webView2ExperimentalProfile12->GetBrowserExtensions(
-        Callback<ICoreWebView2ExperimentalProfileGetBrowserExtensionsCompletedHandler>(
-            [this, webView2ExperimentalProfile12, extension_path](
-                HRESULT error,
-                ICoreWebView2ExperimentalBrowserExtensionList* extensions) -> HRESULT
+    profile7->GetBrowserExtensions(
+        Callback<ICoreWebView2ProfileGetBrowserExtensionsCompletedHandler>(
+            [this, profile7, extension_path](
+                HRESULT error, ICoreWebView2BrowserExtensionList* extensions) -> HRESULT
             {
                 std::wstring extensionIdString;
                 bool extensionInstalled = false;
@@ -53,7 +51,7 @@ void ScenarioExtensionsManagement::InstallDefaultExtensions()
 
                 for (UINT index = 0; index < extensionsCount; ++index)
                 {
-                    wil::com_ptr<ICoreWebView2ExperimentalBrowserExtension> extension;
+                    wil::com_ptr<ICoreWebView2BrowserExtension> extension;
                     extensions->GetValueAtIndex(index, &extension);
 
                     wil::unique_cotaskmem_string id;
@@ -79,8 +77,7 @@ void ScenarioExtensionsManagement::InstallDefaultExtensions()
                             message += L" but was disabled.";
                             extension->Enable(
                                 !enabled,
-                                Callback<
-                                    ICoreWebView2ExperimentalBrowserExtensionEnableCompletedHandler>(
+                                Callback<ICoreWebView2BrowserExtensionEnableCompletedHandler>(
                                     [](HRESULT error) -> HRESULT
                                     {
                                         if (error != S_OK)
@@ -99,12 +96,11 @@ void ScenarioExtensionsManagement::InstallDefaultExtensions()
 
                 if (!extensionInstalled)
                 {
-                    CHECK_FAILURE(webView2ExperimentalProfile12->AddBrowserExtension(
+                    CHECK_FAILURE(profile7->AddBrowserExtension(
                         extension_path.c_str(),
-                        Callback<
-                            ICoreWebView2ExperimentalProfileAddBrowserExtensionCompletedHandler>(
+                        Callback<ICoreWebView2ProfileAddBrowserExtensionCompletedHandler>(
                             [](HRESULT error,
-                               ICoreWebView2ExperimentalBrowserExtension* extension) -> HRESULT
+                               ICoreWebView2BrowserExtension* extension) -> HRESULT
                             {
                                 if (error != S_OK)
                                 {
@@ -135,14 +131,12 @@ void ScenarioExtensionsManagement::OffloadDefaultExtensionsIfExtraExtensionsInst
     CHECK_FEATURE_RETURN_EMPTY(webView2_13);
     wil::com_ptr<ICoreWebView2Profile> webView2Profile;
     CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
-    auto webView2ExperimentalProfile12 =
-        webView2Profile.try_query<ICoreWebView2ExperimentalProfile12>();
-    CHECK_FEATURE_RETURN_EMPTY(webView2ExperimentalProfile12);
+    auto profile7 = webView2Profile.try_query<ICoreWebView2Profile7>();
+    CHECK_FEATURE_RETURN_EMPTY(profile7);
 
-    webView2ExperimentalProfile12->GetBrowserExtensions(
-        Callback<ICoreWebView2ExperimentalProfileGetBrowserExtensionsCompletedHandler>(
-            [this](HRESULT error, ICoreWebView2ExperimentalBrowserExtensionList* extensions)
-                -> HRESULT
+    profile7->GetBrowserExtensions(
+        Callback<ICoreWebView2ProfileGetBrowserExtensionsCompletedHandler>(
+            [this](HRESULT error, ICoreWebView2BrowserExtensionList* extensions) -> HRESULT
             {
                 std::wstring extensionIdString;
                 UINT extensionsCount = 0;
@@ -152,7 +146,7 @@ void ScenarioExtensionsManagement::OffloadDefaultExtensionsIfExtraExtensionsInst
                 {
                     for (UINT index = 0; index < extensionsCount; ++index)
                     {
-                        wil::com_ptr<ICoreWebView2ExperimentalBrowserExtension> extension;
+                        wil::com_ptr<ICoreWebView2BrowserExtension> extension;
                         extensions->GetValueAtIndex(index, &extension);
 
                         wil::unique_cotaskmem_string id;
@@ -162,8 +156,7 @@ void ScenarioExtensionsManagement::OffloadDefaultExtensionsIfExtraExtensionsInst
                         if (extensionIdString.compare(m_extensionId) == 0)
                         {
                             extension->Remove(
-                                Callback<
-                                    ICoreWebView2ExperimentalBrowserExtensionRemoveCompletedHandler>(
+                                Callback<ICoreWebView2BrowserExtensionRemoveCompletedHandler>(
                                     [extension](HRESULT error) -> HRESULT
                                     {
                                         if (error != S_OK)
