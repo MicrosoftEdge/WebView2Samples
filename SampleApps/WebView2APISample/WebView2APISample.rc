@@ -292,6 +292,7 @@ BEGIN
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
         MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
         MENUITEM "Shared Buffer",               IDM_SCENARIO_SHARED_BUFFER
+        MENUITEM "Accelerator Key Pressed", IDM_SCENARIO_ACCELERATOR_KEY_PRESSED
     END
     POPUP "&Audio"
     BEGIN
