@@ -2981,7 +2981,6 @@ namespace WebView2WpfBrowser
 
         async void InjectScriptWithResultCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             // <ExecuteScriptWithResult>
             var dialog = new TextInputDialog(
                 title: "Inject Script With Result",
@@ -3017,9 +3016,6 @@ namespace WebView2WpfBrowser
                 }
             }
             // </ExecuteScriptWithResult>
-#else
-            await Task.CompletedTask;
-#endif
         }
 
         string NameOfPermissionKind(CoreWebView2PermissionKind kind)
