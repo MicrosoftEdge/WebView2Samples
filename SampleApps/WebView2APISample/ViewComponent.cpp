@@ -173,6 +173,7 @@ ViewComponent::ViewComponent(
                         }
                         //! [SystemCursorId]
                     }
+
                     if (SUCCEEDED(hr))
                     {
                         SetClassLongPtr(
@@ -208,6 +209,33 @@ ViewComponent::ViewComponent(
 bool ViewComponent::HandleWindowMessage(
     HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
+    wil::com_ptr<ICoreWebView2ExperimentalCompositionController5> compositionController5;
+
+    if (m_compositionController)
+    {
+        compositionController5 =
+            m_compositionController
+                .try_query<ICoreWebView2ExperimentalCompositionController5>();
+    }
+
+    //! [DraggableRegions1]
+    if (message == WM_NCHITTEST && compositionController5)
+    {
+        POINT point{GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+        ScreenToClient(hWnd, &point);
+        if (PtInRect(&m_webViewBounds, point))
+        {
+            point.x -= m_webViewBounds.left;
+            point.y -= m_webViewBounds.top;
+
+            COREWEBVIEW2_NON_CLIENT_REGION_KIND region =
+                COREWEBVIEW2_NON_CLIENT_REGION_KIND_NOWHERE;
+            CHECK_FAILURE(compositionController5->GetNonClientRegionAtPoint(point, &region));
+            *result = region;
+            return true;
+        }
+    }
+    //! [DraggableRegions1]
     if (message == WM_COMMAND)
     {
         switch (LOWORD(wParam))
@@ -357,6 +385,7 @@ bool ViewComponent::HandleWindowMessage(
     }
     //! [ToggleIsVisibleOnMinimize]
     if ((message >= WM_MOUSEFIRST && message <= WM_MOUSELAST)
+        || (message == WM_NCRBUTTONUP || message == WM_NCRBUTTONDOWN)
         || message == WM_MOUSELEAVE)
     {
         return OnMouseMessage(message, wParam, lParam);
@@ -377,6 +406,7 @@ bool ViewComponent::HandleWindowMessage(
     //! [NotifyParentWindowPositionChanged]
     return false;
 }
+
 //! [SetPreferredColorScheme]
 void ViewComponent::SetPreferredColorScheme(COREWEBVIEW2_PREFERRED_COLOR_SCHEME value)
 {
@@ -708,6 +738,9 @@ bool ViewComponent::OnMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
         POINTSTOPOINT(point, lParam);
         if (message == WM_MOUSEWHEEL ||
             message == WM_MOUSEHWHEEL
+            //! [DraggableRegions2]
+            || message == WM_NCRBUTTONDOWN || message == WM_NCRBUTTONUP
+        //! [DraggableRegions2]
         )
         {
             // Mouse wheel messages are delivered in screen coordinates.
