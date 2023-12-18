@@ -111,6 +111,7 @@ private:
     bool m_isCapturingMouse = false;
     std::unordered_set<UINT> m_pointerIdsStartingInWebView;
     D2D1_MATRIX_4X4_F m_webViewTransformMatrix = D2D1::Matrix4x4F();
+
     void BuildDCompTreeUsingVisual();
     void DestroyDCompVisualTree();
 

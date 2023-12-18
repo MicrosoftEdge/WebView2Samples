@@ -993,21 +993,20 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                         L"{ \"kind\": \"event\", \"name\": \"FrameCreated\", \"args\": {";
                     message += L"\"frame\": " + EncodeQuote(name.get());
 
-                    auto webView2Experimental23 = wil::com_ptr<ICoreWebView2>(sender)
-                                                      .try_query<ICoreWebView2Experimental23>();
-                    if (webView2Experimental23)
+                    auto webView2_20 =
+                        wil::com_ptr<ICoreWebView2>(sender).try_query<ICoreWebView2_20>();
+                    if (webView2_20)
                     {
                         UINT32 frameId = 0;
-                        CHECK_FAILURE(webView2Experimental23->get_FrameId(&frameId));
+                        CHECK_FAILURE(webView2_20->get_FrameId(&frameId));
                         message +=
                             L",\"sender main frame id\": " + std::to_wstring((int)frameId);
                     }
-                    auto experimentalFrame5 =
-                        webviewFrame.try_query<ICoreWebView2ExperimentalFrame5>();
-                    if (experimentalFrame5)
+                    auto frame5 = webviewFrame.try_query<ICoreWebView2Frame5>();
+                    if (frame5)
                     {
                         UINT32 frameId = 0;
-                        CHECK_FAILURE(experimentalFrame5->get_FrameId(&frameId));
+                        CHECK_FAILURE(frame5->get_FrameId(&frameId));
                         message += L",\"frame id\": " + std::to_wstring((int)frameId);
                     }
                     message +=

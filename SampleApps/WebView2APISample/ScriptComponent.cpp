@@ -1003,10 +1003,9 @@ void ScriptComponent::ExecuteScriptWithResult()
         L"Enter the JavaScript code to run in the webview.", L"");
     if (dialog.confirmed)
     {
-        wil::com_ptr<ICoreWebView2Experimental19> webview2 =
-            m_webView.try_query<ICoreWebView2Experimental19>();
+        wil::com_ptr<ICoreWebView2_21> webView = m_webView.try_query<ICoreWebView2_21>();
 
-        if (!webview2)
+        if (!webView)
         {
             MessageBox(
                 nullptr, L"Get webview2 failed!", L"ExecuteScriptWithResult Result", MB_OK);
@@ -1016,13 +1015,12 @@ void ScriptComponent::ExecuteScriptWithResult()
         // The main interface for excute script, the first param is the string
         // which user want to execute, the second param is the callback to process
         // the result, here use a lamada to the param.
-        webview2->ExecuteScriptWithResult(
+        webView->ExecuteScriptWithResult(
             dialog.input.c_str(),
-            // The callback function has two param, the first one is the status of call.
+            // The callback function has two param, the first one is the status of call.s
             // it will always be the S_OK for now, and the second is the result struct.
-            Callback<ICoreWebView2ExperimentalExecuteScriptWithResultCompletedHandler>(
-                [this](HRESULT errorCode, ICoreWebView2ExperimentalExecuteScriptResult* result)
-                    -> HRESULT
+            Callback<ICoreWebView2ExecuteScriptWithResultCompletedHandler>(
+                [this](HRESULT errorCode, ICoreWebView2ExecuteScriptResult* result) -> HRESULT
                 {
                     if (errorCode != S_OK || result == nullptr)
                     {
@@ -1033,7 +1031,7 @@ void ScriptComponent::ExecuteScriptWithResult()
                     }
                     else
                     {
-                        wil::com_ptr<ICoreWebView2ExperimentalScriptException> exception;
+                        wil::com_ptr<ICoreWebView2ScriptException> exception;
                         BOOL isSuccess;
 
                         // User should always invoke the get_Success firstly to get if execute

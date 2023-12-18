@@ -9,14 +9,14 @@
 
   <Identity
     Name="WebView2-WinUI2-UWP-Sample"
-    Publisher="CN=Microsoft"
+    Publisher="CN=Contoso"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="b4dc306d-3ab0-42e9-91b5-fc497299ae26" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>WebView2 WinUI2 UWP Sample</DisplayName>
-    <PublisherDisplayName>Microsoft</PublisherDisplayName>
+    <PublisherDisplayName>Contoso</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 

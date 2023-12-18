@@ -338,6 +338,7 @@ namespace WebView2WindowsFormsBrowser
             this.acceleratorKeysEnabledToolStripMenuItem.Text = "Toggle AcceleratorKeys";
             this.acceleratorKeysEnabledToolStripMenuItem.Checked = true;
             this.acceleratorKeysEnabledToolStripMenuItem.CheckOnClick = true;
+            this.acceleratorKeysEnabledToolStripMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             //
             // allowExternalDropMenuItem
             //
@@ -347,6 +348,7 @@ namespace WebView2WindowsFormsBrowser
             this.allowExternalDropMenuItem.Checked = true;
             this.allowExternalDropMenuItem.CheckOnClick = true;
             this.allowExternalDropMenuItem.Click += new System.EventHandler(this.allowExternalDropMenuItem_Click);
+            this.allowExternalDropMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             //
             // serverCertificateErrorMenuItem
             //
@@ -370,6 +372,7 @@ namespace WebView2WindowsFormsBrowser
             this.toggleCustomServerCertificateSupportMenuItem.Size = new System.Drawing.Size(359, 44);
             this.toggleCustomServerCertificateSupportMenuItem.Text = "Toggle Custom Server Certificate Support";
             this.toggleCustomServerCertificateSupportMenuItem.Click += new System.EventHandler(this.toggleCustomServerCertificateSupportMenuItem_Click);
+            this.toggleCustomServerCertificateSupportMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             //
             // clearServerCertificateErrorActionsMenuItem
             //
@@ -384,6 +387,7 @@ namespace WebView2WindowsFormsBrowser
             this.toggleDefaultScriptDialogsMenuItem.Size = new System.Drawing.Size(359, 44);
             this.toggleDefaultScriptDialogsMenuItem.Text = "Toggle Default Script Dialogs";
             this.toggleDefaultScriptDialogsMenuItem.Click += new System.EventHandler(this.toggleDefaultScriptDialogsMenuItem_Click);
+            this.toggleDefaultScriptDialogsMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             //
             // blockedDomainsMenuItem
             //
@@ -449,6 +453,7 @@ namespace WebView2WindowsFormsBrowser
             this.toggleVisibilityMenuItem.Checked = true;
             this.toggleVisibilityMenuItem.CheckOnClick = true;
             this.toggleVisibilityMenuItem.Click += new System.EventHandler(this.toggleVisibilityMenuItem_Click);
+            this.toggleVisibilityMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             //
             // zoomToolStripMenuItem
             //
@@ -696,6 +701,7 @@ namespace WebView2WindowsFormsBrowser
             this.toggleMuteStateMenuItem.Click += new System.EventHandler(this.toggleMuteStateMenuItem_Click);
             this.toggleMuteStateMenuItem.Checked = true;
             this.toggleMuteStateMenuItem.CheckOnClick = true;
+            this.toggleMuteStateMenuItem.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
             //
             // helpToolStripMenuItem
             //
