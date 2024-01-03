@@ -13,5 +13,6 @@ namespace WebView2WpfBrowser {
     /// </summary>
 public partial class SaveAsDialog : Window {
     void OK_Clicked(object sender, RoutedEventArgs args) { this.DialogResult = true; }
-  }
+    void CANCEL_Clicked(object sender, RoutedEventArgs args) { this.DialogResult = false; }
+    }
 }
