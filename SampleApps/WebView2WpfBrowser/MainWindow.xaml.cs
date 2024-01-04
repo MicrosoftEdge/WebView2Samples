@@ -121,8 +121,8 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ClearCustomDataPartitionCommand = new RoutedCommand();
         public static RoutedCommand ProcessExtendedInfoCommand = new RoutedCommand();
 
-        public static RoutedCommand OpenSaveAsDialogCommand = new RoutedCommand();
-        public static RoutedCommand SaveAsSilentCommand = new RoutedCommand();
+        public static RoutedCommand ProgrammaticSaveAsCommand = new RoutedCommand();
+        public static RoutedCommand ToggleSilentCommand = new RoutedCommand();
 
 
         bool _isNavigating = false;
@@ -2981,7 +2981,6 @@ namespace WebView2WpfBrowser
 
         async void InjectScriptWithResultCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             // <ExecuteScriptWithResult>
             var dialog = new TextInputDialog(
                 title: "Inject Script With Result",
@@ -3017,9 +3016,6 @@ namespace WebView2WpfBrowser
                 }
             }
             // </ExecuteScriptWithResult>
-#else
-            await Task.CompletedTask;
-#endif
         }
 
         string NameOfPermissionKind(CoreWebView2PermissionKind kind)
@@ -3292,15 +3288,17 @@ namespace WebView2WpfBrowser
         // </OnNotificationReceived>
 #endif
 
-        // <OpenSaveAsDialog>
-        void OpenSaveAsDialogExecuted(object target, ExecutedRoutedEventArgs e)
+        // <ProgrammaticSaveAs>
+        async void ProgrammaticSaveAsExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            await Task.Delay(0);
+        }
+        // </ProgrammaticSaveAs>
+
+        // <ToggleSilent>
+        void ToggleSilentExecuted(object target, ExecutedRoutedEventArgs e)
         {
         }
-        // </OpenSaveAsDialog>
-        // <SaveAsSilent>
-        void SaveAsSilentExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-        }
-        // </SaveAsSilent>
+        // </ToggleSilent>
     }
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -225,6 +225,7 @@
     <ClInclude Include="ProcessComponent.h" />
     <ClInclude Include="HostObjectSampleImpl.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="ScenarioAcceleratorKeyPressed.h" />
     <ClInclude Include="ScenarioAddHostObject.h" />
     <ClInclude Include="ScenarioAuthentication.h" />
     <ClInclude Include="ScenarioClientCertificateRequested.h" />
@@ -240,7 +241,7 @@
     <ClInclude Include="ScenarioNonClientRegionSupport.h" />
     <ClInclude Include="ScenarioNotificationReceived.h" />
     <ClInclude Include="ScenarioPermissionManagement.h" />
-    <ClInclude Include="ScenarioSaveAs.h" />
+    <ClInclude Include="ScenarioSaveAsStaging.h" />
     <ClInclude Include="ScenarioSharedBuffer.h" />
     <ClInclude Include="ScenarioSharedWorkerWRR.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h" />
@@ -272,6 +273,7 @@
     <ClCompile Include="PermissionDialog.cpp" />
     <ClCompile Include="ProcessComponent.cpp" />
     <ClCompile Include="HostObjectSampleImpl.cpp" />
+    <ClCompile Include="ScenarioAcceleratorKeyPressed.cpp" />
     <ClCompile Include="ScenarioAddHostObject.cpp" />
     <ClCompile Include="ScenarioAuthentication.cpp" />
     <ClCompile Include="ScenarioClientCertificateRequested.cpp" />
@@ -287,7 +289,7 @@
     <ClCompile Include="ScenarioNonClientRegionSupport.cpp" />
     <ClCompile Include="ScenarioNotificationReceived.cpp" />
     <ClCompile Include="ScenarioPermissionManagement.cpp" />
-    <ClCompile Include="ScenarioSaveAs.cpp" />
+    <ClCompile Include="ScenarioSaveAsStaging.cpp" />
     <ClCompile Include="ScenarioSharedBuffer.cpp" />
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp" />
@@ -334,6 +336,9 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/extensions/example-devtools-extension/panel.js">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioAcceleratorKeyPressed.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioCustomScheme.html">
