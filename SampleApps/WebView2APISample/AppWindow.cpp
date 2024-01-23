@@ -39,6 +39,8 @@
 #include "ScenarioExtensionsManagement.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
+#include "ScenarioNonClientRegionSupport.h"
+#include "ScenarioAcceleratorKeyPressed.h"
 #include "ScenarioNotificationReceived.h"
 #include "ScenarioPermissionManagement.h"
 #include "ScenarioSharedBuffer.h"
@@ -650,6 +652,16 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_PRINT_TO_PDF_STREAM:
     {
         return PrintToPdfStream();
+    }
+    case IDM_SCENARIO_NON_CLIENT_REGION_SUPPORT:
+    {
+        NewComponent<ScenarioNonClientRegionSupport>(this);
+        return true;
+    }
+    case IDM_SCENARIO_ACCELERATOR_KEY_PRESSED:
+    {
+        NewComponent<ScenarioAcceleratorKeyPressed>(this);
+        return true;
     }
     }
     return false;

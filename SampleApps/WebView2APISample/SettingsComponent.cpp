@@ -1289,10 +1289,40 @@ bool SettingsComponent::HandleWindowMessage(
         case IDM_TRACKING_PREVENTION_LEVEL_STRICT:
             SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_STRICT);
             return true;
+        case ID_SETTINGS_NON_CLIENT_REGION_SUPPORT_ENABLED:
+        {
+            //![ToggleNonClientRegionSupportEnabled]
+            BOOL nonClientRegionSupportEnabled;
+            wil::com_ptr<ICoreWebView2ExperimentalSettings8> experimentalSettings;
+            experimentalSettings = m_settings.try_query<ICoreWebView2ExperimentalSettings8>();
+            CHECK_FEATURE_RETURN(experimentalSettings);
+
+            CHECK_FAILURE(experimentalSettings->get_IsNonClientRegionSupportEnabled(
+                &nonClientRegionSupportEnabled));
+            if (nonClientRegionSupportEnabled)
+            {
+                CHECK_FAILURE(experimentalSettings->put_IsNonClientRegionSupportEnabled(FALSE));
+                MessageBox(
+                    nullptr,
+                    L"Non-client region support will be disabled after the next navigation",
+                    L"Settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(experimentalSettings->put_IsNonClientRegionSupportEnabled(TRUE));
+                MessageBox(
+                    nullptr,
+                    L"Non-client region support will be enabled after the next navigation",
+                    L"Settings change", MB_OK);
+            }
+            //! [ToggleNonClientRegionSupportEnabled]
+            return true;
+        }
         }
     }
     return false;
 }
+
 void SettingsComponent::AddMenuItems(
     HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items)
 {
