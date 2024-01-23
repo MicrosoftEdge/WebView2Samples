@@ -35,3 +35,13 @@ void FeatureNotAvailable();
 
 // Returns nothing, which is different from CHECK_FEATURE_RETURN
 #define CHECK_FEATURE_RETURN_EMPTY(feature) { if (!feature) { FeatureNotAvailable(); return; } }
+
+// Returns S_OK, which is different from CHECK_FEATURE_RETURN
+#define CHECK_FEATURE_RETURN_HRESULT(feature)                                                  \
+    {                                                                                          \
+        if (!feature)                                                                          \
+        {                                                                                      \
+            FeatureNotAvailable();                                                             \
+            return S_OK;                                                                       \
+        }                                                                                      \
+    }

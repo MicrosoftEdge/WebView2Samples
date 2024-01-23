@@ -24,9 +24,7 @@ namespace WebView2WpfBrowser
         {
             m_coreWebView2 = coreWebView2;
             InitializeComponent();
-#if USE_WEBVIEW2_EXPERIMENTAL
             _ = FillViewAsync();
-#endif
         }
 
         public class ListEntry
@@ -43,7 +41,6 @@ namespace WebView2WpfBrowser
 
         List<ListEntry> m_listData = new List<ListEntry>();
 
-#if USE_WEBVIEW2_EXPERIMENTAL
         private async System.Threading.Tasks.Task FillViewAsync()
         {
             IReadOnlyList<CoreWebView2BrowserExtension> extensionsList = await m_coreWebView2.Profile.GetBrowserExtensionsAsync();
@@ -60,7 +57,6 @@ namespace WebView2WpfBrowser
             ExtensionsList.ItemsSource = m_listData;
             ExtensionsList.Items.Refresh();
         }
-#endif
 
         private void ExtensionsToggleEnabled(object sender, RoutedEventArgs e)
         {
@@ -69,7 +65,6 @@ namespace WebView2WpfBrowser
 
         private async System.Threading.Tasks.Task ExtensionsToggleEnabledAsync(object sender, RoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             ListEntry entry = (ListEntry)ExtensionsList.SelectedItem;
             IReadOnlyList<CoreWebView2BrowserExtension> extensionsList = await m_coreWebView2.Profile.GetBrowserExtensionsAsync();
             bool found = false;
@@ -94,9 +89,6 @@ namespace WebView2WpfBrowser
                 MessageBox.Show("Failed to find extension");
             }
             await FillViewAsync();
-#else
-            await Task.CompletedTask;
-#endif
         }
 
         private void ExtensionsAdd(object sender, RoutedEventArgs e)
@@ -106,7 +98,6 @@ namespace WebView2WpfBrowser
 
         private async System.Threading.Tasks.Task ExtensionsAddAsync(object sender, RoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             var dialog = new TextInputDialog(
                 title: "Add extension",
                 description: "Enter the absolute Windows file path to the unpackaged browser extension",
@@ -124,9 +115,6 @@ namespace WebView2WpfBrowser
                     MessageBox.Show("Failed to add extension: " + exception);
                 }
             }
-#else
-            await Task.CompletedTask;
-#endif
         }
 
         private void ExtensionsRemove(object sender, RoutedEventArgs e)
@@ -136,7 +124,6 @@ namespace WebView2WpfBrowser
 
         private async System.Threading.Tasks.Task ExtensionsRemoveAsync(object sender, RoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             ListEntry entry = (ListEntry)ExtensionsList.SelectedItem;
             if (MessageBox.Show("Remove extension " + entry + "?", "Confirm removal", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
             {
@@ -164,9 +151,6 @@ namespace WebView2WpfBrowser
                 }
             }
             await FillViewAsync();
-#else
-            await Task.CompletedTask;
-#endif
         }
     }
 }

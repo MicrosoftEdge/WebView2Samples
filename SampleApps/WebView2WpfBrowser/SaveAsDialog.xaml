@@ -31,13 +31,13 @@ found in the LICENSE file.
                 <CheckBox x:Name="AllowReplaceOldFile" Content="Allow Replace Old File" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Center" Height="30"/>
             </Grid>
             <Grid Height="32">
-                <Label Content="Save As Type:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Center" Height="30"/>
-                <ComboBox x:Name="SaveAsType" HorizontalAlignment="Left" Margin="155,0,0,0" VerticalAlignment="Center" Width="285" Height="25"/>
+                <Label Content="Save As Kind:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Center" Height="30"/>
+                <ComboBox x:Name="SaveAsKind" HorizontalAlignment="Left" Margin="155,0,0,0" VerticalAlignment="Center" Width="285" Height="25"/>
             </Grid>
         </StackPanel>
         <Grid Height="32">
             <Button Click="OK_Clicked" Content="OK" HorizontalAlignment="Left" Margin="150,0,0,0" VerticalAlignment="Center" Width="65" Height="24"/>
-            <Button Content="Cancel" HorizontalAlignment="Left" Margin="275,0,0,0" VerticalAlignment="Center" Width="60" Height="25"/>
+            <Button Click="CANCEL_Clicked" Content="Cancel" HorizontalAlignment="Left" Margin="275,0,0,0" VerticalAlignment="Center" Width="60" Height="25"/>
         </Grid>
     </StackPanel>
 </Window>

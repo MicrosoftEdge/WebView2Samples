@@ -163,6 +163,7 @@ BEGIN
             MENUITEM "Balanced", IDM_TRACKING_PREVENTION_LEVEL_BALANCED
             MENUITEM "Strict", IDM_TRACKING_PREVENTION_LEVEL_STRICT
         END
+        MENUITEM "Toggle Non-Client Region Support", ID_SETTINGS_NON_CLIENT_REGION_SUPPORT_ENABLED
     END
     POPUP "&View"
     BEGIN
@@ -286,12 +287,14 @@ BEGIN
             MENUITEM "JavaScript Virtual File", IDM_SCENARIO_JAVA_SCRIPT_VIRTUAL
             MENUITEM "TypeScript Virtual File", IDM_SCENARIO_TYPE_SCRIPT_VIRTUAL
         END
+        MENUITEM "Non-Client Region Support", IDM_SCENARIO_NON_CLIENT_REGION_SUPPORT
+        MENUITEM "Shared Buffer",               IDM_SCENARIO_SHARED_BUFFER
         MENUITEM "Testing Focus",               IDM_SCENARIO_TESTING_FOCUS
         MENUITEM "Virtual Host Mapping With Service Worker",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING
         MENUITEM "Virtual Host Mapping For Pop Up Window",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING_POP_UP_WINDOW
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
         MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
-        MENUITEM "Shared Buffer",               IDM_SCENARIO_SHARED_BUFFER
+        MENUITEM "Accelerator Key Pressed", IDM_SCENARIO_ACCELERATOR_KEY_PRESSED
     END
     POPUP "&Audio"
     BEGIN
