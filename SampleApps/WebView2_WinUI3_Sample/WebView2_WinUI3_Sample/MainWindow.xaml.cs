@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml.Input;
 using System;
 using Microsoft.Web.WebView2.Core;
 using System.Diagnostics;
-
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -46,7 +45,7 @@ namespace WebView2_WinUI3_Sample
             }
         }
 
-        private async void WebView2_NavigationCompleted(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
+        private void WebView2_NavigationCompleted(WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
         {
             StatusUpdate("Navigation complete");
 
@@ -86,7 +85,7 @@ namespace WebView2_WinUI3_Sample
             {
                 StatusUpdate("URI couldn't be figured out use it as a bing search term");
 
-                String bingString = "https://www.bing.com/search?q=" + Uri.EscapeUriString(AddressBar.Text);
+                String bingString = $"https://www.bing.com/search?q={Uri.EscapeDataString(AddressBar.Text)}";
                 if (TryCreateUri(bingString, out destinationUri))
                 {
                     AddressBar.Text = destinationUri.AbsoluteUri;

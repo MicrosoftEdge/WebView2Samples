@@ -244,17 +244,17 @@ void ProcessComponent::AppendFrameInfo(
     CHECK_FAILURE(frameInfo->get_Source(&sourceRaw));
     std::wstring source = sourceRaw.get()[0] ? sourceRaw.get() : L"none";
 
-    wil::com_ptr<ICoreWebView2ExperimentalFrameInfo> frameInfoExperimental;
-    CHECK_FAILURE(frameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
-    frameInfoExperimental->get_FrameId(&frameId);
-    frameInfoExperimental->get_FrameKind(&frameKind);
+    wil::com_ptr<ICoreWebView2FrameInfo2> frameInfo2;
+    CHECK_FAILURE(frameInfo->QueryInterface(IID_PPV_ARGS(&frameInfo2)));
+    frameInfo2->get_FrameId(&frameId);
+    frameInfo2->get_FrameKind(&frameKind);
 
     wil::com_ptr<ICoreWebView2FrameInfo> parentFrameInfo;
-    CHECK_FAILURE(frameInfoExperimental->get_ParentFrameInfo(&parentFrameInfo));
+    CHECK_FAILURE(frameInfo2->get_ParentFrameInfo(&parentFrameInfo));
     if (parentFrameInfo)
     {
-        CHECK_FAILURE(parentFrameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
-        CHECK_FAILURE(frameInfoExperimental->get_FrameId(&parentFrameId));
+        CHECK_FAILURE(parentFrameInfo->QueryInterface(IID_PPV_ARGS(&frameInfo2)));
+        CHECK_FAILURE(frameInfo2->get_FrameId(&parentFrameId));
     }
 
     wil::com_ptr<ICoreWebView2FrameInfo> mainFrameInfo = GetAncestorMainFrameInfo(frameInfo);
@@ -262,8 +262,8 @@ void ProcessComponent::AppendFrameInfo(
     {
         type = L"main frame";
     }
-    CHECK_FAILURE(mainFrameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
-    CHECK_FAILURE(frameInfoExperimental->get_FrameId(&mainFrameId));
+    CHECK_FAILURE(mainFrameInfo->QueryInterface(IID_PPV_ARGS(&frameInfo2)));
+    CHECK_FAILURE(frameInfo2->get_FrameId(&mainFrameId));
 
     wil::com_ptr<ICoreWebView2FrameInfo> childFrameInfo =
         GetAncestorMainFrameDirectChildFrameInfo(frameInfo);
@@ -273,8 +273,8 @@ void ProcessComponent::AppendFrameInfo(
     }
     if (childFrameInfo)
     {
-        CHECK_FAILURE(childFrameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
-        CHECK_FAILURE(frameInfoExperimental->get_FrameId(&childFrameId));
+        CHECK_FAILURE(childFrameInfo->QueryInterface(IID_PPV_ARGS(&frameInfo2)));
+        CHECK_FAILURE(frameInfo2->get_FrameId(&childFrameId));
     }
 
     result << L"{frame name:" << name << L" | frame Id:" << frameId << L" | parent frame Id:"
@@ -293,12 +293,12 @@ wil::com_ptr<ICoreWebView2FrameInfo> ProcessComponent::GetAncestorMainFrameInfo(
     wil::com_ptr<ICoreWebView2FrameInfo> frameInfo)
 {
     wil::com_ptr<ICoreWebView2FrameInfo> mainFrameInfo;
-    wil::com_ptr<ICoreWebView2ExperimentalFrameInfo> frameInfoExperimental;
+    wil::com_ptr<ICoreWebView2FrameInfo2> frameInfo2;
     while (frameInfo)
     {
         mainFrameInfo = frameInfo;
-        CHECK_FAILURE(frameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
-        CHECK_FAILURE(frameInfoExperimental->get_ParentFrameInfo(&frameInfo));
+        CHECK_FAILURE(frameInfo->QueryInterface(IID_PPV_ARGS(&frameInfo2)));
+        CHECK_FAILURE(frameInfo2->get_ParentFrameInfo(&frameInfo));
     }
     return mainFrameInfo;
 }
@@ -320,30 +320,28 @@ wil::com_ptr<ICoreWebView2FrameInfo> ProcessComponent::GetAncestorMainFrameDirec
 {
     wil::com_ptr<ICoreWebView2FrameInfo> mainFrameInfo;
     wil::com_ptr<ICoreWebView2FrameInfo> childFrameInfo;
-    wil::com_ptr<ICoreWebView2ExperimentalFrameInfo> frameInfoExperimental;
+    wil::com_ptr<ICoreWebView2FrameInfo2> frameInfo2;
     while (frameInfo)
     {
         childFrameInfo = mainFrameInfo;
         mainFrameInfo = frameInfo;
-        CHECK_FAILURE(frameInfo->QueryInterface(IID_PPV_ARGS(&frameInfoExperimental)));
-        CHECK_FAILURE(frameInfoExperimental->get_ParentFrameInfo(&frameInfo));
+        CHECK_FAILURE(frameInfo->QueryInterface(IID_PPV_ARGS(&frameInfo2)));
+        CHECK_FAILURE(frameInfo2->get_ParentFrameInfo(&frameInfo));
     }
     return childFrameInfo;
 }
 
 void ProcessComponent::ShowProcessExtendedInfo()
 {
-    auto environmentExperimental13 =
-        m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment13>();
-    if (environmentExperimental13)
+    auto environment13 = m_webViewEnvironment.try_query<ICoreWebView2Environment13>();
+    if (environment13)
     {
         //! [GetProcessExtendedInfos]
-        CHECK_FAILURE(environmentExperimental13->GetProcessExtendedInfos(
-            Callback<ICoreWebView2ExperimentalGetProcessExtendedInfosCompletedHandler>(
+        CHECK_FAILURE(environment13->GetProcessExtendedInfos(
+            Callback<ICoreWebView2GetProcessExtendedInfosCompletedHandler>(
                 [this](
                     HRESULT error,
-                    ICoreWebView2ExperimentalProcessExtendedInfoCollection* processCollection)
-                    -> HRESULT
+                    ICoreWebView2ProcessExtendedInfoCollection* processCollection) -> HRESULT
                 {
                     UINT32 processCount = 0;
                     UINT32 rendererProcessCount = 0;
@@ -352,7 +350,7 @@ void ProcessComponent::ShowProcessExtendedInfo()
                     std::wstringstream rendererProcessInfos;
                     for (UINT32 i = 0; i < processCount; i++)
                     {
-                        Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalProcessExtendedInfo>
+                        Microsoft::WRL::ComPtr<ICoreWebView2ProcessExtendedInfo>
                             processExtendedInfo;
                         CHECK_FAILURE(
                             processCollection->GetValueAtIndex(i, &processExtendedInfo));
