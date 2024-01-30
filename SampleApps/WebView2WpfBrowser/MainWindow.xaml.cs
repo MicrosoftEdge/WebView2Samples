@@ -34,6 +34,7 @@ namespace WebView2WpfBrowser
     /// </summary>
     public partial class MainWindow : Window
     {
+#region commands
         public static RoutedCommand InjectScriptCommand = new RoutedCommand();
         public static RoutedCommand InjectScriptIFrameCommand = new RoutedCommand();
         public static RoutedCommand InjectScriptWithResultCommand = new RoutedCommand();
@@ -85,12 +86,8 @@ namespace WebView2WpfBrowser
         public static RoutedCommand PrintToPdfStreamCommand = new RoutedCommand();
         // Commands(V2)
         public static RoutedCommand AboutCommand = new RoutedCommand();
-
-
-
         public static RoutedCommand CrashBrowserProcessCommand = new RoutedCommand();
         public static RoutedCommand CrashRenderProcessCommand = new RoutedCommand();
-
 
         public static RoutedCommand GetDocumentTitleCommand = new RoutedCommand();
         public static RoutedCommand GetUserDataFolderCommand = new RoutedCommand();
@@ -98,14 +95,11 @@ namespace WebView2WpfBrowser
         public static RoutedCommand PostMessageStringCommand = new RoutedCommand();
         public static RoutedCommand PostMessageJSONCommand = new RoutedCommand();
 
-
-
         public static RoutedCommand CloseWebViewCommand = new RoutedCommand();
         public static RoutedCommand NewWebViewCommand = new RoutedCommand();
 
         public static RoutedCommand HostObjectsAllowedCommand = new RoutedCommand();
         public static RoutedCommand BrowserAcceleratorKeyEnabledCommand = new RoutedCommand();
-
 
         public static RoutedCommand AddInitializeScriptCommand = new RoutedCommand();
         public static RoutedCommand RemoveInitializeScriptCommand = new RoutedCommand();
@@ -121,9 +115,10 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ClearCustomDataPartitionCommand = new RoutedCommand();
         public static RoutedCommand ProcessExtendedInfoCommand = new RoutedCommand();
 
-        public static RoutedCommand OpenSaveAsDialogCommand = new RoutedCommand();
-        public static RoutedCommand SaveAsSilentCommand = new RoutedCommand();
-
+        public static RoutedCommand ProgrammaticSaveAsCommand = new RoutedCommand();
+        public static RoutedCommand ToggleSilentCommand = new RoutedCommand();
+        public static RoutedCommand ThrottlingControlCommand = new RoutedCommand();
+#endregion commands
 
         bool _isNavigating = false;
 
@@ -224,7 +219,8 @@ namespace WebView2WpfBrowser
             await InitializeWebView();
         }
 
-        async System.Threading.Tasks.Task InitializeWebView() {
+        async System.Threading.Tasks.Task InitializeWebView()
+        {
             AttachControlEventHandlers(webView);
             // Set background transparent
             webView.DefaultBackgroundColor = System.Drawing.Color.Transparent;
@@ -2077,11 +2073,10 @@ namespace WebView2WpfBrowser
                             }
                         };
                         main_window.Show();
-                  }
+                    }
                 };
                 return;
             }
-
             // ERROR_DELETE_PENDING(0x8007012f)
             if (e.InitializationException.HResult == -2147024593)
             {
@@ -2404,7 +2399,8 @@ namespace WebView2WpfBrowser
         // </GetProcessInfos>
 
 #if USE_WEBVIEW2_EXPERIMENTAL
-        string AppendFrameInfo(CoreWebView2FrameInfo frameInfo) {
+        string AppendFrameInfo(CoreWebView2FrameInfo frameInfo)
+        {
             string id = frameInfo.FrameId.ToString();
             string kind = frameInfo.FrameKind.ToString();
             string name = String.IsNullOrEmpty(frameInfo.Name) ? "none" : frameInfo.Name;
@@ -2414,14 +2410,16 @@ namespace WebView2WpfBrowser
 
             CoreWebView2FrameInfo mainFrame = GetAncestorMainFrameInfo(frameInfo);
             string mainFrameId = mainFrame.FrameId.ToString();
-            if (frameInfo == mainFrame) {
-              type = "main frame";
+            if (frameInfo == mainFrame)
+            {
+                type = "main frame";
             }
 
             CoreWebView2FrameInfo childFrame = GetAncestorMainFrameDirectChildFrameInfo(frameInfo);
             string childFrameId = childFrame == null ? "none" : childFrame.FrameId.ToString();
-            if (frameInfo == childFrame) {
-              type = "first level frame";
+            if (frameInfo == childFrame)
+            {
+                type = "first level frame";
             }
 
             return $"{{frame Id:{id} " +
@@ -2434,11 +2432,13 @@ namespace WebView2WpfBrowser
                    $"| frame Source: \"{source}\"}}\n";
         }
 
-        CoreWebView2FrameInfo GetAncestorMainFrameInfo(CoreWebView2FrameInfo frameInfo) {
-          while (frameInfo.ParentFrameInfo != null) {
-            frameInfo = frameInfo.ParentFrameInfo;
-          }
-          return frameInfo;
+        CoreWebView2FrameInfo GetAncestorMainFrameInfo(CoreWebView2FrameInfo frameInfo)
+        {
+            while (frameInfo.ParentFrameInfo != null)
+            {
+                frameInfo = frameInfo.ParentFrameInfo;
+            }
+            return frameInfo;
         }
 
         // Get the frame's corresponding main frame's direct child frameInfo.
@@ -2453,19 +2453,22 @@ namespace WebView2WpfBrowser
         // C GetAncestorMainFrameDirectChildFrameInfo returns C.
         // D GetAncestorMainFrameDirectChildFrameInfo returns B.
         // F GetAncestorMainFrameDirectChildFrameInfo returns C.
-        CoreWebView2FrameInfo GetAncestorMainFrameDirectChildFrameInfo(CoreWebView2FrameInfo frameInfo) {
-          if (frameInfo.ParentFrameInfo == null) {
-            return null;
-          }
+        CoreWebView2FrameInfo GetAncestorMainFrameDirectChildFrameInfo(CoreWebView2FrameInfo frameInfo)
+        {
+            if (frameInfo.ParentFrameInfo == null)
+            {
+                return null;
+            }
 
-          CoreWebView2FrameInfo childFrameInfo = null;
-          CoreWebView2FrameInfo mainFrameInfo = null;
-          while (frameInfo != null) {
-            childFrameInfo = mainFrameInfo;
-            mainFrameInfo = frameInfo;
-            frameInfo = frameInfo.ParentFrameInfo;
-          }
-          return childFrameInfo;
+            CoreWebView2FrameInfo childFrameInfo = null;
+            CoreWebView2FrameInfo mainFrameInfo = null;
+            while (frameInfo != null)
+            {
+                childFrameInfo = mainFrameInfo;
+                mainFrameInfo = frameInfo;
+                frameInfo = frameInfo.ParentFrameInfo;
+            }
+            return childFrameInfo;
         }
 #endif
 
@@ -2981,7 +2984,6 @@ namespace WebView2WpfBrowser
 
         async void InjectScriptWithResultCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             // <ExecuteScriptWithResult>
             var dialog = new TextInputDialog(
                 title: "Inject Script With Result",
@@ -3017,9 +3019,6 @@ namespace WebView2WpfBrowser
                 }
             }
             // </ExecuteScriptWithResult>
-#else
-            await Task.CompletedTask;
-#endif
         }
 
         string NameOfPermissionKind(CoreWebView2PermissionKind kind)
@@ -3292,15 +3291,30 @@ namespace WebView2WpfBrowser
         // </OnNotificationReceived>
 #endif
 
-        // <OpenSaveAsDialog>
-        void OpenSaveAsDialogExecuted(object target, ExecutedRoutedEventArgs e)
+        // <ProgrammaticSaveAs>
+        async void ProgrammaticSaveAsExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            await Task.Delay(0);
+        }
+        // </ProgrammaticSaveAs>
+
+        // <ToggleSilent>
+        void ToggleSilentExecuted(object target, ExecutedRoutedEventArgs e)
         {
         }
-        // </OpenSaveAsDialog>
-        // <SaveAsSilent>
-        void SaveAsSilentExecuted(object target, ExecutedRoutedEventArgs e)
+        // </ToggleSilent>
+        // Simple function to retrieve fields from a JSON message.
+        // For production code, you should use a real JSON parser library.
+        string GetJSONStringField(string jsonMessage, string fieldName)
+        {
+            string prefix = $"\"{fieldName}\":\"";
+            var start = jsonMessage.IndexOf(prefix) + prefix.Length;
+            var end = jsonMessage.Substring(start).IndexOf("\"");
+            return jsonMessage.Substring(start, end);
+        }
+
+        void ThrottlingControlExecuted(object target, ExecutedRoutedEventArgs e)
         {
         }
-        // </SaveAsSilent>
     }
 }

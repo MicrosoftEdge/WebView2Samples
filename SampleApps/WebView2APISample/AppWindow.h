@@ -87,15 +87,11 @@ class AppWindow
 {
 public:
     AppWindow(
-        UINT creationModeId,
-        const WebViewCreateOption& opt,
-        const std::wstring& initialUri = L"",
-        const std::wstring& userDataFolderParam = L"",
-        bool isMainWindow = false,
-        std::function<void()> webviewCreatedCallback = nullptr,
-        bool customWindowRect = false,
-        RECT windowRect = { 0 },
-        bool shouldHaveToolbar = true);
+        UINT creationModeId, const WebViewCreateOption& opt,
+        const std::wstring& initialUri = L"", const std::wstring& userDataFolderParam = L"",
+        bool isMainWindow = false, std::function<void()> webviewCreatedCallback = nullptr,
+        bool customWindowRect = false, RECT windowRect = {0}, bool shouldHaveToolbar = true,
+        bool isPopup = false);
 
     ~AppWindow();
 
@@ -293,6 +289,7 @@ private:
     RECT m_appBackgroundImageRect;
 };
 
+// Creates and registers a component on this `AppWindow`.
 template <class ComponentType, class... Args> void AppWindow::NewComponent(Args&&... args)
 {
     m_components.emplace_back(new ComponentType(std::forward<Args>(args)...));

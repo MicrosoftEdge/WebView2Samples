@@ -16,8 +16,7 @@ ScenarioSharedWorkerWRR::ScenarioSharedWorkerWRR(AppWindow* appWindow)
     : m_webView(appWindow->GetWebView())
 {
     //! [WebResourceRequested2]
-    wil::com_ptr<ICoreWebView2Experimental16> webView =
-        m_webView.try_query<ICoreWebView2Experimental16>();
+    wil::com_ptr<ICoreWebView2_22> webView = m_webView.try_query<ICoreWebView2_22>();
     if (webView)
     {
         // Filter must be added for application to receive any WebResourceRequested event
@@ -28,7 +27,7 @@ ScenarioSharedWorkerWRR::ScenarioSharedWorkerWRR(AppWindow* appWindow)
             Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                 [this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
                 {
-                    wil::com_ptr<ICoreWebView2ExperimentalWebResourceRequestedEventArgs>
+                    wil::com_ptr<ICoreWebView2WebResourceRequestedEventArgs2>
                         webResourceRequestArgs;
                     if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&webResourceRequestArgs))))
                     {
@@ -65,14 +64,13 @@ ScenarioSharedWorkerWRR::ScenarioSharedWorkerWRR(AppWindow* appWindow)
     }
     //! [WebResourceRequested2]
 
-    CHECK_FAILURE(
-        m_webView->Navigate(L"https://mdn.github.io/simple-shared-worker/index2.html"));
+    CHECK_FAILURE(m_webView->Navigate(
+        L"https://mdn.github.io/dom-examples/web-workers/simple-shared-worker/index2.html"));
 }
 
 ScenarioSharedWorkerWRR::~ScenarioSharedWorkerWRR()
 {
-    wil::com_ptr<ICoreWebView2Experimental16> webView =
-        m_webView.try_query<ICoreWebView2Experimental16>();
+    wil::com_ptr<ICoreWebView2_22> webView = m_webView.try_query<ICoreWebView2_22>();
     if (webView)
     {
         CHECK_FAILURE(webView->RemoveWebResourceRequestedFilterWithRequestSourceKinds(
