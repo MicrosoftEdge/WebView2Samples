@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WebView2WinAppSDKSample (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "WebView2WinAppSDKSample (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
