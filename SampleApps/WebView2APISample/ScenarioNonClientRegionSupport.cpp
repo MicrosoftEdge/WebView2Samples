@@ -21,13 +21,12 @@ ScenarioNonClientRegionSupport::ScenarioNonClientRegionSupport(AppWindow* appWin
         controller.try_query<ICoreWebView2CompositionController>();
     if (compController)
     {
-        m_compController5 =
-            compController.try_query<ICoreWebView2ExperimentalCompositionController5>();
+        m_compController4 = compController.try_query<ICoreWebView2CompositionController4>();
     }
 
     CHECK_FAILURE(m_webView->get_Settings(&m_settings));
 
-    m_experimentalSettings = m_settings.try_query<ICoreWebView2ExperimentalSettings8>();
+    m_settings9 = m_settings.try_query<ICoreWebView2Settings9>();
 
     CHECK_FAILURE(m_webView->add_NavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
@@ -36,22 +35,19 @@ ScenarioNonClientRegionSupport::ScenarioNonClientRegionSupport(AppWindow* appWin
             {
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
-                CHECK_FEATURE_RETURN(m_experimentalSettings);
+                CHECK_FEATURE_RETURN(m_settings9);
 
                 BOOL enabled = 0;
-                CHECK_FAILURE(
-                    m_experimentalSettings->get_IsNonClientRegionSupportEnabled(&enabled));
+                CHECK_FAILURE(m_settings9->get_IsNonClientRegionSupportEnabled(&enabled));
 
                 if (uri.get() == m_sampleUri && !enabled)
                 {
-                    CHECK_FAILURE(
-                        m_experimentalSettings->put_IsNonClientRegionSupportEnabled(TRUE));
+                    CHECK_FAILURE(m_settings9->put_IsNonClientRegionSupportEnabled(TRUE));
                     AddChangeListener();
                 }
                 else if (uri.get() != m_sampleUri && enabled)
                 {
-                    CHECK_FAILURE(
-                        m_experimentalSettings->put_IsNonClientRegionSupportEnabled(FALSE));
+                    CHECK_FAILURE(m_settings9->put_IsNonClientRegionSupportEnabled(FALSE));
                 }
                 return S_OK;
             })
@@ -79,20 +75,19 @@ ScenarioNonClientRegionSupport::ScenarioNonClientRegionSupport(AppWindow* appWin
 //! [AddChangeListener]
 void ScenarioNonClientRegionSupport::AddChangeListener()
 {
-    if (m_compController5)
+    if (m_compController4)
     {
-        CHECK_FAILURE(m_compController5->add_NonClientRegionChanged(
-            Callback<ICoreWebView2ExperimentalNonClientRegionChangedEventHandler>(
+        CHECK_FAILURE(m_compController4->add_NonClientRegionChanged(
+            Callback<ICoreWebView2NonClientRegionChangedEventHandler>(
                 [this](
                     ICoreWebView2CompositionController* sender,
-                    ICoreWebView2ExperimentalNonClientRegionChangedEventArgs* args) -> HRESULT
+                    ICoreWebView2NonClientRegionChangedEventArgs* args) -> HRESULT
                 {
                     COREWEBVIEW2_NON_CLIENT_REGION_KIND region =
                         COREWEBVIEW2_NON_CLIENT_REGION_KIND_NOWHERE;
                     args->get_RegionKind(&region);
-                    wil::com_ptr<ICoreWebView2ExperimentalRegionRectCollectionView>
-                        regionsCollection;
-                    m_compController5->QueryNonClientRegion(region, &regionsCollection);
+                    wil::com_ptr<ICoreWebView2RegionRectCollectionView> regionsCollection;
+                    m_compController4->QueryNonClientRegion(region, &regionsCollection);
                     UINT32 count = 0;
                     regionsCollection->get_Count(&count);
                     RECT rect;
@@ -108,9 +103,9 @@ ScenarioNonClientRegionSupport::~ScenarioNonClientRegionSupport()
 {
     CHECK_FAILURE(m_webView->remove_NavigationStarting(m_navigationStartingToken));
     CHECK_FAILURE(m_webView->remove_ContentLoading(m_ContentLoadingToken));
-    if (m_compController5)
+    if (m_compController4)
     {
         CHECK_FAILURE(
-            m_compController5->remove_NonClientRegionChanged(m_nonClientRegionChanged));
+            m_compController4->remove_NonClientRegionChanged(m_nonClientRegionChanged));
     }
 }

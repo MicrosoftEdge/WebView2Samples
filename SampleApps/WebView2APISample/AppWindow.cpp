@@ -27,6 +27,7 @@
 #include "FileComponent.h"
 #include "ProcessComponent.h"
 #include "Resource.h"
+#include "ScenarioAcceleratorKeyPressed.h"
 #include "ScenarioAddHostObject.h"
 #include "ScenarioAuthentication.h"
 #include "ScenarioClientCertificateRequested.h"
@@ -40,7 +41,6 @@
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioNonClientRegionSupport.h"
-#include "ScenarioAcceleratorKeyPressed.h"
 #include "ScenarioNotificationReceived.h"
 #include "ScenarioPermissionManagement.h"
 #include "ScenarioSharedBuffer.h"
@@ -729,6 +729,7 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
         CloseAppWindow();
         return true;
     case IDM_CREATION_MODE_WINDOWED:
+    case IDM_CREATION_MODE_HOST_INPUT_PROCESSING:
     case IDM_CREATION_MODE_VISUAL_DCOMP:
     case IDM_CREATION_MODE_TARGET_DCOMP:
     case IDM_CREATION_MODE_VISUAL_WINCOMP:
@@ -794,7 +795,8 @@ bool AppWindow::ExecuteAppCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_CLEAR_BROWSING_DATA_AUTOFILL:
     {
         return ClearBrowsingData((
-            COREWEBVIEW2_BROWSING_DATA_KINDS)(COREWEBVIEW2_BROWSING_DATA_KINDS_GENERAL_AUTOFILL | COREWEBVIEW2_BROWSING_DATA_KINDS_PASSWORD_AUTOSAVE));
+            COREWEBVIEW2_BROWSING_DATA_KINDS)(COREWEBVIEW2_BROWSING_DATA_KINDS_GENERAL_AUTOFILL |
+                                              COREWEBVIEW2_BROWSING_DATA_KINDS_PASSWORD_AUTOSAVE));
     }
     case IDM_SCENARIO_CLEAR_BROWSING_DATA_BROWSING_HISTORY:
     {
@@ -1390,7 +1392,8 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
     }
     m_webViewEnvironment = environment;
 
-    if (m_webviewOption.entry == WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU
+    if (m_webviewOption.entry == WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU ||
+        m_creationModeId == IDM_CREATION_MODE_HOST_INPUT_PROCESSING
     )
     {
         return CreateControllerWithOptions();
@@ -1470,6 +1473,19 @@ HRESULT AppWindow::CreateControllerWithOptions()
     }
     //! [ScriptLocaleSetting]
 
+    //! [AllowHostInputProcessing]
+    if (m_creationModeId == IDM_CREATION_MODE_HOST_INPUT_PROCESSING)
+    {
+        wil::com_ptr<ICoreWebView2ExperimentalControllerOptions2>
+            webView2ExperimentalControllerOptions2;
+        if (SUCCEEDED(
+                options->QueryInterface(IID_PPV_ARGS(&webView2ExperimentalControllerOptions2))))
+        {
+            CHECK_FAILURE(
+                webView2ExperimentalControllerOptions2->put_AllowHostInputProcessing(TRUE));
+        }
+    }
+    //! [AllowHostInputProcessing]
     if (m_dcompDevice || m_wincompCompositor)
     {
         //! [OnCreateCoreWebView2ControllerCompleted]
@@ -2346,8 +2362,7 @@ void AppWindow::UpdateCreationModeMenu()
 {
     HMENU hMenu = GetMenu(m_mainWindow);
     CheckMenuRadioItem(
-        hMenu, IDM_CREATION_MODE_WINDOWED,
-        IDM_CREATION_MODE_VISUAL_WINCOMP,
+        hMenu, IDM_CREATION_MODE_WINDOWED, IDM_CREATION_MODE_HOST_INPUT_PROCESSING,
         m_creationModeId, MF_BYCOMMAND);
 }
 
