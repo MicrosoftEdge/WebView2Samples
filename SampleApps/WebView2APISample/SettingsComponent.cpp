@@ -1293,15 +1293,15 @@ bool SettingsComponent::HandleWindowMessage(
         {
             //![ToggleNonClientRegionSupportEnabled]
             BOOL nonClientRegionSupportEnabled;
-            wil::com_ptr<ICoreWebView2ExperimentalSettings8> experimentalSettings;
-            experimentalSettings = m_settings.try_query<ICoreWebView2ExperimentalSettings8>();
-            CHECK_FEATURE_RETURN(experimentalSettings);
+            wil::com_ptr<ICoreWebView2Settings9> settings;
+            settings = m_settings.try_query<ICoreWebView2Settings9>();
+            CHECK_FEATURE_RETURN(settings);
 
-            CHECK_FAILURE(experimentalSettings->get_IsNonClientRegionSupportEnabled(
-                &nonClientRegionSupportEnabled));
+            CHECK_FAILURE(
+                settings->get_IsNonClientRegionSupportEnabled(&nonClientRegionSupportEnabled));
             if (nonClientRegionSupportEnabled)
             {
-                CHECK_FAILURE(experimentalSettings->put_IsNonClientRegionSupportEnabled(FALSE));
+                CHECK_FAILURE(settings->put_IsNonClientRegionSupportEnabled(FALSE));
                 MessageBox(
                     nullptr,
                     L"Non-client region support will be disabled after the next navigation",
@@ -1309,7 +1309,7 @@ bool SettingsComponent::HandleWindowMessage(
             }
             else
             {
-                CHECK_FAILURE(experimentalSettings->put_IsNonClientRegionSupportEnabled(TRUE));
+                CHECK_FAILURE(settings->put_IsNonClientRegionSupportEnabled(TRUE));
                 MessageBox(
                     nullptr,
                     L"Non-client region support will be enabled after the next navigation",

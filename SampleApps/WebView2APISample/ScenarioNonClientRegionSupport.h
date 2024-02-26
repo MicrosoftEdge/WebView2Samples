@@ -21,8 +21,9 @@ private:
     AppWindow* m_appWindow;
     wil::com_ptr<ICoreWebView2> m_webView;
     wil::com_ptr<ICoreWebView2Settings> m_settings;
-    wil::com_ptr<ICoreWebView2ExperimentalSettings8> m_experimentalSettings;
-    wil::com_ptr<ICoreWebView2ExperimentalCompositionController5> m_compController5;
+
+    wil::com_ptr<ICoreWebView2Settings9> m_settings9;
+    wil::com_ptr<ICoreWebView2CompositionController4> m_compController4;
     std::wstring m_sampleUri;
 
     EventRegistrationToken m_navigationStartingToken = {};

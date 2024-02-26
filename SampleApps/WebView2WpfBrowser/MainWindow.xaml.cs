@@ -118,6 +118,8 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ProgrammaticSaveAsCommand = new RoutedCommand();
         public static RoutedCommand ToggleSilentCommand = new RoutedCommand();
         public static RoutedCommand ThrottlingControlCommand = new RoutedCommand();
+        public static RoutedCommand FileExplorerCommand = new RoutedCommand();
+
 #endregion commands
 
         bool _isNavigating = false;
@@ -3313,6 +3315,9 @@ namespace WebView2WpfBrowser
             return jsonMessage.Substring(start, end);
         }
 
+        void FileExplorerExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
         void ThrottlingControlExecuted(object target, ExecutedRoutedEventArgs e)
         {
         }

@@ -209,17 +209,16 @@ ViewComponent::ViewComponent(
 bool ViewComponent::HandleWindowMessage(
     HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, LRESULT* result)
 {
-    wil::com_ptr<ICoreWebView2ExperimentalCompositionController5> compositionController5;
+    wil::com_ptr<ICoreWebView2CompositionController4> compositionController4;
 
     if (m_compositionController)
     {
-        compositionController5 =
-            m_compositionController
-                .try_query<ICoreWebView2ExperimentalCompositionController5>();
+        compositionController4 =
+            m_compositionController.try_query<ICoreWebView2CompositionController4>();
     }
 
     //! [DraggableRegions1]
-    if (message == WM_NCHITTEST && compositionController5)
+    if (message == WM_NCHITTEST && compositionController4)
     {
         POINT point{GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
         ScreenToClient(hWnd, &point);
@@ -230,7 +229,7 @@ bool ViewComponent::HandleWindowMessage(
 
             COREWEBVIEW2_NON_CLIENT_REGION_KIND region =
                 COREWEBVIEW2_NON_CLIENT_REGION_KIND_NOWHERE;
-            CHECK_FAILURE(compositionController5->GetNonClientRegionAtPoint(point, &region));
+            CHECK_FAILURE(compositionController4->GetNonClientRegionAtPoint(point, &region));
             *result = region;
             return true;
         }

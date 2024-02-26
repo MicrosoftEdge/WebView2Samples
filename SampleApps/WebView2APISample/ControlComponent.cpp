@@ -370,7 +370,7 @@ void ControlComponent::NavigateToAddressBar()
         }
         else
         {
-            // Otherwise treat it as a web search. 
+            // Otherwise treat it as a web search.
             std::wstring urlEscaped(2048, ' ');
             DWORD dwEscaped = (DWORD)urlEscaped.length();
             UrlEscapeW(uri.c_str(), &urlEscaped[0], &dwEscaped, URL_ESCAPE_ASCII_URI_COMPONENT);

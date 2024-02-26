@@ -101,6 +101,10 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
                 {
                     creationModeId = IDM_CREATION_MODE_WINDOWED;
                 }
+                else if (NEXT_PARAM_CONTAINS(L"allowhostinput"))
+                {
+                    creationModeId = IDM_CREATION_MODE_HOST_INPUT_PROCESSING;
+                }
                 else if (NEXT_PARAM_CONTAINS(L"visualdcomp"))
                 {
                     creationModeId = IDM_CREATION_MODE_VISUAL_DCOMP;

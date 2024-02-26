@@ -101,6 +101,7 @@ BEGIN
         POPUP "WebView Creation Mode"
         BEGIN
             MENUITEM "Windowed",                        IDM_CREATION_MODE_WINDOWED
+            MENUITEM "Windowed - HostInputProcessing",       IDM_CREATION_MODE_HOST_INPUT_PROCESSING
             MENUITEM "Visual - DComp",                  IDM_CREATION_MODE_VISUAL_DCOMP
             MENUITEM "Target - DComp",                  IDM_CREATION_MODE_TARGET_DCOMP
             MENUITEM "Visual - WinComp",                IDM_CREATION_MODE_VISUAL_WINCOMP
@@ -294,6 +295,7 @@ BEGIN
         MENUITEM "Virtual Host Mapping For Pop Up Window",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING_POP_UP_WINDOW
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
         MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
+        MENUITEM "Dropped file path",           IDM_SCENARIO_DROPPED_FILE_PATH
         MENUITEM "Accelerator Key Pressed", IDM_SCENARIO_ACCELERATOR_KEY_PRESSED
     END
     POPUP "&Audio"
