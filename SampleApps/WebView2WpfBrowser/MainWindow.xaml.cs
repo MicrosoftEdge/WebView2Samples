@@ -3317,7 +3317,24 @@ namespace WebView2WpfBrowser
 
         void FileExplorerExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            webView.CoreWebView2.NavigationCompleted += delegate (
+                object webview2, CoreWebView2NavigationCompletedEventArgs args)
+                {
+                    if (args.IsSuccess && webView.CoreWebView2.Source.Equals("https://appassets.example/ScenarioFileSystemHandleShare.html"))
+                    {
+                        webView.CoreWebView2.PostWebMessageAsJsonWithAdditionalObjects("{ \"messageType\" : \"RootDirectoryHandle\" }", new List<object>()
+                        {
+                            webView.CoreWebView2.Environment.CreateWebFileSystemDirectoryHandle(
+                                "C:\\",
+                                CoreWebView2FileSystemHandlePermission.ReadOnly)
+                        });
+                    }
+                };
+            webView.Source = new Uri("https://appassets.example/ScenarioFileSystemHandleShare.html");       
+#endif
         }
+
         void ThrottlingControlExecuted(object target, ExecutedRoutedEventArgs e)
         {
         }

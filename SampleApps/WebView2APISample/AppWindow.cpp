@@ -43,6 +43,7 @@
 #include "ScenarioNonClientRegionSupport.h"
 #include "ScenarioNotificationReceived.h"
 #include "ScenarioPermissionManagement.h"
+#include "ScenarioFileSystemHandleShare.h"
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
