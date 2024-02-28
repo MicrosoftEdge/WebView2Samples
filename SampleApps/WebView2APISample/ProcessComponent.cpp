@@ -107,7 +107,7 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
                     CHECK_FAILURE(args2->get_ExitCode(&exitCode));
 
                     auto argFailedModule =
-                        args.try_query<ICoreWebView2ExperimentalProcessFailedEventArgs>();
+                        args.try_query<ICoreWebView2ProcessFailedEventArgs3>();
                     if (argFailedModule)
                     {
                         CHECK_FAILURE(
