@@ -98,6 +98,7 @@ found in the LICENSE file.
 
         <CommandBinding Command="{x:Static local:MainWindow.PermissionManagementCommand}" Executed="PermissionManagementExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NotificationReceivedCommand}" Executed="NotificationReceivedExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.FileExplorerCommand}" Executed="FileExplorerExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -225,6 +226,7 @@ found in the LICENSE file.
                 <MenuItem Header="_Shared Buffer" Command="{x:Static local:MainWindow.SharedBufferRequestedCommand}"/>
                 <MenuItem Header="Permission Management" Command="{x:Static local:MainWindow.PermissionManagementCommand}"/>
                 <MenuItem Header="Notification Received" Command="{x:Static local:MainWindow.NotificationReceivedCommand}"/>
+                <MenuItem Header="File-system explorer" Command="{x:Static local:MainWindow.FileExplorerCommand}"/>
             </MenuItem>
             <MenuItem Header="_Audio">
                 <MenuItem Header="Toggle Mute State" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.ToggleMuteStateCommand}"/>
