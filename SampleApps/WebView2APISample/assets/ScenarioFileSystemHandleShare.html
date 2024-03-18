@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    #file-explorer {
+      width: 400px;
+      height: 300px;
+      border: 1px solid black;
+      overflow: auto;
+    }
+
+    #file-explorer li {
+      list-style: none;
+      margin: 5px;
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    #file-explorer .directory {
+      background-color: lightblue;
+    }
+
+    #file-explorer .file {
+      background-color: lightgreen;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>File System Explorer</h1>
+  <button id="browse-root">Browse root</button>
+  <div id="file-explorer">
+    <ul id="file-tree"></ul>
+  </div>
+  <script>
+    // A function that creates a list item from a FileSystemHandle
+    function createListItem(handle) {
+      var li = document.createElement("li");
+      li.textContent = handle.name;
+      li.addEventListener("click", async function (e) {
+        e.stopPropagation();
+        if (handle.kind === "directory") {
+          li.classList.toggle("expanded");
+          if (li.classList.contains("expanded")) {
+            var entries = handle.values();
+            for await (var entry of entries) {
+              var child = createListItem(entry);
+              child.classList.add(entry.kind);
+              li.appendChild(child);
+            }
+          } else {
+            // Remove all children except the first one
+            while (li.childNodes.length > 1) {
+              li.removeChild(li.lastChild);
+            }
+          }
+        } else {
+          // If it is a file, open it in a new window
+          // Get a file object from the handle
+          var file = await handle.getFile();
+          // Create a URL from the file object
+          var url = URL.createObjectURL(file);
+          window.open(url);
+        }
+      });
+      return li;
+    }
+    function renderFileExplorer(fileSystemHandle) {
+      var fileExplorer = document.getElementById("file-explorer");
+      var fileTree = document.getElementById("file-tree");
+      fileTree.innerHTML = "";
+      var root = createListItem(fileSystemHandle);
+      root.classList.add("directory");
+      fileTree.appendChild(root);
+      root.id = "root";
+    }
+    chrome.webview.addEventListener("message", function (e) {
+      if (e.data.messageType === "RootDirectoryHandle") {
+        renderFileExplorer(e.additionalObjects[0]);
+      }
+    })
+    document.addEventListener("DOMContentLoaded", function () {
+      var browseRoot = document.getElementById("browse-root");
+      browseRoot.addEventListener("click", async function () {
+        var dirHandle = await window.showDirectoryPicker();
+        renderFileExplorer(dirHandle);
+      });
+    });
+
+  </script>
+</body>
+
+</html>
