@@ -237,6 +237,7 @@
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
     <ClInclude Include="ScenarioDragDrop.h" />
     <ClInclude Include="ScenarioExtensionsManagement.h" />
+    <ClInclude Include="ScenarioFileSystemHandleShare.h" />
     <ClInclude Include="ScenarioIFrameDevicePermission.h" />
     <ClInclude Include="ScenarioNavigateWithWebResourceRequest.h" />
     <ClInclude Include="ScenarioNonClientRegionSupport.h" />
@@ -287,6 +288,7 @@
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
     <ClCompile Include="ScenarioDragDrop.cpp" />
     <ClCompile Include="ScenarioExtensionsManagement.cpp" />
+    <ClCompile Include="ScenarioFileSystemHandleShare.cpp" />
     <ClCompile Include="ScenarioIFrameDevicePermission.cpp" />
     <ClCompile Include="ScenarioNavigateWithWebResourceRequest.cpp" />
     <ClCompile Include="ScenarioNonClientRegionSupport.cpp" />
@@ -320,6 +322,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="AppBackground.bmp" />
+    <Image Include="small.ico" />
     <Image Include="WebView2APISample.ico" />
     <Image Include="WebView2APISample_Inprivate.ico" />
   </ItemGroup>
@@ -352,6 +355,9 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioDragDrop.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioFileSystemHandleShare.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermission.html">
@@ -452,13 +458,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.220201.1\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.220201.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
-    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.2415-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.2415-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.2470-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.2470-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.220201.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.220201.1\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.2415-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.2415-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.2470-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.2470-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
   </Target>
 </Project>

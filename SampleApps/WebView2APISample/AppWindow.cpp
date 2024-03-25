@@ -43,6 +43,7 @@
 #include "ScenarioNonClientRegionSupport.h"
 #include "ScenarioNotificationReceived.h"
 #include "ScenarioPermissionManagement.h"
+#include "ScenarioFileSystemHandleShare.h"
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
@@ -1331,6 +1332,13 @@ void AppWindow::InitializeWebView()
     if (options.As(&options6) == S_OK)
     {
         CHECK_FAILURE(options6->put_AreBrowserExtensionsEnabled(TRUE));
+    }
+
+    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions2> exp_options2;
+    if (options.As(&exp_options2) == S_OK)
+    {
+        COREWEBVIEW2_SCROLLBAR_STYLE style = COREWEBVIEW2_SCROLLBAR_STYLE_FLUENT_OVERLAY;
+        CHECK_FAILURE(exp_options2->put_ScrollBarStyle(style));
     }
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(
