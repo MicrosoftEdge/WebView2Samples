@@ -34,16 +34,17 @@ ScenarioFileSystemHandleShare::ScenarioFileSystemHandleShare(AppWindow* appWindo
                 CHECK_FEATURE_RETURN_HRESULT(webview24);
                 wil::com_ptr<ICoreWebView2Environment> environment =
                     appWindow->GetWebViewEnvironment();
-                wil::com_ptr<ICoreWebView2ExperimentalEnvironment14> environment_staging14 =
-                    environment.try_query<ICoreWebView2ExperimentalEnvironment14>();
-                CHECK_FEATURE_RETURN_HRESULT(environment_staging14);
+                wil::com_ptr<ICoreWebView2ExperimentalEnvironment14>
+                    environment_experimental14 =
+                        environment.try_query<ICoreWebView2ExperimentalEnvironment14>();
+                CHECK_FEATURE_RETURN_HRESULT(environment_experimental14);
                 wil::com_ptr<ICoreWebView2ExperimentalFileSystemHandle> rootHandle;
-                CHECK_FAILURE(environment_staging14->CreateWebFileSystemDirectoryHandle(
+                CHECK_FAILURE(environment_experimental14->CreateWebFileSystemDirectoryHandle(
                     L"C:\\", COREWEBVIEW2_FILE_SYSTEM_HANDLE_PERMISSION_READ_ONLY,
                     &rootHandle));
                 wil::com_ptr<ICoreWebView2ExperimentalObjectCollection> webObjectCollection;
                 IUnknown* webObjects[] = {rootHandle.get()};
-                CHECK_FAILURE(environment_staging14->CreateObjectCollection(
+                CHECK_FAILURE(environment_experimental14->CreateObjectCollection(
                     ARRAYSIZE(webObjects), webObjects, &webObjectCollection));
                 wil::com_ptr<ICoreWebView2ObjectCollectionView> webObjectCollectionView =
                     webObjectCollection.try_query<ICoreWebView2ObjectCollectionView>();
