@@ -38,12 +38,13 @@
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioDragDrop.h"
 #include "ScenarioExtensionsManagement.h"
+#include "ScenarioFileSystemHandleShare.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioNonClientRegionSupport.h"
 #include "ScenarioNotificationReceived.h"
 #include "ScenarioPermissionManagement.h"
-#include "ScenarioFileSystemHandleShare.h"
+#include "ScenarioSaveAs.h"
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
@@ -1609,6 +1610,8 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(
         }
         NewComponent<ScenarioPermissionManagement>(this);
         NewComponent<ScenarioNotificationReceived>(this);
+        NewComponent<ScenarioSaveAs>(this);
+
         // We have a few of our own event handlers to register here as well
         RegisterEventHandlers();
 

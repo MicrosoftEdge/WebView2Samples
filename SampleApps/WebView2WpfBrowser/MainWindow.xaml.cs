@@ -196,6 +196,16 @@ namespace WebView2WpfBrowser
           CoreWebView2PermissionState.Default
         };
 
+#if USE_WEBVIEW2_EXPERIMENTAL
+        List<CoreWebView2SaveAsKind> _saveAsKindList = new List<CoreWebView2SaveAsKind>
+        {
+            CoreWebView2SaveAsKind.Default,
+            CoreWebView2SaveAsKind.HtmlOnly,
+            CoreWebView2SaveAsKind.SingleFile,
+            CoreWebView2SaveAsKind.Complete,
+        };
+#endif
+
         public CoreWebView2CreationProperties CreationProperties { get; set; } = null;
 
         public MainWindow()
@@ -3296,15 +3306,84 @@ namespace WebView2WpfBrowser
         // <ProgrammaticSaveAs>
         async void ProgrammaticSaveAsExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            try
+            {
+                // <ShowSaveAsUICompleted>
+                CoreWebView2SaveAsUIResult result = await webView.CoreWebView2.ShowSaveAsUIAsync();
+                MessageBox.Show(result.ToString(), "Info");
+                // </ShowSaveAsUICompleted>
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Programmatic Save As Failed: " + exception.Message);
+            }
+#else
             await Task.Delay(0);
+#endif
         }
         // </ProgrammaticSaveAs>
 
         // <ToggleSilent>
+#if USE_WEBVIEW2_EXPERIMENTAL
+        private bool isSilentSaveAs = false;
+#endif
         void ToggleSilentExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            isSilentSaveAs = !isSilentSaveAs;
+            if (isSilentSaveAs)
+                webView.CoreWebView2.SaveAsUIShowing += WebView_SaveAsUIShowing;
+            else
+                webView.CoreWebView2.SaveAsUIShowing -= WebView_SaveAsUIShowing;
+            MessageBox.Show(isSilentSaveAs? "Silent Save As Enabled":"Silent Save As Disabled" , "Info");
+#endif
         }
         // </ToggleSilent>
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        // <SaveAsUIShowing>
+        void WebView_SaveAsUIShowing(object sender, CoreWebView2SaveAsUIShowingEventArgs args)
+        {
+            args.SuppressDefaultDialog = true;
+
+            // Developer can obtain a deferral for the event so that the CoreWebView2
+            // doesn't examine the properties we set on the event args until
+            // after the deferral completes asynchronously.
+            CoreWebView2Deferral deferral = args.GetDeferral();
+
+            // We avoid potential reentrancy from running a message loop in the event
+            // handler. Show the customized dialog later when complete the deferral
+            // asynchronously.
+            System.Threading.SynchronizationContext.Current.Post((_) =>
+            {
+                using (deferral)
+                {
+                    var dialog = new SaveAsDialog(_saveAsKindList);
+                    if (dialog.ShowDialog() == true)
+                    {
+                        args.Kind = (CoreWebView2SaveAsKind)dialog.SaveAsKind.SelectedItem;
+                        args.SaveAsFilePath = System.IO.Path.Combine(dialog.Directory.Text, dialog.Filename.Text);
+                        args.AllowReplace = (bool)dialog.AllowReplaceOldFile.IsChecked;
+
+                        MessageBox.Show(
+                            "Content Mime Type: " + args.ContentMimeType +"\n" +
+                            "Fullpath: " + args.SaveAsFilePath + "\n" +
+                            "Allow Replace: " + args.AllowReplace.ToString() + "\n" +
+                            "Selected Save As Kind: " + args.Kind.ToString(),
+                            "Save As Parameters Preview");
+                    }
+                    else
+                    {
+                        args.Cancel = true;
+                    }
+                }
+            }, null);
+
+        }
+        // </SaveAsUIShowing>
+#endif
+
         // Simple function to retrieve fields from a JSON message.
         // For production code, you should use a real JSON parser library.
         string GetJSONStringField(string jsonMessage, string fieldName)

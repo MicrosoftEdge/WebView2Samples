@@ -12,6 +12,13 @@ namespace WebView2WpfBrowser {
     /// Interaction logic for SaveAsDialog.xaml
     /// </summary>
 public partial class SaveAsDialog : Window {
+#if USE_WEBVIEW2_EXPERIMENTAL
+    public SaveAsDialog(List<CoreWebView2SaveAsKind> kind = null) {
+        InitializeComponent();
+        SaveAsKind.ItemsSource = kind;
+        SaveAsKind.SelectedIndex = 0;
+    }
+#endif
     void OK_Clicked(object sender, RoutedEventArgs args) { this.DialogResult = true; }
     void CANCEL_Clicked(object sender, RoutedEventArgs args) { this.DialogResult = false; }
     }
