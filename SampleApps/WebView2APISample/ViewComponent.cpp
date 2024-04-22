@@ -76,7 +76,7 @@ ViewComponent::ViewComponent(
                     // the html be the WebView2 logo. We do this by making
                     // the background color transparent so the WebView2 logo in the AppWindow
                     // shows through.
-                    COREWEBVIEW2_COLOR transparentColor = { 0, 255, 255, 255 };
+                    COREWEBVIEW2_COLOR transparentColor = {0, 0, 0, 0};
                     wil::com_ptr<ICoreWebView2Controller2> controller2 =
                         m_controller.query<ICoreWebView2Controller2>();
                     // Save the previous background color to restore when navigating away.
@@ -261,7 +261,7 @@ bool ViewComponent::HandleWindowMessage(
             SetBackgroundColor(RGB(0, 0, 255), false);
             return true;
         case IDM_BACKGROUNDCOLOR_TRANSPARENT:
-            SetBackgroundColor(RGB(255, 255, 255), true);
+            SetBackgroundColor(RGB(0, 0, 0), true);
             return true;
         case IDM_ZOOM_05:
             SetZoomFactor(0.5f);
