@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioScreenCaptureIFrame2</title>
+</head>
+<body>
+    <h1>Screen Capture Test From Top Level IFrame2</h1>
+    <button onclick="testScreenCapture()">Screen Capture Test</button>
+    <button id="toggleButton" onclick="toggleStatus()">Disable</button>
+    <div id="statusDisplay"></div>
+    <script>
+        function testScreenCapture() {
+            navigator.mediaDevices.getDisplayMedia();
+        }
+
+        function toggleStatus() {
+            var button = document.getElementById('toggleButton');
+            var statusDisplay = document.getElementById('statusDisplay');
+            if (button.innerHTML === "Enable") {
+                chrome.webview.postMessage("EnableScreenCapture");
+                button.innerHTML = "Disable";
+                statusDisplay.innerHTML = "Status: Enabled";
+            } else {
+                chrome.webview.postMessage("DisableScreenCapture");
+                button.innerHTML = "Enable";
+                statusDisplay.innerHTML = "Status: Disabled";
+            }
+        }
+    </script>
+
+</body>
+</html>
