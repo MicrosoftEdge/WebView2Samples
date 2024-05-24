@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFrameworks>netcoreapp3.0;net462</TargetFrameworks>
+	<OutputType>WinExe</OutputType>
+    <TargetFrameworks>netcoreapp3.0;net462;net6.0-windows</TargetFrameworks>
     <UseWPF>true</UseWPF>
     <Authors>Hybrid Application Team</Authors>
     <Company>Microsoft</Company>
