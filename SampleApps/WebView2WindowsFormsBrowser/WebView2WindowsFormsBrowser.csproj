@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<TargetFrameworks>netcoreapp3.0;net462;net6.0-windows</TargetFrameworks>
-	<UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>netcoreapp3.0;net462;net6.0-windows</TargetFrameworks>
+    <UseWindowsForms>true</UseWindowsForms>
     <Company>Microsoft</Company>
     <Authors>Hybrid Application Team</Authors>
     <Copyright>Copyright ©2020</Copyright>
