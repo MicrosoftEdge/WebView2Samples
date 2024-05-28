@@ -1814,7 +1814,12 @@ SettingsComponent::~SettingsComponent()
 wil::unique_bstr GetDomainOfUri(PWSTR uri)
 {
     wil::com_ptr<IUri> uriObject;
-    CreateUri(uri, Uri_CREATE_CANONICALIZE | Uri_CREATE_NO_DECODE_EXTRA_INFO, 0, &uriObject);
+    HRESULT hr = CreateUri(
+        uri, Uri_CREATE_CANONICALIZE | Uri_CREATE_NO_DECODE_EXTRA_INFO, 0, &uriObject);
+    if (FAILED(hr))
+    {
+        return nullptr;
+    }
     wil::unique_bstr domain;
     uriObject->GetHost(&domain);
     return domain;

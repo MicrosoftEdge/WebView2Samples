@@ -1777,7 +1777,8 @@ void AppWindow::RegisterEventHandlers()
                     static const wchar_t* browser_launching_domain = L"www.example.com";
                     wil::unique_bstr source_domain = GetDomainOfUri(source.get());
                     const wchar_t* source_domain_as_wchar = source_domain.get();
-                    if (wcscmp(browser_launching_domain, source_domain_as_wchar) == 0)
+                    if (source_domain_as_wchar &&
+                        wcscmp(browser_launching_domain, source_domain_as_wchar) == 0)
                     {
                         // Open the URI in the default browser.
                         wil::unique_cotaskmem_string target_uri;

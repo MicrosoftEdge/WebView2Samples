@@ -287,6 +287,7 @@ namespace WebView2WpfBrowser
                     return;
                 }
             }
+            webView.Dispose();
             this.Close();
         }
 
