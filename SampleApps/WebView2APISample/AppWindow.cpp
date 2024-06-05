@@ -45,6 +45,7 @@
 #include "ScenarioNotificationReceived.h"
 #include "ScenarioPermissionManagement.h"
 #include "ScenarioSaveAs.h"
+#include "ScenarioScreenCapture.h"
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
@@ -663,6 +664,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_ACCELERATOR_KEY_PRESSED:
     {
         NewComponent<ScenarioAcceleratorKeyPressed>(this);
+        return true;
+    }
+    case IDM_SCENARIO_SCREEN_CAPTURE:
+    {
+        NewComponent<ScenarioScreenCapture>(this);
         return true;
     }
     }

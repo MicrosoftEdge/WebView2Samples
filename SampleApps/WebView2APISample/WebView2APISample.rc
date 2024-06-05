@@ -302,6 +302,7 @@ BEGIN
           MENUITEM "Programmatic Save As", IDM_SCENARIO_SAVE_AS_PROGRAMMATIC
         END
         MENUITEM "Accelerator Key Pressed", IDM_SCENARIO_ACCELERATOR_KEY_PRESSED
+        MENUITEM "Screen Capture", IDM_SCENARIO_SCREEN_CAPTURE
     END
     POPUP "&Audio"
     BEGIN

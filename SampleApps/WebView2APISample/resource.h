@@ -224,6 +224,7 @@
 #define IDC_CHECK_USE_OS_REGION 32803
 #define ID_CUSTOM_DATA_PARTITION 32804
 #define ID_SETTINGS_NON_CLIENT_REGION_SUPPORT_ENABLED 32805
+#define IDM_SCENARIO_SCREEN_CAPTURE 32809
 #define IDC_STATIC                      -1
 // Next default values for new objects
 //
@@ -231,7 +232,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        245
-#define _APS_NEXT_COMMAND_VALUE         32806
+#define _APS_NEXT_COMMAND_VALUE         32810
 #define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
