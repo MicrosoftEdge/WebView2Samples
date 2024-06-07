@@ -37,8 +37,8 @@ void Toolbar::Initialize(AppWindow* appWindow)
         L"button", L"Cancel", WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP, 0, 0, 0, 0,
         mainWindow, (HMENU)IDE_CANCEL, nullptr, 0);
     m_items[Item_AddressBar] = CreateWindow(
-        L"edit", nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP, 0, 0, 0, 0,
-        mainWindow, (HMENU)IDE_ADDRESSBAR, nullptr, 0);
+        L"edit", nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL,
+        0, 0, 0, 0, mainWindow, (HMENU)IDE_ADDRESSBAR, nullptr, 0);
     m_items[Item_GoButton] = CreateWindow(
         L"button", L"Go", WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP | BS_DEFPUSHBUTTON,
         0, 0, 0, 0, mainWindow, (HMENU)IDE_ADDRESSBAR_GO, nullptr, 0);
