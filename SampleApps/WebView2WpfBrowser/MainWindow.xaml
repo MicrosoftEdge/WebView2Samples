@@ -97,8 +97,13 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.NewWebViewCommand}" Executed="NewWebViewCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
 
         <CommandBinding Command="{x:Static local:MainWindow.PermissionManagementCommand}" Executed="PermissionManagementExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NonClientRegionSupportCommand}" Executed="NonClientRegionSupportCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NonClientRegionSupportEnabledCommand}" Executed="NonClientRegionSupportEnabledCmdExecuted"
+        CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NotificationReceivedCommand}" Executed="NotificationReceivedExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.FileExplorerCommand}" Executed="FileExplorerExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ToggleScreenCaptureEnableCommand}" Executed="TogglScreenCaptureEnabledCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.FileTypePolicyCommand}" Executed="FileTypePolicyExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -165,6 +170,7 @@ found in the LICENSE file.
                     <MenuItem Header="_Balanced" Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" CommandParameter="Balanced"/>
                     <MenuItem Header="_Strict" Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" CommandParameter="Strict"/>
                 </MenuItem>
+                <MenuItem Header="Toggle Non-Client Region Support" Command="{x:Static local:MainWindow.NonClientRegionSupportCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Toggle _Visibility" Name="webViewVisible" IsCheckable="True" IsChecked="True"/>
@@ -225,8 +231,11 @@ found in the LICENSE file.
                 <MenuItem Header="_Web Messages" Command="{x:Static local:MainWindow.WebMessagesCommand}"/>
                 <MenuItem Header="_Shared Buffer" Command="{x:Static local:MainWindow.SharedBufferRequestedCommand}"/>
                 <MenuItem Header="Permission Management" Command="{x:Static local:MainWindow.PermissionManagementCommand}"/>
+                <MenuItem Header="_Non-Client Region Support" Command="{x:Static local:MainWindow.NonClientRegionSupportEnabledCommand}"/>
                 <MenuItem Header="Notification Received" Command="{x:Static local:MainWindow.NotificationReceivedCommand}"/>
                 <MenuItem Header="File-system explorer" Command="{x:Static local:MainWindow.FileExplorerCommand}"/>
+                <MenuItem Header="Toggle Screen Capture" Command="{x:Static local:MainWindow.ToggleScreenCaptureEnableCommand}"/>
+                <MenuItem Header="File Type Policy" Command="{x:Static local:MainWindow.FileTypePolicyCommand}"/>
             </MenuItem>
             <MenuItem Header="_Audio">
                 <MenuItem Header="Toggle Mute State" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.ToggleMuteStateCommand}"/>

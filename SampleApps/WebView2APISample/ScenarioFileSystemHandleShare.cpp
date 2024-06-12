@@ -16,6 +16,7 @@ static constexpr WCHAR c_samplePath[] = L"ScenarioFileSystemHandleShare.html";
 
 extern wil::unique_bstr GetDomainOfUri(PWSTR uri);
 
+//! [PostWebMessageWithAdditionalObjects]
 ScenarioFileSystemHandleShare::ScenarioFileSystemHandleShare(AppWindow* appWindow)
     : m_appWindow(appWindow)
 {
@@ -29,25 +30,23 @@ ScenarioFileSystemHandleShare::ScenarioFileSystemHandleShare(AppWindow* appWindo
                 ICoreWebView2* sender,
                 ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT
             {
-                wil::com_ptr<ICoreWebView2Experimental24> webview24 =
-                    m_webView.try_query<ICoreWebView2Experimental24>();
-                CHECK_FEATURE_RETURN_HRESULT(webview24);
+                wil::com_ptr<ICoreWebView2_23> webview23 =
+                    m_webView.try_query<ICoreWebView2_23>();
+                CHECK_FEATURE_RETURN_HRESULT(webview23);
                 wil::com_ptr<ICoreWebView2Environment> environment =
                     appWindow->GetWebViewEnvironment();
-                wil::com_ptr<ICoreWebView2ExperimentalEnvironment14>
-                    environment_experimental14 =
-                        environment.try_query<ICoreWebView2ExperimentalEnvironment14>();
-                CHECK_FEATURE_RETURN_HRESULT(environment_experimental14);
-                wil::com_ptr<ICoreWebView2ExperimentalFileSystemHandle> rootHandle;
-                CHECK_FAILURE(environment_experimental14->CreateWebFileSystemDirectoryHandle(
+                wil::com_ptr<ICoreWebView2Environment14>
+                    environment14 =
+                        environment.try_query<ICoreWebView2Environment14>();
+                CHECK_FEATURE_RETURN_HRESULT(environment14);
+                wil::com_ptr<ICoreWebView2FileSystemHandle> rootHandle;
+                CHECK_FAILURE(environment14->CreateWebFileSystemDirectoryHandle(
                     L"C:\\", COREWEBVIEW2_FILE_SYSTEM_HANDLE_PERMISSION_READ_ONLY,
                     &rootHandle));
-                wil::com_ptr<ICoreWebView2ExperimentalObjectCollection> webObjectCollection;
+                wil::com_ptr<ICoreWebView2ObjectCollection> webObjectCollection;
                 IUnknown* webObjects[] = {rootHandle.get()};
-                CHECK_FAILURE(environment_experimental14->CreateObjectCollection(
+                CHECK_FAILURE(environment14->CreateObjectCollection(
                     ARRAYSIZE(webObjects), webObjects, &webObjectCollection));
-                wil::com_ptr<ICoreWebView2ObjectCollectionView> webObjectCollectionView =
-                    webObjectCollection.try_query<ICoreWebView2ObjectCollectionView>();
                 wil::unique_cotaskmem_string source;
                 CHECK_FAILURE(m_webView->get_Source(&source));
 
@@ -57,9 +56,9 @@ ScenarioFileSystemHandleShare::ScenarioFileSystemHandleShare(AppWindow* appWindo
                 // Check the source to ensure the message is sent to the correct target content.
                 if (std::wstring(expectedDomain) == sourceDomain.get())
                 {
-                    CHECK_FAILURE(webview24->PostWebMessageAsJsonWithAdditionalObjects(
+                    CHECK_FAILURE(webview23->PostWebMessageAsJsonWithAdditionalObjects(
                         L"{ \"messageType\" : \"RootDirectoryHandle\" }",
-                        webObjectCollectionView.get()));
+                        webObjectCollection.get()));
                 }
 
                 return S_OK;
@@ -67,6 +66,7 @@ ScenarioFileSystemHandleShare::ScenarioFileSystemHandleShare(AppWindow* appWindo
             .Get(),
         &m_navigationCompletedToken));
 }
+//! [PostWebMessageWithAdditionalObjects]
 
 ScenarioFileSystemHandleShare::~ScenarioFileSystemHandleShare()
 {
