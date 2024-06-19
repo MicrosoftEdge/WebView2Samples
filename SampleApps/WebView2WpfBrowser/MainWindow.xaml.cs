@@ -119,6 +119,8 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ToggleSilentCommand = new RoutedCommand();
         public static RoutedCommand ThrottlingControlCommand = new RoutedCommand();
         public static RoutedCommand FileExplorerCommand = new RoutedCommand();
+        public static RoutedCommand ToggleScreenCaptureEnableCommand = new RoutedCommand();
+        public static RoutedCommand FileTypePolicyCommand = new RoutedCommand();
 
 #endregion commands
 
@@ -1304,16 +1306,54 @@ namespace WebView2WpfBrowser
 
         void NonClientRegionSupportCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            try
+            {
+                // <ToggleNonClientSupportEnabled>
+                WebViewSettings.IsNonClientRegionSupportEnabled =
+                    !WebViewSettings.IsNonClientRegionSupportEnabled;
+                // </ToggleNonClientSupportEnabled>
+                MessageBox.Show("Non-client region support will be " +
+                    (WebViewSettings.IsNonClientRegionSupportEnabled ?
+                     "enabled " : "disabled ") + "after the next navigation.");
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "Toggle Non-client region support failed: " +
+                 exception.Message, "Non-client Support");
+            }
         }
+
         void NonClientRegionSupportEnabledCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            webView.CoreWebView2.NavigationStarting += WebView_NavigationStartingNonClientRegionSupport;
+            webView.CoreWebView2.DOMContentLoaded += WebView_DOMContentLoadedNonClientRegionSupport;
+
+            webView.Source = new Uri("https://appassets.example/ScenarioNonClientRegionSupport.html");
         }
+
         void WebView_DOMContentLoadedNonClientRegionSupport(object sender, CoreWebView2DOMContentLoadedEventArgs e)
         {
+            if (webView.CoreWebView2.Source != "https://appassets.example/ScenarioNonClientRegionSupport.html")
+            {
+                webView.CoreWebView2.NavigationStarting -= WebView_NavigationStartingNonClientRegionSupport;
+                webView.CoreWebView2.DOMContentLoaded -= WebView_DOMContentLoadedNonClientRegionSupport;
+            }
         }
+
         void WebView_NavigationStartingNonClientRegionSupport(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
+            if (e.Uri == "https://appassets.example/ScenarioNonClientRegionSupport.html"
+                && !WebViewSettings.IsNonClientRegionSupportEnabled)
+            {
+                WebViewSettings.IsNonClientRegionSupportEnabled = true;
+            }
+            else if (e.Uri != "https://appassets.example/ScenarioNonClientRegionSupport.html"
+                && WebViewSettings.IsNonClientRegionSupportEnabled)
+            {
+                WebViewSettings.IsNonClientRegionSupportEnabled = false;
+            }
         }
+
         void PdfToolbarSaveCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             // <ToggleHiddenPdfToolbarItems>
@@ -2021,6 +2061,10 @@ namespace WebView2WpfBrowser
                 // </PermissionRequested>
                 webView.CoreWebView2.DOMContentLoaded += WebView_PermissionManager_DOMContentLoaded;
                 webView.CoreWebView2.WebMessageReceived += WebView_PermissionManager_WebMessageReceived;
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+                webView.CoreWebView2.ScreenCaptureStarting += WebView_ScreenCaptureStarting;
+#endif
 
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
@@ -3397,13 +3441,12 @@ namespace WebView2WpfBrowser
 
         void FileExplorerExecuted(object target, ExecutedRoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             webView.CoreWebView2.NavigationCompleted += delegate (
                 object webview2, CoreWebView2NavigationCompletedEventArgs args)
                 {
                     if (args.IsSuccess && webView.CoreWebView2.Source.Equals("https://appassets.example/ScenarioFileSystemHandleShare.html"))
                     {
-                        webView.CoreWebView2.PostWebMessageAsJsonWithAdditionalObjects("{ \"messageType\" : \"RootDirectoryHandle\" }", new List<object>()
+                        webView.CoreWebView2.PostWebMessageAsJson("{ \"messageType\" : \"RootDirectoryHandle\" }", new List<object>()
                         {
                             webView.CoreWebView2.Environment.CreateWebFileSystemDirectoryHandle(
                                 "C:\\",
@@ -3411,12 +3454,94 @@ namespace WebView2WpfBrowser
                         });
                     }
                 };
-            webView.Source = new Uri("https://appassets.example/ScenarioFileSystemHandleShare.html");       
-#endif
+            webView.Source = new Uri("https://appassets.example/ScenarioFileSystemHandleShare.html");
         }
 
         void ThrottlingControlExecuted(object target, ExecutedRoutedEventArgs e)
         {
         }
+        // <ScreenCaptureStarting0>
+#if USE_WEBVIEW2_EXPERIMENTAL
+        private bool isScreenCaptureEnabled = true;
+
+        void WebView_ScreenCaptureStarting(object sender, CoreWebView2ScreenCaptureStartingEventArgs args)
+        {
+            // Get Frame Info
+            CoreWebView2FrameInfo frameInfo;
+            frameInfo = args.OriginalSourceFrameInfo;
+
+            // Frame Source
+            string frameSource;
+            frameSource = frameInfo.Source;
+
+            args.Cancel = !isScreenCaptureEnabled;
+        }
+#endif
+
+        void TogglScreenCaptureEnabledCmdExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            isScreenCaptureEnabled = !isScreenCaptureEnabled;
+            MessageBox.Show(isScreenCaptureEnabled ? "Screen Capture Enabled" : "Screen Capture Disabled", "Info");
+#endif
+        }
+
+        // </ScreenCaptureStarting0>
+        // <FileTypePolicy>
+        void FileTypePolicyExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            webView.CoreWebView2.SaveFileSecurityCheckStarting += WebView_SaveFileSecurityCheckStarting;
+            webView.CoreWebView2.DOMContentLoaded += WebView_FileTypePolicy_DOMContentLoaded;
+            webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "appassets.example", "assets", CoreWebView2HostResourceAccessKind.DenyCors);
+            webView.Source = new Uri("https://appassets.example/SecnarioFileTypePolicy.html");
+            MessageBox.Show("Example rules of Dangerous File Security Policy has been applied in this demo page",
+                            "Info");
+#endif
+        }
+        // </FileTypePolicy>
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        // <SaveFileSecurityCheckStarting>
+        void WebView_SaveFileSecurityCheckStarting(object sender, CoreWebView2SaveFileSecurityCheckStartingEventArgs args)
+        {
+
+            // Suppress default policy for ".eml" file.
+            if (string.Equals(args.FileExtension, ".eml", StringComparison.OrdinalIgnoreCase))
+            {
+                args.SuppressDefaultPolicy = true;
+            }
+
+            // Cancel save/download for ".iso" file.
+            if (args.FileExtension == ".iso")
+            {
+                CoreWebView2Deferral deferral = args.GetDeferral();
+                System.Threading.SynchronizationContext.Current.Post((_) =>
+                {
+                    using (deferral)
+                    {
+                        // With the deferral, the cancel decision and
+                        // message box can be replaced with a customized UI.
+                        args.CancelSave = true;
+                        MessageBox.Show("The saving has been blocked", "Info");
+                    }
+                }, null);
+            }
+        }
+        // </SaveFileSecurityCheckStarting>
+
+        void WebView_FileTypePolicy_DOMContentLoaded(object sender, CoreWebView2DOMContentLoadedEventArgs e)
+        {
+            // Turn off this scenario if we navigate away from the demo page.
+            if (webView.CoreWebView2.Source != "https://appassets.example/SecnarioFileTypePolicy.html")
+            {
+                webView.CoreWebView2.SaveFileSecurityCheckStarting -= WebView_SaveFileSecurityCheckStarting;
+                webView.CoreWebView2.DOMContentLoaded -= WebView_FileTypePolicy_DOMContentLoaded;
+            }
+
+        }
+#endif
+
     }
 }
