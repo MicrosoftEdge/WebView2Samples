@@ -33,6 +33,8 @@ public:
     // Returns remaining available area for the WebView
     RECT Resize(RECT availableBounds);
     void UpdateDpiAndTextScale();
+    void SelectAll();
+    void SelectAddressBar();
 
 private:
     int GetItemLogicalWidth(Item item, int clientLogicalWidth) const;

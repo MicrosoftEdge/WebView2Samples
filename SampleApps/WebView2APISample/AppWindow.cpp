@@ -426,6 +426,7 @@ bool AppWindow::HandleWindowMessage(
     break;
     //! [RestartManager]
     case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
     {
         // If bit 30 is set, it means the WM_KEYDOWN message is autorepeated.
         // We want to ignore it in that case.
@@ -1247,6 +1248,14 @@ std::function<void()> AppWindow::GetAcceleratorKeyFunction(UINT key)
             return [this] { CreateNewThread(this); };
         case 'W':
             return [this] { CloseWebView(); };
+        }
+    }
+    if (GetKeyState(VK_MENU) < 0) // VK_MENU == Alt key
+    {
+        switch (key)
+        {
+        case 'D': // Alt+D focuses and selects the address bar, like the browser.
+            return [this] { m_toolbar.SelectAddressBar(); };
         }
     }
     return nullptr;
