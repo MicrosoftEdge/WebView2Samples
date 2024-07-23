@@ -22,7 +22,7 @@ private:
     ~ScenarioSaveAs() override;
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2Experimental25> m_webView2Experimental25;
+    wil::com_ptr<ICoreWebView2_25> m_webView2_25;
     EventRegistrationToken m_saveAsUIShowingToken = {};
     bool m_silentSaveAs = false;
 };

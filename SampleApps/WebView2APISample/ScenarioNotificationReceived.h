@@ -21,13 +21,12 @@ public:
 
 private:
     void NavigateToNotificationPage();
-    void ShowNotification(
-        ICoreWebView2ExperimentalNotification* notification, std::wstring origin);
-    void RemoveNotification(ICoreWebView2ExperimentalNotification* notification);
+    void ShowNotification(ICoreWebView2Notification* notification, std::wstring origin);
+    void RemoveNotification(ICoreWebView2Notification* notification);
 
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2Experimental22> m_webView2Experimental22;
+    wil::com_ptr<ICoreWebView2_24> m_webView2_24;
     std::wstring m_sampleUri;
     EventRegistrationToken m_notificationReceivedToken = {};
     EventRegistrationToken m_notificationCloseRequestedToken = {};

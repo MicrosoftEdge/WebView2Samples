@@ -87,10 +87,15 @@ class AppWindow
 {
 public:
     AppWindow(
-        UINT creationModeId, const WebViewCreateOption& opt,
-        const std::wstring& initialUri = L"", const std::wstring& userDataFolderParam = L"",
-        bool isMainWindow = false, std::function<void()> webviewCreatedCallback = nullptr,
-        bool customWindowRect = false, RECT windowRect = {0}, bool shouldHaveToolbar = true,
+        UINT creationModeId,
+        const WebViewCreateOption& opt,
+        const std::wstring& initialUri = L"",
+        const std::wstring& userDataFolderParam = L"",
+        bool isMainWindow = false,
+        std::function<void()> webviewCreatedCallback = nullptr,
+        bool customWindowRect = false,
+        RECT windowRect = {0},
+        bool shouldHaveToolbar = true,
         bool isPopup = false);
 
     ~AppWindow();
@@ -210,7 +215,6 @@ private:
     SamplePrintSettings GetSelectedPrinterPrintSettings(std::wstring printerName);
     bool PrintToPdfStream();
     void ToggleTrackingPrevention();
-
     std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
 
@@ -273,7 +277,6 @@ private:
     bool m_isPopupWindow = false;
     void EnterFullScreen();
     void ExitFullScreen();
-
     // Compositor creation helper methods
     HRESULT DCompositionCreateDevice2(IUnknown* renderingDevice, REFIID riid, void** ppv);
     HRESULT TryCreateDispatcherQueue();

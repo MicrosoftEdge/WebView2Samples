@@ -37,7 +37,7 @@ void Toolbar::Initialize(AppWindow* appWindow)
         L"button", L"Cancel", WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP, 0, 0, 0, 0,
         mainWindow, (HMENU)IDE_CANCEL, nullptr, 0);
     m_items[Item_AddressBar] = CreateWindow(
-        L"edit", nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP, 0, 0, 0, 0,
+        L"edit", nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP | ES_AUTOHSCROLL, 0, 0, 0, 0,
         mainWindow, (HMENU)IDE_ADDRESSBAR, nullptr, 0);
     m_items[Item_GoButton] = CreateWindow(
         L"button", L"Go", WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP | BS_DEFPUSHBUTTON,
@@ -142,4 +142,15 @@ void Toolbar::UpdateFont()
     logFont.lfWidth *= LONG(dpiScale * textScale);
     StringCchCopy(logFont.lfFaceName, ARRAYSIZE(logFont.lfFaceName), s_fontName);
     m_font = CreateFontIndirect(&logFont);
+}
+
+void Toolbar::SelectAll()
+{
+    SendMessage(m_items[Item_AddressBar], EM_SETSEL, 0, -1);
+}
+
+void Toolbar::SelectAddressBar()
+{
+    SetFocus(m_items[Item_AddressBar]);
+    SelectAll();
 }

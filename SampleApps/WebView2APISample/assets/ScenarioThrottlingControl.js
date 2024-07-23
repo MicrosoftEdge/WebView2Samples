@@ -3,24 +3,27 @@ const limitIterations = false;
 const iterations = 20;
 
 // steps per iteration
-const steps = 20;
+const steps = 80;
+const target = steps + 1;
 
 // global state
 let iteration = 0;
 let counter = 0;
-let start = performance.now();
+let first = performance.now();
 let timerId = undefined;
 
 const frameId = document.querySelector('meta[name="frame-title"]').content;
 const logger = (frameId == 'main') ? window.open('/ScenarioThrottlingControlMonitor.html') : window.parent;
 
 const timerCallback = () => {
-  let now = performance.now();
-  counter++;
+  if (++counter == 1) {
+    first = performance.now();
+  }
 
   // compute average timer delay only after target steps
-  if (counter == steps) {
-    let avg = (now - start) / steps;
+  if (counter == target) {
+    let end = performance.now();
+    let avg = (end - first) / steps;
     onIterationCompleted(avg);
   }
 }
@@ -35,7 +38,6 @@ function reportAverageDelay(delay) {
 }
 
 function onIterationCompleted(delayAvg) {
-  start = performance.now();
   counter = 0;
 
   if (++iteration == iterations && limitIterations) {

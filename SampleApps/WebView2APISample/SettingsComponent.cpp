@@ -13,6 +13,7 @@
 #include <shellapi.h>
 #include <shlwapi.h>
 #include <windows.h>
+#include <sstream>
 
 using namespace Microsoft::WRL;
 
@@ -1296,7 +1297,6 @@ bool SettingsComponent::HandleWindowMessage(
             wil::com_ptr<ICoreWebView2Settings9> settings;
             settings = m_settings.try_query<ICoreWebView2Settings9>();
             CHECK_FEATURE_RETURN(settings);
-
             CHECK_FAILURE(
                 settings->get_IsNonClientRegionSupportEnabled(&nonClientRegionSupportEnabled));
             if (nonClientRegionSupportEnabled)

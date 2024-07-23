@@ -101,9 +101,13 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.NonClientRegionSupportEnabledCommand}" Executed="NonClientRegionSupportEnabledCmdExecuted"
         CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NotificationReceivedCommand}" Executed="NotificationReceivedExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ProgrammaticSaveAsCommand}" Executed="ProgrammaticSaveAsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ToggleSilentCommand}" Executed="ToggleSilentExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ThrottlingControlCommand}" Executed="ThrottlingControlExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.FileExplorerCommand}" Executed="FileExplorerExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ToggleScreenCaptureEnableCommand}" Executed="TogglScreenCaptureEnabledCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.FileTypePolicyCommand}" Executed="FileTypePolicyExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -233,6 +237,11 @@ found in the LICENSE file.
                 <MenuItem Header="Permission Management" Command="{x:Static local:MainWindow.PermissionManagementCommand}"/>
                 <MenuItem Header="_Non-Client Region Support" Command="{x:Static local:MainWindow.NonClientRegionSupportEnabledCommand}"/>
                 <MenuItem Header="Notification Received" Command="{x:Static local:MainWindow.NotificationReceivedCommand}"/>
+                <MenuItem Header="Save As">
+                    <MenuItem Header="Toggle Silent" Command="{x:Static local:MainWindow.ToggleSilentCommand}"/>
+                    <MenuItem Header="Programmatic Save As" Command="{x:Static local:MainWindow.ProgrammaticSaveAsCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Throttling Control" Command="{x:Static local:MainWindow.ThrottlingControlCommand}"/>
                 <MenuItem Header="File-system explorer" Command="{x:Static local:MainWindow.FileExplorerCommand}"/>
                 <MenuItem Header="Toggle Screen Capture" Command="{x:Static local:MainWindow.ToggleScreenCaptureEnableCommand}"/>
                 <MenuItem Header="File Type Policy" Command="{x:Static local:MainWindow.FileTypePolicyCommand}"/>

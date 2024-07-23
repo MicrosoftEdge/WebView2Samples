@@ -291,7 +291,7 @@ bool ControlComponent::HandleChildWindowMessage(
     // If not calling IsDialogMessage to handle tab traversal automatically,
     // detect tab traversal and cycle focus through address bar, go button, and
     // elements in WebView.
-    if (message == WM_KEYDOWN)
+    if (message == WM_KEYDOWN || message == WM_SYSKEYDOWN)
     {
         //! [MoveFocus1]
         if (wParam == VK_TAB)
@@ -318,6 +318,12 @@ bool ControlComponent::HandleChildWindowMessage(
         {
             // Handle pressing Enter in address bar
             NavigateToAddressBar();
+            return true;
+        }
+        // Ctrl+A is SelectAll
+        else if ((GetKeyState(VK_CONTROL) < 0) && ((UINT)wParam == 'A'))
+        {
+            m_toolbar->SelectAll();
             return true;
         }
         else
