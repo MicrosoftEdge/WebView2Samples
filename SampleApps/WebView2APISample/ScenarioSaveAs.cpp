@@ -20,7 +20,7 @@ ScenarioSaveAs::ScenarioSaveAs(AppWindow* appWindow)
 {
     if (m_webView)
     {
-        m_webView2Experimental25 = m_webView.try_query<ICoreWebView2Experimental25>();
+        m_webView2_25 = m_webView.try_query<ICoreWebView2_25>();
     }
 }
 
@@ -39,17 +39,16 @@ std::array<std::wstring, 5> saveAsUIResultString{
 // This example hides the default save as dialog and shows a customized dialog.
 bool ScenarioSaveAs::ToggleSilent()
 {
-    if (!m_webView2Experimental25)
+    if (!m_webView2_25)
         return false;
     m_silentSaveAs = !m_silentSaveAs;
     if (m_silentSaveAs && m_saveAsUIShowingToken.value == 0)
     {
         // Register a handler for the `SaveAsUIShowing` event.
-        m_webView2Experimental25->add_SaveAsUIShowing(
-            Callback<ICoreWebView2ExperimentalSaveAsUIShowingEventHandler>(
-                [this](
-                    ICoreWebView2* sender,
-                    ICoreWebView2ExperimentalSaveAsUIShowingEventArgs* args) -> HRESULT
+        m_webView2_25->add_SaveAsUIShowing(
+            Callback<ICoreWebView2SaveAsUIShowingEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2SaveAsUIShowingEventArgs* args)
+                    -> HRESULT
                 {
                     // Hide the system default save as dialog.
                     CHECK_FAILURE(args->put_SuppressDefaultDialog(TRUE));
@@ -111,7 +110,7 @@ bool ScenarioSaveAs::ToggleSilent()
     else
     {
         // Unregister the handler for the `SaveAsUIShowing` event.
-        m_webView2Experimental25->remove_SaveAsUIShowing(m_saveAsUIShowingToken);
+        m_webView2_25->remove_SaveAsUIShowing(m_saveAsUIShowingToken);
         m_saveAsUIShowingToken.value = 0;
     }
     MessageBox(
@@ -126,10 +125,10 @@ bool ScenarioSaveAs::ToggleSilent()
 // Call ShowSaveAsUI method to trigger the programmatic save as.
 bool ScenarioSaveAs::ProgrammaticSaveAs()
 {
-    if (!m_webView2Experimental25)
+    if (!m_webView2_25)
         return false;
-    m_webView2Experimental25->ShowSaveAsUI(
-        Callback<ICoreWebView2ExperimentalShowSaveAsUICompletedHandler>(
+    m_webView2_25->ShowSaveAsUI(
+        Callback<ICoreWebView2ShowSaveAsUICompletedHandler>(
             [this](HRESULT errorCode, COREWEBVIEW2_SAVE_AS_UI_RESULT result) -> HRESULT
             {
                 // Show ShowSaveAsUI returned result, optional.
@@ -165,9 +164,9 @@ bool ScenarioSaveAs::HandleWindowMessage(
 
 ScenarioSaveAs::~ScenarioSaveAs()
 {
-    if (m_webView2Experimental25)
+    if (m_webView2_25)
     {
-        m_webView2Experimental25->remove_SaveAsUIShowing(m_saveAsUIShowingToken);
+        m_webView2_25->remove_SaveAsUIShowing(m_saveAsUIShowingToken);
     }
 }
 

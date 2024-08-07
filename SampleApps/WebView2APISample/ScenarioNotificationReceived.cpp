@@ -24,16 +24,15 @@ ScenarioNotificationReceived::ScenarioNotificationReceived(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
 {
     m_sampleUri = m_appWindow->GetLocalUri(c_samplePath);
-    m_webView2Experimental22 = m_webView.try_query<ICoreWebView2Experimental22>();
-    if (!m_webView2Experimental22)
+    m_webView2_24 = m_webView.try_query<ICoreWebView2_24>();
+    if (!m_webView2_24)
         return;
     //! [NotificationReceived]
     // Register a handler for the NotificationReceived event.
-    CHECK_FAILURE(m_webView2Experimental22->add_NotificationReceived(
-        Callback<ICoreWebView2ExperimentalNotificationReceivedEventHandler>(
-            [this](
-                ICoreWebView2* sender,
-                ICoreWebView2ExperimentalNotificationReceivedEventArgs* args) -> HRESULT
+    CHECK_FAILURE(m_webView2_24->add_NotificationReceived(
+        Callback<ICoreWebView2NotificationReceivedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2NotificationReceivedEventArgs* args)
+                -> HRESULT
             {
                 // Block notifications from specific URIs and set Handled to
                 // true so the the default notification UI will not be
@@ -45,14 +44,13 @@ ScenarioNotificationReceived::ScenarioNotificationReceived(AppWindow* appWindow)
                 wil::unique_cotaskmem_string origin;
                 CHECK_FAILURE(args->get_SenderOrigin(&origin));
                 std::wstring originString = origin.get();
-                Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalNotification> notification;
+                Microsoft::WRL::ComPtr<ICoreWebView2Notification> notification;
                 CHECK_FAILURE(args->get_Notification(&notification));
 
                 notification->add_CloseRequested(
-                    Callback<ICoreWebView2ExperimentalNotificationCloseRequestedEventHandler>(
+                    Callback<ICoreWebView2NotificationCloseRequestedEventHandler>(
                         [this, &sender](
-                            ICoreWebView2ExperimentalNotification* notification,
-                            IUnknown* args) -> HRESULT
+                            ICoreWebView2Notification* notification, IUnknown* args) -> HRESULT
                         {
                             // Remove the notification from the list of active
                             // notifications.
@@ -64,8 +62,8 @@ ScenarioNotificationReceived::ScenarioNotificationReceived(AppWindow* appWindow)
 
                 m_appWindow->RunAsync(
                     [this,
-                     notificationCom = wil::make_com_ptr<ICoreWebView2ExperimentalNotification>(
-                         notification.Get()),
+                     notificationCom =
+                         wil::make_com_ptr<ICoreWebView2Notification>(notification.Get()),
                      deferral, originString]()
                     {
                         ShowNotification(notificationCom.get(), originString);
@@ -95,7 +93,7 @@ bool ScenarioNotificationReceived::HandleWindowMessage(
 }
 
 void ScenarioNotificationReceived::ShowNotification(
-    ICoreWebView2ExperimentalNotification* notification, std::wstring origin)
+    ICoreWebView2Notification* notification, std::wstring origin)
 {
     ICoreWebView2* webView = m_webView.get();
     wil::unique_cotaskmem_string title;
@@ -139,8 +137,7 @@ void ScenarioNotificationReceived::ShowNotification(
     (response == IDOK) ? notification->ReportClicked() : notification->ReportClosed();
 }
 
-void ScenarioNotificationReceived::RemoveNotification(
-    ICoreWebView2ExperimentalNotification* notification)
+void ScenarioNotificationReceived::RemoveNotification(ICoreWebView2Notification* notification)
 {
     // Close custom notification.
 
@@ -155,9 +152,8 @@ void ScenarioNotificationReceived::NavigateToNotificationPage()
 
 ScenarioNotificationReceived::~ScenarioNotificationReceived()
 {
-    if (m_webView2Experimental22)
+    if (m_webView2_24)
     {
-        CHECK_FAILURE(
-            m_webView2Experimental22->remove_NotificationReceived(m_notificationReceivedToken));
+        CHECK_FAILURE(m_webView2_24->remove_NotificationReceived(m_notificationReceivedToken));
     }
 }

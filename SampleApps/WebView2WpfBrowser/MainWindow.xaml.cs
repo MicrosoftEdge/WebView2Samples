@@ -80,6 +80,11 @@ namespace WebView2WpfBrowser
         public static RoutedCommand CreateNewThreadCommand = new RoutedCommand();
         public static RoutedCommand ExtensionsCommand = new RoutedCommand();
         public static RoutedCommand TrackingPreventionLevelCommand = new RoutedCommand();
+        public static RoutedCommand EnhancedSecurityModeLevelCommand = new RoutedCommand();
+        public static RoutedCommand EnhancedSecurityModeGetBypassListCommand = new RoutedCommand();
+        public static RoutedCommand EnhancedSecurityModeSetBypassListCommand = new RoutedCommand();
+        public static RoutedCommand EnhancedSecurityModeGetEnforceListCommand = new RoutedCommand();
+        public static RoutedCommand EnhancedSecurityModeSetEnforceListCommand = new RoutedCommand();
         public static RoutedCommand PrintDialogCommand = new RoutedCommand();
         public static RoutedCommand PrintToDefaultPrinterCommand = new RoutedCommand();
         public static RoutedCommand PrintToPrinterCommand = new RoutedCommand();
@@ -198,7 +203,6 @@ namespace WebView2WpfBrowser
           CoreWebView2PermissionState.Default
         };
 
-#if USE_WEBVIEW2_EXPERIMENTAL
         List<CoreWebView2SaveAsKind> _saveAsKindList = new List<CoreWebView2SaveAsKind>
         {
             CoreWebView2SaveAsKind.Default,
@@ -206,7 +210,6 @@ namespace WebView2WpfBrowser
             CoreWebView2SaveAsKind.SingleFile,
             CoreWebView2SaveAsKind.Complete,
         };
-#endif
 
         public CoreWebView2CreationProperties CreationProperties { get; set; } = null;
 
@@ -854,6 +857,22 @@ namespace WebView2WpfBrowser
         }
         // <SetTrackingPreventionLevel>
 
+
+        void EnhancedSecurityModeLevelCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        void EnhancedSecurityModeGetBypassListCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        void EnhancedSecurityModeSetBypassListCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        void EnhancedSecurityModeGetEnforceListCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        void EnhancedSecurityModeSetEnforceListCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
         async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             // <GetCookies>
@@ -2089,7 +2108,6 @@ namespace WebView2WpfBrowser
                     }
                     shouldAttachEnvironmentEventHandlers = false;
                 }
-
                 webView.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
                 SetDefaultDownloadDialogPosition();
@@ -2132,8 +2150,17 @@ namespace WebView2WpfBrowser
                         main_window.Show();
                     }
                 };
+#if USE_WEBVIEW2_EXPERIMENTAL
+                // Store the default values from the WebView2 Runtime so we can restore them later.
+                DefaultTimerIntervalForeground = webView.CoreWebView2.Settings.PreferredForegroundTimerWakeInterval;
+                DefaultTimerIntervalBackground = webView.CoreWebView2.Settings.PreferredBackgroundTimerWakeInterval;
+                DefaultTimerIntervalIntensive = webView.CoreWebView2.Settings.PreferredIntensiveTimerWakeInterval;
+                DefaultTimerIntervalOverride = webView.CoreWebView2.Settings.PreferredOverrideTimerWakeInterval;
+
+#endif
                 return;
             }
+
             // ERROR_DELETE_PENDING(0x8007012f)
             if (e.InitializationException.HResult == -2147024593)
             {
@@ -3351,7 +3378,6 @@ namespace WebView2WpfBrowser
         // <ProgrammaticSaveAs>
         async void ProgrammaticSaveAsExecuted(object target, ExecutedRoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             try
             {
                 // <ShowSaveAsUICompleted>
@@ -3363,30 +3389,22 @@ namespace WebView2WpfBrowser
             {
                 MessageBox.Show(this, "Programmatic Save As Failed: " + exception.Message);
             }
-#else
-            await Task.Delay(0);
-#endif
         }
         // </ProgrammaticSaveAs>
 
         // <ToggleSilent>
-#if USE_WEBVIEW2_EXPERIMENTAL
         private bool isSilentSaveAs = false;
-#endif
         void ToggleSilentExecuted(object target, ExecutedRoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             isSilentSaveAs = !isSilentSaveAs;
             if (isSilentSaveAs)
                 webView.CoreWebView2.SaveAsUIShowing += WebView_SaveAsUIShowing;
             else
                 webView.CoreWebView2.SaveAsUIShowing -= WebView_SaveAsUIShowing;
             MessageBox.Show(isSilentSaveAs? "Silent Save As Enabled":"Silent Save As Disabled" , "Info");
-#endif
         }
         // </ToggleSilent>
 
-#if USE_WEBVIEW2_EXPERIMENTAL
         // <SaveAsUIShowing>
         void WebView_SaveAsUIShowing(object sender, CoreWebView2SaveAsUIShowingEventArgs args)
         {
@@ -3427,7 +3445,6 @@ namespace WebView2WpfBrowser
 
         }
         // </SaveAsUIShowing>
-#endif
 
         // Simple function to retrieve fields from a JSON message.
         // For production code, you should use a real JSON parser library.
@@ -3459,7 +3476,165 @@ namespace WebView2WpfBrowser
 
         void ThrottlingControlExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            webView.CoreWebView2.NewWindowRequested += delegate (
+                    object webview2, CoreWebView2NewWindowRequestedEventArgs args)
+                {
+                    if (args.OriginalSourceFrameInfo?.Source == "https://appassets.example/ScenarioThrottlingControl.html")
+                    {
+                        CoreWebView2Deferral deferral = args.GetDeferral();
+                        MainWindow monitorWindow = new MainWindow(
+                            webView.CreationProperties, true /*isNewWindowRequest*/);
+                        monitorWindow.OnWebViewFirstInitialized = () =>
+                        {
+                            using (deferral)
+                            {
+                                args.Handled = true;
+                                args.NewWindow = monitorWindow.webView.CoreWebView2;
+
+                                // handle messages from throttling control monitor.
+                                monitorWindow.webView.CoreWebView2.WebMessageReceived += WebView_WebMessageReceivedThrottlingControl;
+                            }
+                        };
+                        monitorWindow.Show();
+                    }
+                };
+
+
+            SetupIsolatedFramesHandler();
+            webView.Source = new Uri("https://appassets.example/ScenarioThrottlingControl.html");
+#endif
         }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        void WebView_WebMessageReceivedThrottlingControl(object sender, CoreWebView2WebMessageReceivedEventArgs args)
+        {
+            var json = args.WebMessageAsJson;
+            var command = GetJSONStringField(json, "command");
+            Debug.WriteLine($"[throttling control] command: {command}");
+
+            if (command == "set-interval")
+            {
+                var category = GetJSONStringField(json, "priority");
+                var interval = new TimeSpan(0, 0, 0, 0, Int32.Parse(GetJSONStringField(json, "intervalMs")));
+
+                if (category == "foreground")
+                {
+                    Debug.WriteLine("foreground");
+                    // webView is the WPF WebView2 control class.
+                    webView.CoreWebView2.Settings.PreferredForegroundTimerWakeInterval = interval;
+                }
+                else if (category == "background")
+                {
+                    Debug.WriteLine("background");
+                    // webView is the WPF WebView2 control class.
+                    webView.CoreWebView2.Settings.PreferredBackgroundTimerWakeInterval = interval;
+                }
+                else if (category == "untrusted")
+                {
+                    Debug.WriteLine("untrusted");
+                    // webView is the WPF WebView2 control class.
+                    webView.CoreWebView2.Settings.PreferredOverrideTimerWakeInterval = interval;
+                }
+            }
+            else if (command == "toggle-visibility")
+            {
+                webView.Visibility = webView.Visibility == System.Windows.Visibility.Visible ? System.Windows.Visibility.Hidden : System.Windows.Visibility.Visible;
+            }
+            else if (command == "scenario")
+            {
+                var label = GetJSONStringField(json, "label");
+
+                if (label == "interaction-throttle")
+                {
+                    OnNoUserInteraction();
+                }
+                else if (label == "interaction-reset")
+                {
+                    OnUserInteraction();
+                }
+                else if (label == "hidden-unthrottle")
+                {
+                    HideWebView();
+                }
+                else if (label == "hidden-reset")
+                {
+                    ShowWebView();
+                }
+            }
+        }
+
+        // <ThrottlingControl>
+        TimeSpan DefaultTimerIntervalForeground;
+        TimeSpan DefaultTimerIntervalBackground;
+        TimeSpan DefaultTimerIntervalIntensive;
+        TimeSpan DefaultTimerIntervalOverride;
+
+        // The primary use-case here is an app embedding 3rd party content and wanting
+        // to be able to independently limit the performance impact of it. Generally,
+        // that's something like "low battery, throttle more" or "giving the frame N
+        // seconds to run some logic, throttle less".
+        void SetupIsolatedFramesHandler()
+        {
+            // You can use the frame properties to determine whether it should be
+            // marked to be throttled separately from main frame.
+            webView.CoreWebView2.FrameCreated += (sender, args) =>
+            {
+                if (args.Frame.Name == "untrusted")
+                {
+                    args.Frame.UseOverrideTimerWakeInterval = true;
+                }
+            };
+
+            // Restrict frames selected by the above callback to always match the default
+            // timer interval for background frames.
+            // webView is the WPF WebView2 control class.
+            webView.CoreWebView2.Settings.PreferredOverrideTimerWakeInterval = DefaultTimerIntervalBackground;
+        }
+
+        // This sample app calls this method when receiving a simulated event from its
+        // control monitor, but your app can decide how and when to go into this state.
+        void OnNoUserInteraction()
+        {
+            // User is not interactive, keep webview visible but throttle foreground
+            // timers to 500ms.
+            // webView is the WPF WebView2 control class.
+            webView.CoreWebView2.Settings.PreferredForegroundTimerWakeInterval = new TimeSpan(0, 0, 0, 0, 500);
+        }
+
+        void OnUserInteraction()
+        {
+            // User is interactive again, set foreground timer interval back to its
+            // default value.
+            // webView is the WPF WebView2 control class.
+            webView.CoreWebView2.Settings.PreferredForegroundTimerWakeInterval = DefaultTimerIntervalForeground;
+        }
+
+        // Prepares the WebView to go into hidden mode with no background timer
+        // throttling.
+        void HideWebView()
+        {
+            // This WebView2 will remain hidden but needs to keep running timers.
+            // Unthrottle background timers.
+            // webView is the WPF WebView2 control class.
+            webView.CoreWebView2.Settings.PreferredBackgroundTimerWakeInterval = new TimeSpan(0);
+            // Effectively disable intensive throttling by overriding its timer interval.
+            // webView is the WPF WebView2 control class.
+            webView.CoreWebView2.Settings.PreferredIntensiveTimerWakeInterval = new TimeSpan(0);
+            webView.Visibility = System.Windows.Visibility.Hidden;
+        }
+
+        // Shows the WebView and restores default throttling behavior.
+        void ShowWebView()
+        {
+            webView.Visibility = System.Windows.Visibility.Visible;
+            // webView is the WPF WebView2 control class.
+            webView.CoreWebView2.Settings.PreferredBackgroundTimerWakeInterval = DefaultTimerIntervalBackground;
+            webView.CoreWebView2.Settings.PreferredIntensiveTimerWakeInterval = DefaultTimerIntervalIntensive;
+        }
+        // </ThrottlingControl>
+#endif
+
         // <ScreenCaptureStarting0>
 #if USE_WEBVIEW2_EXPERIMENTAL
         private bool isScreenCaptureEnabled = true;
