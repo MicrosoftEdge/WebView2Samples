@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 using System.Linq;
+using System.ComponentModel;
 
 namespace WebView2WindowsFormsBrowser
 {
@@ -1448,25 +1449,29 @@ namespace WebView2WindowsFormsBrowser
 
     private string GetRuntimePath(CoreWebView2 webView2)
     {
-      int processId = (int)webView2.BrowserProcessId;
-      try
-      {
-        Process process = System.Diagnostics.Process.GetProcessById(processId);
-        var fileName = process.MainModule.FileName;
-        return System.IO.Path.GetDirectoryName(fileName);
-      }
-      catch (ArgumentException e)
-      {
-        Trace.WriteLine(e.Message);
-      }
-      catch (SystemException e)
-      {
-        Trace.WriteLine(e.Message);
-      }
-      return "";
+        int processId = (int)webView2.BrowserProcessId;
+        try
+        {
+            Process process = System.Diagnostics.Process.GetProcessById(processId);
+            var fileName = process.MainModule.FileName;
+            return System.IO.Path.GetDirectoryName(fileName);
+        }
+        catch (ArgumentException e)
+        {
+            return e.Message;
+        }
+        catch (InvalidOperationException e)
+        {
+            return e.Message;
+        }
+        // Occurred when a 32-bit process wants to access the modules of a 64-bit process.
+        catch (Win32Exception e)
+        {
+            return e.Message;
+        }
     }
 
-    private string GetStartPageUri(CoreWebView2 webView2)
+        private string GetStartPageUri(CoreWebView2 webView2)
     {
       string uri = "https://appassets.example/AppStartPage.html";
       if (webView2 == null)

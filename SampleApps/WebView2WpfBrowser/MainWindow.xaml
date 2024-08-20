@@ -107,7 +107,6 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.FileExplorerCommand}" Executed="FileExplorerExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ToggleScreenCaptureEnableCommand}" Executed="TogglScreenCaptureEnabledCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.FileTypePolicyCommand}" Executed="FileTypePolicyExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
-
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
