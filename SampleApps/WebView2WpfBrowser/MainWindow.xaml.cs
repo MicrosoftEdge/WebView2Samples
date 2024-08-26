@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -126,6 +127,13 @@ namespace WebView2WpfBrowser
         public static RoutedCommand FileExplorerCommand = new RoutedCommand();
         public static RoutedCommand ToggleScreenCaptureEnableCommand = new RoutedCommand();
         public static RoutedCommand FileTypePolicyCommand = new RoutedCommand();
+
+        public static RoutedCommand ServiceWorkerRegisteredCommand = new RoutedCommand();
+        public static RoutedCommand GetServiceWorkerRegistrationsCommand = new RoutedCommand();
+        public static RoutedCommand GetServiceWorkerRegisteredForScopeCommand = new RoutedCommand();
+        public static RoutedCommand DedicatedWorkerCreatedCommand = new RoutedCommand();
+        public static RoutedCommand SharedWorkerManagerCommand = new RoutedCommand();
+        public static RoutedCommand GetSharedWorkersCommand = new RoutedCommand();
 
 #endregion commands
 
@@ -3718,5 +3726,27 @@ namespace WebView2WpfBrowser
         }
 #endif
 
+        void DedicatedWorkerCreatedExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        void ServiceWorkerRegisteredExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        private async void GetServiceWorkerRegistrationsExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            await Task.Delay(0);
+        }
+
+        async void GetServiceWorkerRegisteredForScopeExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            await Task.Delay(0);
+        }
+        void SharedWorkerManagerExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
+        private async void GetSharedWorkersExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            await Task.Delay(0);
+        }
     }
-}
+    }

@@ -1448,12 +1448,10 @@ this the `appRegion` changes would not take place until some document element wa
 1. Right click 'Microsoft Edge WebView2' element and select `restore`
 1. Expected: Sample app will restore.
 
-#### Interactive Dragging
+#### Interactive Dragging Enabled By Default
 
-Test that interactive dragging works on Webview2.
+Test that interactive dragging is enabled by default on Webview2.
 
-1. Run the application with the following flag
-   --edge-webview-interactive-dragging.
 1. Click Scenario > Non-Client Region Support.
 1. Look under the Heading "Interactive Elements".
 1. Hover the mouse on the textarea and button.
@@ -1467,6 +1465,24 @@ Test that interactive dragging works on Webview2.
 1. Expected: Text should highlight and the entire app should not drag
 1. Click button.
 1. Expected: The click counter should increment.
+
+#### Interactive Dragging Opt-out
+
+Test that the interactive dragging opt-out switch works on Webview2.
+
+1. run the app with the flag 
+    --edge-webview-disable-interactive-dragging
+1. Click Scenario > Non-Client Region Support.
+1. Look under the Heading "Interactive Elements".
+1. Hover the mouse on the textarea and button.
+1. Expected: Cursor should be arrow, the element border should 
+   stay the same.
+1. Drag on text area and button.
+1. Expected: The entire app should drag.
+1. Click into text area.
+1. Expected: Cursor remains the same.
+1. Click button.
+1. Expected: The click counter should not increment.
 
 #### Drag and Drop
 
