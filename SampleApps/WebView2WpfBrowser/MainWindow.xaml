@@ -16,6 +16,7 @@ found in the LICENSE file.
         Width="800"
     >
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.New" Executed="NewCmdExecuted"/>
@@ -60,6 +61,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.ClearServerCertificateErrorActionsCommand}" Executed="ClearServerCertificateErrorActionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SetDefaultDownloadPathCommand}" Executed="SetDefaultDownloadPathCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CreateDownloadsButtonCommand}" Executed="CreateDownloadsButtonCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ShowExtensionsWindowCommand}" Executed="ShowExtensionsWindowCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ToggleMuteStateCommand}" Executed="ToggleMuteStateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPdfCommand}" Executed="PrintToPdfCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PinchZoomCommand}" Executed="PinchZoomCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -94,7 +96,8 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.BrowserAcceleratorKeyEnabledCommand}" Executed="BrowserAcceleratorKeyEnabledCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
 
         <CommandBinding Command="{x:Static local:MainWindow.CloseWebViewCommand}" Executed="CloseWebViewCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
-        <CommandBinding Command="{x:Static local:MainWindow.NewWebViewCommand}" Executed="NewWebViewCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NewWebViewCommand}" Executed="NewWebViewCommandExecuted"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NewWebViewCompositionControlCommand}" Executed="NewWebViewCompositionControlCommandExecuted" CanExecute="EpxerimentalCmdsCanExecute"/>
 
         <CommandBinding Command="{x:Static local:MainWindow.PermissionManagementCommand}" Executed="PermissionManagementExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NonClientRegionSupportCommand}" Executed="NonClientRegionSupportCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -136,8 +139,9 @@ found in the LICENSE file.
                 <!--TODO-->
             </MenuItem>
             <MenuItem Header="_Window">
-                <MenuItem Header="_Close WebView" Command="ApplicationCommands.Close"/>
-                <MenuItem Header="_New WebView" Command="{x:Static local:MainWindow.NewWebViewCommand}"/>
+                <MenuItem Header="_Close WebView2" Command="{x:Static local:MainWindow.CloseWebViewCommand}"/>
+                <MenuItem Header="_New WebView2" Command="{x:Static local:MainWindow.NewWebViewCommand}"/>
+                <MenuItem Header="_New WebView2CompositionControl" Command="{x:Static local:MainWindow.NewWebViewCompositionControlCommand}"/>
                 <MenuItem Header="_New Window" Command="ApplicationCommands.New"/>
                 <MenuItem Header="_New Window With Options" Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}"/>
                 <MenuItem Header="_Create New Thread" Command="{x:Static local:MainWindow.CreateNewThreadCommand}"/>
@@ -176,7 +180,7 @@ found in the LICENSE file.
                 <MenuItem Header="Toggle Non-Client Region Support" Command="{x:Static local:MainWindow.NonClientRegionSupportCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="Toggle _Visibility" Name="webViewVisible" IsCheckable="True" IsChecked="True"/>
+                <MenuItem Header="Toggle _Visibility" Name="webViewVisible" IsCheckable="True" IsChecked="True" Checked="OnWebViewVisibleChecked" Unchecked="OnWebViewVisibleUnchecked"/>
                 <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>
                 <MenuItem Header="Resume" Command="{x:Static local:MainWindow.ResumeCommand}"/>
                 <MenuItem Header="_Increase Zoom" Command="NavigationCommands.IncreaseZoom"/>
@@ -188,6 +192,7 @@ found in the LICENSE file.
                     <MenuItem Header="Transparent" Command="{x:Static local:MainWindow.BackgroundColorCommand}" CommandParameter="Transparent"/>
                 </MenuItem>
                 <MenuItem Header="_Create Downloads Button" Command="{x:Static local:MainWindow.CreateDownloadsButtonCommand}"/>
+                <MenuItem Header="Show Extensions Manager" Command="{x:Static local:MainWindow.ShowExtensionsWindowCommand}" />
             </MenuItem>
             <MenuItem Header="S_cenario">
                 <MenuItem Header="Au_thentication" Command="{x:Static local:MainWindow.AuthenticationCommand}"/>
@@ -259,7 +264,7 @@ found in the LICENSE file.
             <Button DockPanel.Dock="Left" Command="NavigationCommands.BrowseStop">Cancel</Button>
             <Button DockPanel.Dock="Right" Command="NavigationCommands.GoToPage" CommandParameter="{Binding ElementName=url,Path=Text}">Go</Button>
             <!-- We want the address bar to update based on the WebView's Source, but we don't want the WebView to navigate just from the user typing into the address bar.   Therefore we use the OneWay binding mode. -->
-            <TextBox x:Name="url" Text="{Binding ElementName=webView,Path=Source,Mode=OneWay}">
+            <TextBox x:Name="url" Text="{Binding ElementName=webView2XamlElement,Path=Source,Mode=OneWay}">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Return" Command="NavigationCommands.GoToPage" CommandParameter="{Binding ElementName=url,Path=Text}" />
                 </TextBox.InputBindings>
@@ -270,14 +275,18 @@ found in the LICENSE file.
                 <ImageBrush ImageSource="/assets/AppStartPageBackground.png" />
             </Grid.Background>
 
-            <!-- If you want to use a specific version of WebView2 Runtime change EvergreenWebView2CreationProperties
-            to BYOWebView2CreationProperties and follow the steps in MainWindow.xaml
-            -->
-            <wv2:WebView2
-                x:Name="webView"
-                CreationProperties="{StaticResource EvergreenWebView2CreationProperties}"
-                Source="https://www.bing.com/"
-            />
+            <wv2:WebView2 x:Name="webView2XamlElement">
+                <wv2:WebView2.CreationProperties>
+                    <!--
+                    By default, this CreationProperties uses the Evergreen WebView2 Runtime that's installed on the machine.
+                    If you want to use a specific version of WebView2 Runtime, change BrowserExecutableFolder to point to the folder
+                    with the runtime. https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#the-fixed-version-runtime-distribution-mode
+                    -->
+                    <wv2:CoreWebView2CreationProperties
+                        BrowserExecutableFolder=""
+                        AdditionalBrowserArguments="" />
+                </wv2:WebView2.CreationProperties>
+            </wv2:WebView2>
             <!-- The control event handlers are set in code behind so they can be reused when replacing the control after
             a WebView2 Runtime's browser process failure
             -->
