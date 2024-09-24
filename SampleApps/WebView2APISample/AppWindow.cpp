@@ -1429,11 +1429,11 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
     m_webViewEnvironment = environment;
 
     if (m_webviewOption.entry == WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU ||
-        m_creationModeId == IDM_CREATION_MODE_HOST_INPUT_PROCESSING
-    )
+        m_creationModeId == IDM_CREATION_MODE_HOST_INPUT_PROCESSING)
     {
         return CreateControllerWithOptions();
     }
+
     auto webViewEnvironment3 = m_webViewEnvironment.try_query<ICoreWebView2Environment3>();
 
     if (webViewEnvironment3 && (m_dcompDevice || m_wincompCompositor))
@@ -1522,6 +1522,7 @@ HRESULT AppWindow::CreateControllerWithOptions()
         }
     }
     //! [AllowHostInputProcessing]
+
     if (m_dcompDevice || m_wincompCompositor)
     {
         //! [OnCreateCoreWebView2ControllerCompleted]
