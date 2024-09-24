@@ -391,12 +391,6 @@
     <CopyFileToFolders Include="assets/ScenarioScreenCaptureIFrame2.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
-    <CopyFileToFolders Include="assets/ScenarioServiceWorkerSyncRegistrationManager.html">
-      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
-    </CopyFileToFolders>
-    <CopyFileToFolders Include="assets/ScenarioServiceWorkerSyncRegistrationManagerServiceWorker.js">
-      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
-    </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioSharedBuffer.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
