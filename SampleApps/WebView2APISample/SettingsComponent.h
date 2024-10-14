@@ -60,6 +60,7 @@ private:
     wil::com_ptr<ICoreWebView2_14> m_webView2_14;
     wil::com_ptr<ICoreWebView2_15> m_webView2_15;
     wil::com_ptr<ICoreWebView2_18> m_webView2_18;
+    wil::com_ptr<ICoreWebView2_22> m_webView2_22;
     wil::com_ptr<ICoreWebView2Settings> m_settings;
     wil::com_ptr<ICoreWebView2Settings2> m_settings2;
     wil::com_ptr<ICoreWebView2Settings3> m_settings3;

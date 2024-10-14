@@ -21,4 +21,6 @@ private:
     EventRegistrationToken m_navigationCompletedToken = {};
 
     AppWindow* m_appWindow = nullptr;
+
+    wil::com_ptr<ICoreWebView2_22> m_webView2_22;
 };

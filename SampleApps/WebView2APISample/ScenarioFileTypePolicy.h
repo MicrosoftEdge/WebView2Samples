@@ -21,7 +21,7 @@ private:
     AppWindow* m_appWindow;
     wil::com_ptr<ICoreWebView2> m_webView2;
     wil::com_ptr<ICoreWebView2_2> m_webView2_2;
-    wil::com_ptr<ICoreWebView2Experimental27> m_webView2Experimental27;
+    wil::com_ptr<ICoreWebView2_26> m_webView2_26;
     EventRegistrationToken m_saveFileSecurityCheckStartingToken = {};
     EventRegistrationToken m_DOMcontentLoadedToken = {};
     std::wstring m_sampleUri;

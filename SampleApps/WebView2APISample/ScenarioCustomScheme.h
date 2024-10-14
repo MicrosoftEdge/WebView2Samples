@@ -20,5 +20,7 @@ private:
     EventRegistrationToken m_webResourceRequestedToken = {};
     EventRegistrationToken m_navigationCompletedToken = {};
 
+    wil::com_ptr<ICoreWebView2_22> m_webView2_22;
+
     AppWindow* m_appWindow = nullptr;
 };

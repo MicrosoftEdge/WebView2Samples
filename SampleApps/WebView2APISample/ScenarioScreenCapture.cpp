@@ -19,14 +19,13 @@ ScenarioScreenCapture::ScenarioScreenCapture(AppWindow* appWindow)
     m_sampleUri = m_appWindow->GetLocalUri(c_samplePath);
 
     //! [ScreenCaptureStarting0]
-    m_webViewExperimental26 = m_webView.try_query<ICoreWebView2Experimental26>();
-    if (m_webViewExperimental26)
+    m_webView2_27 = m_webView.try_query<ICoreWebView2_27>();
+    if (m_webView2_27)
     {
-        m_webViewExperimental26->add_ScreenCaptureStarting(
-            Callback<ICoreWebView2ExperimentalScreenCaptureStartingEventHandler>(
-                [this](
-                    ICoreWebView2* sender,
-                    ICoreWebView2ExperimentalScreenCaptureStartingEventArgs* args) -> HRESULT
+        m_webView2_27->add_ScreenCaptureStarting(
+            Callback<ICoreWebView2ScreenCaptureStartingEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2ScreenCaptureStartingEventArgs* args)
+                    -> HRESULT
                 {
                     // Get Frame Info
                     wil::com_ptr<ICoreWebView2FrameInfo> frameInfo;
@@ -121,16 +120,13 @@ ScenarioScreenCapture::ScenarioScreenCapture(AppWindow* appWindow)
                             .Get(),
                         nullptr));
 
-                    m_experimentalFrame6 =
-                        webviewFrame.try_query<ICoreWebView2ExperimentalFrame6>();
+                    m_frame6 = webviewFrame.try_query<ICoreWebView2Frame6>();
 
-                    m_experimentalFrame6->add_ScreenCaptureStarting(
-                        Callback<
-                            ICoreWebView2ExperimentalFrameScreenCaptureStartingEventHandler>(
+                    m_frame6->add_ScreenCaptureStarting(
+                        Callback<ICoreWebView2FrameScreenCaptureStartingEventHandler>(
                             [this](
                                 ICoreWebView2Frame* sender,
-                                ICoreWebView2ExperimentalScreenCaptureStartingEventArgs* args)
-                                -> HRESULT
+                                ICoreWebView2ScreenCaptureStartingEventArgs* args) -> HRESULT
                             {
                                 args->put_Handled(TRUE);
 
@@ -243,15 +239,15 @@ ScenarioScreenCapture::~ScenarioScreenCapture()
 {
     m_webView->remove_ContentLoading(m_contentLoadingToken);
     m_webView->remove_WebMessageReceived(m_webMessageReceivedToken);
-    if (m_webViewExperimental26)
+    if (m_webView2_27)
     {
-        CHECK_FAILURE(m_webViewExperimental26->remove_ScreenCaptureStarting(
-            m_screenCaptureStartingToken));
+        CHECK_FAILURE(
+            m_webView2_27->remove_ScreenCaptureStarting(m_screenCaptureStartingToken));
     }
-    if (m_experimentalFrame6)
+    if (m_frame6)
     {
-        CHECK_FAILURE(m_experimentalFrame6->remove_ScreenCaptureStarting(
-            m_frameScreenCaptureStartingToken));
+        CHECK_FAILURE(
+            m_frame6->remove_ScreenCaptureStarting(m_frameScreenCaptureStartingToken));
     }
     if (m_webView4)
     {

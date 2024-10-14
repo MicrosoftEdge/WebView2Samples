@@ -1943,6 +1943,66 @@ void AppWindow::RegisterEventHandlers()
         nullptr));
     //! [NewBrowserVersionAvailable]
 
+    //! [RestartRequested]
+    // After the environment is successfully created,
+    // register a handler for
+    auto exp_env15 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment15>();
+    CHECK_FAILURE(exp_env15->add_RestartRequested(
+        Callback<ICoreWebView2ExperimentalRestartRequestedEventHandler>(
+            [this](
+                ICoreWebView2Environment* sender,
+                ICoreWebView2ExperimentalRestartRequestedEventArgs* args) -> HRESULT
+            {
+                COREWEBVIEW2_RESTART_REQUESTED_PRIORITY priority;
+                args->get_Priority(&priority);
+                if (priority == COREWEBVIEW2_RESTART_REQUESTED_PRIORITY_NORMAL)
+                {
+                    // Remaind user to restart the app when they get a chance.
+                    // Don't force user to restart.
+                    MessageBox(
+                        m_mainWindow, L"Please restart your app when you get a chance",
+                        L"WebView Restart Requested", MB_OK);
+                }
+                else if (priority == COREWEBVIEW2_RESTART_REQUESTED_PRIORITY_HIGH)
+                {
+                    // Don't block the event handler with a message box
+                    RunAsync(
+                        [this]()
+                        {
+                            std::wstring message =
+                                L"We detected there is a critical update for WebView2 runtime.";
+                            if (m_webView)
+                            {
+                                message += L"Do you want to restart the app? \n\n";
+                                message +=
+                                    L"Click No if you only want to re-create the webviews. \n";
+                                message += L"Click Cancel for no action. \n";
+                            }
+                            int response = MessageBox(
+                                m_mainWindow, message.c_str(), L"Critical Update Avaliable",
+                                m_webView ? MB_YESNOCANCEL : MB_OK);
+
+                            if (response == IDYES)
+                            {
+                                RestartApp();
+                            }
+                            else if (response == IDNO)
+                            {
+                                ReinitializeWebViewWithNewBrowser();
+                            }
+                            else
+                            {
+                                // do nothing
+                            }
+                        });
+                }
+
+                return S_OK;
+            })
+            .Get(),
+        nullptr));
+    //! [RestartRequested]
+
     //! [ProfileDeleted]
     auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
     CHECK_FEATURE_RETURN_EMPTY(webView2_13);
