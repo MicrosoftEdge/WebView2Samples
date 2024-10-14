@@ -3760,7 +3760,6 @@ namespace WebView2WpfBrowser
         // <FileTypePolicy>
         void FileTypePolicyExecuted(object target, ExecutedRoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             _iWebView2.CoreWebView2.SaveFileSecurityCheckStarting += WebView_SaveFileSecurityCheckStarting;
             _iWebView2.CoreWebView2.DOMContentLoaded += WebView_FileTypePolicy_DOMContentLoaded;
             _iWebView2.CoreWebView2.SetVirtualHostNameToFolderMapping(
@@ -3768,11 +3767,9 @@ namespace WebView2WpfBrowser
             _iWebView2.CoreWebView2.Navigate("https://appassets.example/SecnarioFileTypePolicy.html");
             MessageBox.Show("Example rules of Dangerous File Security Policy has been applied in this demo page",
                             "Info");
-#endif
         }
         // </FileTypePolicy>
 
-#if USE_WEBVIEW2_EXPERIMENTAL
         // <SaveFileSecurityCheckStarting>
         void WebView_SaveFileSecurityCheckStarting(object sender, CoreWebView2SaveFileSecurityCheckStartingEventArgs args)
         {
@@ -3811,7 +3808,6 @@ namespace WebView2WpfBrowser
             }
 
         }
-#endif
 
         void DedicatedWorkerCreatedExecuted(object target, ExecutedRoutedEventArgs e)
         {

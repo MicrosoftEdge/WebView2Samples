@@ -40,6 +40,7 @@ SettingsComponent::SettingsComponent(
     m_webView2_14 = m_webView.try_query<ICoreWebView2_14>();
     m_webView2_15 = m_webView.try_query<ICoreWebView2_15>();
     m_webView2_18 = m_webView.try_query<ICoreWebView2_18>();
+    m_webView2_22 = m_webView.try_query<ICoreWebView2_22>();
 
     // Copy old settings if desired
     if (old)
@@ -1510,8 +1511,10 @@ void SettingsComponent::SetBlockImages(bool blockImages)
         //! [WebResourceRequested0]
         if (m_blockImages)
         {
-            m_webView->AddWebResourceRequestedFilter(
-                L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE);
+            CHECK_FEATURE_RETURN_EMPTY(m_webView2_22);
+            m_webView2_22->AddWebResourceRequestedFilterWithRequestSourceKinds(
+                L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE,
+                COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_DOCUMENT);
             CHECK_FAILURE(m_webView->add_WebResourceRequested(
                 Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                     [this](
@@ -1561,8 +1564,10 @@ void SettingsComponent::SetReplaceImages(bool replaceImages)
         //! [WebResourceRequested1]
         if (m_replaceImages)
         {
-            m_webView->AddWebResourceRequestedFilter(
-                L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE);
+            CHECK_FEATURE_RETURN_EMPTY(m_webView2_22);
+            m_webView2_22->AddWebResourceRequestedFilterWithRequestSourceKinds(
+                L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE,
+                COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_DOCUMENT);
             CHECK_FAILURE(m_webView->add_WebResourceRequested(
                 Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                     [this](

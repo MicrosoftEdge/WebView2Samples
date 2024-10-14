@@ -503,9 +503,6 @@ void ScenarioWebViewEventMonitor::EnableWebResourceRequestedEvent(bool enable)
     }
     else if (enable && m_webResourceRequestedToken.value == 0)
     {
-        m_webviewEventSource->AddWebResourceRequestedFilter(
-            L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
-
         auto webView2_22 = m_webviewEventSource.try_query<ICoreWebView2_22>();
         if (webView2_22)
         {
