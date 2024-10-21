@@ -17,6 +17,26 @@ namespace WebView2_WinUI3_Sample
         public MainWindow()
         {
             this.InitializeComponent();
+
+            Closed += (obj, eventArgs) =>
+            {
+                if (WebView2 != null)
+                {
+                    // Ensure that WebView2 resources are released when
+                    // the MainWindow is closed. This fixes an issue where
+                    // the sample app was not properly shutting down when run
+                    // in debug mode from within Visual Studio due to an
+                    // an expected winrt::hresult_error exception in the WinUI3
+                    // WebView2::CoreWebView2HasInvalidState method.
+                    // (https://github.com/microsoft/microsoft-ui-xaml/blob/main/src/controls/dev/WebView2/WebView2.cpp)
+                    //
+                    // See here for more details regarding the WebView2
+                    // lifecycle in WinUI3 and the Close() method.
+                    // https://github.com/microsoft/microsoft-ui-xaml/issues/4752#issuecomment-819687363
+                    WebView2.Close();
+                }
+            };
+
             AddressBar.Text = "https://developer.microsoft.com/en-us/microsoft-edge/webview2/";
 
             WebView2.NavigationCompleted += WebView2_NavigationCompleted;

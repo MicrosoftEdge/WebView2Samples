@@ -15,8 +15,11 @@ using namespace Microsoft::WRL;
 ScenarioCustomSchemeNavigate::ScenarioCustomSchemeNavigate(AppWindow* appWindow)
     : m_appWindow(appWindow)
 {
-    CHECK_FAILURE(m_appWindow->GetWebView()->AddWebResourceRequestedFilter(
-        L"wv2rocks*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL));
+    m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&m_webView2_22));
+    CHECK_FEATURE_RETURN_EMPTY(m_webView2_22);
+    CHECK_FAILURE(m_webView2_22->AddWebResourceRequestedFilterWithRequestSourceKinds(
+        L"wv2rocks*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL,
+        COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_DOCUMENT));
     CHECK_FAILURE(m_appWindow->GetWebView()->add_WebResourceRequested(
         Callback<ICoreWebView2WebResourceRequestedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)

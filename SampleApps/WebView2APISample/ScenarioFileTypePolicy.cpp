@@ -17,7 +17,6 @@ ScenarioFileTypePolicy::ScenarioFileTypePolicy(AppWindow* appWindow)
 {
     if (m_webView2)
     {
-        m_webView2Experimental27 = m_webView2.try_query<ICoreWebView2Experimental27>();
         m_webView2_2 = m_webView2.try_query<ICoreWebView2_2>();
 
         m_sampleUri = m_appWindow->GetLocalUri(c_samplePath);
@@ -44,18 +43,19 @@ ScenarioFileTypePolicy::ScenarioFileTypePolicy(AppWindow* appWindow)
 //! [SuppressPolicyForExtension]
 // This example will register the event with two custom rules.
 // 1. Suppressing file type policy, security dialog, and allows saving ".eml" files
-// directly.
-// 2. When the URI is trusted.- Showing customized warning UI when saving ".iso"
-// files. It allows to block the saving directly.
+// directly; when the URI is trusted. 
+// 2. Showing customized warning UI when saving ".iso" files. It allows to block
+// the saving directly.
 bool ScenarioFileTypePolicy::SuppressPolicyForExtension()
 {
-    if (!m_webView2Experimental27)
+    m_webView2_26 = m_webView2.try_query<ICoreWebView2_26>();
+    if (!m_webView2_26)
         return false;
-    m_webView2Experimental27->add_SaveFileSecurityCheckStarting(
-        Callback<ICoreWebView2ExperimentalSaveFileSecurityCheckStartingEventHandler>(
+    m_webView2_26->add_SaveFileSecurityCheckStarting(
+        Callback<ICoreWebView2SaveFileSecurityCheckStartingEventHandler>(
             [this](
                 ICoreWebView2* sender,
-                ICoreWebView2ExperimentalSaveFileSecurityCheckStartingEventArgs* args)
+                ICoreWebView2SaveFileSecurityCheckStartingEventArgs* args)
                 -> HRESULT
             {
                 // Get the file extension for file to be saved.
@@ -107,9 +107,9 @@ bool ScenarioFileTypePolicy::SuppressPolicyForExtension()
 
 ScenarioFileTypePolicy::~ScenarioFileTypePolicy()
 {
-    if (m_webView2Experimental27)
+    if (m_webView2_26)
     {
-        CHECK_FAILURE(m_webView2Experimental27->remove_SaveFileSecurityCheckStarting(
+        CHECK_FAILURE(m_webView2_26->remove_SaveFileSecurityCheckStarting(
             m_saveFileSecurityCheckStartingToken));
     }
     CHECK_FAILURE(m_webView2_2->remove_DOMContentLoaded(m_DOMcontentLoadedToken));

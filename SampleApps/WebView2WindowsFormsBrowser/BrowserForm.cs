@@ -180,7 +180,7 @@ namespace WebView2WindowsFormsBrowser
       this.webView2Control.CoreWebView2.SourceChanged += CoreWebView2_SourceChanged;
       this.webView2Control.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
       this.webView2Control.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
-      this.webView2Control.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Image);
+      this.webView2Control.CoreWebView2.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Image, CoreWebView2WebResourceRequestSourceKinds.Document);
       this.webView2Control.CoreWebView2.ProcessFailed += CoreWebView2_ProcessFailed;
       this.webView2Control.CoreWebView2.FrameCreated += WebView_HandleIFrames;
 
@@ -583,9 +583,9 @@ namespace WebView2WindowsFormsBrowser
       MessageBox.Show("Default script dialogs will be " + (WebViewSettings.AreDefaultScriptDialogsEnabled ? "enabled" : "disabled"), "after the next navigation.");
     }
 
-        private void addRemoteObjectMenuItem_Click(object sender, EventArgs e) 
-        {
-            try
+    private void addRemoteObjectMenuItem_Click(object sender, EventArgs e)
+    {
+      try
             {
                 this.webView2Control.CoreWebView2.AddHostObjectToScript("bridge", new BridgeAddRemoteObject());
             }
@@ -721,13 +721,13 @@ namespace WebView2WindowsFormsBrowser
                                    "\\nRight:" + this.webView2Control.Width +
                                    "\\nBottom:" + this.webView2Control.Height +
                                    "\"}";
-                    if (frame != null) 
-                    {
-                        frame.PostWebMessageAsJson(reply);
+          if (frame != null)
+          {
+            frame.PostWebMessageAsJson(reply);
                     }
-                    else 
-                    {
-                        this.webView2Control.CoreWebView2.PostWebMessageAsJson(reply);
+          else
+          {
+            this.webView2Control.CoreWebView2.PostWebMessageAsJson(reply);
                     }
                 }
                 else

@@ -2194,9 +2194,7 @@ namespace WebView2WpfBrowser
                 webView.CoreWebView2.DOMContentLoaded += WebView_PermissionManager_DOMContentLoaded;
                 webView.CoreWebView2.WebMessageReceived += WebView_PermissionManager_WebMessageReceived;
 
-#if USE_WEBVIEW2_EXPERIMENTAL
                 webView.CoreWebView2.ScreenCaptureStarting += WebView_ScreenCaptureStarting;
-#endif
 
                 // The CoreWebView2Environment instance is reused when re-assigning CoreWebView2CreationProperties
                 // to the replacement control. We don't need to re-attach the event handlers unless the environment
@@ -3731,7 +3729,6 @@ namespace WebView2WpfBrowser
 #endif
 
         // <ScreenCaptureStarting0>
-#if USE_WEBVIEW2_EXPERIMENTAL
         private bool isScreenCaptureEnabled = true;
 
         void WebView_ScreenCaptureStarting(object sender, CoreWebView2ScreenCaptureStartingEventArgs args)
@@ -3746,7 +3743,6 @@ namespace WebView2WpfBrowser
 
             args.Cancel = !isScreenCaptureEnabled;
         }
-#endif
 
         void TogglScreenCaptureEnabledCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
@@ -3760,7 +3756,6 @@ namespace WebView2WpfBrowser
         // <FileTypePolicy>
         void FileTypePolicyExecuted(object target, ExecutedRoutedEventArgs e)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             _iWebView2.CoreWebView2.SaveFileSecurityCheckStarting += WebView_SaveFileSecurityCheckStarting;
             _iWebView2.CoreWebView2.DOMContentLoaded += WebView_FileTypePolicy_DOMContentLoaded;
             _iWebView2.CoreWebView2.SetVirtualHostNameToFolderMapping(
@@ -3768,11 +3763,9 @@ namespace WebView2WpfBrowser
             _iWebView2.CoreWebView2.Navigate("https://appassets.example/SecnarioFileTypePolicy.html");
             MessageBox.Show("Example rules of Dangerous File Security Policy has been applied in this demo page",
                             "Info");
-#endif
         }
         // </FileTypePolicy>
 
-#if USE_WEBVIEW2_EXPERIMENTAL
         // <SaveFileSecurityCheckStarting>
         void WebView_SaveFileSecurityCheckStarting(object sender, CoreWebView2SaveFileSecurityCheckStartingEventArgs args)
         {
@@ -3811,7 +3804,6 @@ namespace WebView2WpfBrowser
             }
 
         }
-#endif
 
         void DedicatedWorkerCreatedExecuted(object target, ExecutedRoutedEventArgs e)
         {

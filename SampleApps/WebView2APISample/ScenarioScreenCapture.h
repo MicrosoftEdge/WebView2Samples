@@ -20,8 +20,8 @@ private:
     AppWindow* m_appWindow = nullptr;
     wil::com_ptr<ICoreWebView2> m_webView;
     wil::com_ptr<ICoreWebView2_4> m_webView4;
-    wil::com_ptr<ICoreWebView2Experimental26> m_webViewExperimental26;
-    wil::com_ptr<ICoreWebView2ExperimentalFrame6> m_experimentalFrame6;
+    wil::com_ptr<ICoreWebView2_27> m_webView2_27;
+    wil::com_ptr<ICoreWebView2Frame6> m_frame6;
     std::wstring m_sampleUri;
     std::map<int, BOOL> m_screenCaptureFrameIdPermission;
     BOOL m_mainFramePermission = TRUE;
