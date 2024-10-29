@@ -56,6 +56,15 @@ void Toolbar::SetItemEnabled(Item item, bool enabled)
     EnableWindow(m_items[item], enabled);
 }
 
+void Toolbar::Hide()
+{
+    DisableAllItems();
+    for (HWND hwnd : m_items)
+    {
+        ShowWindow(hwnd, SW_HIDE);
+    }
+}
+
 void Toolbar::DisableAllItems()
 {
     for (HWND hwnd : m_items)

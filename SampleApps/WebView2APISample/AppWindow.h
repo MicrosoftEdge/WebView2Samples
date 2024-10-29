@@ -43,12 +43,12 @@ struct WebViewCreateOption
     }
     WebViewCreateOption(
         const std::wstring& profile_, bool inPrivate, const std::wstring& downloadPath,
-        const std::wstring& scriptLocale_, WebViewCreateEntry entry_, bool useOSRegion_)
+        const std::wstring& scriptLocale_, WebViewCreateEntry entry_, bool useOSRegion_
+        )
         : profile(profile_), isInPrivate(inPrivate), downloadPath(downloadPath),
           scriptLocale(scriptLocale_), entry(entry_), useOSRegion(useOSRegion_)
     {
     }
-
     WebViewCreateOption(const WebViewCreateOption& opt)
     {
         profile = opt.profile;
@@ -87,15 +87,10 @@ class AppWindow
 {
 public:
     AppWindow(
-        UINT creationModeId,
-        const WebViewCreateOption& opt,
-        const std::wstring& initialUri = L"",
-        const std::wstring& userDataFolderParam = L"",
-        bool isMainWindow = false,
-        std::function<void()> webviewCreatedCallback = nullptr,
-        bool customWindowRect = false,
-        RECT windowRect = {0},
-        bool shouldHaveToolbar = true,
+        UINT creationModeId, const WebViewCreateOption& opt,
+        const std::wstring& initialUri = L"", const std::wstring& userDataFolderParam = L"",
+        bool isMainWindow = false, std::function<void()> webviewCreatedCallback = nullptr,
+        bool customWindowRect = false, RECT windowRect = {0}, bool shouldHaveToolbar = true,
         bool isPopup = false);
 
     ~AppWindow();
