@@ -5,7 +5,7 @@ languages:
 page_type: sample
 products: 
   - microsoft-edge
-urlFragment: WinUI3GetStarted
+urlFragment: WinUI3_GettingStarted
 ---
 # Get started with WebView2 in WinUI 3 (Windows App SDK) apps
 
