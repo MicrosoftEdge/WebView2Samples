@@ -1,6 +1,6 @@
 # WinUI 3 (Windows App SDK) sample app
 
-This sample demonstrates using a WebView2 control in a WinUI 3 (Windows App SDK) Packaged application.
+This sample (**WebView2_WinUI3_Sample**) demonstrates using a WebView2 control in a WinUI 3 (Windows App SDK) Packaged application.
 
 ![Sample app](./images/sample-app.png)
 
