@@ -22,15 +22,15 @@ namespace WebView2_WinUI3_Sample
         {
             this.InitializeComponent();
 
-            // If your shipping a fixed version WebView2 SDK with your application you will need
-            // to use the following code (update the runtime version to what your shipping.
+            // If you're shipping a fixed-version WebView2 Runtime with your app, un-comment the
+            // following lines of code, and change the version number to the version number of the
+            // WebView2 Runtime that you're packaging and shipping to users:
 
-            //StorageFolder localFolder = Windows.ApplicationModel.Package.Current.InstalledLocation;
-            //String fixedPath = Path.Combine(localFolder.Path, "FixedRuntime\\95.0.1020.53");
-            //Debug.WriteLine($"Launch path [{localFolder.Path}]");
-            //Debug.WriteLine($"FixedRuntime path [{fixedPath}]");
-            //Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", fixedPath);
-
+            // StorageFolder localFolder = Windows.ApplicationModel.Package.Current.InstalledLocation;
+            // String fixedPath = Path.Combine(localFolder.Path, "FixedRuntime\\130.0.2849.39");
+            // Debug.WriteLine($"Launch path [{localFolder.Path}]");
+            // Debug.WriteLine($"FixedRuntime path [{fixedPath}]");
+            // Environment.SetEnvironmentVariable("WEBVIEW2_BROWSER_EXECUTABLE_FOLDER", fixedPath);
         }
 
         /// <summary>
