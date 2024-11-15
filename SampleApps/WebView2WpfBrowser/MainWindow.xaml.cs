@@ -3807,23 +3807,52 @@ namespace WebView2WpfBrowser
 
         void DedicatedWorkerCreatedExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            RegisterForDedicatedWorkerCreated();
+        }
+
+        void RegisterForDedicatedWorkerCreated()
+        {
         }
         void ServiceWorkerRegisteredExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            RegisterForServiceWorkerRegistered();
         }
-        private async void GetServiceWorkerRegistrationsExecuted(object target, ExecutedRoutedEventArgs e)
+        void RegisterForServiceWorkerRegistered()
+        {
+        }
+        private void GetServiceWorkerRegistrationsExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            GetServiceWorkerRegistrations();
+        }
+
+        async void GetServiceWorkerRegistrations()
         {
             await Task.Delay(0);
         }
 
-        async void GetServiceWorkerRegisteredForScopeExecuted(object target, ExecutedRoutedEventArgs e)
+        void GetServiceWorkerRegisteredForScopeExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            GetServiceWorkerRegisteredForScope();
+        }
+
+        async void GetServiceWorkerRegisteredForScope()
         {
             await Task.Delay(0);
         }
         void SharedWorkerManagerExecuted(object target, ExecutedRoutedEventArgs e)
         {
+            RegisterForSharedWorkerCreated();
         }
-        private async void GetSharedWorkersExecuted(object target, ExecutedRoutedEventArgs e)
+
+        void RegisterForSharedWorkerCreated()
+        {
+        }
+        private void GetSharedWorkersExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            GetSharedWorkers();
+        }
+
+        async void GetSharedWorkers()
         {
             await Task.Delay(0);
         }
