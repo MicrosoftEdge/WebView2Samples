@@ -35,6 +35,7 @@ public:
     void UpdateDpiAndTextScale();
     void SelectAll();
     void SelectAddressBar();
+    void Hide();
 
 private:
     int GetItemLogicalWidth(Item item, int clientLogicalWidth) const;
