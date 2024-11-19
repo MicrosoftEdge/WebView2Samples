@@ -39,6 +39,7 @@
 #include "ScenarioDragDrop.h"
 #include "ScenarioExtensionsManagement.h"
 #include "ScenarioFileSystemHandleShare.h"
+#include "ScenarioFileTypePolicy.h"
 #include "ScenarioIFrameDevicePermission.h"
 #include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioNonClientRegionSupport.h"
@@ -49,7 +50,6 @@
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioThrottlingControl.h"
-#include "ScenarioFileTypePolicy.h"
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
 #include "ScenarioVirtualHostMappingForSW.h"
 #include "ScenarioWebMessage.h"
@@ -201,7 +201,7 @@ AppWindow::AppWindow(
     WCHAR szTitle[s_maxLoadString]; // The title bar text
     LoadStringW(g_hInstance, IDS_APP_TITLE, szTitle, s_maxLoadString);
     m_appTitle = szTitle;
-
+    DWORD windowStyle = WS_OVERLAPPEDWINDOW;
     if (userDataFolderParam.length() > 0)
     {
         m_userDataFolder = userDataFolderParam;
@@ -210,15 +210,15 @@ AppWindow::AppWindow(
     if (customWindowRect)
     {
         m_mainWindow = CreateWindowExW(
-            WS_EX_CONTROLPARENT, GetWindowClass(), szTitle, WS_OVERLAPPEDWINDOW,
-            windowRect.left, windowRect.top, windowRect.right - windowRect.left,
+            WS_EX_CONTROLPARENT, GetWindowClass(), szTitle, windowStyle, windowRect.left,
+            windowRect.top, windowRect.right - windowRect.left,
             windowRect.bottom - windowRect.top, nullptr, nullptr, g_hInstance, nullptr);
     }
     else
     {
         m_mainWindow = CreateWindowExW(
-            WS_EX_CONTROLPARENT, GetWindowClass(), szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT,
-            0, CW_USEDEFAULT, 0, nullptr, nullptr, g_hInstance, nullptr);
+            WS_EX_CONTROLPARENT, GetWindowClass(), szTitle, windowStyle, CW_USEDEFAULT, 0,
+            CW_USEDEFAULT, 0, nullptr, nullptr, g_hInstance, nullptr);
     }
 
     m_appBackgroundImageHandle = (HBITMAP)LoadImage(
@@ -1429,11 +1429,11 @@ HRESULT AppWindow::OnCreateEnvironmentCompleted(
     m_webViewEnvironment = environment;
 
     if (m_webviewOption.entry == WebViewCreateEntry::EVER_FROM_CREATE_WITH_OPTION_MENU ||
-        m_creationModeId == IDM_CREATION_MODE_HOST_INPUT_PROCESSING)
+        m_creationModeId == IDM_CREATION_MODE_HOST_INPUT_PROCESSING
+    )
     {
         return CreateControllerWithOptions();
     }
-
     auto webViewEnvironment3 = m_webViewEnvironment.try_query<ICoreWebView2Environment3>();
 
     if (webViewEnvironment3 && (m_dcompDevice || m_wincompCompositor))
@@ -1625,7 +1625,6 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(
             m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<AudioComponent>(this);
         NewComponent<ControlComponent>(this, &m_toolbar);
-
         m_webView3 = coreWebView2.try_query<ICoreWebView2_3>();
         if (m_webView3)
         {
@@ -1969,13 +1968,13 @@ void AppWindow::RegisterEventHandlers()
                     RunAsync(
                         [this]()
                         {
-                            std::wstring message =
-                                L"We detected there is a critical update for WebView2 runtime.";
+                            std::wstring message = L"We detected there is a critical "
+                                                   L"update for WebView2 runtime.";
                             if (m_webView)
                             {
                                 message += L"Do you want to restart the app? \n\n";
-                                message +=
-                                    L"Click No if you only want to re-create the webviews. \n";
+                                message += L"Click No if you only want to re-create the "
+                                           L"webviews. \n";
                                 message += L"Click Cancel for no action. \n";
                             }
                             int response = MessageBox(
@@ -2036,11 +2035,11 @@ void AppWindow::ResizeEverything()
     RECT availableBounds = {0};
     GetClientRect(m_mainWindow, &availableBounds);
 
-    if (!m_containsFullscreenElement)
+    if (!m_containsFullscreenElement
+    )
     {
         availableBounds = m_toolbar.Resize(availableBounds);
     }
-
     if (auto view = GetComponent<ViewComponent>())
     {
         view->SetBounds(availableBounds);
