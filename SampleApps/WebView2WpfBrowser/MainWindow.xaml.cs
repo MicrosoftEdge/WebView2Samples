@@ -187,9 +187,7 @@ namespace WebView2WpfBrowser
         // Try not to set these directly. Instead these should be updated by calling SetWebView().
         // We can switch between using a WebView2 or WebView2CompositionControl element.
         bool _useCompositionControl = false;
-#if USE_WEBVIEW2_EXPERIMENTAL
         WebView2CompositionControl webView2CompositionControlXamlElement = null;
-#endif
         private FrameworkElement _webView2FrameworkElement; // Helper reference pointing to the current WV2 control.
         private IWebView2 _iWebView2; // Helper reference pointing to the current WV2 control.
 
@@ -261,13 +259,11 @@ namespace WebView2WpfBrowser
         // the _useCompositionControl value.
         private void SetWebView(IWebView2 newWebView2, bool useCompositionControl)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             if (useCompositionControl)
             {
                 webView2CompositionControlXamlElement = newWebView2 as WebView2CompositionControl;
             }
             else
-#endif
             {
                 webView2XamlElement = newWebView2 as WebView2;
             }
@@ -516,13 +512,11 @@ namespace WebView2WpfBrowser
         IWebView2 CreateReplacementControl(bool useNewEnvironment, bool useCompositionControl)
         {
             IWebView2 replacementControl;
-#if USE_WEBVIEW2_EXPERIMENTAL
             if (useCompositionControl)
             {
                 replacementControl = new WebView2CompositionControl();
             }
             else
-#endif
             {
                 replacementControl = new WebView2();
             }
