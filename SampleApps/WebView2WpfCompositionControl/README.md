@@ -26,4 +26,4 @@ This sample is built as a WPF .NET Core application in Visual Studio 2022.
 <!-- screenshot of running sample app: -->
 This is the main WebView2 sample.  The running **WebView2APISample** app window shows the WebView2 SDK version and also the WebView2 Runtime version and path.  The **WebView2APISample** app has several menus containing many menuitems that demonstrate a broad range of WebView2 APIs:
 
-![The WebView2WpfCompositionControl sample app running](./documentation/screenshot.png)
+![The WebView2WpfCompositionControl sample app running](./screenshot.png)
