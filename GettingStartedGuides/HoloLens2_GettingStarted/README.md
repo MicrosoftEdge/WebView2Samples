@@ -10,7 +10,8 @@ urlFragment: HoloLens2_GettingStarted
 # Get started with WebView2 in HoloLens 2 Unity apps
 
 > [!IMPORTANT]
-> WebView2 continues to be available. However, support for WebView2 is discontinued (no bug fixes, content updates or technical support), and we can therefore make no guarantees that applications will continue to work for any extended period of time.
+> WebView2 continues to be available. However, support for WebView2 on Hololens is discontinued (no bug fixes, content updates or technical support), and we can therefore make no guarantees that applications will continue to work for any extended period of time.
+
 
 This sample, **HoloLens2_GettingStarted**, is the completed Unity project that results from following the steps in the tutorial [Get started with WebView2 in HoloLens 2 Unity apps](https://learn.microsoft.com/microsoft-edge/webview2/get-started/hololens2).
 
