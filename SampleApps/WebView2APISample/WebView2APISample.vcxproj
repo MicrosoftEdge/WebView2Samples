@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -236,6 +236,7 @@
     <ClInclude Include="ScenarioCustomSchemeNavigate.h" />
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
     <ClInclude Include="ScenarioDragDrop.h" />
+    <ClInclude Include="ScenarioDragDropOverride.h" />
     <ClInclude Include="ScenarioExtensionsManagement.h" />
     <ClInclude Include="ScenarioFileSystemHandleShare.h" />
     <ClInclude Include="ScenarioFileTypePolicy.h" />
@@ -289,6 +290,7 @@
     <ClCompile Include="ScenarioCustomSchemeNavigate.cpp" />
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
     <ClCompile Include="ScenarioDragDrop.cpp" />
+    <ClCompile Include="ScenarioDragDropOverride.cpp" />
     <ClCompile Include="ScenarioExtensionsManagement.cpp" />
     <ClCompile Include="ScenarioFileSystemHandleShare.cpp" />
     <ClCompile Include="ScenarioFileTypePolicy.cpp" />
@@ -362,6 +364,9 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioDragDrop.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioDragDropOverride.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioFileSystemHandleShare.html">

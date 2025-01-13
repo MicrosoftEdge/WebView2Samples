@@ -37,6 +37,7 @@
 #include "ScenarioCustomSchemeNavigate.h"
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioDragDrop.h"
+#include "ScenarioDragDropOverride.h"
 #include "ScenarioExtensionsManagement.h"
 #include "ScenarioFileSystemHandleShare.h"
 #include "ScenarioFileTypePolicy.h"
@@ -201,7 +202,7 @@ AppWindow::AppWindow(
     WCHAR szTitle[s_maxLoadString]; // The title bar text
     LoadStringW(g_hInstance, IDS_APP_TITLE, szTitle, s_maxLoadString);
     m_appTitle = szTitle;
-    DWORD windowStyle = WS_OVERLAPPEDWINDOW;
+    DWORD windowStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
     if (userDataFolderParam.length() > 0)
     {
         m_userDataFolder = userDataFolderParam;
