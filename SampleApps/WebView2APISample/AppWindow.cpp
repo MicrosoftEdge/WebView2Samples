@@ -35,8 +35,10 @@
 #include "ScenarioCustomDownloadExperience.h"
 #include "ScenarioCustomScheme.h"
 #include "ScenarioCustomSchemeNavigate.h"
+#include "ScenarioDefaultBackgroundColor.h"
 #include "ScenarioDOMContentLoaded.h"
 #include "ScenarioDragDrop.h"
+#include "ScenarioDragDropOverride.h"
 #include "ScenarioExtensionsManagement.h"
 #include "ScenarioFileSystemHandleShare.h"
 #include "ScenarioFileTypePolicy.h"
@@ -201,7 +203,7 @@ AppWindow::AppWindow(
     WCHAR szTitle[s_maxLoadString]; // The title bar text
     LoadStringW(g_hInstance, IDS_APP_TITLE, szTitle, s_maxLoadString);
     m_appTitle = szTitle;
-    DWORD windowStyle = WS_OVERLAPPEDWINDOW;
+    DWORD windowStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
     if (userDataFolderParam.length() > 0)
     {
         m_userDataFolder = userDataFolderParam;
@@ -683,6 +685,43 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     {
         NewComponent<ScenarioFileTypePolicy>(this);
         return true;
+    }
+    case IDM_START_FIND:
+    {
+        std::wstring searchTerm = L"webview"; // Replace with the actual term
+        return Start(searchTerm);
+    }
+    case IDM_STOP_FIND:
+    {
+        return StopFind();
+    }
+    case IDM_GET_MATCHES:
+    {
+        return GetMatchCount();
+    }
+    case IDM_GET_ACTIVE_MATCH_INDEX:
+    {
+        return GetActiveMatchIndex();
+    }
+    case IDC_FIND_TERM:
+    {
+        return FindTerm();
+    }
+    case IDC_IS_CASE_SENSITIVE:
+    {
+        return IsCaseSensitive();
+    }
+    case IDC_SHOULD_MATCH_WHOLE_WORD:
+    {
+        return ShouldMatchWord();
+    }
+    case IDC_SHOULD_HIGHLIGHT_ALL_MATCHES:
+    {
+        return ShouldHighlightAllMatches();
+    }
+    case IDC_SUPPRESS_DEFAULT_FIND_DIALOG:
+    {
+        return SuppressDefaultFindDialog();
     }
     }
     return false;
@@ -1210,6 +1249,302 @@ bool AppWindow::PrintToPdfStream()
 }
 //! [PrintToPdfStream]
 
+//! [Start]
+bool AppWindow::Start(const std::wstring& searchTerm)
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    SetupFindEventHandlers(webView2find);
+
+    // Initialize find configuration/settings
+    if (!findOptions)
+    {
+        findOptions = SetDefaultFindOptions();
+    }
+
+    // Check if the search term has changed to determine if UI needs to be updated
+    if (m_findOnPageLastSearchTerm != searchTerm)
+    {
+        m_findOnPageLastSearchTerm =
+            searchTerm; // Update the last search term for future comparisons
+    }
+
+    // Start the find operation
+    CHECK_FAILURE(webView2find->Start(
+        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+                               [this](HRESULT result) -> HRESULT { return S_OK; })
+                               .Get()));
+    return true;
+}
+//! [Start]
+
+//! [FindNext]
+bool AppWindow::FindNext()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    CHECK_FAILURE(webView2find->FindNext());
+
+    return true;
+}
+//! [FindNext]
+
+//! [FindPrevious]
+bool AppWindow::FindPrevious()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+
+    CHECK_FAILURE(webView2find->FindPrevious());
+
+    return true;
+}
+//! [FindPrevious]
+
+//! [Stop]
+bool AppWindow::StopFind()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    // Note, I am not 100% sure if this is the best way to remove the event handlers
+    // Because it would rely on the user clicking stopfind. Maybe put in destructor or when
+    // startfind completes?
+    CHECK_FAILURE(webView2find->remove_MatchCountChanged(m_matchCountChangedToken));
+    CHECK_FAILURE(webView2find->remove_ActiveMatchIndexChanged(m_activeMatchIndexChangedToken));
+    CHECK_FAILURE(webView2find->Stop());
+    return true;
+}
+//! [Stop]
+
+//! [MatchCount]
+bool AppWindow::GetMatchCount()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    int32_t matchCount;
+    CHECK_FAILURE(webView2find->get_MatchCount(&matchCount));
+
+    std::wstring matchCountStr = L"Match Count: " + std::to_wstring(matchCount);
+    MessageBox(m_mainWindow, matchCountStr.c_str(), L"Find Operation", MB_OK);
+
+    return true;
+}
+//! [MatchCount]
+
+//! [ActiveMatchIndex]
+bool AppWindow::GetActiveMatchIndex()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    int32_t activeMatchIndex;
+    CHECK_FAILURE(webView2find->get_ActiveMatchIndex(&activeMatchIndex));
+
+    std::wstring activeMatchIndexStr =
+        L"Active Match Index: " + std::to_wstring(activeMatchIndex);
+    MessageBox(m_mainWindow, activeMatchIndexStr.c_str(), L"Find Operation", MB_OK);
+
+    return true;
+}
+//! [ActiveMatchIndex]
+
+//! [IsCaseSensitive]
+bool AppWindow::IsCaseSensitive()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+
+    auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
+    CHECK_FEATURE_RETURN(m_env18);
+    CHECK_FAILURE(webView2find->Stop());
+
+    if (!findOptions)
+    {
+        findOptions = SetDefaultFindOptions();
+    }
+    BOOL caseSensitive;
+    findOptions->get_IsCaseSensitive(&caseSensitive);
+    CHECK_FAILURE(findOptions->put_IsCaseSensitive(!caseSensitive));
+
+    CHECK_FAILURE(webView2find->Start(
+        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+                               [this](HRESULT result) -> HRESULT { return S_OK; })
+                               .Get()));
+    return true;
+}
+//! [IsCaseSensitive]
+
+//! [ShouldHighlightAllMatches]
+bool AppWindow::ShouldHighlightAllMatches()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+
+    auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
+    CHECK_FEATURE_RETURN(m_env18);
+    CHECK_FAILURE(webView2find->Stop());
+
+    if (!findOptions)
+    {
+        findOptions = SetDefaultFindOptions();
+    }
+    BOOL shouldHighlightAllMatches;
+    CHECK_FAILURE(findOptions->get_ShouldHighlightAllMatches(&shouldHighlightAllMatches));
+    CHECK_FAILURE(findOptions->put_ShouldHighlightAllMatches(!shouldHighlightAllMatches));
+    CHECK_FAILURE(webView2find->Start(
+        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+                               [this](HRESULT result) -> HRESULT { return S_OK; })
+                               .Get()));
+    return true;
+}
+//! [ShouldHighlightAllMatches]
+
+//! [ShouldMatchWord]
+bool AppWindow::ShouldMatchWord()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+
+    auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
+    CHECK_FEATURE_RETURN(m_env18);
+    CHECK_FAILURE(webView2find->Stop());
+
+    if (!findOptions)
+    {
+        findOptions = SetDefaultFindOptions();
+    }
+    BOOL shouldMatchWord;
+    findOptions->get_ShouldMatchWord(&shouldMatchWord);
+    CHECK_FAILURE(findOptions->put_ShouldMatchWord(!shouldMatchWord));
+    CHECK_FAILURE(webView2find->Start(
+        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+                               [this](HRESULT result) -> HRESULT { return S_OK; })
+                               .Get()));
+    return true;
+}
+//! [ShouldMatchWord]
+
+//! [SuppressDefaultFindDialog]
+bool AppWindow::SuppressDefaultFindDialog()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+
+    auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
+    CHECK_FEATURE_RETURN(m_env18);
+    CHECK_FAILURE(webView2find->Stop());
+
+    if (!findOptions)
+    {
+        findOptions = SetDefaultFindOptions();
+    }
+    BOOL suppressDefaultDialog;
+    findOptions->get_SuppressDefaultFindDialog(&suppressDefaultDialog);
+    CHECK_FAILURE(findOptions->put_SuppressDefaultFindDialog(!suppressDefaultDialog));
+    CHECK_FAILURE(webView2find->Stop());
+    CHECK_FAILURE(webView2find->Start(
+        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+                               [this](HRESULT result) -> HRESULT { return S_OK; })
+                               .Get()));
+    return true;
+}
+//! [SuppressDefaultFindDialog]
+
+//! [FindTerm]
+bool AppWindow::FindTerm()
+{
+    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
+    CHECK_FEATURE_RETURN(webView2Experimental29);
+    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
+    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+
+    TextInputDialog dialog(
+        GetMainWindow(), L"Find on Page Term", L"Find on Page Term:", L"Enter Find Term");
+
+    auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
+    CHECK_FEATURE_RETURN(m_env18);
+    CHECK_FAILURE(webView2find->Stop());
+
+    if (!findOptions)
+    {
+        findOptions = SetDefaultFindOptions();
+    }
+    CHECK_FAILURE(findOptions->put_FindTerm(dialog.input.c_str()));
+    CHECK_FAILURE(webView2find->Start(
+        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+                               [this](HRESULT result) -> HRESULT { return S_OK; })
+                               .Get()));
+    return true;
+}
+//! [FindTerm]
+
+wil::com_ptr<ICoreWebView2ExperimentalFindOptions> AppWindow::SetDefaultFindOptions()
+{
+    auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
+
+    // Initialize find configuration/settings
+    wil::com_ptr<ICoreWebView2ExperimentalFindOptions> findOptions;
+    CHECK_FAILURE(m_env18->CreateFindOptions(&findOptions));
+    CHECK_FAILURE(findOptions->put_FindTerm(L"Webview2"));
+    CHECK_FAILURE(findOptions->put_IsCaseSensitive(false));
+    CHECK_FAILURE(findOptions->put_ShouldMatchWord(false));
+    CHECK_FAILURE(findOptions->put_SuppressDefaultFindDialog(false));
+    CHECK_FAILURE(findOptions->put_ShouldHighlightAllMatches(true));
+
+    return findOptions;
+}
+
+void AppWindow::SetupFindEventHandlers(wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find)
+{
+    CHECK_FAILURE(webView2find->add_MatchCountChanged(
+        Callback<ICoreWebView2ExperimentalFindMatchCountChangedEventHandler>(
+            [this](ICoreWebView2ExperimentalFind* sender, IUnknown* args) -> HRESULT
+            {
+                int matchCount = 0;
+                if (sender)
+                {
+                    CHECK_FAILURE(sender->get_MatchCount(&matchCount));
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_matchCountChangedToken));
+
+    CHECK_FAILURE(webView2find->add_ActiveMatchIndexChanged(
+        Callback<ICoreWebView2ExperimentalFindActiveMatchIndexChangedEventHandler>(
+            [this](ICoreWebView2ExperimentalFind* sender, IUnknown* args) -> HRESULT
+            {
+                int activeIndex = -1;
+                if (sender)
+                {
+                    CHECK_FAILURE(sender->get_ActiveMatchIndex(&activeIndex));
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_activeMatchIndexChangedToken));
+}
+
 // Message handler for about dialog.
 INT_PTR CALLBACK AppWindow::About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -1522,6 +1857,18 @@ HRESULT AppWindow::CreateControllerWithOptions()
         }
     }
     //! [AllowHostInputProcessing]
+
+    //! [DefaultBackgroundColor]
+    if (m_webviewOption.bg_color)
+    {
+        wil::com_ptr<ICoreWebView2ExperimentalControllerOptions3> experimentalControllerOptions3;
+        if (SUCCEEDED(options->QueryInterface(IID_PPV_ARGS(&experimentalControllerOptions3))))
+        {
+            CHECK_FAILURE(
+                experimentalControllerOptions3->put_DefaultBackgroundColor(*m_webviewOption.bg_color));
+        }
+    }
+    //! [DefaultBackgroundColor]
 
     if (m_dcompDevice || m_wincompCompositor)
     {

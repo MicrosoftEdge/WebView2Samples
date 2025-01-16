@@ -38,6 +38,7 @@ struct WebViewCreateOption
     // This value is inherited from the operated AppWindow
     WebViewCreateEntry entry = WebViewCreateEntry::OTHER;
     bool useOSRegion = false;
+    std::optional<COREWEBVIEW2_COLOR> bg_color;
     WebViewCreateOption()
     {
     }
@@ -210,6 +211,25 @@ private:
     SamplePrintSettings GetSelectedPrinterPrintSettings(std::wstring printerName);
     bool PrintToPdfStream();
     void ToggleTrackingPrevention();
+    bool Start(const std::wstring& searchTerm);
+    bool FindNext();
+    bool FindPrevious();
+    bool StopFind();
+    bool GetMatchCount();
+    bool GetActiveMatchIndex();
+    bool FindTerm();
+    bool ShouldHighlightAllMatches();
+    bool ShouldMatchWord();
+    bool SuppressDefaultFindDialog();
+    bool IsCaseSensitive();
+    wil::com_ptr<ICoreWebView2ExperimentalFindOptions> SetDefaultFindOptions();
+    void SetupFindEventHandlers(wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find);
+    // Find on Page member
+    std::wstring m_findOnPageLastSearchTerm;
+    wil::com_ptr<ICoreWebView2ExperimentalFindOptions> findOptions;
+    EventRegistrationToken m_activeMatchIndexChangedToken = {};
+    EventRegistrationToken m_matchCountChangedToken = {};
+
     std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
 

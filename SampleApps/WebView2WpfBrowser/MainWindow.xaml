@@ -107,6 +107,8 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.ProgrammaticSaveAsCommand}" Executed="ProgrammaticSaveAsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ToggleSilentCommand}" Executed="ToggleSilentExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ThrottlingControlCommand}" Executed="ThrottlingControlExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ChildFrameEventsCommand}" Executed="ChildFrameEventsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.RemoveChildFrameEventsCommand}" Executed="RemoveChildFrameEventsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.FileExplorerCommand}" Executed="FileExplorerExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ToggleScreenCaptureEnableCommand}" Executed="TogglScreenCaptureEnabledCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.FileTypePolicyCommand}" Executed="FileTypePolicyExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>

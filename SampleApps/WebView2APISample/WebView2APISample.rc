@@ -87,6 +87,7 @@ BEGIN
         MENUITEM "Add Browser Extension",       IDM_ADD_EXTENSION
         MENUITEM "Remove Browser Extension",    IDM_REMOVE_EXTENSION
         MENUITEM "Enable/Disable Extension",    IDM_DISABLE_EXTENSION
+        MENUITEM "Start Find",               IDM_START_FIND
     END
     POPUP "&Window"
     BEGIN
@@ -305,6 +306,18 @@ BEGIN
         MENUITEM "Throttling Control",           IDM_SCENARIO_THROTTLING_CONTROL
         MENUITEM "Screen Capture", IDM_SCENARIO_SCREEN_CAPTURE
         MENUITEM "File Type Policy", IDM_SCENARIO_FILE_TYPE_POLICY
+        POPUP "Start Find"
+        BEGIN
+          MENUITEM "Start Find on Page Dialog", IDM_START_FIND
+          MENUITEM "Get Match Count", IDM_GET_MATCHES
+          MENUITEM "Get Active Match Index", IDM_GET_ACTIVE_MATCH_INDEX
+          MENUITEM "Stop Find on Page Dialog", IDM_STOP_FIND
+          MENUITEM "Change Find Term", IDC_FIND_TERM
+          MENUITEM "Toggle Highlight", IDC_SHOULD_HIGHLIGHT_ALL_MATCHES
+          MENUITEM "Toggle Case Sensitivity", IDC_IS_CASE_SENSITIVE
+          MENUITEM "Toggle Suppress Default Find Dialog", IDC_SUPPRESS_DEFAULT_FIND_DIALOG
+          MENUITEM "Toggle Should Match Word", IDC_SHOULD_MATCH_WHOLE_WORD
+        END
     END
     POPUP "&Audio"
     BEGIN
