@@ -137,6 +137,8 @@ namespace WebView2WpfBrowser
         public static RoutedCommand SharedWorkerManagerCommand = new RoutedCommand();
         public static RoutedCommand GetSharedWorkersCommand = new RoutedCommand();
         public static RoutedCommand ServiceWorkerSyncManagerCommand = new RoutedCommand();
+        public static RoutedCommand ChildFrameEventsCommand = new RoutedCommand();
+        public static RoutedCommand RemoveChildFrameEventsCommand = new RoutedCommand();
 
 #endregion commands
 
@@ -187,9 +189,7 @@ namespace WebView2WpfBrowser
         // Try not to set these directly. Instead these should be updated by calling SetWebView().
         // We can switch between using a WebView2 or WebView2CompositionControl element.
         bool _useCompositionControl = false;
-#if USE_WEBVIEW2_EXPERIMENTAL
         WebView2CompositionControl webView2CompositionControlXamlElement = null;
-#endif
         private FrameworkElement _webView2FrameworkElement; // Helper reference pointing to the current WV2 control.
         private IWebView2 _iWebView2; // Helper reference pointing to the current WV2 control.
 
@@ -261,13 +261,11 @@ namespace WebView2WpfBrowser
         // the _useCompositionControl value.
         private void SetWebView(IWebView2 newWebView2, bool useCompositionControl)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             if (useCompositionControl)
             {
                 webView2CompositionControlXamlElement = newWebView2 as WebView2CompositionControl;
             }
             else
-#endif
             {
                 webView2XamlElement = newWebView2 as WebView2;
             }
@@ -516,13 +514,11 @@ namespace WebView2WpfBrowser
         IWebView2 CreateReplacementControl(bool useNewEnvironment, bool useCompositionControl)
         {
             IWebView2 replacementControl;
-#if USE_WEBVIEW2_EXPERIMENTAL
             if (useCompositionControl)
             {
                 replacementControl = new WebView2CompositionControl();
             }
             else
-#endif
             {
                 replacementControl = new WebView2();
             }
@@ -3860,5 +3856,80 @@ namespace WebView2WpfBrowser
         {
             await Task.Delay(0);
         }
+#if USE_WEBVIEW2_EXPERIMENTAL
+        List<CoreWebView2Frame> childFrames_ = new List<CoreWebView2Frame>();
+#endif
+        void ChildFrameEventsExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            _iWebView2.CoreWebView2.FrameCreated += HandleChildFrameCreated;
+#endif
+        }
+        void RemoveChildFrameEventsExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            _iWebView2.CoreWebView2.FrameCreated -= HandleChildFrameCreated;
+            for (int i = 0; i < childFrames_.Count; i++)
+            {
+                childFrames_[i].FrameCreated -= HandleChildFrameCreated;
+                childFrames_[i].NavigationStarting -= HandleChildFrameNavigationStarting;
+                childFrames_[i].ContentLoading -= HandleChildFrameContentLoading;
+                childFrames_[i].DOMContentLoaded -= HandleChildFrameDOMContentLoaded;
+                childFrames_[i].NavigationCompleted -= HandleChildFrameNavigationCompleted;
+                childFrames_[i].Destroyed -= HandleChildFrameDestroyed;
+            }
+#endif
+        }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        void HandleChildFrameCreated(object sender, CoreWebView2FrameCreatedEventArgs args)
+        {
+            CoreWebView2Frame childFrame = args.Frame;
+            childFrames_.Add(args.Frame);
+            string name = String.IsNullOrEmpty(childFrame.Name) ? "none" : childFrame.Name;
+            MessageBox.Show(this, "Id: " + childFrame.FrameId + " name: " + name, "Child frame created", MessageBoxButton.OK);
+            // <FrameChildFrameCreated>
+            childFrame.FrameCreated += HandleChildFrameCreated;
+            // </FrameChildFrameCreated>
+            childFrame.NavigationStarting += HandleChildFrameNavigationStarting;
+            childFrame.ContentLoading += HandleChildFrameContentLoading;
+            childFrame.DOMContentLoaded += HandleChildFrameDOMContentLoaded;
+            childFrame.NavigationCompleted += HandleChildFrameNavigationCompleted;
+            childFrame.Destroyed += HandleChildFrameDestroyed;
+        }
+
+        void HandleChildFrameDestroyed(object sender, object args) {
+            var frameToRemove = childFrames_.SingleOrDefault(r => r.IsDestroyed() == 1);
+            if (frameToRemove != null)
+            {
+                MessageBox.Show(this, "Id: " + frameToRemove.FrameId + " FrameDestroyed", "Child frame Destroyed", MessageBoxButton.OK);
+                childFrames_.Remove(frameToRemove);
+            }
+        }
+
+        void HandleChildFrameNavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs args)
+        {
+            CoreWebView2Frame Frame = (CoreWebView2Frame)sender;
+            MessageBox.Show(this, "Id: " + Frame.FrameId + " NavigationStarting", "Child frame Navigation", MessageBoxButton.OK);
+        }
+
+        void HandleChildFrameContentLoading(object sender, CoreWebView2ContentLoadingEventArgs args)
+        {
+            CoreWebView2Frame Frame = (CoreWebView2Frame)sender;
+            MessageBox.Show(this, "Id: " + Frame.FrameId + " ContentLoading", "Child frame Content Loading", MessageBoxButton.OK);
+        }
+
+        void HandleChildFrameDOMContentLoaded(object sender, CoreWebView2DOMContentLoadedEventArgs args)
+        {
+            CoreWebView2Frame Frame = (CoreWebView2Frame)sender;
+            MessageBox.Show(this, "Id: " + Frame.FrameId + " DOMContentLoaded", "Child frame DOM Content Loaded", MessageBoxButton.OK);
+        }
+
+        void HandleChildFrameNavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs args)
+        {
+            CoreWebView2Frame Frame = (CoreWebView2Frame)sender;
+            MessageBox.Show(this, "Id: " + Frame.FrameId + " NavigationCompleted", "Child frame Navigation Completed", MessageBoxButton.OK);
+        }
+#endif
     }
 }

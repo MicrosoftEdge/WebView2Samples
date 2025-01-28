@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scenario Drag Drop Override</title>
+    <style>
+        .imgcontainer {
+            float:left;
+            width: 241px;
+            height: 241px;
+            border: 1px solid #aaaaaa;
+        }
+        #root {
+            width: 530px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        #btncontainer {
+            display:grid;
+        }
+        button {
+            margin: 2px;
+            width: 280px;
+            height: 28px;
+        }
+        #btn1 {
+            grid-column: 1;
+            grid-row: 1;
+        }
+        #btn2 {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        #btn3 {
+            grid-column: 1;
+            grid-row: 3;
+        }
+    </style>
+    <script>
+        window.addEventListener("DOMContentLoaded", () => {
+            let img = document.createElement('img');
+            img.id = 'drag1';
+            img.src = 'EdgeWebView2-80.jpg';
+            img.width = 240;
+            img.height = 240;
+            img.draggable = true;
+            img.addEventListener('dragstart', imgDrag);
+            document.getElementById('div2').appendChild(img);
+
+            let containers = document.querySelectorAll('.imgcontainer');
+            for (container of containers) {
+                container.addEventListener('drop', onDrop);
+                container.addEventListener('dragover', allowDrop);
+            }
+        });
+
+        function allowDrop(ev) {
+            // The dragover event prevents drop events by default so we disable
+            // the default behavior.
+            ev.preventDefault();
+        }
+
+        function imgDrag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function onDrop(ev) {
+            ev.preventDefault();
+            var data = ev.dataTransfer.getData("text");
+            ev.target.appendChild(document.getElementById(data));
+        }
+
+        function SetDragDropBehaviorDefault() {
+            alert("WebView2 default drag drop set");
+            window.chrome.webview.postMessage('default');
+        }
+
+        function SetDragDropBehaviorOverride() {
+            alert("Application drag drop override set");
+            window.chrome.webview.postMessage('override');
+        }
+
+        function SetDragDropBehaviorNoop() {
+            alert("No-op drag drop set");
+            window.chrome.webview.postMessage('noop');
+        }
+    </script>
+</head>
+<body>
+    <h1>Scenario Drag Drop Override</h1>
+    <p>
+        This scenario demonstrates the ability to override drag drop behavior using the DragStarting Event.
+        Apps that handle the DragStarting event will be notified when drag is starting in the WebView2 and
+        can employ their own drag drop logic to override WebView2's. In the sample app, the override drag
+        experience will look no different from the default drag experience. By default, this webpage will use
+        the WebView2 default drag drop.
+    </p>
+    <div id="root">
+        <div id="div1" class="imgcontainer"></div>
+        <div id="div2" class="imgcontainer"></div>
+    </div>
+    <div id="btncontainer">
+        <button id="btn1" onclick="SetDragDropBehaviorOverride()">Override WebView2 Drag with App Logic</button>
+        <button id="btn2" onclick="SetDragDropBehaviorNoop()">Override WebView2 Drag to No-Op</button>
+        <button id="btn3" onclick="SetDragDropBehaviorDefault()">Use WebView2 Default Drag logic</button>
+    </div>
+</body>
+</html>
