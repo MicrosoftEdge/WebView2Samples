@@ -140,6 +140,27 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ChildFrameEventsCommand = new RoutedCommand();
         public static RoutedCommand RemoveChildFrameEventsCommand = new RoutedCommand();
 
+        public static  RoutedCommand StartCommand = new RoutedCommand();
+
+        public static  RoutedCommand FindNextCommand = new RoutedCommand();
+
+        public static  RoutedCommand FindPreviousCommand = new RoutedCommand();
+
+        public static  RoutedCommand StopFindCommand = new RoutedCommand();
+        public static  RoutedCommand FindTermCommand = new RoutedCommand();
+
+        public static  RoutedCommand GetMatchCountCommand = new RoutedCommand();
+
+        public static  RoutedCommand GetActiveMatchIndexCommand = new RoutedCommand();
+
+        public static  RoutedCommand ToggleCaseSensitiveCommand = new RoutedCommand();
+
+        public static  RoutedCommand ToggleShouldHighlightAllMatchesCommand = new RoutedCommand();
+
+        public static  RoutedCommand ToggleShouldMatchWordCommand = new RoutedCommand();
+
+        public static  RoutedCommand ToggleSuppressDefaultFindDialogCommand = new RoutedCommand();
+
 #endregion commands
 
         bool _isNavigating = false;
@@ -3931,5 +3952,241 @@ namespace WebView2WpfBrowser
             MessageBox.Show(this, "Id: " + Frame.FrameId + " NavigationCompleted", "Child frame Navigation Completed", MessageBoxButton.OK);
         }
 #endif
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+private CoreWebView2FindOptions _findOptions;
+private bool _findEventHandlersSet = false;
+private string _lastSearchTerm = string.Empty;
+#endif
+void StartExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    if (_iWebView2?.CoreWebView2 == null || _iWebView2.CoreWebView2.Find == null)
+    {
+        MessageBox.Show("Find API is unavailable.");
+        return;
+    }
+
+    var dialog = new TextInputDialog(
+        title: "Find on Page Term",
+        description: "Enter find term:",
+        defaultInput: "WebView2");
+
+    if (dialog.ShowDialog() == true)
+    {
+        _iWebView2.CoreWebView2.Find.Stop();
+
+
+        if (_findOptions == null)
+        {
+            _findOptions = CreateDefaultFindOptions();
+        }
+
+        _findOptions.FindTerm = dialog.Input.Text;
+
+        SetupFindEventHandlers();
+
+        _ = _iWebView2.CoreWebView2.Find.StartAsync(_findOptions);
+    }
+#endif
+}
+
+void FindNextExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    if (_iWebView2?.CoreWebView2?.Find == null) return;
+    _iWebView2.CoreWebView2.Find.FindNext();
+#endif
+}
+
+void FindPreviousExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+    if (_iWebView2?.CoreWebView2?.Find == null) return;
+    _iWebView2.CoreWebView2.Find.FindPrevious();
+#endif
+}
+
+void StopFindExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+    _iWebView2.CoreWebView2.Find.Stop();
+#endif
+}
+#if USE_WEBVIEW2_EXPERIMENTAL
+// Creating find options via environment
+private CoreWebView2FindOptions CreateDefaultFindOptions()
+{
+    var webviewEnv = _iWebView2.CoreWebView2.Environment;
+    if (webviewEnv == null) return null;
+
+    var findOptions = webviewEnv.CreateFindOptions();
+    findOptions.FindTerm = "WebView2";
+    findOptions.IsCaseSensitive = false;
+    findOptions.ShouldHighlightAllMatches = true;
+    findOptions.ShouldMatchWord = false;
+    findOptions.SuppressDefaultFindDialog = false;
+    return findOptions;
+}
+#endif
+void ChangeFindTermExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    // Make sure the WebView2 and its Find interface are available
+    if (_iWebView2?.CoreWebView2 == null || _iWebView2.CoreWebView2.Find == null)
+    {
+        MessageBox.Show("Find API is unavailable or not yet initialized.");
+        return;
+    }
+
+    // If we haven’t created _findOptions yet, do it now
+    if (_findOptions == null)
+    {
+        _findOptions = CreateDefaultFindOptions();
+    }
+
+    // Prompt the user for a new find term
+    var dialog = new TextInputDialog(
+        title: "Change Find on Page Term",
+        description: "Enter new find term:",
+        defaultInput: _findOptions.FindTerm // show the current term if you like
+    );
+
+    // If user clicks OK, update the find term
+    if (dialog.ShowDialog() == true)
+    {
+        _findOptions.FindTerm = dialog.Input.Text;
+        _lastSearchTerm = _findOptions.FindTerm; // track if desired
+
+        // We do *not* start the find here; that’s done in StartExecuted.
+        MessageBox.Show($"Find term changed to: {_findOptions.FindTerm}", "Find on Page");
+    }
+#endif
+}
+
+void GetMatchCountExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    if (_iWebView2?.CoreWebView2?.Find == null) return;
+
+    int matchCount = _iWebView2.CoreWebView2.Find.MatchCount;
+    MessageBox.Show($"Match Count: {matchCount}", "Find Operation", MessageBoxButton.OK);
+#endif
+
+}
+
+void GetActiveMatchIndexExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    if (_iWebView2?.CoreWebView2?.Find == null) return;
+
+    int activeIndex = _iWebView2.CoreWebView2.Find.ActiveMatchIndex;
+    MessageBox.Show($"Active Match Index: {activeIndex}", "Find Operation", MessageBoxButton.OK);
+#endif
+
+}
+
+void ToggleCaseSensitiveExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    ToggleFindOptionAndRestart(
+        () => _findOptions.IsCaseSensitive,
+        val => _findOptions.IsCaseSensitive = val);
+#endif
+
+}
+
+void ToggleShouldHighlightAllMatchesExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    ToggleFindOptionAndRestart(
+        () => _findOptions.ShouldHighlightAllMatches,
+        val => _findOptions.ShouldHighlightAllMatches = val);
+#endif
+
+}
+
+void ToggleShouldMatchWordExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    ToggleFindOptionAndRestart(
+        () => _findOptions.ShouldMatchWord,
+        val => _findOptions.ShouldMatchWord = val);
+#endif
+
+}
+
+void ToggleSuppressDefaultFindDialogExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    ToggleFindOptionAndRestart(
+        () => _findOptions.SuppressDefaultFindDialog,
+        val => _findOptions.SuppressDefaultFindDialog = val);
+#endif
+
+}
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+private async void ToggleFindOptionAndRestart(Func<bool> optionGetter, Action<bool> optionSetter)
+{
+    if (_iWebView2?.CoreWebView2?.Find == null)
+        return;
+
+    _iWebView2.CoreWebView2.Find.Stop();
+
+
+    if (_findOptions == null)
+    {
+        _findOptions = CreateDefaultFindOptions(); 
+    }
+
+    bool currentVal = optionGetter();
+    optionSetter(!currentVal);
+
+    await _iWebView2.CoreWebView2.Find.StartAsync(_findOptions);
+}
+
+private void SetupFindEventHandlers()
+{
+    if (_findEventHandlersSet) return; // Only attach once
+    var findObject = _iWebView2.CoreWebView2.Find;
+    findObject.MatchCountChanged += FindObject_MatchCountChanged;
+    findObject.ActiveMatchIndexChanged += FindObject_ActiveMatchIndexChanged;
+    _findEventHandlersSet = true;
+}
+
+private void RemoveFindEventHandlers()
+{
+    if (!_findEventHandlersSet) return;
+    var findObject = _iWebView2.CoreWebView2.Find;
+    findObject.MatchCountChanged -= FindObject_MatchCountChanged;
+    findObject.ActiveMatchIndexChanged -= FindObject_ActiveMatchIndexChanged;
+    _findEventHandlersSet = false;
+}
+
+private void FindObject_MatchCountChanged(object sender, object e)
+{
+    var findObject = _iWebView2.CoreWebView2.Find;
+    int matchCount = findObject.MatchCount;
+    Debug.WriteLine($"[FindOnPage] MatchCountChanged -> {matchCount}");
+}
+
+private void FindObject_ActiveMatchIndexChanged(object sender, object e)
+{
+    var findObject = _iWebView2.CoreWebView2.Find;
+    int activeIndex = findObject.ActiveMatchIndex;
+    Debug.WriteLine($"[FindOnPage] ActiveMatchIndexChanged -> {activeIndex}");
+}
+#endif
+
     }
 }
