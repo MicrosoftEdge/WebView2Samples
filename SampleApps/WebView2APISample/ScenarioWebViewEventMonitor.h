@@ -23,7 +23,7 @@ public:
     void InitializeEventView(ICoreWebView2* webviewEventView);
 
 private:
-    void InitializeFrameEventView(wil::com_ptr<ICoreWebView2Frame> webviewFrame);
+    void InitializeFrameEventView(wil::com_ptr<ICoreWebView2Frame> webviewFrame, int depth);
     // Because WebResourceRequested fires so much more often than
     // all other events, we default to it off and it is configurable.
     void EnableWebResourceRequestedEvent(bool enable);

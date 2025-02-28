@@ -20,6 +20,7 @@ using namespace Microsoft::WRL;
 using namespace std;
 
 static constexpr wchar_t c_samplePath[] = L"ScenarioWebViewEventMonitor.html";
+const int first_level_iframe_depth = 1;
 
 std::wstring WebResourceSourceToString(COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS source)
 {
@@ -456,8 +457,10 @@ void ScenarioWebViewEventMonitor::EnableWebResourceResponseReceivedEvent(bool en
     {
         m_webviewEventSource2->add_WebResourceResponseReceived(
             Callback<ICoreWebView2WebResourceResponseReceivedEventHandler>(
-                [this](ICoreWebView2* webview, ICoreWebView2WebResourceResponseReceivedEventArgs* args)
-                    -> HRESULT {
+                [this](
+                    ICoreWebView2* webview,
+                    ICoreWebView2WebResourceResponseReceivedEventArgs* args) noexcept -> HRESULT
+                {
                     wil::com_ptr<ICoreWebView2WebResourceRequest> webResourceRequest;
                     CHECK_FAILURE(args->get_Request(&webResourceRequest));
                     wil::com_ptr<ICoreWebView2WebResourceResponseView>
@@ -513,8 +516,10 @@ void ScenarioWebViewEventMonitor::EnableWebResourceRequestedEvent(bool enable)
 
         m_webviewEventSource->add_WebResourceRequested(
             Callback<ICoreWebView2WebResourceRequestedEventHandler>(
-                [this](ICoreWebView2* webview, ICoreWebView2WebResourceRequestedEventArgs* args)
-                    -> HRESULT {
+                [this](
+                    ICoreWebView2* webview,
+                    ICoreWebView2WebResourceRequestedEventArgs* args) noexcept -> HRESULT
+                {
                     wil::com_ptr<ICoreWebView2WebResourceRequest> webResourceRequest;
                     CHECK_FAILURE(args->get_Request(&webResourceRequest));
                     wil::com_ptr<ICoreWebView2WebResourceResponse> webResourceResponse;
@@ -560,8 +565,10 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventView->add_WebMessageReceived(
         Callback<ICoreWebView2WebMessageReceivedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args)
-                -> HRESULT {
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2WebMessageReceivedEventArgs* args) noexcept -> HRESULT
+            {
                 wil::unique_cotaskmem_string source;
                 CHECK_FAILURE(args->get_Source(&source));
                 wil::unique_cotaskmem_string webMessageAsString;
@@ -596,8 +603,10 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_WebMessageReceived(
         Callback<ICoreWebView2WebMessageReceivedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args)
-                -> HRESULT {
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2WebMessageReceivedEventArgs* args) noexcept -> HRESULT
+            {
                 wil::unique_cotaskmem_string source;
                 CHECK_FAILURE(args->get_Source(&source));
                 wil::unique_cotaskmem_string webMessageAsString;
@@ -633,8 +642,10 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_NewWindowRequested(
         Callback<ICoreWebView2NewWindowRequestedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args)
-                -> HRESULT {
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2NewWindowRequestedEventArgs* args) noexcept -> HRESULT
+            {
                 BOOL handled = FALSE;
                 CHECK_FAILURE(args->get_Handled(&handled));
                 BOOL isUserInitiated = FALSE;
@@ -647,7 +658,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                 wil::unique_cotaskmem_string name;
                 std::wstring encodedName = EncodeQuote(L"");
 
-                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2)))) {
+                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))))
+                {
                     CHECK_FAILURE(args2->get_Name(&name));
                     encodedName = EncodeQuote(name.get());
                 }
@@ -698,8 +710,10 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_NavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
-                -> HRESULT {
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2NavigationStartingEventArgs* args) noexcept -> HRESULT
+            {
                 std::wstring message =
                     NavigationStartingArgsToJsonString(sender, args, L"NavigationStarting");
                 PostEventMessage(message);
@@ -711,8 +725,10 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_FrameNavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
-                -> HRESULT {
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2NavigationStartingEventArgs* args) noexcept -> HRESULT
+            {
                 std::wstring message = NavigationStartingArgsToJsonString(
                     sender, args, L"FrameNavigationStarting");
                 PostEventMessage(message);
@@ -724,8 +740,9 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_SourceChanged(
         Callback<ICoreWebView2SourceChangedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2SourceChangedEventArgs* args)
-                -> HRESULT {
+            [this](ICoreWebView2* sender, ICoreWebView2SourceChangedEventArgs* args) noexcept
+            -> HRESULT
+            {
                 BOOL isNewDocument = FALSE;
                 CHECK_FAILURE(args->get_IsNewDocument(&isNewDocument));
 
@@ -742,9 +759,9 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_ContentLoading(
         Callback<ICoreWebView2ContentLoadingEventHandler>(
-            [this](
-                ICoreWebView2* sender,
-                ICoreWebView2ContentLoadingEventArgs* args) -> HRESULT {
+            [this](ICoreWebView2* sender, ICoreWebView2ContentLoadingEventArgs* args) noexcept
+            -> HRESULT
+            {
                 std::wstring message =
                     ContentLoadingArgsToJsonString(sender, args, L"ContentLoading");
                 PostEventMessage(message);
@@ -756,7 +773,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_HistoryChanged(
         Callback<ICoreWebView2HistoryChangedEventHandler>(
-            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+            [this](ICoreWebView2* sender, IUnknown* args) noexcept -> HRESULT
+            {
                 std::wstring message =
                     L"{ \"kind\": \"event\", \"name\": \"HistoryChanged\", \"args\": {";
                 message +=
@@ -770,8 +788,10 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_NavigationCompleted(
         Callback<ICoreWebView2NavigationCompletedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args)
-                -> HRESULT {
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2NavigationCompletedEventArgs* args) noexcept -> HRESULT
+            {
                 std::wstring message =
                     NavigationCompletedArgsToJsonString(sender, args, L"NavigationCompleted");
                 PostEventMessage(message);
@@ -781,10 +801,12 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
             .Get(),
         &m_navigationCompletedToken);
 
-        m_webviewEventSource->add_FrameNavigationCompleted(
+    m_webviewEventSource->add_FrameNavigationCompleted(
         Callback<ICoreWebView2NavigationCompletedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args)
-                -> HRESULT {
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2NavigationCompletedEventArgs* args) noexcept -> HRESULT
+            {
                 std::wstring message = NavigationCompletedArgsToJsonString(
                     sender, args, L"FrameNavigationCompleted");
                 PostEventMessage(message);
@@ -796,8 +818,9 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource2->add_DOMContentLoaded(
         Callback<ICoreWebView2DOMContentLoadedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2DOMContentLoadedEventArgs* args)
-                -> HRESULT {
+            [this](ICoreWebView2* sender, ICoreWebView2DOMContentLoadedEventArgs* args) noexcept
+            -> HRESULT
+            {
                 std::wstring message =
                     DOMContentLoadedArgsToJsonString(sender, args, L"DOMContentLoaded");
                 PostEventMessage(message);
@@ -809,7 +832,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_DocumentTitleChanged(
         Callback<ICoreWebView2DocumentTitleChangedEventHandler>(
-            [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+            [this](ICoreWebView2* sender, IUnknown* args) noexcept -> HRESULT
+            {
                 std::wstring message =
                     L"{ \"kind\": \"event\", \"name\": \"DocumentTitleChanged\", \"args\": {"
                     L"}" +
@@ -826,8 +850,10 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
     if (m_webviewEventSource4) {
         m_webviewEventSource4->add_DownloadStarting(
             Callback<ICoreWebView2DownloadStartingEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2DownloadStartingEventArgs* args)
-                    -> HRESULT {
+                [this](
+                    ICoreWebView2* sender,
+                    ICoreWebView2DownloadStartingEventArgs* args) noexcept -> HRESULT
+                {
                     wil::com_ptr<ICoreWebView2DownloadOperation> download;
                     CHECK_FAILURE(args->get_DownloadOperation(&download));
 
@@ -860,8 +886,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                         Callback<ICoreWebView2StateChangedEventHandler>(
                             [this, download](
                                 ICoreWebView2DownloadOperation* sender,
-                                IUnknown* args)
-                                -> HRESULT {
+                                IUnknown* args) noexcept -> HRESULT
+                            {
                                 COREWEBVIEW2_DOWNLOAD_STATE state;
                                 CHECK_FAILURE(download->get_State(&state));
 
@@ -907,10 +933,11 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                         &m_stateChangedToken);
 
                     download->add_BytesReceivedChanged(
-                        Callback<
-                            ICoreWebView2BytesReceivedChangedEventHandler>(
+                        Callback<ICoreWebView2BytesReceivedChangedEventHandler>(
                             [this, download](
-                                ICoreWebView2DownloadOperation* sender, IUnknown* args) -> HRESULT {
+                                ICoreWebView2DownloadOperation* sender,
+                                IUnknown* args) noexcept -> HRESULT
+                            {
                                 INT64 bytesReceived = 0;
                                 CHECK_FAILURE(download->get_BytesReceived(
                                     &bytesReceived));
@@ -934,7 +961,9 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                     download->add_EstimatedEndTimeChanged(
                         Callback<ICoreWebView2EstimatedEndTimeChangedEventHandler>(
                             [this, download](
-                                ICoreWebView2DownloadOperation* sender, IUnknown* args) -> HRESULT {
+                                ICoreWebView2DownloadOperation* sender,
+                                IUnknown* args) noexcept -> HRESULT
+                            {
                                 wil::unique_cotaskmem_string estimatedEndTime;
                                 CHECK_FAILURE(download->get_EstimatedEndTime(&estimatedEndTime));
 
@@ -977,11 +1006,12 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
         m_webviewEventSource4->add_FrameCreated(
             Callback<ICoreWebView2FrameCreatedEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args)
-                    -> HRESULT {
+                [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args) noexcept
+                -> HRESULT
+                {
                     wil::com_ptr<ICoreWebView2Frame> webviewFrame;
                     CHECK_FAILURE(args->get_Frame(&webviewFrame));
-                    InitializeFrameEventView(webviewFrame);
+                    InitializeFrameEventView(webviewFrame, first_level_iframe_depth + 1);
                     wil::unique_cotaskmem_string name;
                     CHECK_FAILURE(webviewFrame->get_Name(&name));
 
@@ -989,8 +1019,7 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
                         L"{ \"kind\": \"event\", \"name\": \"FrameCreated\", \"args\": {";
                     message += L"\"frame\": " + EncodeQuote(name.get());
 
-                    auto webView2_20 =
-                        wil::com_ptr<ICoreWebView2>(sender).try_query<ICoreWebView2_20>();
+                    auto webView2_20 = wil::try_com_query<ICoreWebView2_20>(sender);
                     if (webView2_20)
                     {
                         UINT32 frameId = 0;
@@ -1017,8 +1046,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_controllerEventSource->add_GotFocus(
         Callback<ICoreWebView2FocusChangedEventHandler>(
-            [this](ICoreWebView2Controller* sender, IUnknown* args)
-                -> HRESULT {
+            [this](ICoreWebView2Controller* sender, IUnknown* args) noexcept -> HRESULT
+            {
                 std::wstring message =
                     L"{ \"kind\": \"event\", \"name\": \"GotFocus\", \"args\": {} }";
                 PostEventMessage(message);
@@ -1028,8 +1057,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
         &m_gotFocusToken);
     m_controllerEventSource->add_LostFocus(
         Callback<ICoreWebView2FocusChangedEventHandler>(
-            [this](ICoreWebView2Controller* sender, IUnknown* args)
-                -> HRESULT {
+            [this](ICoreWebView2Controller* sender, IUnknown* args) noexcept -> HRESULT
+            {
                 std::wstring message =
                     L"{ \"kind\": \"event\", \"name\": \"LostFocus\", \"args\": {} }";
                 PostEventMessage(message);
@@ -1043,8 +1072,8 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
     {
         m_webViewEventSource9->add_IsDefaultDownloadDialogOpenChanged(
             Callback<ICoreWebView2IsDefaultDownloadDialogOpenChangedEventHandler>(
-                [this](
-                    ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                [this](ICoreWebView2* sender, IUnknown* args) noexcept -> HRESULT
+                {
                     std::wstring message =
                         L"{ \"kind\": \"event\", \"name\": "
                         L"\"IsDefaultDownloadDialogOpenChanged\", \"args\": {";
@@ -1062,8 +1091,9 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 
     m_webviewEventSource->add_PermissionRequested(
         Callback<ICoreWebView2PermissionRequestedEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args)
-                -> HRESULT
+            [this](
+                ICoreWebView2* sender,
+                ICoreWebView2PermissionRequestedEventArgs* args) noexcept -> HRESULT
             {
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
@@ -1095,13 +1125,17 @@ void ScenarioWebViewEventMonitor::InitializeEventView(ICoreWebView2* webviewEven
 }
 
 void ScenarioWebViewEventMonitor::InitializeFrameEventView(
-    wil::com_ptr<ICoreWebView2Frame> webviewFrame)
+    wil::com_ptr<ICoreWebView2Frame> webviewFrame, int depth)
 {
     webviewFrame->add_Destroyed(
         Callback<ICoreWebView2FrameDestroyedEventHandler>(
-            [this](ICoreWebView2Frame* sender, IUnknown* args) -> HRESULT {
+            [this](ICoreWebView2Frame* sender, IUnknown* args) noexcept -> HRESULT
+            {
+                wil::unique_cotaskmem_string name;
+                CHECK_FAILURE(sender->get_Name(&name));
                 std::wstring message = L"{ \"kind\": \"event\", \"name\": "
                                        L"\"CoreWebView2Frame::Destroyed\", \"args\": {";
+                message += L"\"frame name\": " + EncodeQuote(name.get());
                 message +=
                     L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
                 PostEventMessage(message);
@@ -1117,7 +1151,8 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
             Callback<ICoreWebView2FrameNavigationStartingEventHandler>(
                 [this](
                     ICoreWebView2Frame* sender,
-                    ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+                    ICoreWebView2NavigationStartingEventArgs* args) noexcept -> HRESULT
+                {
                     std::wstring message = NavigationStartingArgsToJsonString(
                         m_webviewEventSource.get(), args,
                         L"CoreWebView2Frame::NavigationStarting");
@@ -1130,8 +1165,10 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
 
         frame2->add_ContentLoading(
             Callback<ICoreWebView2FrameContentLoadingEventHandler>(
-                [this](ICoreWebView2Frame* sender, ICoreWebView2ContentLoadingEventArgs* args)
-                    -> HRESULT {
+                [this](
+                    ICoreWebView2Frame* sender,
+                    ICoreWebView2ContentLoadingEventArgs* args) noexcept -> HRESULT
+                {
                     std::wstring message = ContentLoadingArgsToJsonString(
                         m_webviewEventSource.get(), args, L"CoreWebView2Frame::ContentLoading");
                     PostEventMessage(message);
@@ -1145,7 +1182,8 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
             Callback<ICoreWebView2FrameNavigationCompletedEventHandler>(
                 [this](
                     ICoreWebView2Frame* sender,
-                    ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+                    ICoreWebView2NavigationCompletedEventArgs* args) noexcept -> HRESULT
+                {
                     std::wstring message = NavigationCompletedArgsToJsonString(
                         m_webviewEventSource.get(), args,
                         L"CoreWebView2Frame::NavigationCompleted");
@@ -1158,8 +1196,10 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
 
         frame2->add_DOMContentLoaded(
             Callback<ICoreWebView2FrameDOMContentLoadedEventHandler>(
-                [this](ICoreWebView2Frame* sender, ICoreWebView2DOMContentLoadedEventArgs* args)
-                    -> HRESULT {
+                [this](
+                    ICoreWebView2Frame* sender,
+                    ICoreWebView2DOMContentLoadedEventArgs* args) noexcept -> HRESULT
+                {
                     std::wstring message = DOMContentLoadedArgsToJsonString(
                         m_webviewEventSource.get(), args,
                         L"CoreWebView2Frame::DOMContentLoaded");
@@ -1169,6 +1209,89 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
                 })
                 .Get(),
             NULL);
+        frame2->add_WebMessageReceived(
+            Callback<ICoreWebView2FrameWebMessageReceivedEventHandler>(
+                [this](
+                    ICoreWebView2Frame* sender,
+                    ICoreWebView2WebMessageReceivedEventArgs* args) noexcept -> HRESULT
+                {
+                    wil::unique_cotaskmem_string source;
+                    CHECK_FAILURE(args->get_Source(&source));
+                    wil::unique_cotaskmem_string webMessageAsString;
+                    if (SUCCEEDED(args->TryGetWebMessageAsString(&webMessageAsString)))
+                    {
+                        std::wstring message =
+                            L"{ \"kind\": \"event\", \"name\": "
+                            L"\"CoreWebView2Frame::WebMessageReceived\", \"args\": {";
+
+                        wil::unique_cotaskmem_string uri;
+                        CHECK_FAILURE(args->get_Source(&uri));
+                        message += L"\"source\": " + EncodeQuote(uri.get()) + L", ";
+                        message += L"\"webMessageAsString\": " +
+                                   EncodeQuote(webMessageAsString.get()) + L" ";
+
+                        UINT32 frameId = 0;
+                        auto frame5 = wil::try_com_query<ICoreWebView2Frame5>(sender);
+                        if (frame5)
+                        {
+                            CHECK_FAILURE(frame5->get_FrameId(&frameId));
+                            message += L",\"sender webview frame id\": " +
+                                       std::to_wstring((int)frameId);
+                        }
+                        message += L"}" +
+                                   WebViewPropertiesToJsonString(m_webviewEventSource.get()) +
+                                   L"}";
+                        PostEventMessage(message);
+                    }
+
+                    return S_OK;
+                })
+                .Get(),
+            NULL);
+    }
+    auto experimental_frame8 = webviewFrame.try_query<ICoreWebView2ExperimentalFrame8>();
+    if (experimental_frame8)
+    {
+        //! [FrameCreated]
+        experimental_frame8->add_FrameCreated(
+            Callback<ICoreWebView2ExperimentalFrameChildFrameCreatedEventHandler>(
+                [this, depth](
+                    ICoreWebView2Frame* sender,
+                    ICoreWebView2FrameCreatedEventArgs* args) noexcept -> HRESULT
+                {
+                    wil::com_ptr<ICoreWebView2Frame> webviewFrame;
+                    CHECK_FAILURE(args->get_Frame(&webviewFrame));
+                    wil::unique_cotaskmem_string name;
+                    CHECK_FAILURE(webviewFrame->get_Name(&name));
+
+                    InitializeFrameEventView(webviewFrame, depth + 1);
+
+                    std::wstring message = L"{ \"kind\": \"event\", \"name\": "
+                                           L"\"CoreWebView2Frame::FrameCreated\", \"args\": {";
+                    message += L"\"frame name\": " + EncodeQuote(name.get());
+                    message += L",\"depth\": " + std::to_wstring(depth);
+                    auto frame5 = webviewFrame.try_query<ICoreWebView2Frame5>();
+                    UINT32 frameId = 0;
+                    if (frame5)
+                    {
+                        CHECK_FAILURE(frame5->get_FrameId(&frameId));
+                        message += L",\"webview frame id\": " + std::to_wstring((int)frameId);
+                    }
+                    frame5 = wil::try_com_query<ICoreWebView2Frame5>(sender);
+                    if (frame5)
+                    {
+                        CHECK_FAILURE(frame5->get_FrameId(&frameId));
+                        message +=
+                            L",\"sender webview frame id\": " + std::to_wstring((int)frameId);
+                    }
+                    message +=
+                        L"}" + WebViewPropertiesToJsonString(m_webviewEventSource.get()) + L"}";
+                    PostEventMessage(message);
+                    return S_OK;
+                })
+                .Get(),
+            &m_frameCreatedToken);
+        //! [FrameCreated]
     }
 }
 void ScenarioWebViewEventMonitor::PostEventMessage(std::wstring message)

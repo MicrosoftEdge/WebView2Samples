@@ -137,6 +137,29 @@ namespace WebView2WpfBrowser
         public static RoutedCommand SharedWorkerManagerCommand = new RoutedCommand();
         public static RoutedCommand GetSharedWorkersCommand = new RoutedCommand();
         public static RoutedCommand ServiceWorkerSyncManagerCommand = new RoutedCommand();
+        public static RoutedCommand ChildFrameEventsCommand = new RoutedCommand();
+        public static RoutedCommand RemoveChildFrameEventsCommand = new RoutedCommand();
+
+        public static  RoutedCommand StartCommand = new RoutedCommand();
+
+        public static  RoutedCommand FindNextCommand = new RoutedCommand();
+
+        public static  RoutedCommand FindPreviousCommand = new RoutedCommand();
+
+        public static  RoutedCommand StopFindCommand = new RoutedCommand();
+        public static  RoutedCommand FindTermCommand = new RoutedCommand();
+
+        public static  RoutedCommand GetMatchCountCommand = new RoutedCommand();
+
+        public static  RoutedCommand GetActiveMatchIndexCommand = new RoutedCommand();
+
+        public static  RoutedCommand ToggleCaseSensitiveCommand = new RoutedCommand();
+
+        public static  RoutedCommand ToggleShouldHighlightAllMatchesCommand = new RoutedCommand();
+
+        public static  RoutedCommand ToggleShouldMatchWordCommand = new RoutedCommand();
+
+        public static  RoutedCommand ToggleSuppressDefaultFindDialogCommand = new RoutedCommand();
 
 #endregion commands
 
@@ -187,9 +210,7 @@ namespace WebView2WpfBrowser
         // Try not to set these directly. Instead these should be updated by calling SetWebView().
         // We can switch between using a WebView2 or WebView2CompositionControl element.
         bool _useCompositionControl = false;
-#if USE_WEBVIEW2_EXPERIMENTAL
         WebView2CompositionControl webView2CompositionControlXamlElement = null;
-#endif
         private FrameworkElement _webView2FrameworkElement; // Helper reference pointing to the current WV2 control.
         private IWebView2 _iWebView2; // Helper reference pointing to the current WV2 control.
 
@@ -261,13 +282,11 @@ namespace WebView2WpfBrowser
         // the _useCompositionControl value.
         private void SetWebView(IWebView2 newWebView2, bool useCompositionControl)
         {
-#if USE_WEBVIEW2_EXPERIMENTAL
             if (useCompositionControl)
             {
                 webView2CompositionControlXamlElement = newWebView2 as WebView2CompositionControl;
             }
             else
-#endif
             {
                 webView2XamlElement = newWebView2 as WebView2;
             }
@@ -516,13 +535,11 @@ namespace WebView2WpfBrowser
         IWebView2 CreateReplacementControl(bool useNewEnvironment, bool useCompositionControl)
         {
             IWebView2 replacementControl;
-#if USE_WEBVIEW2_EXPERIMENTAL
             if (useCompositionControl)
             {
                 replacementControl = new WebView2CompositionControl();
             }
             else
-#endif
             {
                 replacementControl = new WebView2();
             }
@@ -3860,5 +3877,316 @@ namespace WebView2WpfBrowser
         {
             await Task.Delay(0);
         }
+#if USE_WEBVIEW2_EXPERIMENTAL
+        List<CoreWebView2Frame> childFrames_ = new List<CoreWebView2Frame>();
+#endif
+        void ChildFrameEventsExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            _iWebView2.CoreWebView2.FrameCreated += HandleChildFrameCreated;
+#endif
+        }
+        void RemoveChildFrameEventsExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            _iWebView2.CoreWebView2.FrameCreated -= HandleChildFrameCreated;
+            for (int i = 0; i < childFrames_.Count; i++)
+            {
+                childFrames_[i].FrameCreated -= HandleChildFrameCreated;
+                childFrames_[i].NavigationStarting -= HandleChildFrameNavigationStarting;
+                childFrames_[i].ContentLoading -= HandleChildFrameContentLoading;
+                childFrames_[i].DOMContentLoaded -= HandleChildFrameDOMContentLoaded;
+                childFrames_[i].NavigationCompleted -= HandleChildFrameNavigationCompleted;
+                childFrames_[i].Destroyed -= HandleChildFrameDestroyed;
+            }
+#endif
+        }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        void HandleChildFrameCreated(object sender, CoreWebView2FrameCreatedEventArgs args)
+        {
+            CoreWebView2Frame childFrame = args.Frame;
+            childFrames_.Add(args.Frame);
+            string name = String.IsNullOrEmpty(childFrame.Name) ? "none" : childFrame.Name;
+            MessageBox.Show(this, "Id: " + childFrame.FrameId + " name: " + name, "Child frame created", MessageBoxButton.OK);
+            // <FrameChildFrameCreated>
+            childFrame.FrameCreated += HandleChildFrameCreated;
+            // </FrameChildFrameCreated>
+            childFrame.NavigationStarting += HandleChildFrameNavigationStarting;
+            childFrame.ContentLoading += HandleChildFrameContentLoading;
+            childFrame.DOMContentLoaded += HandleChildFrameDOMContentLoaded;
+            childFrame.NavigationCompleted += HandleChildFrameNavigationCompleted;
+            childFrame.Destroyed += HandleChildFrameDestroyed;
+        }
+
+        void HandleChildFrameDestroyed(object sender, object args) {
+            var frameToRemove = childFrames_.SingleOrDefault(r => r.IsDestroyed() == 1);
+            if (frameToRemove != null)
+            {
+                MessageBox.Show(this, "Id: " + frameToRemove.FrameId + " FrameDestroyed", "Child frame Destroyed", MessageBoxButton.OK);
+                childFrames_.Remove(frameToRemove);
+            }
+        }
+
+        void HandleChildFrameNavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs args)
+        {
+            CoreWebView2Frame Frame = (CoreWebView2Frame)sender;
+            MessageBox.Show(this, "Id: " + Frame.FrameId + " NavigationStarting", "Child frame Navigation", MessageBoxButton.OK);
+        }
+
+        void HandleChildFrameContentLoading(object sender, CoreWebView2ContentLoadingEventArgs args)
+        {
+            CoreWebView2Frame Frame = (CoreWebView2Frame)sender;
+            MessageBox.Show(this, "Id: " + Frame.FrameId + " ContentLoading", "Child frame Content Loading", MessageBoxButton.OK);
+        }
+
+        void HandleChildFrameDOMContentLoaded(object sender, CoreWebView2DOMContentLoadedEventArgs args)
+        {
+            CoreWebView2Frame Frame = (CoreWebView2Frame)sender;
+            MessageBox.Show(this, "Id: " + Frame.FrameId + " DOMContentLoaded", "Child frame DOM Content Loaded", MessageBoxButton.OK);
+        }
+
+        void HandleChildFrameNavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs args)
+        {
+            CoreWebView2Frame Frame = (CoreWebView2Frame)sender;
+            MessageBox.Show(this, "Id: " + Frame.FrameId + " NavigationCompleted", "Child frame Navigation Completed", MessageBoxButton.OK);
+        }
+#endif
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+private CoreWebView2FindOptions _findOptions;
+private bool _findEventHandlersSet = false;
+private string _lastSearchTerm = string.Empty;
+#endif
+void StartExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    if (_iWebView2?.CoreWebView2 == null || _iWebView2.CoreWebView2.Find == null)
+    {
+        MessageBox.Show("Find API is unavailable.");
+        return;
+    }
+
+    var dialog = new TextInputDialog(
+        title: "Find on Page Term",
+        description: "Enter find term:",
+        defaultInput: "WebView2");
+
+    if (dialog.ShowDialog() == true)
+    {
+        _iWebView2.CoreWebView2.Find.Stop();
+
+
+        if (_findOptions == null)
+        {
+            _findOptions = CreateDefaultFindOptions();
+        }
+
+        _findOptions.FindTerm = dialog.Input.Text;
+
+        SetupFindEventHandlers();
+
+        _ = _iWebView2.CoreWebView2.Find.StartAsync(_findOptions);
+    }
+#endif
+}
+
+void FindNextExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    if (_iWebView2?.CoreWebView2?.Find == null) return;
+    _iWebView2.CoreWebView2.Find.FindNext();
+#endif
+}
+
+void FindPreviousExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+    if (_iWebView2?.CoreWebView2?.Find == null) return;
+    _iWebView2.CoreWebView2.Find.FindPrevious();
+#endif
+}
+
+void StopFindExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+    _iWebView2.CoreWebView2.Find.Stop();
+#endif
+}
+#if USE_WEBVIEW2_EXPERIMENTAL
+// Creating find options via environment
+private CoreWebView2FindOptions CreateDefaultFindOptions()
+{
+    var webviewEnv = _iWebView2.CoreWebView2.Environment;
+    if (webviewEnv == null) return null;
+
+    var findOptions = webviewEnv.CreateFindOptions();
+    findOptions.FindTerm = "WebView2";
+    findOptions.IsCaseSensitive = false;
+    findOptions.ShouldHighlightAllMatches = true;
+    findOptions.ShouldMatchWord = false;
+    findOptions.SuppressDefaultFindDialog = false;
+    return findOptions;
+}
+#endif
+void ChangeFindTermExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    // Make sure the WebView2 and its Find interface are available
+    if (_iWebView2?.CoreWebView2 == null || _iWebView2.CoreWebView2.Find == null)
+    {
+        MessageBox.Show("Find API is unavailable or not yet initialized.");
+        return;
+    }
+
+    // If we haven’t created _findOptions yet, do it now
+    if (_findOptions == null)
+    {
+        _findOptions = CreateDefaultFindOptions();
+    }
+
+    // Prompt the user for a new find term
+    var dialog = new TextInputDialog(
+        title: "Change Find on Page Term",
+        description: "Enter new find term:",
+        defaultInput: _findOptions.FindTerm // show the current term if you like
+    );
+
+    // If user clicks OK, update the find term
+    if (dialog.ShowDialog() == true)
+    {
+        _findOptions.FindTerm = dialog.Input.Text;
+        _lastSearchTerm = _findOptions.FindTerm; // track if desired
+
+        // We do *not* start the find here; that’s done in StartExecuted.
+        MessageBox.Show($"Find term changed to: {_findOptions.FindTerm}", "Find on Page");
+    }
+#endif
+}
+
+void GetMatchCountExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    if (_iWebView2?.CoreWebView2?.Find == null) return;
+
+    int matchCount = _iWebView2.CoreWebView2.Find.MatchCount;
+    MessageBox.Show($"Match Count: {matchCount}", "Find Operation", MessageBoxButton.OK);
+#endif
+
+}
+
+void GetActiveMatchIndexExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    if (_iWebView2?.CoreWebView2?.Find == null) return;
+
+    int activeIndex = _iWebView2.CoreWebView2.Find.ActiveMatchIndex;
+    MessageBox.Show($"Active Match Index: {activeIndex}", "Find Operation", MessageBoxButton.OK);
+#endif
+
+}
+
+void ToggleCaseSensitiveExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    ToggleFindOptionAndRestart(
+        () => _findOptions.IsCaseSensitive,
+        val => _findOptions.IsCaseSensitive = val);
+#endif
+
+}
+
+void ToggleShouldHighlightAllMatchesExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    ToggleFindOptionAndRestart(
+        () => _findOptions.ShouldHighlightAllMatches,
+        val => _findOptions.ShouldHighlightAllMatches = val);
+#endif
+
+}
+
+void ToggleShouldMatchWordExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    ToggleFindOptionAndRestart(
+        () => _findOptions.ShouldMatchWord,
+        val => _findOptions.ShouldMatchWord = val);
+#endif
+
+}
+
+void ToggleSuppressDefaultFindDialogExecuted(object target, ExecutedRoutedEventArgs e)
+{
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+    ToggleFindOptionAndRestart(
+        () => _findOptions.SuppressDefaultFindDialog,
+        val => _findOptions.SuppressDefaultFindDialog = val);
+#endif
+
+}
+#if USE_WEBVIEW2_EXPERIMENTAL
+
+private async void ToggleFindOptionAndRestart(Func<bool> optionGetter, Action<bool> optionSetter)
+{
+    if (_iWebView2?.CoreWebView2?.Find == null)
+        return;
+
+    _iWebView2.CoreWebView2.Find.Stop();
+
+
+    if (_findOptions == null)
+    {
+        _findOptions = CreateDefaultFindOptions(); 
+    }
+
+    bool currentVal = optionGetter();
+    optionSetter(!currentVal);
+
+    await _iWebView2.CoreWebView2.Find.StartAsync(_findOptions);
+}
+
+private void SetupFindEventHandlers()
+{
+    if (_findEventHandlersSet) return; // Only attach once
+    var findObject = _iWebView2.CoreWebView2.Find;
+    findObject.MatchCountChanged += FindObject_MatchCountChanged;
+    findObject.ActiveMatchIndexChanged += FindObject_ActiveMatchIndexChanged;
+    _findEventHandlersSet = true;
+}
+
+private void RemoveFindEventHandlers()
+{
+    if (!_findEventHandlersSet) return;
+    var findObject = _iWebView2.CoreWebView2.Find;
+    findObject.MatchCountChanged -= FindObject_MatchCountChanged;
+    findObject.ActiveMatchIndexChanged -= FindObject_ActiveMatchIndexChanged;
+    _findEventHandlersSet = false;
+}
+
+private void FindObject_MatchCountChanged(object sender, object e)
+{
+    var findObject = _iWebView2.CoreWebView2.Find;
+    int matchCount = findObject.MatchCount;
+    Debug.WriteLine($"[FindOnPage] MatchCountChanged -> {matchCount}");
+}
+
+private void FindObject_ActiveMatchIndexChanged(object sender, object e)
+{
+    var findObject = _iWebView2.CoreWebView2.Find;
+    int activeIndex = findObject.ActiveMatchIndex;
+    Debug.WriteLine($"[FindOnPage] ActiveMatchIndexChanged -> {activeIndex}");
+}
+#endif
+
     }
 }
