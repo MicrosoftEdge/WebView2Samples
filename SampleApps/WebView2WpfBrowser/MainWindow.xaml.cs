@@ -1991,7 +1991,10 @@ namespace WebView2WpfBrowser
 
             // <Navigate>
             // Setting _iWebView2.Source will not trigger a navigation if the Source is the same
-            // as the previous Source.  CoreWebView.Navigate() will always trigger a navigation.
+            // as the previous Source.CoreWebView.Navigate() will always trigger a navigation apart
+            // from few cases:
+            // 1. When called again after adding fragment to the url, or
+            // 2. When called again on the same fragmented url.
             _iWebView2.CoreWebView2.Navigate(uri.ToString());
             // </Navigate>
         }
