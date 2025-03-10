@@ -157,6 +157,7 @@ ViewComponent::ViewComponent(
                     -> HRESULT {
                     HRESULT hr = S_OK;
                     HCURSOR cursor;
+
                     if (!m_useCursorId)
                     {
                         CHECK_FAILURE(sender->get_Cursor(&cursor));
@@ -167,18 +168,24 @@ ViewComponent::ViewComponent(
                         UINT32 cursorId;
                         CHECK_FAILURE(m_compositionController->get_SystemCursorId(&cursorId));
                         cursor = ::LoadCursor(nullptr, MAKEINTRESOURCE(cursorId));
-                        if (cursor == nullptr)
+
+                        if (cursorId != NULL && cursor == nullptr)
                         {
                             hr = HRESULT_FROM_WIN32(GetLastError());
                         }
                         //! [SystemCursorId]
                     }
 
-                    if (SUCCEEDED(hr))
+                    if (cursor != nullptr)
                     {
                         SetClassLongPtr(
                             m_appWindow->GetMainWindow(), GCLP_HCURSOR, (LONG_PTR)cursor);
                     }
+                    else if (SUCCEEDED(hr))
+                    {
+                        SetCursor(NULL);
+                    }
+
                     return hr;
                 })
                 .Get(),

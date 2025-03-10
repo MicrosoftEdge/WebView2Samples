@@ -17,6 +17,7 @@ public:
 
 private:
     bool SuppressPolicyForExtension();
+    void ListenToWebMessages();
 
     AppWindow* m_appWindow;
     wil::com_ptr<ICoreWebView2> m_webView2;
@@ -24,5 +25,7 @@ private:
     wil::com_ptr<ICoreWebView2_26> m_webView2_26;
     EventRegistrationToken m_saveFileSecurityCheckStartingToken = {};
     EventRegistrationToken m_DOMcontentLoadedToken = {};
+    EventRegistrationToken m_webMessageReceivedToken = {};
     std::wstring m_sampleUri;
+    std::optional<bool> is_exe_blocked = std::nullopt;
 };

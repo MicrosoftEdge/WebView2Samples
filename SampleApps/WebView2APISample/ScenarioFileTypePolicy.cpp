@@ -22,7 +22,7 @@ ScenarioFileTypePolicy::ScenarioFileTypePolicy(AppWindow* appWindow)
         m_sampleUri = m_appWindow->GetLocalUri(c_samplePath);
         CHECK_FAILURE(m_webView2->Navigate(m_sampleUri.c_str()));
         SuppressPolicyForExtension();
-
+        ListenToWebMessages();
         // Turn off this scenario if we navigate away from the demo page.
         CHECK_FAILURE(m_webView2_2->add_DOMContentLoaded(
             Callback<ICoreWebView2DOMContentLoadedEventHandler>(
@@ -43,7 +43,7 @@ ScenarioFileTypePolicy::ScenarioFileTypePolicy(AppWindow* appWindow)
 //! [SuppressPolicyForExtension]
 // This example will register the event with two custom rules.
 // 1. Suppressing file type policy, security dialog, and allows saving ".eml" files
-// directly; when the URI is trusted. 
+// directly; when the URI is trusted.
 // 2. Showing customized warning UI when saving ".iso" files. It allows to block
 // the saving directly.
 bool ScenarioFileTypePolicy::SuppressPolicyForExtension()
@@ -55,8 +55,7 @@ bool ScenarioFileTypePolicy::SuppressPolicyForExtension()
         Callback<ICoreWebView2SaveFileSecurityCheckStartingEventHandler>(
             [this](
                 ICoreWebView2* sender,
-                ICoreWebView2SaveFileSecurityCheckStartingEventArgs* args)
-                -> HRESULT
+                ICoreWebView2SaveFileSecurityCheckStartingEventArgs* args) -> HRESULT
             {
                 // Get the file extension for file to be saved.
                 // And convert the extension to lower case for a
@@ -92,6 +91,20 @@ bool ScenarioFileTypePolicy::SuppressPolicyForExtension()
                             CHECK_FAILURE(deferral->Complete());
                         });
                 }
+                if (wcscmp(extension_lower.c_str(), L"exe") == 0)
+                {
+                    if (is_exe_blocked.has_value())
+                    {
+                        if (is_exe_blocked)
+                        {
+                            args->put_CancelSave(true);
+                        }
+                        else
+                        {
+                            args->put_SuppressDefaultPolicy(true);
+                        }
+                    }
+                }
                 return S_OK;
             })
             .Get(),
@@ -105,6 +118,51 @@ bool ScenarioFileTypePolicy::SuppressPolicyForExtension()
 }
 //! [SuppressPolicyForExtension]
 
+void ScenarioFileTypePolicy::ListenToWebMessages()
+{
+    CHECK_FAILURE(m_webView2->add_WebMessageReceived(
+        Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args)
+                -> HRESULT
+            {
+                LPWSTR message;
+                args->TryGetWebMessageAsString(&message);
+                ICoreWebView2Settings* settings;
+                sender->get_Settings(&settings);
+                ICoreWebView2Settings8* settings8;
+                settings->QueryInterface(IID_PPV_ARGS(&settings8));
+                if (wcscmp(message, L"enable_smartscreen") == 0)
+                {
+
+                    settings8->put_IsReputationCheckingRequired(true);
+                    MessageBox(
+                        m_appWindow->GetMainWindow(), (L"Enabled Smartscreen"), L"Info", MB_OK);
+                }
+                else if (wcscmp(L"disable_smartscreen", message) == 0)
+                {
+                    settings8->put_IsReputationCheckingRequired(false);
+                    MessageBox(
+                        m_appWindow->GetMainWindow(), (L"Disabled Smartscreen"), L"Info",
+                        MB_OK);
+                }
+                else if (wcscmp(L"block_exe", message) == 0)
+                {
+                    is_exe_blocked = true;
+                }
+                else if (wcscmp(L"allow_exe", message) == 0)
+                {
+                    is_exe_blocked = false;
+                }
+                else if (wcscmp(L"clear_exe_policy", message) == 0)
+                {
+                    is_exe_blocked = std::nullopt;
+                }
+                return S_OK;
+            })
+            .Get(),
+        &m_webMessageReceivedToken));
+}
+
 ScenarioFileTypePolicy::~ScenarioFileTypePolicy()
 {
     if (m_webView2_26)
@@ -112,5 +170,6 @@ ScenarioFileTypePolicy::~ScenarioFileTypePolicy()
         CHECK_FAILURE(m_webView2_26->remove_SaveFileSecurityCheckStarting(
             m_saveFileSecurityCheckStartingToken));
     }
+    CHECK_FAILURE(m_webView2_2->remove_WebResourceResponseReceived(m_webMessageReceivedToken));
     CHECK_FAILURE(m_webView2_2->remove_DOMContentLoaded(m_DOMcontentLoadedToken));
 }
