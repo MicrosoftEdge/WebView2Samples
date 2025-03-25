@@ -17,5 +17,5 @@
 #include <winrt/Windows.Foundation.h>
 #include <wrl.h>
 
-#include "webview2experimental.h"
+#include "WebView2Experimental.h"
 #include "WebView2ExperimentalEnvironmentOptions.h"

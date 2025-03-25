@@ -1,0 +1,203 @@
+<html>
+<body>
+    <button id='runTest'>Run Test</button>
+    <button id='method'>Method with param</button>
+    <button id='methodAsync'>Method with param (async)</button>
+    <button id='methodAsynTaskVoid'>Method with param (async) without result</button>
+    <button id='methodNoParam'>Method no param</button>
+    <button id='methodNoParamAsync'>Method no param (async)</button>
+    <button id='methodNoParamAsyncVoid'>Method no param (async) without result</button>
+    <button id='propertyGet'>Property Get</button>
+    <button id='propertySet'>Property Set</button>
+    <button id='indexerGet'>Get object[index]</button>
+    <button id='indexerSet'>Set object[index]</button>
+    <button id='indexerGetAlias'>Get Items[index]</button>
+    <button id='indexerSetAlias'>Set Items[index]</button>
+    <div id="div_iframe" style="display: none;"></div>
+    <script>
+        //! Create IFrame from the parent html page and load it
+        function createIFrame() {
+            var i = document.createElement("iframe");
+            i.src = "https://appassets.example/hostObject.html";
+            i.scrolling = "auto";
+            i.frameborder = "0";
+            i.height = "50%";
+            i.width = "100%";
+            i.name = "iframe_name";
+            var div = document.getElementById("div_iframe");
+            div.appendChild(i); div.style.display = 'block';
+        };
+
+        window.onload = function () {
+            if (window.top === window) {
+                createIFrame();
+            }
+        };
+
+        function getStack() {
+            try {
+                throw new Error('');
+            } catch (error) {
+                return error.stack;
+            }
+        }
+
+        function valueToString(value) {
+            return '(' + JSON.stringify(value) + ', ' + (typeof value) + ')';
+        }
+
+        async function assert(condition, text, message) {
+            if (!condition) {
+                alert('Assertion failed, ' + text + ': ' + message);
+            } else {
+                console.log('assert passed: ' + text);
+            }
+        }
+
+        function assertEqual(actual, expected, text)
+        {
+            assert(expected === actual, text, ('Equality assertion failed. ' +
+            'Expected ' + valueToString(expected) + ', ' +
+            'Actual ' + valueToString(actual) + ', ' + getStack()));
+        }
+
+        document.getElementById('runTest').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            let expected_result = 'value1';
+            bridge.Prop = expected_result;
+            let result = await bridge.Prop;
+            assertEqual(result, expected_result, 'property on bridge');
+            const value2 = 'value2';
+            result = await bridge.Func(value2);
+            expected_result = 'BridgeAddRemoteObject.Func(' + value2 + ')';
+            assertEqual(result, expected_result, 'method with parameter');
+            result = await bridge.Func2();
+            expected_result = 'BridgeAddRemoteObject.Func2()';
+            assertEqual(result, expected_result, 'method with no parameter');
+            result = await bridge.FuncAsync(500);
+            expected_result = 'BridgeAddRemoteObject.FuncAsync(500)';
+            assertEqual(result, expected_result, 'async method with parameter');
+            result = await bridge.FuncAsyncTaskVoid(500);
+            expected_result = null;
+            assertEqual(result, expected_result, 'async method with parameter without result');
+            result = await bridge.Func2Async();
+            expected_result = 'BridgeAddRemoteObject.Func2Async()';
+            assertEqual(result, expected_result, 'async method with no parameter');
+            result = await bridge.Func2AsyncTaskVoid();
+            expected_result = null;
+            assertEqual(result, expected_result, 'async method with no parameter without result');
+            result = await bridge.FuncAsync(0);
+            expected_result = 'BridgeAddRemoteObject.FuncAsync(0)';
+            assertEqual(result, expected_result, 'async method with no delay');
+
+            const another_object = bridge.AnotherObject;
+            another_object.Prop = value2;
+            result = await another_object.Prop;
+            expected_result = value2;
+            assertEqual(result, expected_result, 'property on another_object');
+
+            chrome.webview.hostObjects.options.shouldSerializeDates = true;
+            const date = new Date();
+            bridge.DateProp = date;
+            const date2 = await bridge.DateProp;
+            assertEqual(date2.getTime(), date.getTime(), 'test date object serialization');
+
+            let index = 123;
+            expected_result = 'aa';
+            bridge[index] = expected_result;
+            result = await bridge[index];
+            assertEqual(result, expected_result, 'bridge[index]');
+            index = 321;
+            expected_result = 'bb';
+            bridge.Items[index] = expected_result;
+            result = await bridge.Items[index];
+            assertEqual(result, expected_result, 'bridge.Items[index]');
+
+            let resolved_bridge = await bridge;
+            result = await bridge.GetObjectType(resolved_bridge);
+            expected_result = 'BridgeAddRemoteObject';
+            assertEqual(result, expected_result, 'type of resolved_bridge');
+            result = await bridge.GetObjectType(bridge);
+            expected_result = 'BridgeAddRemoteObject';
+            assertEqual(result, expected_result, 'type of bridge');
+            result = await bridge.GetObjectType(another_object);
+            expected_result = 'AnotherRemoteObject';
+            assertEqual(result, expected_result, 'type of another_object');
+            result = await bridge.GetObjectTypeAsync(another_object);
+            expected_result = 'AnotherRemoteObject';
+            assertEqual(result, expected_result, 'type of another_object asynchronously');
+
+            alert('Test End');
+        });
+
+        document.getElementById('method').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            const result = await bridge.Func(prompt('Method parameter text', 'Method parameter text'));
+            alert(result);
+        });
+
+        document.getElementById('methodAsync').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            const result = await bridge.FuncAsync(prompt('How many milliseconds should the async operation take?  Enter zero or less to make it return immediately and synchronously.', '2000'));
+            alert(result);
+        });
+
+        document.getElementById('methodAsynTaskVoid').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            const result = await bridge.FuncAsyncTaskVoid(prompt('How many milliseconds should the async operation take?  Enter zero or less to make it return immediately and synchronously.', '2000'));
+            alert(result);
+        });
+
+        document.getElementById('methodNoParam').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            const result = await bridge.Func2();
+            alert(result);
+        });
+
+        document.getElementById('methodNoParamAsync').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            const result = await bridge.Func2Async();
+            alert(result);
+        });
+
+        document.getElementById('methodNoParamAsyncVoid').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            const result = await bridge.Func2AsyncTaskVoid();
+            alert(result);
+        });
+
+        document.getElementById('propertyGet').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            const result = await bridge.Prop;
+            alert(result);
+        });
+
+        document.getElementById('propertySet').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            bridge.Prop = prompt('Property text', 'Property text');
+        });
+
+        document.getElementById('indexerGet').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            const result = await bridge[1];
+            alert(result);
+        });
+
+        document.getElementById('indexerSet').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            bridge[1] = prompt('Property text', 'Property text');
+        });
+
+        document.getElementById('indexerGetAlias').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            const result = await bridge.Items[12];
+            alert(result);
+        });
+
+        document.getElementById('indexerSetAlias').addEventListener('click', async () => {
+            const bridge = chrome.webview.hostObjects.bridge;
+            bridge.Items[12] = prompt('Property text', 'Property text');
+        });
+    </script>
+</body>
+</html>

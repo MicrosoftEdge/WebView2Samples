@@ -1,0 +1,43 @@
+<!--
+Copyright (C) Microsoft Corporation. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<Window x:Class="WebView2WpfBrowser.SaveAsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WebView2WpfBrowser"
+        mc:Ignorable="d"
+        Title="Save As Silent Demo"
+        Height="400"
+        Width="500">
+    <StackPanel Margin="0,0,0,1" Orientation="Vertical">
+        <StackPanel Margin="0,20,0,0" Height="120" Width="450">
+            <Label Content="Fullpath"/>
+            <Grid Height="32">
+                <Label Content="Directory:" HorizontalAlignment="Left" Margin="15,0,0,0" VerticalAlignment="Center" Height="30"/>
+                <TextBox x:Name="Directory" HorizontalAlignment="Left" Margin="155,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" Width="285" Height="25"/>
+            </Grid>
+            <Grid Height="32">
+                <Label Content="Filename:" HorizontalAlignment="Left" Margin="15,0,0,0" VerticalAlignment="Center" Height="30"/>
+                <TextBox x:Name="Filename" HorizontalAlignment="Left" Margin="155,0,0,0" TextWrapping="Wrap" VerticalAlignment="Center" Width="285" Height="25"/>
+            </Grid>
+        </StackPanel>
+        <StackPanel Height="150" Width="450">
+            <Grid Height="32">
+                <CheckBox x:Name="AllowReplaceOldFile" Content="Allow Replace Old File" HorizontalAlignment="Left" Margin="5,0,0,0" VerticalAlignment="Center" Height="30"/>
+            </Grid>
+            <Grid Height="32">
+                <Label Content="Save As Kind:" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Center" Height="30"/>
+                <ComboBox x:Name="SaveAsKind" HorizontalAlignment="Left" Margin="155,0,0,0" VerticalAlignment="Center" Width="285" Height="25"/>
+            </Grid>
+        </StackPanel>
+        <Grid Height="32">
+            <Button Click="OK_Clicked" Content="OK" HorizontalAlignment="Left" Margin="150,0,0,0" VerticalAlignment="Center" Width="65" Height="24"/>
+            <Button Click="CANCEL_Clicked" Content="Cancel" HorizontalAlignment="Left" Margin="275,0,0,0" VerticalAlignment="Center" Width="60" Height="25"/>
+        </Grid>
+    </StackPanel>
+</Window>

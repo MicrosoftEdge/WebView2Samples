@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioAcceleratorKeyPressed</title>
+    <script>
+        function EnableBrowserAccelerators() {
+            window.chrome.webview.postMessage(`EnableBrowserAccelerators`);
+        }
+        function DisableBrowserAccelerators() {
+            window.chrome.webview.postMessage(`DisableBrowserAccelerators`);
+        }
+    </script>
+</head>
+<body>
+
+    <h2>Disable all Browser Accelerator keys but F7 remains enabled</h2>
+
+    <button id="disableBrowserAccleratorsButton" onclick="DisableBrowserAccelerators()">Disable All Browser Accelerators</button>
+
+    <h2>Enable all Browser Accelerator keys but Ctrl + P remains disabled</h2>
+
+    <button id="enableBrowserAcceleratorsButton" onclick="EnableBrowserAccelerators()">Enable All Browser Accelerators</button>
+</body>
+</html>

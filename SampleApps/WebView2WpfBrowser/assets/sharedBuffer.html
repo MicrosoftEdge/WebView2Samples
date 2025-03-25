@@ -68,11 +68,11 @@
         };
 
         window.onload = function () {
-            // <ShareBufferScriptCode_1>
+            // <SharedbufferreceivedEventListener>
             // Script code.
             window.chrome.webview.addEventListener("sharedbufferreceived", e => {
                 SharedBufferReceived(e);});
-            // </ShareBufferScriptCode_1>
+            // </SharedbufferreceivedEventListener>
             var classValue;
             var description;
             if (window.top === window) {

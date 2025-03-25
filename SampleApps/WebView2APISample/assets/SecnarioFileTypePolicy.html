@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioFileTypePolicy</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            async function saveFile() {
+                let ext = document.getElementById("extensionText");
+                // Show the save file picker
+                const newHandle = await window.showSaveFilePicker({suggestedName:`sample_file.${ext.value}`});
+
+                // Write the content to the selected file
+                const writable = await newHandle.createWritable();
+                await writable.write("sample sentence");
+                await writable.close();
+            }
+            document.getElementById('showSaveFilePickerButton').addEventListener('click', saveFile);
+        });
+        function enable_smartscreen() {
+            window.chrome.webview.postMessage("enable_smartscreen");
+        }
+        function disable_smartscreen() {
+            window.chrome.webview.postMessage("disable_smartscreen");
+        }
+        function allow_exe() {
+            window.chrome.webview.postMessage("allow_exe");
+        }
+        function block_exe() {
+            window.chrome.webview.postMessage("block_exe");
+        }
+        function clear_exe_policy() {
+            window.chrome.webview.postMessage("clear_exe_policy");
+        }
+
+    </script>
+</head>
+<body>
+    <h1>File Type Policy API Demo Page</h1>
+    <p>Two customized example rules in this demo:</p>
+    <p>1. Smoothly save *.eml file without file extension warning</p>
+    <p>2. Intentionally block save *.iso file</p>
+    <p>
+        Please enter a file extension: <input type="text" id="extensionText" placeholder="try eml or iso" />
+        <button id="showSaveFilePickerButton">save</button>
+    </p>
+    <br>
+    <hr />
+    <h2>File Type Policy API for download</h2>
+    <button onclick="allow_exe()">Allow exe</button>
+    <button onclick="block_exe()">Block exe</button>
+    <button onclick="clear_exe_policy()">Clear exe policy</button>
+    <br />
+    <button onclick="enable_smartscreen()">Enable Smartscreen</button>
+    <button onclick="disable_smartscreen()">Disable Smartscreen</button>
+    <br />
+    <a href="https://appassets.example/bad.exe" id="download_elem" download>Download Flagged file</a>
+</body>
+</html>

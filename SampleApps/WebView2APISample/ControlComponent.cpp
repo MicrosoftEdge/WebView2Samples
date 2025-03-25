@@ -291,7 +291,7 @@ bool ControlComponent::HandleChildWindowMessage(
     // If not calling IsDialogMessage to handle tab traversal automatically,
     // detect tab traversal and cycle focus through address bar, go button, and
     // elements in WebView.
-    if (message == WM_KEYDOWN)
+    if (message == WM_KEYDOWN || message == WM_SYSKEYDOWN)
     {
         //! [MoveFocus1]
         if (wParam == VK_TAB)
@@ -318,6 +318,12 @@ bool ControlComponent::HandleChildWindowMessage(
         {
             // Handle pressing Enter in address bar
             NavigateToAddressBar();
+            return true;
+        }
+        // Ctrl+A is SelectAll
+        else if ((GetKeyState(VK_CONTROL) < 0) && ((UINT)wParam == 'A'))
+        {
+            m_toolbar->SelectAll();
             return true;
         }
         else
@@ -370,7 +376,7 @@ void ControlComponent::NavigateToAddressBar()
         }
         else
         {
-            // Otherwise treat it as a web search. 
+            // Otherwise treat it as a web search.
             std::wstring urlEscaped(2048, ' ');
             DWORD dwEscaped = (DWORD)urlEscaped.length();
             UrlEscapeW(uri.c_str(), &urlEscaped[0], &dwEscaped, URL_ESCAPE_ASCII_URI_COMPONENT);
@@ -429,7 +435,6 @@ ControlComponent::~ControlComponent()
     m_webView->remove_FrameNavigationCompleted(m_frameNavigationCompletedToken);
     m_controller->remove_MoveFocusRequested(m_moveFocusRequestedToken);
     m_controller->remove_AcceleratorKeyPressed(m_acceleratorKeyPressedToken);
-
     // Undo our modifications to the toolbar elements
     for (auto pair : m_tabbableWindows)
     {

@@ -9,10 +9,13 @@
 
 #include <map>
 #include <set>
+#include <sstream>
 #include <string>
 
 #include "AppWindow.h"
 #include "ComponentBase.h"
+
+const std::wstring GetJSONStringField(PCWSTR jsonMessage, PCWSTR fieldName);
 
 // This component handles commands from the Script menu.
 class ScriptComponent : public ComponentBase
@@ -48,6 +51,8 @@ private:
 
     void AddSiteEmbeddingIFrame();
     void ExecuteScriptWithResult();
+    void AddBrowserExtension();
+    void RemoveOrDisableBrowserExtension(const bool remove);
     ~ScriptComponent() override;
     void HandleIFrames();
     std::wstring IFramesToString();

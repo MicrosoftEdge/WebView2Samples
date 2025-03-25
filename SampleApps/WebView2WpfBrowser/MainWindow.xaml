@@ -16,6 +16,7 @@ found in the LICENSE file.
         Width="800"
     >
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.New" Executed="NewCmdExecuted"/>
@@ -35,6 +36,8 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.OpenDevToolsCommand}" Executed="OpenDevToolsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.OpenTaskManagerCommand}" Executed="OpenTaskManagerCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.InjectScriptWithResultCommand}" Executed="InjectScriptWithResultCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.SetCustomDataPartitionCommand}" Executed="SetCustomDataPartitionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ClearCustomDataPartitionCommand}" Executed="ClearCustomDataPartitionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SetUserAgentCommand}" Executed="SetUserAgentCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GetCookiesCommand}" Executed="GetCookiesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.DOMContentLoadedCommand}" Executed="DOMContentLoadedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -53,10 +56,12 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.AuthenticationCommand}" Executed="AuthenticationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" Executed="ClearBrowsingDataCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.FaviconChangedCommand}" Executed="FaviconChangedCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.LaunchingExternalUriSchemeCommand}" Executed="LaunchingExternalUriSchemeCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CustomServerCertificateSupportCommand}" Executed="CustomServerCertificateSupportCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ClearServerCertificateErrorActionsCommand}" Executed="ClearServerCertificateErrorActionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SetDefaultDownloadPathCommand}" Executed="SetDefaultDownloadPathCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CreateDownloadsButtonCommand}" Executed="CreateDownloadsButtonCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ShowExtensionsWindowCommand}" Executed="ShowExtensionsWindowCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ToggleMuteStateCommand}" Executed="ToggleMuteStateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPdfCommand}" Executed="PrintToPdfCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PinchZoomCommand}" Executed="PinchZoomCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -69,8 +74,10 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.CheckUpdateCommand}" Executed="CheckUpdateCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.AllowExternalDropCommand}" Executed="AllowExternalDropCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PerfInfoCommand}" Executed="PerfInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ProcessExtendedInfoCommand}" Executed="ProcessExtendedInfoCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}" Executed="NewWindowWithOptionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CreateNewThreadCommand}" Executed="CreateNewThreadCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" Executed="TrackingPreventionLevelCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintDialogCommand}" Executed="PrintDialogCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToDefaultPrinterCommand}" Executed="PrintToDefaultPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPrinterCommand}" Executed="PrintToPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -84,9 +91,38 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.GetUserDataFolderCommand}" Executed="GetUserDataFolderCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PostMessageStringCommand}" Executed="PostMessageStringCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PostMessageJSONCommand}" Executed="PostMessageJSONCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+
         <CommandBinding Command="{x:Static local:MainWindow.HostObjectsAllowedCommand}" Executed="HostObjectsAllowedCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.BrowserAcceleratorKeyEnabledCommand}" Executed="BrowserAcceleratorKeyEnabledCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
 
+        <CommandBinding Command="{x:Static local:MainWindow.CloseWebViewCommand}" Executed="CloseWebViewCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NewWebViewCommand}" Executed="NewWebViewCommandExecuted"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NewWebViewCompositionControlCommand}" Executed="NewWebViewCompositionControlCommandExecuted" CanExecute="EpxerimentalCmdsCanExecute"/>
+
+        <CommandBinding Command="{x:Static local:MainWindow.PermissionManagementCommand}" Executed="PermissionManagementExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NonClientRegionSupportCommand}" Executed="NonClientRegionSupportCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NonClientRegionSupportEnabledCommand}" Executed="NonClientRegionSupportEnabledCmdExecuted"
+        CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.NotificationReceivedCommand}" Executed="NotificationReceivedExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ProgrammaticSaveAsCommand}" Executed="ProgrammaticSaveAsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ToggleSilentCommand}" Executed="ToggleSilentExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ThrottlingControlCommand}" Executed="ThrottlingControlExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ChildFrameEventsCommand}" Executed="ChildFrameEventsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.RemoveChildFrameEventsCommand}" Executed="RemoveChildFrameEventsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.FileExplorerCommand}" Executed="FileExplorerExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ToggleScreenCaptureEnableCommand}" Executed="TogglScreenCaptureEnabledCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.FileTypePolicyCommand}" Executed="FileTypePolicyExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.StartCommand}" Executed="StartExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.FindNextCommand}" Executed="FindNextExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.FindPreviousCommand}" Executed="FindPreviousExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.StopFindCommand}" Executed="StopFindExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.FindTermCommand}" Executed="ChangeFindTermExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GetMatchCountCommand}" Executed="GetMatchCountExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GetActiveMatchIndexCommand}" Executed="GetActiveMatchIndexExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ToggleCaseSensitiveCommand}" Executed="ToggleCaseSensitiveExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ToggleShouldHighlightAllMatchesCommand}" Executed="ToggleShouldHighlightAllMatchesExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ToggleShouldMatchWordCommand}" Executed="ToggleShouldMatchWordExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ToggleSuppressDefaultFindDialogCommand}" Executed="ToggleSuppressDefaultFindDialogExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
     </Window.CommandBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -116,6 +152,9 @@ found in the LICENSE file.
                 <!--TODO-->
             </MenuItem>
             <MenuItem Header="_Window">
+                <MenuItem Header="_Close WebView2" Command="{x:Static local:MainWindow.CloseWebViewCommand}"/>
+                <MenuItem Header="_New WebView2" Command="{x:Static local:MainWindow.NewWebViewCommand}"/>
+                <MenuItem Header="_New WebView2CompositionControl" Command="{x:Static local:MainWindow.NewWebViewCompositionControlCommand}"/>
                 <MenuItem Header="_New Window" Command="ApplicationCommands.New"/>
                 <MenuItem Header="_New Window With Options" Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}"/>
                 <MenuItem Header="_Create New Thread" Command="{x:Static local:MainWindow.CreateNewThreadCommand}"/>
@@ -125,6 +164,7 @@ found in the LICENSE file.
                 <MenuItem Header="Crash Browser Process" Command="{x:Static local:MainWindow.CrashBrowserProcessCommand}"/>
                 <MenuItem Header="Crash Render Process" Command="{x:Static local:MainWindow.CrashRenderProcessCommand}"/>
                 <MenuItem Header="Show _Performance Info" Command="{x:Static local:MainWindow.PerfInfoCommand}"/>
+                <MenuItem Header="Show _Process Extended Info" Command="{x:Static local:MainWindow.ProcessExtendedInfoCommand}"/>
                 <!---TODO-->
             </MenuItem>
             <MenuItem Header="S_ettings">
@@ -132,6 +172,7 @@ found in the LICENSE file.
                     <MenuItem Header="_Toggle Custom Server Certificate Support" Command="{x:Static local:MainWindow.CustomServerCertificateSupportCommand}"/>
                     <MenuItem Header="_Clear Server Certificate Error Actions" Command="{x:Static local:MainWindow.ClearServerCertificateErrorActionsCommand}"/>
                 </MenuItem>
+                <MenuItem Header="Set Custom Data Partition" Command="{x:Static local:MainWindow.SetCustomDataPartitionCommand}"/>
                 <MenuItem Header="Set _UserAgent" Command="{x:Static local:MainWindow.SetUserAgentCommand}"/>
                 <MenuItem Header="Toggle Allow External Drop" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.AllowExternalDropCommand}"/>
                 <MenuItem Header="Toggle Autofill" Name ="generalAutofillEnabled" IsCheckable="True" IsChecked="True" Command="{x:Static local:MainWindow.GeneralAutofillCommand}"/>
@@ -140,11 +181,19 @@ found in the LICENSE file.
                 <MenuItem Header="Toggle Password Autosave" Name="passwordAutosaveEnabled" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.PasswordAutosaveCommand}"/>
                 <MenuItem Header="Toggle Pinch Zoom Enabled" Command="{x:Static local:MainWindow.PinchZoomCommand}"/>
                 <MenuItem Header="Toggle PDF toolbar save button" Command="{x:Static local:MainWindow.PdfToolbarSaveCommand}"/>
+                <MenuItem Header="Toggle Launching External URI Scheme support enabled" Name="LaunchingExternalUriSchemeEnabled" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.LaunchingExternalUriSchemeCommand}"/>
                 <MenuItem Header="Toggle profile SmartScreen enabled" Command="{x:Static local:MainWindow.SmartScreenEnabledCommand}"/>
                 <MenuItem Header="Toggle Swipe Navigation Enabled" Command="{x:Static local:MainWindow.SwipeNavigationCommand}"/>
+                <MenuItem Header="_Tracking Prevention Level">
+                    <MenuItem Header="_None" Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" CommandParameter="None"/>
+                    <MenuItem Header="_Basic" Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" CommandParameter="Basic"/>
+                    <MenuItem Header="_Balanced" Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" CommandParameter="Balanced"/>
+                    <MenuItem Header="_Strict" Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" CommandParameter="Strict"/>
+                </MenuItem>
+                <MenuItem Header="Toggle Non-Client Region Support" Command="{x:Static local:MainWindow.NonClientRegionSupportCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="Toggle _Visibility" Name="webViewVisible" IsCheckable="True" IsChecked="True"/>
+                <MenuItem Header="Toggle _Visibility" Name="webViewVisible" IsCheckable="True" IsChecked="True" Checked="OnWebViewVisibleChecked" Unchecked="OnWebViewVisibleUnchecked"/>
                 <MenuItem Header="Suspend" Command="{x:Static local:MainWindow.SuspendCommand}"/>
                 <MenuItem Header="Resume" Command="{x:Static local:MainWindow.ResumeCommand}"/>
                 <MenuItem Header="_Increase Zoom" Command="NavigationCommands.IncreaseZoom"/>
@@ -156,6 +205,7 @@ found in the LICENSE file.
                     <MenuItem Header="Transparent" Command="{x:Static local:MainWindow.BackgroundColorCommand}" CommandParameter="Transparent"/>
                 </MenuItem>
                 <MenuItem Header="_Create Downloads Button" Command="{x:Static local:MainWindow.CreateDownloadsButtonCommand}"/>
+                <MenuItem Header="Show Extensions Manager" Command="{x:Static local:MainWindow.ShowExtensionsWindowCommand}" />
             </MenuItem>
             <MenuItem Header="S_cenario">
                 <MenuItem Header="Au_thentication" Command="{x:Static local:MainWindow.AuthenticationCommand}"/>
@@ -169,6 +219,7 @@ found in the LICENSE file.
                     <MenuItem Header="Cookies" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Cookies"/>
                     <MenuItem Header="Disk Cache" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Disk Cache"/>
                     <MenuItem Header="Download History" Command="{x:Static local:MainWindow.ClearBrowsingDataCommand}" CommandParameter="Download History"/>
+                    <MenuItem Header="Custom Data Partition" Command="{x:Static local:MainWindow.ClearCustomDataPartitionCommand}"/>
                 </MenuItem>
                 <MenuItem Header="_Client Certificate Requested">
                     <MenuItem Header="_Custom Client Certificate Selection" Command="{x:Static local:MainWindow.CustomClientCertificateSelectionCommand}"/>
@@ -200,6 +251,30 @@ found in the LICENSE file.
                 <MenuItem Header="_Navigate With Web Resource Request" Command="{x:Static local:MainWindow.NavigateWithWebResourceRequestCommand}"/>
                 <MenuItem Header="_Web Messages" Command="{x:Static local:MainWindow.WebMessagesCommand}"/>
                 <MenuItem Header="_Shared Buffer" Command="{x:Static local:MainWindow.SharedBufferRequestedCommand}"/>
+                <MenuItem Header="Permission Management" Command="{x:Static local:MainWindow.PermissionManagementCommand}"/>
+                <MenuItem Header="_Non-Client Region Support" Command="{x:Static local:MainWindow.NonClientRegionSupportEnabledCommand}"/>
+                <MenuItem Header="Notification Received" Command="{x:Static local:MainWindow.NotificationReceivedCommand}"/>
+                <MenuItem Header="Save As">
+                    <MenuItem Header="Toggle Silent" Command="{x:Static local:MainWindow.ToggleSilentCommand}"/>
+                    <MenuItem Header="Programmatic Save As" Command="{x:Static local:MainWindow.ProgrammaticSaveAsCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Throttling Control" Command="{x:Static local:MainWindow.ThrottlingControlCommand}"/>
+                <MenuItem Header="File-system explorer" Command="{x:Static local:MainWindow.FileExplorerCommand}"/>
+                <MenuItem Header="Toggle Screen Capture" Command="{x:Static local:MainWindow.ToggleScreenCaptureEnableCommand}"/>
+                <MenuItem Header="File Type Policy" Command="{x:Static local:MainWindow.FileTypePolicyCommand}"/>
+                <MenuItem Header="Find on Page">
+                    <MenuItem Header="Start Find" Command="{x:Static local:MainWindow.StartCommand}"/>
+                    <MenuItem Header="Find Next" Command="{x:Static local:MainWindow.FindNextCommand}"/>
+                    <MenuItem Header="Find Previous" Command="{x:Static local:MainWindow.FindPreviousCommand}"/>
+                    <MenuItem Header="Stop Find" Command="{x:Static local:MainWindow.StopFindCommand}"/>
+                    <MenuItem Header="Find Term" Command="{x:Static local:MainWindow.FindTermCommand}"/>
+                    <MenuItem Header="Show Match Count" Command="{x:Static local:MainWindow.GetMatchCountCommand}"/>
+                    <MenuItem Header="Show Active Match Index" Command="{x:Static local:MainWindow.GetActiveMatchIndexCommand}"/>
+                    <MenuItem Header="Toggle Case Sensitive" Command="{x:Static local:MainWindow.ToggleCaseSensitiveCommand}"/>
+                    <MenuItem Header="Toggle Highlight All" Command="{x:Static local:MainWindow.ToggleShouldHighlightAllMatchesCommand}"/>
+                    <MenuItem Header="Toggle Match Word" Command="{x:Static local:MainWindow.ToggleShouldMatchWordCommand}"/>
+                    <MenuItem Header="Toggle Default Find Dialog" Command="{x:Static local:MainWindow.ToggleSuppressDefaultFindDialogCommand}"/>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Audio">
                 <MenuItem Header="Toggle Mute State" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.ToggleMuteStateCommand}"/>
@@ -215,7 +290,7 @@ found in the LICENSE file.
             <Button DockPanel.Dock="Left" Command="NavigationCommands.BrowseStop">Cancel</Button>
             <Button DockPanel.Dock="Right" Command="NavigationCommands.GoToPage" CommandParameter="{Binding ElementName=url,Path=Text}">Go</Button>
             <!-- We want the address bar to update based on the WebView's Source, but we don't want the WebView to navigate just from the user typing into the address bar.   Therefore we use the OneWay binding mode. -->
-            <TextBox x:Name="url" Text="{Binding ElementName=webView,Path=Source,Mode=OneWay}">
+            <TextBox x:Name="url" Text="{Binding ElementName=webView2XamlElement,Path=Source,Mode=OneWay}">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Return" Command="NavigationCommands.GoToPage" CommandParameter="{Binding ElementName=url,Path=Text}" />
                 </TextBox.InputBindings>
@@ -226,14 +301,18 @@ found in the LICENSE file.
                 <ImageBrush ImageSource="/assets/AppStartPageBackground.png" />
             </Grid.Background>
 
-            <!-- If you want to use a specific version of WebView2 Runtime change EvergreenWebView2CreationProperties
-            to BYOWebView2CreationProperties and follow the steps in MainWindow.xaml
-            -->
-            <wv2:WebView2
-                x:Name="webView"
-                CreationProperties="{StaticResource EvergreenWebView2CreationProperties}"
-                Source="https://www.bing.com/"
-            />
+            <wv2:WebView2 x:Name="webView2XamlElement">
+                <wv2:WebView2.CreationProperties>
+                    <!--
+                    By default, this CreationProperties uses the Evergreen WebView2 Runtime that's installed on the machine.
+                    If you want to use a specific version of WebView2 Runtime, change BrowserExecutableFolder to point to the folder
+                    with the runtime. https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution#the-fixed-version-runtime-distribution-mode
+                    -->
+                    <wv2:CoreWebView2CreationProperties
+                        BrowserExecutableFolder=""
+                        AdditionalBrowserArguments="" />
+                </wv2:WebView2.CreationProperties>
+            </wv2:WebView2>
             <!-- The control event handlers are set in code behind so they can be reused when replacing the control after
             a WebView2 Runtime's browser process failure
             -->

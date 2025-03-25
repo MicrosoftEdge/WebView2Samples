@@ -32,6 +32,7 @@ public:
     void CrashBrowserProcess();
     void CrashRenderProcess();
     void PerformanceInfo();
+    void ShowProcessExtendedInfo();
 
     ~ProcessComponent() override;
 
@@ -50,7 +51,13 @@ private:
 
     UINT m_browserProcessId = 0;
     wil::com_ptr<ICoreWebView2ProcessInfoCollection> m_processCollection;
-
     EventRegistrationToken m_processFailedToken = {};
     EventRegistrationToken m_processInfosChangedToken = {};
+    void AppendFrameInfo(
+        wil::com_ptr<ICoreWebView2FrameInfo> frameInfo, std::wstringstream& result);
+    wil::com_ptr<ICoreWebView2FrameInfo> GetAncestorMainFrameDirectChildFrameInfo(
+        wil::com_ptr<ICoreWebView2FrameInfo> frameInfo);
+    wil::com_ptr<ICoreWebView2FrameInfo> GetAncestorMainFrameInfo(
+        wil::com_ptr<ICoreWebView2FrameInfo> frameInfo);
+    std::wstring FrameKindToString(const COREWEBVIEW2_FRAME_KIND kind);
 };

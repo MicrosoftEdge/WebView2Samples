@@ -1,0 +1,1 @@
+Simple text file under assets\sw_scope

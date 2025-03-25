@@ -1,0 +1,103 @@
+﻿<!--Copyright (C) Microsoft Corporation. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.-->
+
+<local:BasePage
+    x:Class="WebView2_UWP.Pages.PopupsAndDialogs"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:WebView2_UWP.Pages"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer>
+            <StackPanel Grid.Column="0" Margin="23" Spacing="17">
+                <RichTextBlock IsTextSelectionEnabled="True" TextWrapping="Wrap">
+                    <Paragraph>
+                        This example demonstrates some of the built-in popups and dialogs in WebView.
+                    </Paragraph>
+                </RichTextBlock>
+
+                <TextBlock TextWrapping="WrapWholeWords">
+                    <Bold>Find Bar</Bold>
+                    <LineBreak />
+                    To show the find bar, click on the webview to give it focus and then type
+                    <Bold>Ctrl+F</Bold>.
+                </TextBlock>
+
+                <TextBlock TextWrapping="WrapWholeWords">
+                    <Bold>Downloads Dialog</Bold>
+                    <LineBreak />
+                    To show the default download dialog, click on the button below.
+                </TextBlock>
+
+                <Button x:Name="ShowDownloadsDialogButton" Content="Show Downloads Dialog" Click="ShowDownloadsDialogButton_Click"/>
+
+                <TextBlock TextWrapping="WrapWholeWords">
+                    <Bold>Status Bar</Bold>
+                    <LineBreak />
+                    To show the status bar, either hover over the "Status Bar Link" in the webview
+                    with a mouse or click on the button below.
+                    The default location of the status bar is at the bottom left of the webview.
+                </TextBlock>
+
+                <Button x:Name="ShowStatusBarButton" Content="Show Status Bar" Click="ShowStatusBarButton_Click"/>
+
+                <TextBlock TextWrapping="WrapWholeWords">
+                    <Bold>Context Menu</Bold>
+                    <LineBreak />
+                    To show the default context menu, either right click in the webview or click on the button below.
+                </TextBlock>
+
+                <Button x:Name="ShowContextMenuButton" Content="Show Context Menu" Click="ShowContextMenuButton_Click"/>
+
+                <TextBlock TextWrapping="WrapWholeWords">
+                    <Bold>Show File Dialog</Bold>
+                    <LineBreak />
+                    To show the upload file dialog click the button below.
+                </TextBlock>
+
+                <Button x:Name="ShowUploadFileDialogButton" Content="Show Upload File Dialog" Click="ShowUploadFileDialogButton_Click"/>
+
+                <TextBlock TextWrapping="WrapWholeWords">
+                    <Bold>Show Alert Dialog</Bold>
+                    <LineBreak />
+                    To show the alert dialog click the button below.
+                </TextBlock>
+
+                <Button x:Name="ShowAlertDialogButton" Content="Show Alert Dialog" Click="ShowAlertDialogButton_Click"/>
+
+                <TextBlock TextWrapping="WrapWholeWords">
+                    <Bold>Show Confirm Dialog</Bold>
+                    <LineBreak />
+                    To show the confirm dialog click the button below.
+                </TextBlock>
+
+                <Button x:Name="ShowConfirmDialogButton" Content="Show Confirm Dialog" Click="ShowConfirmDialogButton_Click"/>
+
+                <TextBlock TextWrapping="WrapWholeWords">
+                    <Bold>Show Prompt Dialog</Bold>
+                    <LineBreak />
+                    To show the prompt dialog click the button below.
+                </TextBlock>
+
+                <Button x:Name="ShowPromptDialogButton" Content="Show Prompt Dialog" Click="ShowPromptDialogButton_Click"/>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <controls:WebView2 Grid.Column="1" x:Name="WebView2" />
+    </Grid>
+</local:BasePage>

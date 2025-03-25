@@ -13,7 +13,7 @@
 class ScenarioCookieManagement : public ComponentBase
 {
 public:
-    ScenarioCookieManagement(AppWindow* appWindow);
+    ScenarioCookieManagement(AppWindow* appWindow, bool isFromProfile = false);
     ~ScenarioCookieManagement() override;
 
 private:

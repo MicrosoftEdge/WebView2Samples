@@ -25,9 +25,9 @@ private:
 
     AppWindow* m_appWindow;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2Experimental18> m_webView18;
-    wil::com_ptr<ICoreWebView2ExperimentalFrame4> m_webviewFrame4;
-    wil::com_ptr<ICoreWebView2ExperimentalSharedBuffer> m_sharedBuffer;
+    wil::com_ptr<ICoreWebView2_17> m_webView17;
+    wil::com_ptr<ICoreWebView2Frame4> m_webviewFrame4;
+    wil::com_ptr<ICoreWebView2SharedBuffer> m_sharedBuffer;
     std::wstring m_sampleUri;
     EventRegistrationToken m_webMessageReceivedToken = {};
     EventRegistrationToken m_contentLoadingToken = {};

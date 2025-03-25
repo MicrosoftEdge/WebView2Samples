@@ -114,6 +114,30 @@
     <ClCompile Include="CustomStatusBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PermissionDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioCustomScheme.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioCustomSchemeNavigate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioDragDrop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioExtensionsManagement.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioPermissionManagement.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioSharedBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioSharedWorkerWRR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -221,6 +245,30 @@
     <ClInclude Include="CustomStatusBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="PermissionDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioCustomScheme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioCustomSchemeNavigate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioDragDrop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioExtensionsManagement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioPermissionManagement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioSharedBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioSharedWorkerWRR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc">
@@ -251,6 +299,11 @@
     <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermission.html" />
     <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermissionIFrame.html" />
     <CopyFileToFolders Include="assets/ScenarioIFrameDevicePermissionIFrameNested.html" />
+    <CopyFileToFolders Include="assets/DemoWorker.js" />
+    <CopyFileToFolders Include="assets/ScenarioCustomScheme.html" />
+    <CopyFileToFolders Include="assets/ScenarioCustomScheme.json" />
+    <CopyFileToFolders Include="assets/ScenarioDragDrop.html" />
+    <CopyFileToFolders Include="assets/ScenarioSharedBuffer.html" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">

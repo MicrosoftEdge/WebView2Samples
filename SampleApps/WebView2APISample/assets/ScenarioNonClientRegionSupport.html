@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScenarioNonClientRegionSupport</title>
+    <style>
+        body {
+            background-color: white;
+        }
+
+        .draggable {
+            padding: 10px;
+            border: 1px solid black;
+            background-color: lightgrey;
+            app-region: drag;
+            margin-top: 10px;
+            margin-bottom: 10px
+        }
+
+        .draggable p {
+            width: 150px;
+            height: auto;
+            margin: 0 auto;
+            position: relative;
+            text-align: center;
+            app-region: no-drag;
+        }
+
+        #textarea {
+            app-region: drag;
+        }
+
+        #textarea:hover {
+            border: 1px solid red;
+        }
+
+        #button {
+            app-region: drag;
+        }
+
+        #button:hover {
+            border: 1px solid red;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="center">Non-Client Region Support</h1>
+    <div class="draggable" id="drag-region">
+        <p>Draggable Region</p>
+    </div>
+    <p>
+        Note: This site will always have non-client region support enabled.
+        Upon navigating away from this site, non-client region support will be disabled.
+    </p>
+
+    <h2>Interactive Elements</h2>
+    <p>
+        This shows how app-region drag can work with interactive elements
+    </p>
+    <textarea id="textarea" placeholder="type here" rows="4" cols="13"></textarea>
+    <button id="button">Click or Drag me</button>
+    <p>Click counter: <span id="counter">0</span></p>
+
+    <script>
+        const textarea = document.getElementById("textarea");
+        const dragarea = document.getElementById("drag-region");
+        const button = document.getElementById("button");
+        const dragareaInitialWidth = dragarea.clientWidth;
+        const counter = document.getElementById("counter");
+
+
+        textarea.addEventListener("focus", (e) => {
+            textarea.style['app-region'] = "no-drag";
+            dragarea.style.width = `${dragareaInitialWidth - 1}px`;
+        });
+
+        textarea.addEventListener("blur", (e) => {
+            textarea.style['app-region'] = "drag";
+            dragarea.style.width = `${dragareaInitialWidth + 1}px`;
+        })
+
+        button.addEventListener("click", () => {
+            counter.innerText = parseInt(counter.innerText) + 1;
+        })
+    </script>
+</body>
+</html>

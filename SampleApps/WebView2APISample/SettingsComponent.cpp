@@ -7,14 +7,15 @@
 #include "SettingsComponent.h"
 
 #include "CheckFailure.h"
+#include "ScenarioPermissionManagement.h"
 #include "TextInputDialog.h"
 #include <gdiplus.h>
+#include <shellapi.h>
 #include <shlwapi.h>
+#include <windows.h>
+#include <sstream>
 
 using namespace Microsoft::WRL;
-
-// Some utility functions
-static wil::unique_bstr GetDomainOfUri(PWSTR uri);
 
 SettingsComponent::SettingsComponent(
     AppWindow* appWindow, ICoreWebView2Environment* environment, SettingsComponent* old)
@@ -29,6 +30,7 @@ SettingsComponent::SettingsComponent(
     m_settings5 = m_settings.try_query<ICoreWebView2Settings5>();
     m_settings6 = m_settings.try_query<ICoreWebView2Settings6>();
     m_settings7 = m_settings.try_query<ICoreWebView2Settings7>();
+    m_settings8 = m_settings.try_query<ICoreWebView2Settings8>();
     m_controller = m_appWindow->GetWebViewController();
     m_controller3 = m_controller.try_query<ICoreWebView2Controller3>();
     m_webView2_5 = m_webView.try_query<ICoreWebView2_5>();
@@ -37,7 +39,9 @@ SettingsComponent::SettingsComponent(
     m_webView2_13 = m_webView.try_query<ICoreWebView2_13>();
     m_webView2_14 = m_webView.try_query<ICoreWebView2_14>();
     m_webView2_15 = m_webView.try_query<ICoreWebView2_15>();
-    m_webViewExperimental5 = m_webView.try_query<ICoreWebView2Experimental5>();
+    m_webView2_18 = m_webView.try_query<ICoreWebView2_18>();
+    m_webView2_22 = m_webView.try_query<ICoreWebView2_22>();
+
     // Copy old settings if desired
     if (old)
     {
@@ -96,6 +100,11 @@ SettingsComponent::SettingsComponent(
             CHECK_FAILURE(old->m_settings7->get_HiddenPdfToolbarItems(&hiddenPdfToolbarItems));
             CHECK_FAILURE(m_settings7->put_HiddenPdfToolbarItems(hiddenPdfToolbarItems));
         }
+        if (old->m_settings8 && m_settings8)
+        {
+            CHECK_FAILURE(old->m_settings8->get_IsReputationCheckingRequired(&setting));
+            CHECK_FAILURE(m_settings8->put_IsReputationCheckingRequired(setting));
+        }
         SetBlockImages(old->m_blockImages);
         SetReplaceImages(old->m_replaceImages);
         m_isScriptEnabled = old->m_isScriptEnabled;
@@ -114,7 +123,8 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_NavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
-                -> HRESULT {
+                -> HRESULT
+            {
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
 
@@ -159,6 +169,15 @@ SettingsComponent::SettingsComponent(
                     }
                 }
                 //! [UserAgent]
+                // [NavigationKind]
+                wil::com_ptr<ICoreWebView2NavigationStartingEventArgs3> args3;
+                if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args3))))
+                {
+                    COREWEBVIEW2_NAVIGATION_KIND kind =
+                        COREWEBVIEW2_NAVIGATION_KIND_NEW_DOCUMENT;
+                    CHECK_FAILURE(args3->get_NavigationKind(&kind));
+                }
+                // ! [NavigationKind]
                 return S_OK;
             })
             .Get(),
@@ -171,7 +190,8 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_FrameNavigationStarting(
         Callback<ICoreWebView2NavigationStartingEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args)
-                -> HRESULT {
+                -> HRESULT
+            {
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(args->get_Uri(&uri));
 
@@ -188,7 +208,7 @@ SettingsComponent::SettingsComponent(
     //! [FaviconChanged]
     // Register a handler for the FaviconUriChanged event.
     // This will provided the current favicon of the page, as well
-    // as any changes that occour during the page lifetime
+    // as any changes that occur during the page lifetime
     if (m_webView2_15)
     {
         Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -252,35 +272,38 @@ SettingsComponent::SettingsComponent(
     CHECK_FAILURE(m_webView->add_ScriptDialogOpening(
         Callback<ICoreWebView2ScriptDialogOpeningEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2ScriptDialogOpeningEventArgs* args)
-                -> HRESULT {
+                -> HRESULT
+            {
                 AppWindow* appWindow = m_appWindow;
                 wil::com_ptr<ICoreWebView2ScriptDialogOpeningEventArgs> eventArgs = args;
                 wil::com_ptr<ICoreWebView2Deferral> deferral;
                 CHECK_FAILURE(args->GetDeferral(&deferral));
-                appWindow->RunAsync([appWindow, eventArgs, deferral] {
-                    wil::unique_cotaskmem_string uri;
-                    COREWEBVIEW2_SCRIPT_DIALOG_KIND type;
-                    wil::unique_cotaskmem_string message;
-                    wil::unique_cotaskmem_string defaultText;
-
-                    CHECK_FAILURE(eventArgs->get_Uri(&uri));
-                    CHECK_FAILURE(eventArgs->get_Kind(&type));
-                    CHECK_FAILURE(eventArgs->get_Message(&message));
-                    CHECK_FAILURE(eventArgs->get_DefaultText(&defaultText));
-
-                    std::wstring promptString =
-                        std::wstring(L"The page at '") + uri.get() + L"' says:";
-                    TextInputDialog dialog(
-                        appWindow->GetMainWindow(), L"Script Dialog", promptString.c_str(),
-                        message.get(), defaultText.get(),
-                        /* readonly */ type != COREWEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT);
-                    if (dialog.confirmed)
+                appWindow->RunAsync(
+                    [appWindow, eventArgs, deferral]
                     {
-                        CHECK_FAILURE(eventArgs->put_ResultText(dialog.input.c_str()));
-                        CHECK_FAILURE(eventArgs->Accept());
-                    }
-                    deferral->Complete();
-                });
+                        wil::unique_cotaskmem_string uri;
+                        COREWEBVIEW2_SCRIPT_DIALOG_KIND type;
+                        wil::unique_cotaskmem_string message;
+                        wil::unique_cotaskmem_string defaultText;
+
+                        CHECK_FAILURE(eventArgs->get_Uri(&uri));
+                        CHECK_FAILURE(eventArgs->get_Kind(&type));
+                        CHECK_FAILURE(eventArgs->get_Message(&message));
+                        CHECK_FAILURE(eventArgs->get_DefaultText(&defaultText));
+
+                        std::wstring promptString =
+                            std::wstring(L"The page at '") + uri.get() + L"' says:";
+                        TextInputDialog dialog(
+                            appWindow->GetMainWindow(), L"Script Dialog", promptString.c_str(),
+                            message.get(), defaultText.get(),
+                            /* readonly */ type != COREWEBVIEW2_SCRIPT_DIALOG_KIND_PROMPT);
+                        if (dialog.confirmed)
+                        {
+                            CHECK_FAILURE(eventArgs->put_ResultText(dialog.input.c_str()));
+                            CHECK_FAILURE(eventArgs->Accept());
+                        }
+                        deferral->Complete();
+                    });
                 return S_OK;
             })
             .Get(),
@@ -305,7 +328,8 @@ SettingsComponent::SettingsComponent(
         // Registering a listener for status bar message changes
         CHECK_FAILURE(m_webView2_12->add_StatusBarTextChanged(
             Microsoft::WRL::Callback<ICoreWebView2StatusBarTextChangedEventHandler>(
-                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT
+                {
                     if (m_customStatusBar)
                     {
                         wil::unique_cotaskmem_string value;
@@ -342,59 +366,68 @@ HRESULT SettingsComponent::OnPermissionRequested(
     wil::com_ptr<ICoreWebView2Deferral> deferral;
     CHECK_FAILURE(args->GetDeferral(&deferral));
 
+    // Do not save state to the profile so that the PermissionRequested event is
+    // always raised and the app is in control of all permission requests. In
+    // this example, the app listens to all requests and caches permission on
+    // its own to decide whether to show custom UI to the user.
+    wil::com_ptr<ICoreWebView2PermissionRequestedEventArgs3> extended_args;
+    CHECK_FAILURE(args->QueryInterface(IID_PPV_ARGS(&extended_args)));
+    CHECK_FAILURE(extended_args->put_SavesInProfile(FALSE));
+
     // Do the rest asynchronously, to avoid calling MessageBox in an event handler.
-    m_appWindow->RunAsync([this, deferral, args] {
-        COREWEBVIEW2_PERMISSION_KIND kind = COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
-        BOOL userInitiated = FALSE;
-        wil::unique_cotaskmem_string uri;
-        CHECK_FAILURE(args->get_PermissionKind(&kind));
-        CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
-        CHECK_FAILURE(args->get_Uri(&uri));
-
-        COREWEBVIEW2_PERMISSION_STATE state;
-
-        auto cached_key = std::make_tuple(std::wstring(uri.get()), kind, userInitiated);
-        auto cached_permission = m_cached_permissions.find(cached_key);
-        if (cached_permission != m_cached_permissions.end())
+    m_appWindow->RunAsync(
+        [this, deferral, args = wil::com_ptr<ICoreWebView2PermissionRequestedEventArgs>(args)]
         {
-            state =
-                (cached_permission->second ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
-                                           : COREWEBVIEW2_PERMISSION_STATE_DENY);
-        }
-        else
-        {
-            std::wstring message = L"An iframe has requested device permission for ";
-            message += SettingsComponent::NameOfPermissionKind(kind);
-            message += L" to the website at ";
-            message += uri.get();
-            message += L"?\n\n";
-            message += L"Do you want to grant permission?\n";
-            message +=
-                (userInitiated ? L"This request came from a user gesture."
-                               : L"This request did not come from a user gesture.");
+            wil::unique_cotaskmem_string uri;
+            COREWEBVIEW2_PERMISSION_KIND kind = COREWEBVIEW2_PERMISSION_KIND_UNKNOWN_PERMISSION;
+            BOOL userInitiated = FALSE;
+            CHECK_FAILURE(args->get_Uri(&uri));
+            CHECK_FAILURE(args->get_PermissionKind(&kind));
+            CHECK_FAILURE(args->get_IsUserInitiated(&userInitiated));
 
-            int response = MessageBox(
-                nullptr, message.c_str(), L"Permission Request",
-                MB_YESNOCANCEL | MB_ICONWARNING);
-            switch (response)
+            COREWEBVIEW2_PERMISSION_STATE state = COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
+
+            auto cached_key = std::make_tuple(std::wstring(uri.get()), kind, userInitiated);
+            auto cached_permission = m_cached_permissions.find(cached_key);
+            if (cached_permission != m_cached_permissions.end())
             {
-            case IDYES:
-                m_cached_permissions[cached_key] = true;
-                state = COREWEBVIEW2_PERMISSION_STATE_ALLOW;
-                break;
-            case IDNO:
-                m_cached_permissions[cached_key] = false;
-                state = COREWEBVIEW2_PERMISSION_STATE_DENY;
-                break;
-            default:
-                state = COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
-                break;
+                state =
+                    (cached_permission->second ? COREWEBVIEW2_PERMISSION_STATE_ALLOW
+                                               : COREWEBVIEW2_PERMISSION_STATE_DENY);
             }
-        }
+            else
+            {
+                std::wstring message = L"An iframe has requested device permission for ";
+                message += PermissionKindToString(kind);
+                message += L" to the website at ";
+                message += uri.get();
+                message += L"?\n\n";
+                message += L"Do you want to grant permission?\n";
+                message +=
+                    (userInitiated ? L"This request came from a user gesture."
+                                   : L"This request did not come from a user gesture.");
 
-        CHECK_FAILURE(args->put_State(state));
-        CHECK_FAILURE(deferral->Complete());
-    });
+                int response = MessageBox(
+                    nullptr, message.c_str(), L"Permission Request",
+                    MB_YESNOCANCEL | MB_ICONWARNING);
+                switch (response)
+                {
+                case IDYES:
+                    m_cached_permissions[cached_key] = true;
+                    state = COREWEBVIEW2_PERMISSION_STATE_ALLOW;
+                    break;
+                case IDNO:
+                    m_cached_permissions[cached_key] = false;
+                    state = COREWEBVIEW2_PERMISSION_STATE_DENY;
+                    break;
+                default:
+                    state = COREWEBVIEW2_PERMISSION_STATE_DEFAULT;
+                    break;
+                }
+            }
+            CHECK_FAILURE(args->put_State(state));
+            CHECK_FAILURE(deferral->Complete());
+        });
     return S_OK;
 }
 //! [PermissionRequested1]
@@ -409,6 +442,11 @@ bool SettingsComponent::HandleWindowMessage(
         case ID_BLOCKEDSITES:
         {
             ChangeBlockedSites();
+            return true;
+        }
+        case ID_CUSTOM_DATA_PARTITION:
+        {
+            SetCustomDataPartitionId();
             return true;
         }
         case ID_SETTINGS_SETUSERAGENT:
@@ -550,7 +588,8 @@ bool SettingsComponent::HandleWindowMessage(
                     Callback<ICoreWebView2ContextMenuRequestedEventHandler>(
                         [this](
                             ICoreWebView2* sender,
-                            ICoreWebView2ContextMenuRequestedEventArgs* eventArgs) {
+                            ICoreWebView2ContextMenuRequestedEventArgs* eventArgs)
+                        {
                             wil::com_ptr<ICoreWebView2ContextMenuRequestedEventArgs> args =
                                 eventArgs;
                             wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items;
@@ -568,7 +607,8 @@ bool SettingsComponent::HandleWindowMessage(
                             if (targetKind ==
                                 COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND_SELECTED_TEXT)
                             {
-                                auto showMenu = [this, args, itemsCount, items, target] {
+                                auto showMenu = [this, args, itemsCount, items, target]
+                                {
                                     CHECK_FAILURE(args->put_Handled(true));
                                     HMENU hPopupMenu = CreatePopupMenu();
                                     AddMenuItems(hPopupMenu, items);
@@ -598,10 +638,12 @@ bool SettingsComponent::HandleWindowMessage(
                                 };
                                 wil::com_ptr<ICoreWebView2Deferral> deferral;
                                 CHECK_FAILURE(args->GetDeferral(&deferral));
-                                m_appWindow->RunAsync([deferral, showMenu]() {
-                                    showMenu();
-                                    CHECK_FAILURE(deferral->Complete());
-                                });
+                                m_appWindow->RunAsync(
+                                    [deferral, showMenu]()
+                                    {
+                                        showMenu();
+                                        CHECK_FAILURE(deferral->Complete());
+                                    });
                             }
                             // Removing the 'Save image as' context menu item for image context
                             // selections.
@@ -649,7 +691,8 @@ bool SettingsComponent::HandleWindowMessage(
                                         Callback<ICoreWebView2CustomItemSelectedEventHandler>(
                                             [appWindow = m_appWindow, target](
                                                 ICoreWebView2ContextMenuItem* sender,
-                                                IUnknown* args) {
+                                                IUnknown* args)
+                                            {
                                                 wil::unique_cotaskmem_string pageUri;
                                                 CHECK_FAILURE(target->get_PageUri(&pageUri));
                                                 appWindow->AsyncMessageBox(
@@ -741,10 +784,24 @@ bool SettingsComponent::HandleWindowMessage(
             //! [DisableZoomControl]
             return true;
         }
+        case ID_SETTINGS_PROFILE_DELETE:
+        {
+            //! [DeleteProfile]
+            CHECK_FEATURE_RETURN(m_webView2_13);
+            wil::com_ptr<ICoreWebView2Profile> webView2ProfileBase;
+            m_webView2_13->get_Profile(&webView2ProfileBase);
+            CHECK_FEATURE_RETURN(webView2ProfileBase);
+            auto webView2Profile = webView2ProfileBase.try_query<ICoreWebView2Profile8>();
+            CHECK_FEATURE_RETURN(webView2Profile);
+            webView2Profile->Delete();
+            //! [DeleteProfile]
+            return true;
+        }
         case ID_SETTINGS_PINCH_ZOOM_ENABLED:
         {
             //! [TogglePinchZoomEnabled]
             CHECK_FEATURE_RETURN(m_settings5);
+
             BOOL pinchZoomEnabled;
             CHECK_FAILURE(m_settings5->get_IsPinchZoomEnabled(&pinchZoomEnabled));
             if (pinchZoomEnabled)
@@ -797,14 +854,14 @@ bool SettingsComponent::HandleWindowMessage(
             {
                 CHECK_FAILURE(m_settings4->put_IsPasswordAutosaveEnabled(FALSE));
                 MessageBox(
-                    nullptr, L"Password autosave will be disabled after the next navigation.",
+                    nullptr, L"Password autosave will be disabled immediately.",
                     L"Settings change", MB_OK);
             }
             else
             {
                 CHECK_FAILURE(m_settings4->put_IsPasswordAutosaveEnabled(TRUE));
                 MessageBox(
-                    nullptr, L"Password autosave will be enabled after the next navigation.",
+                    nullptr, L"Password autosave will be enabled immediately.",
                     L"Settings change", MB_OK);
             }
             //! [PasswordAutosaveEnabled]
@@ -821,14 +878,14 @@ bool SettingsComponent::HandleWindowMessage(
             {
                 CHECK_FAILURE(m_settings4->put_IsGeneralAutofillEnabled(FALSE));
                 MessageBox(
-                    nullptr, L"General autofill will be disabled after the next navigation.",
+                    nullptr, L"General autofill will be disabled immediately.",
                     L"Settings change", MB_OK);
             }
             else
             {
                 CHECK_FAILURE(m_settings4->put_IsGeneralAutofillEnabled(TRUE));
                 MessageBox(
-                    nullptr, L"General autofill will be enabled after the next navigation.",
+                    nullptr, L"General autofill will be enabled immediately.",
                     L"Settings change", MB_OK);
             }
             //! [GeneralAutofillEnabled]
@@ -909,21 +966,17 @@ bool SettingsComponent::HandleWindowMessage(
                 CHECK_FAILURE(
                     m_settings7->put_HiddenPdfToolbarItems(
                         COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_BOOKMARKS |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FIT_PAGE |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_LAYOUT |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ROTATE |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SEARCH |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_IN |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_OUT |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE_AS |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
-                            COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_SELECTOR) |
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE) |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_BOOKMARKS |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FIT_PAGE |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_LAYOUT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ROTATE |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SEARCH |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_IN |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_OUT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE_AS |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_SELECTOR |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FULL_SCREEN |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
                         COREWEBVIEW2_PDF_TOOLBAR_ITEMS_MORE_SETTINGS);
@@ -976,29 +1029,218 @@ bool SettingsComponent::HandleWindowMessage(
         case ID_SETTINGS_SMART_SCREEN_ENABLED:
         {
             //! [ToggleSmartScreen]
-            wil::com_ptr<ICoreWebView2ExperimentalSettings7> experimentalSettings;
-            experimentalSettings = m_settings.try_query<ICoreWebView2ExperimentalSettings7>();
-            CHECK_FEATURE_RETURN(experimentalSettings);
+            CHECK_FEATURE_RETURN(m_settings8);
 
             BOOL is_smart_screen_enabled;
-            CHECK_FAILURE(experimentalSettings->get_IsReputationCheckingRequired(
-                &is_smart_screen_enabled));
+            CHECK_FAILURE(
+                m_settings8->get_IsReputationCheckingRequired(&is_smart_screen_enabled));
             if (is_smart_screen_enabled)
             {
-                CHECK_FAILURE(experimentalSettings->put_IsReputationCheckingRequired(false));
+                CHECK_FAILURE(m_settings8->put_IsReputationCheckingRequired(false));
                 MessageBox(
-                    nullptr, L"SmartScreen is disable after the next navigation.",
+                    nullptr, L"SmartScreen is disabled after the next navigation.",
                     L"Settings change", MB_OK);
             }
             else
             {
-                CHECK_FAILURE(experimentalSettings->put_IsReputationCheckingRequired(true));
+                CHECK_FAILURE(m_settings8->put_IsReputationCheckingRequired(true));
                 MessageBox(
-                    nullptr, L"SmartScreen is enable after the next navigation.",
+                    nullptr, L"SmartScreen is enabled after the next navigation.",
                     L"Settings change", MB_OK);
             }
             //! [ToggleSmartScreen]
             return true;
+        }
+        case ID_SETTINGS_PROFILE_PASSWORD_AUTOSAVE_ENABLED:
+        {
+            //! [ToggleProfilePasswordAutosaveEnabled]
+            // Get the profile object.
+            auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+            CHECK_FEATURE_RETURN(webView2_13);
+            wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+            CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
+            CHECK_FEATURE_RETURN(webView2Profile);
+            auto webView2Profile6 = webView2Profile.try_query<ICoreWebView2Profile6>();
+            CHECK_FEATURE_RETURN(webView2Profile6);
+
+            BOOL enabled;
+            CHECK_FAILURE(webView2Profile6->get_IsPasswordAutosaveEnabled(&enabled));
+            // Set password-autosave property to the opposite value to current value.
+            if (enabled)
+            {
+                CHECK_FAILURE(webView2Profile6->put_IsPasswordAutosaveEnabled(FALSE));
+                MessageBox(
+                    nullptr,
+                    L"Password autosave will be disabled immediately in all "
+                    L"WebView2 with the same profile.",
+                    L"Profile settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(webView2Profile6->put_IsPasswordAutosaveEnabled(TRUE));
+                MessageBox(
+                    nullptr,
+                    L"Password autosave will be enabled immediately in all "
+                    L"WebView2 with the same profile.",
+                    L"Profile settings change", MB_OK);
+            }
+            //! [ToggleProfilePasswordAutosaveEnabled]
+            return true;
+        }
+        case ID_SETTINGS_PROFILE_GENERAL_AUTOFILL_ENABLED:
+        {
+            //! [ToggleProfileGeneralAutofillEnabled]
+            // Get the profile object.
+            auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+            CHECK_FEATURE_RETURN(webView2_13);
+            wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+            CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
+            CHECK_FEATURE_RETURN(webView2Profile);
+            auto webView2Profile6 = webView2Profile.try_query<ICoreWebView2Profile6>();
+            CHECK_FEATURE_RETURN(webView2Profile6);
+
+            BOOL enabled;
+            CHECK_FAILURE(webView2Profile6->get_IsGeneralAutofillEnabled(&enabled));
+            // Set general-autofill property to the opposite value to current value.
+            if (enabled)
+            {
+                CHECK_FAILURE(webView2Profile6->put_IsGeneralAutofillEnabled(FALSE));
+                MessageBox(
+                    nullptr,
+                    L"General autofill will be disabled immediately in all WebView2 with the "
+                    L"same profile.",
+                    L"Profile settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(webView2Profile6->put_IsGeneralAutofillEnabled(TRUE));
+                MessageBox(
+                    nullptr,
+                    L"General autofill will be enabled immediately in all WebView2 with the "
+                    L"same profile.",
+                    L"Profile settings change", MB_OK);
+            }
+            //! [ToggleProfileGeneralAutofillEnabled]
+            return true;
+        }
+        case ID_TOGGLE_LAUNCHING_EXTERNAL_URI_SCHEME_ENABLED:
+        {
+            //! [ToggleLaunchingExternalUriScheme]
+            m_launchingExternalUriScheme = !m_launchingExternalUriScheme;
+            CHECK_FEATURE_RETURN(m_webView2_18);
+            if (m_launchingExternalUriScheme)
+            {
+                CHECK_FAILURE(m_webView2_18->add_LaunchingExternalUriScheme(
+                    Callback<ICoreWebView2LaunchingExternalUriSchemeEventHandler>(
+                        [this](
+                            ICoreWebView2* sender,
+                            ICoreWebView2LaunchingExternalUriSchemeEventArgs* args)
+                        {
+                            auto showDialog = [this, args]
+                            {
+                                wil::unique_cotaskmem_string uri;
+                                CHECK_FAILURE(args->get_Uri(&uri));
+                                if (wcscmp(uri.get(), L"calculator://") == 0)
+                                {
+                                    // Set the event args to cancel the event and launch the
+                                    // calculator app. This will always allow the external
+                                    // URI scheme launch.
+                                    args->put_Cancel(true);
+                                    std::wstring schemeUrl = L"calculator://";
+                                    SHELLEXECUTEINFO info = {sizeof(info)};
+                                    info.fMask = SEE_MASK_NOASYNC;
+                                    info.lpVerb = L"open";
+                                    info.lpFile = schemeUrl.c_str();
+                                    info.nShow = SW_SHOWNORMAL;
+                                    ::ShellExecuteEx(&info);
+                                }
+                                else if (wcscmp(uri.get(), L"malicious://") == 0)
+                                {
+                                    // Always block the request in this case by cancelling
+                                    // the event.
+                                    args->put_Cancel(true);
+                                }
+                                else if (wcscmp(uri.get(), L"contoso://") == 0)
+                                {
+                                    // To display a custom dialog we cancel the launch,
+                                    // display a custom dialog, and then manually launch the
+                                    // external URI scheme depending on the user's
+                                    // selection.
+                                    args->put_Cancel(true);
+                                    wil::unique_cotaskmem_string initiatingOrigin;
+                                    CHECK_FAILURE(
+                                        args->get_InitiatingOrigin(&initiatingOrigin));
+                                    std::wstring message =
+                                        L"Launching External URI Scheme request";
+                                    std::wstring initiatingOriginString =
+                                        initiatingOrigin.get();
+                                    if (initiatingOriginString.empty())
+                                    {
+                                        message += L" from ";
+                                        message += initiatingOriginString;
+                                    }
+                                    message += L" to ";
+                                    message += uri.get();
+                                    message += L"?\n\n";
+                                    message += L"Do you want to grant permission?\n";
+                                    int response = MessageBox(
+                                        nullptr, message.c_str(),
+                                        L"Launching External URI Scheme",
+                                        MB_YESNO | MB_ICONWARNING);
+                                    if (response == IDYES)
+                                    {
+                                        std::wstring schemeUrl = uri.get();
+                                        SHELLEXECUTEINFO info = {sizeof(info)};
+                                        info.fMask = SEE_MASK_NOASYNC;
+                                        info.lpVerb = L"open";
+                                        info.lpFile = schemeUrl.c_str();
+                                        info.nShow = SW_SHOWNORMAL;
+                                        ::ShellExecuteEx(&info);
+                                    }
+                                }
+                                else
+                                {
+                                    // Do not cancel the event, allowing the request to use
+                                    // the default dialog.
+                                }
+                                return S_OK;
+                            };
+                            showDialog();
+                            return S_OK;
+                            // A deferral may be taken for the event so that the
+                            // CoreWebView2 doesn't examine the properties we set on the
+                            // event args until after we call the Complete method
+                            // asynchronously later. This will give the user more time to
+                            // decide whether to launch the external URI scheme or not.
+                            // A deferral doesn't need to be taken in this case, so taking
+                            // a deferral is commented out here.
+                            // wil::com_ptr<ICoreWebView2Deferral> deferral;
+                            // CHECK_FAILURE(args->GetDeferral(&deferral));
+
+                            // m_appWindow->RunAsync(
+                            //     [deferral, showDialog]()
+                            //     {
+                            //         showDialog();
+                            // CHECK_FAILURE(deferral->Complete());
+                            //     });
+                            // return S_OK;
+                        })
+                        .Get(),
+                    &m_launchingExternalUriSchemeToken));
+            }
+            else
+            {
+                m_webView2_18->remove_LaunchingExternalUriScheme(
+                    m_launchingExternalUriSchemeToken);
+            }
+            MessageBox(
+                nullptr,
+                (std::wstring(L"Launching External URI Scheme support has been ") +
+                 (m_launchingExternalUriScheme ? L"enabled." : L"disabled."))
+                    .c_str(),
+                L"Launching External URI Scheme", MB_OK);
+            return true;
+            //! [ToggleLaunchingExternalUriScheme]
         }
         case ID_TOGGLE_CUSTOM_SERVER_CERTIFICATE_SUPPORT:
         {
@@ -1018,8 +1260,10 @@ bool SettingsComponent::HandleWindowMessage(
             // certificate errors.
             CHECK_FAILURE(m_webView2_14->ClearServerCertificateErrorActions(
                 Callback<ICoreWebView2ClearServerCertificateErrorActionsCompletedHandler>(
-                    [this](HRESULT result) -> HRESULT {
-                        auto showDialog = [result] {
+                    [this](HRESULT result) -> HRESULT
+                    {
+                        auto showDialog = [result]
+                        {
                             MessageBox(
                                 nullptr,
                                 (result == S_OK)
@@ -1027,11 +1271,52 @@ bool SettingsComponent::HandleWindowMessage(
                                     : L"Clear server certificate error actions are failed.",
                                 L"Clear server certificate error actions", MB_OK);
                         };
+
                         m_appWindow->RunAsync([showDialog]() { showDialog(); });
 
                         return S_OK;
                     })
                     .Get()));
+            return true;
+        }
+        case IDM_TRACKING_PREVENTION_LEVEL_NONE:
+            SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_NONE);
+            return true;
+        case IDM_TRACKING_PREVENTION_LEVEL_BASIC:
+            SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_BASIC);
+            return true;
+        case IDM_TRACKING_PREVENTION_LEVEL_BALANCED:
+            SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_BALANCED);
+            return true;
+        case IDM_TRACKING_PREVENTION_LEVEL_STRICT:
+            SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_STRICT);
+            return true;
+        case ID_SETTINGS_NON_CLIENT_REGION_SUPPORT_ENABLED:
+        {
+            //![ToggleNonClientRegionSupportEnabled]
+            BOOL nonClientRegionSupportEnabled;
+            wil::com_ptr<ICoreWebView2Settings9> settings;
+            settings = m_settings.try_query<ICoreWebView2Settings9>();
+            CHECK_FEATURE_RETURN(settings);
+            CHECK_FAILURE(
+                settings->get_IsNonClientRegionSupportEnabled(&nonClientRegionSupportEnabled));
+            if (nonClientRegionSupportEnabled)
+            {
+                CHECK_FAILURE(settings->put_IsNonClientRegionSupportEnabled(FALSE));
+                MessageBox(
+                    nullptr,
+                    L"Non-client region support will be disabled after the next navigation",
+                    L"Settings change", MB_OK);
+            }
+            else
+            {
+                CHECK_FAILURE(settings->put_IsNonClientRegionSupportEnabled(TRUE));
+                MessageBox(
+                    nullptr,
+                    L"Non-client region support will be enabled after the next navigation",
+                    L"Settings change", MB_OK);
+            }
+            //! [ToggleNonClientRegionSupportEnabled]
             return true;
         }
         }
@@ -1153,6 +1438,9 @@ void SettingsComponent::ChangeBlockedSites()
     {
         m_blockedSitesSet = true;
         m_blockedSites.clear();
+        dialog.input.erase(
+            std::remove_if(dialog.input.begin(), dialog.input.end(), isspace),
+            dialog.input.end());
         size_t begin = 0;
         size_t end = 0;
         while (end != std::wstring::npos)
@@ -1182,6 +1470,29 @@ bool SettingsComponent::ShouldBlockUri(PWSTR uri)
     return false;
 }
 
+void SettingsComponent::SetCustomDataPartitionId()
+{
+    //! [CustomDataPartitionId]
+    wil::com_ptr<ICoreWebView2Experimental20> webViewStaging20;
+    webViewStaging20 = m_webView.try_query<ICoreWebView2Experimental20>();
+    if (webViewStaging20)
+    {
+        wil::unique_cotaskmem_string partitionId;
+        CHECK_FAILURE(webViewStaging20->get_CustomDataPartitionId(&partitionId));
+        TextInputDialog dialog(
+            m_appWindow->GetMainWindow(), L"Custom Datga Partition Id",
+            L"Custom Datga Partition Id:",
+            L"Enter data storage partition id, or leave blank to clear data storage "
+            L"partition.",
+            std::wstring(partitionId.get()));
+        if (dialog.confirmed)
+        {
+            webViewStaging20->put_CustomDataPartitionId(dialog.input.c_str());
+        }
+    }
+    //! [CustomDataPartitionId]
+}
+
 // Decide whether a website should have script disabled.  Since we're only using this
 // for sample code and we don't actually want to break any websites, just return false.
 bool SettingsComponent::ShouldBlockScriptForUri(PWSTR uri)
@@ -1200,13 +1511,15 @@ void SettingsComponent::SetBlockImages(bool blockImages)
         //! [WebResourceRequested0]
         if (m_blockImages)
         {
-            m_webView->AddWebResourceRequestedFilter(
-                L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE);
+            CHECK_FEATURE_RETURN_EMPTY(m_webView2_22);
+            m_webView2_22->AddWebResourceRequestedFilterWithRequestSourceKinds(
+                L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE,
+                COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_DOCUMENT);
             CHECK_FAILURE(m_webView->add_WebResourceRequested(
                 Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                     [this](
-                        ICoreWebView2* sender,
-                        ICoreWebView2WebResourceRequestedEventArgs* args) {
+                        ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
+                    {
                         COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
                         CHECK_FAILURE(args->get_ResourceContext(&resourceContext));
                         // Ensure that the type is image
@@ -1215,7 +1528,8 @@ void SettingsComponent::SetBlockImages(bool blockImages)
                             return E_INVALIDARG;
                         }
                         // Override the response with an empty one to block the image.
-                        // If put_Response is not called, the request will continue as normal.
+                        // If put_Response is not called, the request will
+                        // continue as normal.
                         wil::com_ptr<ICoreWebView2WebResourceResponse> response;
                         wil::com_ptr<ICoreWebView2Environment> environment;
                         wil::com_ptr<ICoreWebView2_2> webview2;
@@ -1250,13 +1564,15 @@ void SettingsComponent::SetReplaceImages(bool replaceImages)
         //! [WebResourceRequested1]
         if (m_replaceImages)
         {
-            m_webView->AddWebResourceRequestedFilter(
-                L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE);
+            CHECK_FEATURE_RETURN_EMPTY(m_webView2_22);
+            m_webView2_22->AddWebResourceRequestedFilterWithRequestSourceKinds(
+                L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_IMAGE,
+                COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_DOCUMENT);
             CHECK_FAILURE(m_webView->add_WebResourceRequested(
                 Callback<ICoreWebView2WebResourceRequestedEventHandler>(
                     [this](
-                        ICoreWebView2* sender,
-                        ICoreWebView2WebResourceRequestedEventArgs* args) {
+                        ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
+                    {
                         COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
                         CHECK_FAILURE(args->get_ResourceContext(&resourceContext));
                         // Ensure that the type is image
@@ -1265,7 +1581,11 @@ void SettingsComponent::SetReplaceImages(bool replaceImages)
                             return E_INVALIDARG;
                         }
                         // Override the response with an another image.
-                        // If put_Response is not called, the request will continue as normal.
+                        // If put_Response is not called, the request will
+                        // continue as normal.
+                        // It's not required for this scenario, but generally you should examine
+                        // relevant HTTP request headers just like an HTTP server would do when
+                        // producing a response stream.
                         wil::com_ptr<IStream> stream;
                         CHECK_FAILURE(SHCreateStreamOnFileEx(
                             L"assets/EdgeWebView2-80.jpg", STGM_READ, FILE_ATTRIBUTE_NORMAL,
@@ -1343,7 +1663,8 @@ void SettingsComponent::EnableCustomClientCertificateSelection()
                 Callback<ICoreWebView2ClientCertificateRequestedEventHandler>(
                     [this](
                         ICoreWebView2* sender,
-                        ICoreWebView2ClientCertificateRequestedEventArgs* args) {
+                        ICoreWebView2ClientCertificateRequestedEventArgs* args)
+                    {
                         wil::com_ptr<ICoreWebView2ClientCertificateCollection>
                             certificateCollection;
                         CHECK_FAILURE(
@@ -1418,7 +1739,8 @@ void SettingsComponent::ToggleCustomServerCertificateSupport()
                 Callback<ICoreWebView2ServerCertificateErrorDetectedEventHandler>(
                     [this](
                         ICoreWebView2* sender,
-                        ICoreWebView2ServerCertificateErrorDetectedEventArgs* args) {
+                        ICoreWebView2ServerCertificateErrorDetectedEventArgs* args)
+                    {
                         COREWEBVIEW2_WEB_ERROR_STATUS errorStatus;
                         CHECK_FAILURE(args->get_ErrorStatus(&errorStatus));
 
@@ -1462,26 +1784,28 @@ void SettingsComponent::ToggleCustomServerCertificateSupport()
 }
 //! [ServerCertificateErrorDetected1]
 
-PCWSTR SettingsComponent::NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind)
+//! [SetTrackingPreventionLevel]
+void SettingsComponent::SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL value)
 {
-    switch (kind)
+    wil::com_ptr<ICoreWebView2_13> webView2_13;
+    webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+
+    if (webView2_13)
     {
-    case COREWEBVIEW2_PERMISSION_KIND_MICROPHONE:
-        return L"Microphone";
-    case COREWEBVIEW2_PERMISSION_KIND_CAMERA:
-        return L"Camera";
-    case COREWEBVIEW2_PERMISSION_KIND_GEOLOCATION:
-        return L"Geolocation";
-    case COREWEBVIEW2_PERMISSION_KIND_NOTIFICATIONS:
-        return L"Notifications";
-    case COREWEBVIEW2_PERMISSION_KIND_OTHER_SENSORS:
-        return L"Generic Sensors";
-    case COREWEBVIEW2_PERMISSION_KIND_CLIPBOARD_READ:
-        return L"Clipboard Read";
-    default:
-        return L"Unknown resources";
+        wil::com_ptr<ICoreWebView2Profile> profile;
+        CHECK_FAILURE(webView2_13->get_Profile(&profile));
+
+        auto profile3 = profile.try_query<ICoreWebView2Profile3>();
+        if (profile3)
+        {
+            CHECK_FAILURE(profile3->put_PreferredTrackingPreventionLevel(value));
+            MessageBox(
+                nullptr, L"Tracking prevention level is set successfully",
+                L"Tracking Prevention Level", MB_OK);
+        }
     }
 }
+//! [SetTrackingPreventionLevel]
 
 SettingsComponent::~SettingsComponent()
 {
@@ -1492,10 +1816,15 @@ SettingsComponent::~SettingsComponent()
     m_webView->remove_PermissionRequested(m_permissionRequestedToken);
 }
 // Take advantage of urlmon's URI library to parse a URI
-static wil::unique_bstr GetDomainOfUri(PWSTR uri)
+wil::unique_bstr GetDomainOfUri(PWSTR uri)
 {
     wil::com_ptr<IUri> uriObject;
-    CreateUri(uri, Uri_CREATE_CANONICALIZE | Uri_CREATE_NO_DECODE_EXTRA_INFO, 0, &uriObject);
+    HRESULT hr = CreateUri(
+        uri, Uri_CREATE_CANONICALIZE | Uri_CREATE_NO_DECODE_EXTRA_INFO, 0, &uriObject);
+    if (FAILED(hr))
+    {
+        return nullptr;
+    }
     wil::unique_bstr domain;
     uriObject->GetHost(&domain);
     return domain;

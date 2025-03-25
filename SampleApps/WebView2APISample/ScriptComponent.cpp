@@ -159,10 +159,179 @@ bool ScriptComponent::HandleWindowMessage(
         case IDM_INJECT_SCRIPT_WITH_RESULT:
             ExecuteScriptWithResult();
             return true;
+        case IDM_ADD_EXTENSION:
+            AddBrowserExtension();
+            return true;
+        case IDM_REMOVE_EXTENSION:
+            RemoveOrDisableBrowserExtension(true);
+            return true;
+        case IDM_DISABLE_EXTENSION:
+            RemoveOrDisableBrowserExtension(false);
+            return true;
         }
     }
     return false;
 }
+void ScriptComponent::AddBrowserExtension()
+{
+
+    // Get the profile object.
+    auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+    wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+    CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
+    auto profile7 = webView2Profile.try_query<ICoreWebView2Profile7>();
+    CHECK_FEATURE_RETURN_EMPTY(profile7);
+
+    OPENFILENAME openFileName = {};
+    openFileName.lStructSize = sizeof(openFileName);
+    openFileName.hwndOwner = nullptr;
+    openFileName.hInstance = nullptr;
+    WCHAR fileName[MAX_PATH] = L"";
+    openFileName.lpstrFile = fileName;
+    openFileName.lpstrFilter = L"Manifest\0manifest.json\0\0";
+    openFileName.nMaxFile = ARRAYSIZE(fileName);
+    openFileName.Flags = OFN_OVERWRITEPROMPT;
+
+    if (GetOpenFileName(&openFileName))
+    {
+        // Remove the filename part of the path.
+        *wcsrchr(fileName, L'\\') = L'\0';
+        profile7->AddBrowserExtension(
+            fileName,
+            Callback<ICoreWebView2ProfileAddBrowserExtensionCompletedHandler>(
+                [](HRESULT error, ICoreWebView2BrowserExtension* extension) -> HRESULT
+                {
+                    if (error != S_OK)
+                    {
+                        ShowFailure(error, L"Faile to add browser extension");
+                    }
+                    wil::unique_cotaskmem_string id;
+                    extension->get_Id(&id);
+
+                    wil::unique_cotaskmem_string name;
+                    extension->get_Name(&name);
+
+                    std::wstring extensionInfo;
+                    extensionInfo.append(L"Added ");
+                    extensionInfo.append(id.get());
+                    extensionInfo.append(L" ");
+                    extensionInfo.append(name.get());
+                    MessageBox(
+                        nullptr, extensionInfo.c_str(), L"AddBrowserExtension Result", MB_OK);
+                    return S_OK;
+                })
+                .Get());
+    }
+}
+
+void ScriptComponent::RemoveOrDisableBrowserExtension(const bool remove)
+{
+    // Get the profile object.
+    auto webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+    wil::com_ptr<ICoreWebView2Profile> webView2Profile;
+    CHECK_FAILURE(webView2_13->get_Profile(&webView2Profile));
+    auto profile7 = webView2Profile.try_query<ICoreWebView2Profile7>();
+    CHECK_FEATURE_RETURN_EMPTY(profile7);
+
+    profile7->GetBrowserExtensions(
+        Callback<ICoreWebView2ProfileGetBrowserExtensionsCompletedHandler>(
+            [this, profile7,
+             remove](HRESULT error, ICoreWebView2BrowserExtensionList* extensions) -> HRESULT
+            {
+                std::wstring extensionIdString;
+                UINT extensionsCount = 0;
+                extensions->get_Count(&extensionsCount);
+
+                for (UINT index = 0; index < extensionsCount; ++index)
+                {
+                    wil::com_ptr<ICoreWebView2BrowserExtension> extension;
+                    extensions->GetValueAtIndex(index, &extension);
+
+                    wil::unique_cotaskmem_string id;
+                    wil::unique_cotaskmem_string name;
+                    BOOL enabled = false;
+
+                    extension->get_IsEnabled(&enabled);
+                    extension->get_Id(&id);
+                    extension->get_Name(&name);
+
+                    extensionIdString += id.get();
+                    extensionIdString += L" ";
+                    extensionIdString += name.get();
+                    if (!enabled)
+                    {
+                        extensionIdString += L" (disabled)";
+                    }
+                    else
+                    {
+                        extensionIdString += L" (enabled)";
+                    }
+                    extensionIdString += L"\n\r\n";
+                }
+
+                TextInputDialog dialog(
+                    m_appWindow->GetMainWindow(),
+                    remove ? L"Remove Extension" : L"Disable/Enable Extension",
+                    L"Extension ID:", extensionIdString.c_str());
+                if (dialog.confirmed)
+                {
+                    for (UINT index = 0; index < extensionsCount; ++index)
+                    {
+                        wil::com_ptr<ICoreWebView2BrowserExtension> extension;
+                        extensions->GetValueAtIndex(index, &extension);
+
+                        wil::unique_cotaskmem_string id;
+                        wil::unique_cotaskmem_string name;
+
+                        extension->get_Id(&id);
+                        if (_wcsicmp(id.get(), dialog.input.c_str()) == 0)
+                        {
+                            if (remove)
+                            {
+                                extension->Remove(
+                                    Callback<
+                                        ICoreWebView2BrowserExtensionRemoveCompletedHandler>(
+                                        [](HRESULT error) -> HRESULT
+                                        {
+                                            if (error != S_OK)
+                                            {
+                                                ShowFailure(error, L"Remove Extension failed");
+                                            }
+                                            MessageBox(
+                                                nullptr, L"Done", L"Remove Extension", MB_OK);
+                                            return S_OK;
+                                        })
+                                        .Get());
+                            }
+                            else
+                            {
+                                BOOL enabled = FALSE;
+                                extension->get_IsEnabled(&enabled);
+
+                                extension->Enable(
+                                    !enabled,
+                                    Callback<
+                                        ICoreWebView2BrowserExtensionEnableCompletedHandler>(
+                                        [](HRESULT error) -> HRESULT
+                                        {
+                                            if (error != S_OK)
+                                            {
+                                                ShowFailure(error, L"Enable Extension failed");
+                                            }
+                                            MessageBox(
+                                                nullptr, L"Done", L"Toggled Extension", MB_OK);
+                                            return S_OK;
+                                        })
+                                        .Get());
+                            }
+                        }
+                    }
+                }
+                return S_OK;
+            })
+            .Get());
+}
+
 //! [ExecuteScript]
 // Prompt the user for some script and then execute it.
 void ScriptComponent::InjectScript()
@@ -635,7 +804,7 @@ void ScriptComponent::SubscribeToCdpEvent()
             Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
                 [this, eventName](
                     ICoreWebView2* sender,
-                    ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT 
+                    ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT
                 {
                     wil::unique_cotaskmem_string parameterObjectAsJson;
                     CHECK_FAILURE(args->get_ParameterObjectAsJson(&parameterObjectAsJson));
@@ -834,10 +1003,9 @@ void ScriptComponent::ExecuteScriptWithResult()
         L"Enter the JavaScript code to run in the webview.", L"");
     if (dialog.confirmed)
     {
-        wil::com_ptr<ICoreWebView2Experimental19> webview2 =
-            m_webView.try_query<ICoreWebView2Experimental19>();
+        wil::com_ptr<ICoreWebView2_21> webView = m_webView.try_query<ICoreWebView2_21>();
 
-        if (!webview2)
+        if (!webView)
         {
             MessageBox(
                 nullptr, L"Get webview2 failed!", L"ExecuteScriptWithResult Result", MB_OK);
@@ -847,13 +1015,12 @@ void ScriptComponent::ExecuteScriptWithResult()
         // The main interface for excute script, the first param is the string
         // which user want to execute, the second param is the callback to process
         // the result, here use a lamada to the param.
-        webview2->ExecuteScriptWithResult(
+        webView->ExecuteScriptWithResult(
             dialog.input.c_str(),
-            // The callback function has two param, the first one is the status of call.
+            // The callback function has two param, the first one is the status of call.s
             // it will always be the S_OK for now, and the second is the result struct.
-            Callback<ICoreWebView2ExperimentalExecuteScriptWithResultCompletedHandler>(
-                [this](HRESULT errorCode, ICoreWebView2ExperimentalExecuteScriptResult* result)
-                    -> HRESULT
+            Callback<ICoreWebView2ExecuteScriptWithResultCompletedHandler>(
+                [this](HRESULT errorCode, ICoreWebView2ExecuteScriptResult* result) -> HRESULT
                 {
                     if (errorCode != S_OK || result == nullptr)
                     {
@@ -864,7 +1031,7 @@ void ScriptComponent::ExecuteScriptWithResult()
                     }
                     else
                     {
-                        wil::com_ptr<ICoreWebView2ExperimentalScriptException> exception;
+                        wil::com_ptr<ICoreWebView2ScriptException> exception;
                         BOOL isSuccess;
 
                         // User should always invoke the get_Success firstly to get if execute
@@ -1024,8 +1191,8 @@ void ScriptComponent::HandleIFrames()
         // embedding a site. The result is recorded in m_siteEmbeddingIFrameCount.
         CHECK_FAILURE(webview2_4->add_FrameCreated(
             Callback<ICoreWebView2FrameCreatedEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args)
-                    -> HRESULT 
+                [this](
+                    ICoreWebView2* sender, ICoreWebView2FrameCreatedEventArgs* args) -> HRESULT
                 {
                     wil::com_ptr<ICoreWebView2Frame> webviewFrame;
                     CHECK_FAILURE(args->get_Frame(&webviewFrame));

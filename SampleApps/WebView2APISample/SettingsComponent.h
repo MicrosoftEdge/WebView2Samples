@@ -14,6 +14,9 @@
 #include "ComponentBase.h"
 #include "CustomStatusBar.h"
 
+// Some utility functions
+wil::unique_bstr GetDomainOfUri(PWSTR uri);
+
 // This component handles commands from the Settings menu.  It also handles the
 // NavigationStarting, FrameNavigationStarting, WebResourceRequested, ScriptDialogOpening,
 // and PermissionRequested events.
@@ -39,8 +42,9 @@ public:
     void SetUserAgent(const std::wstring& userAgent);
     void EnableCustomClientCertificateSelection();
     void ToggleCustomServerCertificateSupport();
+    void SetCustomDataPartitionId();
 
-    static PCWSTR NameOfPermissionKind(COREWEBVIEW2_PERMISSION_KIND kind);
+    void SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL value);
 
     ~SettingsComponent() override;
 
@@ -55,6 +59,8 @@ private:
     wil::com_ptr<ICoreWebView2_13> m_webView2_13;
     wil::com_ptr<ICoreWebView2_14> m_webView2_14;
     wil::com_ptr<ICoreWebView2_15> m_webView2_15;
+    wil::com_ptr<ICoreWebView2_18> m_webView2_18;
+    wil::com_ptr<ICoreWebView2_22> m_webView2_22;
     wil::com_ptr<ICoreWebView2Settings> m_settings;
     wil::com_ptr<ICoreWebView2Settings2> m_settings2;
     wil::com_ptr<ICoreWebView2Settings3> m_settings3;
@@ -62,10 +68,10 @@ private:
     wil::com_ptr<ICoreWebView2Settings5> m_settings5;
     wil::com_ptr<ICoreWebView2Settings6> m_settings6;
     wil::com_ptr<ICoreWebView2Settings7> m_settings7;
+    wil::com_ptr<ICoreWebView2Settings8> m_settings8;
     wil::com_ptr<ICoreWebView2Controller> m_controller;
     wil::com_ptr<ICoreWebView2Controller3> m_controller3;
     wil::com_ptr<ICoreWebView2Environment> m_webViewEnvironment;
-    wil::com_ptr<ICoreWebView2Experimental5> m_webViewExperimental5;
     wil::com_ptr<ICoreWebView2ContextMenuItem> m_displayPageUrlContextSubMenuItem;
 
     bool m_blockImages = false;
@@ -85,6 +91,7 @@ private:
     CustomStatusBar m_statusBar;
     bool m_customStatusBar = false;
     bool m_raiseServerCertificateError = false;
+    bool m_launchingExternalUriScheme = false;
 
     EventRegistrationToken m_navigationStartingToken = {};
     EventRegistrationToken m_frameNavigationStartingToken = {};
@@ -98,4 +105,5 @@ private:
     EventRegistrationToken m_faviconChangedToken = {};
     EventRegistrationToken m_statusBarTextChangedToken = {};
     EventRegistrationToken m_ServerCertificateErrorToken = {};
+    EventRegistrationToken m_launchingExternalUriSchemeToken = {};
 };

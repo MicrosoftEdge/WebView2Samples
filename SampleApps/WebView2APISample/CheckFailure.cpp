@@ -10,7 +10,8 @@
 void ShowFailure(HRESULT hr, const std::wstring& message)
 {
     std::wstringstream formattedMessage;
-    formattedMessage << message << ": 0x" << std::hex << std::setw(8) << hr;
+    formattedMessage << message << ": 0x" << std::hex << std::setw(8) << hr << " ("
+                     << winrt::hresult_error(hr).message().c_str() << ")";
     MessageBox(nullptr, formattedMessage.str().c_str(), nullptr, MB_OK);
 }
 

@@ -1,0 +1,71 @@
+<html>
+<head>
+  <title>Throttling Control</title>
+  <link rel="stylesheet" type="text/css" href="ScenarioThrottlingControl.css" />
+</head>
+<body>
+  <h1>Throttling Control</h1>
+
+<!-- region controls -->
+  <div id="status-monitor">
+    <div class="status-property">
+      <span class="status-label">page state:</span>
+      <span class="status-value" id="page-state">foreground</span>
+    </div>
+
+    <div id="controls-deck">
+      <button onclick="toggleVisibility()">toggle visibility</button>
+
+      <div id="priority-deck">
+        <div class="priority-control">
+          <label class="priority-label">foreground</label>
+          <input id="interval-foreground" class="priority-input" type="text" placeholder="ms" title="timer wake up interval">
+          <button class="button-set" onclick="setTimerInterval('foreground')">set</button>
+        </div>
+
+        <div class="priority-control">
+          <label class="priority-label">background</label>
+          <input id="interval-background" class="priority-input" type="text" placeholder="ms" title="timer wake up interval">
+          <button class="button-set" onclick="setTimerInterval('background')">set</button>
+        </div>
+
+        <div class="priority-control">
+          <label class="priority-label">untrusted</label>
+          <input id="interval-untrusted" class="priority-input" type="text" placeholder="ms" title="timer wake up interval">
+          <button class="button-set" onclick="setTimerInterval('untrusted')">set</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="scenario-deck">
+      <span class="deck-label">Scenarios</span>
+      <div class="scenario-button-group">
+        <button onclick="triggerScenario('interaction-throttle')" title="simulate no user interaction, will throttle while in foreground">no interaction</button>
+        <button onclick="triggerScenario('interaction-reset')" title="simulate user interaction detected, will disable throttle while in foreground">interaction</button>
+      </div>
+      <div class="scenario-button-group">
+        <button onclick="triggerScenario('hidden-unthrottle')" title="will remain unthrottled while in background">hidden core</button>
+        <button onclick="triggerScenario('hidden-reset')" title="will use default behavior while in background">disable hidden core</button>
+      </div>
+    </div>
+  </div>
+<!-- endregion controls -->
+
+  <div class="output-container">
+    <label>main</label>
+    <textarea id="output-main"readonly="true"></textarea>
+  </div>
+  <div id="output-frames-container">
+    <div class="output-container">
+      <label>trusted</label>
+      <textarea id="output-trusted" readonly="true"></textarea>
+    </div>
+    <div class="output-container">
+      <label>untrusted</label>
+      <textarea id="output-untrusted" readonly="true"></textarea>
+    </div>
+  </div>
+
+  <script src="/ScenarioThrottlingControlMonitor.js"></script>
+</body>
+</html>

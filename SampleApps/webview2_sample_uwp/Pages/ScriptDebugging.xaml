@@ -1,0 +1,53 @@
+<!--Copyright (C) Microsoft Corporation. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.-->
+
+<local:BasePage
+    x:Class="WebView2_UWP.Pages.ScriptDebugging"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:WebView2_UWP.Pages"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Column="0" Margin="23">
+
+            <RichTextBlock IsTextSelectionEnabled="True" TextWrapping="Wrap">
+                <Paragraph>
+                    This example demonstrates Script Debugging for WebView. 
+                Click on one of the options to debug either TypeScript or JavaScript debugging.
+                </Paragraph>
+                <Paragraph></Paragraph>
+            </RichTextBlock>
+
+            <StackPanel Orientation="Horizontal" Spacing="7">
+                <Button
+                    x:Name="JavaScriptLocalFile"
+                    Content="JavaScript Local File"
+                    Click="OnJavaScriptLocalFileButtonClicked" />
+                <Button
+                    x:Name="TypeScriptLocalFile"
+                    Content="TypeScript Local File"
+                    Click="OnTypeScriptLocalFileButtonClicked" />
+            </StackPanel>
+
+        </StackPanel>
+
+        <controls:WebView2 Grid.Column="1" x:Name="WebView2" />
+    </Grid>
+</local:BasePage>
+
+
+

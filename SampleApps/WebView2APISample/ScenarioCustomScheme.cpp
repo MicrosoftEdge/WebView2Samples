@@ -14,8 +14,11 @@ using namespace Microsoft::WRL;
 
 ScenarioCustomScheme::ScenarioCustomScheme(AppWindow* appWindow) : m_appWindow(appWindow)
 {
-    CHECK_FAILURE(m_appWindow->GetWebView()->AddWebResourceRequestedFilter(
-        L"custom-scheme*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL));
+    m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&m_webView2_22));
+    CHECK_FEATURE_RETURN_EMPTY(m_webView2_22);
+    CHECK_FAILURE(m_webView2_22->AddWebResourceRequestedFilterWithRequestSourceKinds(
+        L"custom-scheme*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL,
+        COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_DOCUMENT));
     CHECK_FAILURE(m_appWindow->GetWebView()->add_WebResourceRequested(
         Callback<ICoreWebView2WebResourceRequestedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
@@ -79,8 +82,8 @@ ScenarioCustomScheme::ScenarioCustomScheme(AppWindow* appWindow) : m_appWindow(a
                         [](HRESULT error, PCWSTR result) -> HRESULT { return S_OK; })
                         .Get()));
                 // The following XHR will fail because *.example.com is not in the allowed
-                // origin list of custom-scheme2. The WebResourceRequested event will not be
-                // raised for this request.
+                // origin list of custom-scheme-not-in-allowed-origins. The WebResourceRequested
+                // event will not be raised for this request.
                 CHECK_FAILURE(m_appWindow->GetWebView()->ExecuteScript(
                     L"var oReq = new XMLHttpRequest();"
                     L"oReq.addEventListener(\"load\", reqListener);"

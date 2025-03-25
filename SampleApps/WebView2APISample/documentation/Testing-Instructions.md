@@ -4,93 +4,121 @@ These are instructions for manually testing all the features of the WebView2 API
 
 ## Table Of Contents
 
-* [Getting started](#Getting-started)
-  * [Install a NuGet package Locally in VS](#Install-a-NuGet-package-Locally-in-VS)
-* [UI Entries](#ui-entries)
-  * [File](#File)
-    * [Save Screenshot](#Save-Screenshot)
-    * [Get Document Title](#Get-Document-Title)
-    * [Get Browser Version After Creation](#Get-Browser-Version-After-Creation)
-    * [Get Browser Version Before Creation](#Get-Browser-Version-After-Creation)
-    * [Exit](#Exit)
-  * [Script](#Script)
-    * [Inject Script](#Inject-Script)
-    * [Inject Script With Result](#Inject-Script-With-Result)
-    * [Post Message String](#Post-Message-String)
-    * [Post Message JSON](#Post-Message-JSON)
-    * [Add Initialize Script](#addremove-initialize-script)
-    * [Remove Initialize Script](#addremove-initialize-script)
-    * [Subscribe to CDP event & Call CDP method](#subscribe-to-cdp-event--call-cdp-method)
-    * [Open DevTools Window](#Open-DevTools-Window)
-  * [Window](#Window)
-    * [Close WebView](#Close-WebView)
-    * [Create WebView](#Create-WebView)
-    * [Create New Window](#Create-New-Window)
-    * [Create New Window With Options](#Create-New-Window-With-Options)
-    * [Create New Thread](#Create-New-Thread)
-  * [Process](#Process)
-    * [Browser Process Info](#Browser-Process-Info)
-    * [Crash Browser Process](#Crash-Browser-Process)
-    * [Unresponsive Browser Process](#Unresponsive-Browser-Process)
-  * [Setting](#Setting)
-    * [Blocked Domains](#Blocked-Domains)
-    * [Set User Agent](#Set-User-Agent)
-    * [Toggle JavaScript](#Toggle-JavaScript)
-    * [Toggle Web Messaging](#Toggle-Web-Messaging)
-    * [Toggle Fullscreen allowed](#Toggle-Fullscreen-allowed)
-    * [Toggle Status Bar enabled](#Toggle-Status-Bar-enabled)
-    * [Toggle DevTools enabled](#Toggle-DevTools-enabled)
-    * [Toggle ZoomControl enabled](#Toggle-ZoomControl-enabled)
-    * [Toggle Client Certificate Requested](#Toggle-Client-Certificate-Requested)
-    * [Toggle Pinch Zoom enabled](#Toggle-Pinch-Zoom-enabled)
-    * [Toggle Block images](#Toggle-Block-images)
-    * [JavaScript Dialogs](#JavaScript-Dialogs)
-    * [Toggle context menus enabled](#Toggle-context-menus-enabled)
-    * [Toggle builtin error page enabled](#Toggle-builtin-error-page-enabled)
-    * [Toggle general autofill enabled](#Toggle-general-autofill-enabled)
-    * [Toggle password autosave enabled](#Toggle-password-autosave-enabled)
-    * [Toggle browser accelerator keys enabled](#Toggle-browser-accelerator-keys-enabled)
-    * [Toggle Swipe Navigation enabled](#Toggle-Swipe-Navigation-enabled)
-    * [Toggle SmartScreen enabled](#Toggle-SmartScreen-enabled)
-    * [Toggle Hidden PDF toolbar items](#Toggle-hide-PDF-toolbar-items)
-    * [Toggle Allow External Drop](#Toggle-Allow-External-Drop)
-    * [Toggle Server Certificate Error](#Toggle-Custom-Server-Certificate-Support)
-  * [View](#View)
-    * [Toggle Visibility](#Toggle-Visibility)
-    * [WebView Bounds Reference](#WebView-Bounds-Reference)
-    * [WebView Area](#WebView-Area)
-    * [WebView Zoom](#WebView-Zoom)
-    * [WebView Scale](#WebView-Scale)
-    * [Set Focus](#Set-Focus)
-    * [Tab In](#Tab-In)
-    * [Reverse Tab In](#Reverse-Tab-In)
-    * [Toggle Tab Handling](#Toggle-Tab-Handling)
-  * [Scenario](#Scenario)
-    * [Web Messaging](#Web-Messaging)
-    * [Host Objects](#Host-Objects)
-    * [Script Debugging](#Script-Debugging)
-    * [Cookie Management](#Cookie-Management)
-    * [NavigateWithWebResourceRequest](#NavigateWithWebResourceRequest)
-    * [Client Certificate Requested](#ClientCertificateRequested)
-    * [Clear Browsing Data](#ClearBrowsingData)
-    * [Single sign on](#SingleSignOn)
-    * [Print](#Print)
-    * [IFrame Device Permission](#IFrame-Device-Permission)
-  * [Help](#Help)
-    * [About ...](#about-)
-  * [Dialogs](#Dialogs)
-    * [Download Dialog](#Download-Dialog)
-    * [Find Dialog](#Find-Dialog)
-  * [Miscellaneous](#Miscellaneous)
-    * [Accelerator Key Support](#Accelerator-Key-Support)
-    * [Language](#Language)
-    * [Saving Password](#Saving-Password)
-    * [Open Link in New Window From PDF](#Open-Link-in-New-Window-from-PDF)
-    * [WebView Does Not Crash](#WebView-Does-Not-Crash)
+- [WebView2 API Testing Instructions](#webview2-api-testing-instructions)
+  - [Table Of Contents](#table-of-contents)
+  - [Getting started](#getting-started)
+    - [Install a NuGet package Locally in VS](#install-a-nuget-package-locally-in-vs)
+  - [UI Entries](#ui-entries)
+    - [File](#file)
+      - [Save Screenshot](#save-screenshot)
+      - [Get Document Title](#get-document-title)
+      - [Get Browser Version After Creation](#get-browser-version-after-creation)
+      - [Get Browser Version Before Creation](#get-browser-version-before-creation)
+      - [Exit](#exit)
+    - [Script](#script)
+      - [Inject Script](#inject-script)
+      - [Inject Script With Result](#inject-script-with-result)
+      - [Post Message string](#post-message-string)
+      - [Post Message JSON](#post-message-json)
+      - [Add/Remove Initialize Script](#addremove-initialize-script)
+      - [Subscribe to CDP event \& Call CDP method](#subscribe-to-cdp-event--call-cdp-method)
+      - [Open DevTools Window](#open-devtools-window)
+    - [Window](#window)
+      - [Close WebView](#close-webview)
+      - [Create WebView](#create-webview)
+      - [Create New Window](#create-new-window)
+    - [Create New Window With Options](#create-new-window-with-options)
+      - [Create New Thread](#create-new-thread)
+    - [Process](#process)
+      - [Browser Process Info](#browser-process-info)
+      - [Crash Browser Process](#crash-browser-process)
+      - [Unresponsive Browser Process](#unresponsive-browser-process)
+    - [Settings](#settings)
+      - [Blocked Domains](#blocked-domains)
+      - [Set User Agent](#set-user-agent)
+      - [Toggle JavaScript](#toggle-javascript)
+      - [Toggle Web Messaging](#toggle-web-messaging)
+      - [Toggle Fullscreen allowed](#toggle-fullscreen-allowed)
+      - [Toggle Status Bar enabled](#toggle-status-bar-enabled)
+      - [Toggle DevTools enabled](#toggle-devtools-enabled)
+      - [Toggle ZoomControl enabled](#toggle-zoomcontrol-enabled)
+      - [Toggle Pinch Zoom enabled](#toggle-pinch-zoom-enabled)
+      - [Toggle Client Certificate Requested](#toggle-client-certificate-requested)
+      - [Toggle Block images](#toggle-block-images)
+      - [JavaScript Dialogs](#javascript-dialogs)
+      - [Toggle context menus enabled](#toggle-context-menus-enabled)
+      - [Toggle builtin error page enabled](#toggle-builtin-error-page-enabled)
+    - [Toggle general autofill enabled](#toggle-general-autofill-enabled)
+    - [Toggle password autosave enabled](#toggle-password-autosave-enabled)
+    - [Toggle profile general autofill enabled](#toggle-profile-general-autofill-enabled)
+    - [Toggle profile password autosave enabled](#toggle-profile-password-autosave-enabled)
+    - [Toggle browser accelerator keys enabled](#toggle-browser-accelerator-keys-enabled)
+      - [Toggle Swipe Navigation enabled](#toggle-swipe-navigation-enabled)
+      - [Toggle SmartScreen enabled](#toggle-smartscreen-enabled)
+      - [Toggle hide PDF toolbar items](#toggle-hide-pdf-toolbar-items)
+      - [Toggle Allow External Drop](#toggle-allow-external-drop)
+      - [Toggle Server Certificate Error](#toggle-server-certificate-error)
+      - [Toggle Launching External URI Scheme](#toggle-launching-external-uri-scheme)
+    - [View](#view)
+      - [Toggle Visibility](#toggle-visibility)
+      - [WebView Bounds Reference](#webview-bounds-reference)
+        - [Bounds A](#bounds-a)
+        - [Bounds B](#bounds-b)
+        - [Bounds C](#bounds-c)
+        - [Bounds D](#bounds-d)
+      - [WebView Area](#webview-area)
+      - [WebView Zoom](#webview-zoom)
+      - [WebView Scale](#webview-scale)
+      - [Set Focus](#set-focus)
+      - [Tab In](#tab-in)
+      - [ReverseTab In](#reversetab-in)
+      - [Toggle Tab Handling](#toggle-tab-handling)
+      - [WebView DefaultBackgroundColor](#webview-defaultbackgroundcolor)
+    - [Scenario](#scenario)
+      - [Web Messaging](#web-messaging)
+      - [Host Objects](#host-objects)
+      - [DOM Content Loaded](#dom-content-loaded)
+      - [Script Debugging](#script-debugging)
+        - [\[VSCode\] Debugging Setup](#vscode-debugging-setup)
+        - [\[VSCode\] Single WebView JavaScript Debugging](#vscode-single-webview-javascript-debugging)
+        - [\[VSCode\] Single WebView TypeScript Debugging](#vscode-single-webview-typescript-debugging)
+        - [\[VSCode\] Single WebView JavaScript Debugging Using Attach](#vscode-single-webview-javascript-debugging-using-attach)
+        - [\[VSCode\] Single WebView TypeScript Debugging Using Attach](#vscode-single-webview-typescript-debugging-using-attach)
+        - [\[VS\] Single WebView JavaScript Debugging (Debugger For Microsoft Edge)](#vs-single-webview-javascript-debugging-debugger-for-microsoft-edge)
+        - [\[VS\] Single WebView TypeScript Debugging (Debugger For Microsoft Edge)](#vs-single-webview-typescript-debugging-debugger-for-microsoft-edge)
+      - [Cookie Management](#cookie-management)
+      - [Cookie Management(Profile)](#cookie-managementprofile)
+      - [NavigateWithWebResourceRequest](#navigatewithwebresourcerequest)
+      - [ClientCertificateRequested](#clientcertificaterequested)
+      - [SingleSignOn](#singlesignon)
+      - [Clear Browsing Data](#clear-browsing-data)
+      - [Print](#print)
+      - [IFrame-Device-Permission](#iframe-device-permission)
+      - [Accelerator Key Pressed IsBrowserAcceleratorKeyEnabled](#accelerator-key-pressed-is-browser-accelerator-key-enabled)
+    - [Help](#help)
+      - [About](#about)
+    - [Dialogs](#dialogs)
+      - [Download Dialog](#download-dialog)
+      - [Find Dialog](#find-dialog)
+    - [Dragging](#dragging)
+      - [Draggable Regions](#draggable-regions)
+      - [Interactive Dragging](#interactive-dragging)
+      - [Drag and Drop](#drag-and-drop)
+    - [Hosting Modes](#hosting-modes)
+      - [Windowed Hosting](#windowed-hosting)
+      - [Visual Hosting](#visual-hosting)
+    - [Miscellaneous](#miscellaneous)
+      - [Accelerator Key Support](#accelerator-key-support)
+      - [Language](#language)
+      - [Saving Password](#saving-password)
+      - [Ctrl Cick a form with post method](#ctrl-cick-a-form-with-post-method)
+      - [Open Link in New Window from PDF](#open-link-in-new-window-from-pdf)
+      - [WebView Does Not Crash](#webview-does-not-crash)
+      - [HTTPS upgrades disabled for API navigations](#https-upgrades-disabled-for-api-navigations)
 
 ## Getting started
 
-* Install the [latest Edge Canary Channel](https://www.microsoftedgeinsider.com/download)
+- Install the [latest Edge Canary Channel](https://www.microsoftedgeinsider.com/download)
 
 ### Install a NuGet package Locally in VS
 
@@ -169,7 +197,7 @@ Test that prompts the user for some script to run in the WebView
 4. Click `Cancel`
 5. Repeat steps 2-3
 6. Type `confirm("Confirm?")` in the text input box and click `OK`
-7. Expected: www.bing.com says popup that says `Confirm?`
+7. Expected: <www.bing.com> says popup that says `Confirm?`
 8. Click `OK` inside the Confirm Box
 9. Expected: dialog closed
 10. Expected: ExecuteScript Result popup that says `true`
@@ -197,13 +225,13 @@ Test that prompts the user for some script to run in the WebView, and get the er
 
 Test that prompts the user for some string web message to the top level document
 
-1. See [Web Messaging](#Web-Messaging)
+1. See [Web Messaging](#web-messaging)
 
 #### Post Message JSON
 
 Test that prompts the user for some JSON web message to the top level document
 
-1. See [Web Messaging](#Web-Messaging)
+1. See [Web Messaging](#web-messaging)
 
 #### Add/Remove Initialize Script
 
@@ -364,11 +392,11 @@ _It includes foo.com and bar.org by default_
 2. Load <https://www.microsoft.com>
 3. Go to `Settings -> Blocked Domains`
 4. Expected: Text Input Dialog that prompts the user for a list of blocked domains
-5. Add www.bing.com to the list of blocked domains and click `OK`
+5. Add <www.bing.com> to the list of blocked domains and click `OK`
 6. Load <https://www.bing.com>
 7. Expected: Navigation to <https://www.bing.com> fails
 8. Repeat steps 3-4
-9. Remove www.bing.com from the list of blocked domains and click `OK`
+9. Remove <www.bing.com> from the list of blocked domains and click `OK`
 10. Repeat step 6
 11. Expected: Navigation to <https://www.bing.com> completes
 
@@ -690,6 +718,86 @@ Test that enables/disables password autosave
 28. Repeat step 9.
 29. Expected: There is not an additional drop down box that has been added.
 
+### Toggle profile general autofill enabled
+
+Test that enables/disables profile general autofill
+_General autofill is enabled by default._
+
+1. Launch the sample app.
+2. Go to `Window -> Create New Window With Option`.
+3. Type in profile name and uncheck InPrivate, then click `OK`.
+4. Expected: A new app window opened with profile name in its title bar, we call this window as window1.
+5. In sample app, repeat step 2.
+6. Type in the same profile name as typed in step 3 and uncheck InPrivate, then click OK.
+7. Expected: A new app window opened with profile name in its title bar, we call this window as window2.
+8. In sample app, repeat step 2.
+9. Type in the same profile name as typed in step 3 but check InPrivate, then click OK.
+10. Expected: A new window opened with the same profile name in its title bar and the app icon should be different that can indicate it's in private mode, we call this window as window3.
+11. In all windows(1-3) navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+12. In window1 enter in any test information into the Profile Autofill section and click `Submit`.
+13. In window1 navigate to <https://rsolomakhin.github.io/autofill/>.
+14. In all windows(1-3) click on the Name field.
+15. Expected: A drop down box with the saved profile information is shown.
+16. In all windows(1-3) click on the box.
+17. Expected: The profile information is autofilled.
+18. In window1 go to `Settings -> Toggle Profile General Autofill`.
+19. Expected: Message box that says `General autofill will be disabled immediately in all WebView2 with the same profile.`.
+20. Click `OK` inside the popup dialog.
+21. In all windows(1-3) click on the Name field.
+22. Expected: No drop down box appears.
+23. Repeat step 12-14.
+24. Expected: No drop down box appears.
+25. In window1 go to `Settings -> Toggle Profile General Autofill`.
+26. Expected: Message box that says `General autofill will be enabled immediately in all WebView2 with the same profile.`.
+27. Click `OK` inside the popup dialog.
+28. In all windows(1-3) click on the Name field.
+15. Expected: A drop down box with the original saved profile information from step 12 is shown.
+16. In all windows(1-3) click on the box.
+17. Expected: The profile information is autofilled.
+
+### Toggle profile password autosave enabled
+
+Test that enables/disables password autosave
+ _Password autosave is disabled by default._
+
+1. Launch the sample app.
+2. Go to `Settings -> Toggle Profile General Autofill`.
+3. Expected: Message Box that says `General autofill will be disabled immediately in all WebView2 with the same profile.`.
+4. Go to `Window -> Create New Window With Option`.
+5. Type in profile name and uncheck InPrivate, then click `OK`.
+6. Expected: A new app window opened with profile name in its title bar, we call this window as window1.
+7. In sample app, repeat step 2.
+8. Type in the same profile name as typed in step 3 and uncheck InPrivate, then click OK.
+9. Expected: A new app window opened with profile name in its title bar, we call this window as window2.
+10. In sample app, repeat step 2.
+11. Type in the same profile name as typed in step 3 but check InPrivate, then click OK.
+12. Expected: A new window opened with the same profile name in its title bar and the app icon should be different that can indicate it's in private mode, we call this window as window3.
+13. In all windows(1-3) navigate to <https://rsolomakhin.github.io/autofill/> (Use this third party site to verify).
+14. In window1 enter in any test information into the Username/Password section and click `Submit`.
+15. Expected: The window1 navigates to <https://example.com/> and no save password prompt is shown.
+16. In window1, navigate to <https://rsolomakhin.github.io/autofill/>.
+17. In all windows(1-3) click on the username field.
+18. Expected: No drop down box appears. (note: if password information has previously been saved when the password autosave has been enabled, a drop down box will appear.)
+19. In window1, go to `Settings -> Toogle Profile Password Autosave`.
+20. Expected: Message Box that says `Password autosave will be enabled after the next navigation in all WebView2 with the same profile.`.
+21. Click `OK` inside the popup dialog.
+22. In window1 enter in any test information into the Username/Password section and click `Submit`.
+23. Expected: The app navigates to <https://example.com> and a save password prompt will popup.
+24. Click `Save`.
+25. In all windows(1-3) navigate to <https://rsolomakhin.github.io/autofill/>.
+26. Expected: In window1 see the username and password information is auto-populated.
+27. In all windows(1-3) click on the username field.
+28. Expected: A drop down box with the saved password information is shown.
+29. In window1 go to `Settings -> Toggle Profile Password Autosave`.
+30. Expected: Message Box that says `Password autosave will be disabled after the next navigation in all WebView2 with the same profile.`.
+31. Click `OK` inside the popup dialog.
+32. In window1 delete the information from the username and password fields and enter in new test information and click submit.
+33. Expected: No save password prompt is shown.
+34. In window1 navigate to <https://rsolomakhin.github.io/autofill/>.
+35. Expected: Only the information entered from step 22 is auto-populated.
+36. In all windows(1-3) click on the username field.
+37. Expected: There is not an additional drop down box that has been added.
+
 ### Toggle browser accelerator keys enabled
 
 Test that enabled/disables browser accelerator keys
@@ -731,6 +839,7 @@ _Swipe left/right to navigate is enabled by default._
 1. Verify that swipe to navigate works again.
 
 #### Toggle SmartScreen enabled
+
 Test that enables/disables SmartScreen
 
 1. Launch the sample app
@@ -757,6 +866,7 @@ Test that enables/disables SmartScreen
 1. Expected: The popup will no longer appear
 
 #### Toggle hide PDF toolbar items
+
 Test that hide/show PDF save button and print button.
 
 1. Launch the sample app
@@ -802,6 +912,23 @@ Test that turns off TLS error page.
 1. Refresh the page.
 1. Expected: WebView2 displays SSL error page to the user.
 
+#### Toggle Launching External URI Scheme
+
+1. Launch the sample app.
+1. Navigate to <calculator://>.
+1. Expected: Default dialog is displayed.
+1. Select `OK` inside the dialog.
+1. Expected: Calculator application is launched.
+1. Go to `Settings -> Toggle Launching External URI Scheme`.
+1. Expected: Message Box that says `Launching Exteranl URI Scheme support has been enabled`.
+1. Click `OK` inside the popup dialog.
+1. Repeat step 2.
+1. Expected: No default dialog is displayed and the calculator application is launched.
+1. Go to `Settings -> Toggle Launching External URI Scheme`.
+1. Expected: Message Box that says `Launching Exteranl URI Scheme support has been disabled`.
+1. Repeat step 2.
+1. Expected: Default dialog is displayed.
+
 ### View
 
 #### Toggle Visibility
@@ -818,9 +945,9 @@ Test that makes WebView visible/invisible
 
 Notes:
 
-* Top is always 32 (or some non-zero value) to account for sample app UI such as menu bar and address bar
-* WebView height is (Bottom - Top)
-* WebView width is equal to Right
+- Top is always 32 (or some non-zero value) to account for sample app UI such as menu bar and address bar
+- WebView height is (Bottom - Top)
+- WebView width is equal to Right
 
 ##### Bounds A
 
@@ -838,7 +965,7 @@ Top: 32
 Right: 712
 Bottom: 366
 
-or, height/width should be 0.5x of [Bounds A](#bounds-A)
+or, height/width should be 0.5x of [Bounds A](#bounds-a)
 
 ##### Bounds C
 
@@ -847,7 +974,7 @@ Top: 32
 Right: 1006
 Bottom: 504
 
-or, height/width should be ~0.707x of [Bounds A](#bounds-A)
+or, height/width should be ~0.707x of [Bounds A](#bounds-a)
 
 ##### Bounds D
 
@@ -856,7 +983,7 @@ Top: 32
 Right: 1509
 Bottom: 740
 
-or, height/width should be ~1.06x of [Bounds A](#bounds-A)
+or, height/width should be ~1.06x of [Bounds A](#bounds-a)
 
 #### WebView Area
 
@@ -864,13 +991,13 @@ Test that resizes WebView window
 _Updates the bounds of the WebView window to resize_
 
 1. Launch the sample app.
-1. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds. (See [Bounds A](#Bounds-A))
+1. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds. (See [Bounds A](#bounds-a))
 1. Go to `View -> WebView Area -> 25%`
 1. Go to `View -> WebView Area -> Get WebView Bounds`.
-1. Expected: WebView size ratio is 25% of bounds in step 2 and WebView was resized. (See [Bounds B](#Bounds-B))
+1. Expected: WebView size ratio is 25% of bounds in step 2 and WebView was resized. (See [Bounds B](#bounds-b))
 1. Go to `View -> WebView Area -> 50%`
 1. Go to `View -> WebView Area -> Get WebView Bounds`.
-1. Expected: WebView size ratio to 50% of bounds in step 2 and WebView was resized. (See [Bounds C](#Bounds-C))
+1. Expected: WebView size ratio to 50% of bounds in step 2 and WebView was resized. (See [Bounds C](#bounds-c))
 1. Go to `View -> WebView Area -> 100%`
 1. Go to `View -> WebView Area -> Get WebView Bounds`.
 1. Expected: WebView size matches bounds in step 2 and WebView was resized.
@@ -905,10 +1032,10 @@ getting larger or smaller without the layout of the page changing._
 
 1. Launch the sample app.
 1. Go to `View -> WebView Area -> 50%`
-1. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds. (See [Bounds C](#Bounds-C))
+1. Go to `View -> WebView Area -> Get WebView Bounds`. Note the current bounds. (See [Bounds C](#bounds-c))
 1. Go to `View -> WebView Scale -> 1.5x`
 1. Go to `View -> WebView Area -> Get WebView Bounds`
-1. Expected: WebView size is 1.5x larger than bounds in step 2 - current WebView height is 1.5x larger than height in step 2 and current WebView width is 1.5x larger than width in step 2.  (See [Bounds D](#Bounds-D))
+1. Expected: WebView size is 1.5x larger than bounds in step 2 - current WebView height is 1.5x larger than height in step 2 and current WebView width is 1.5x larger than width in step 2.  (See [Bounds D](#bounds-d))
 1. Go to `View -> WebView Zoom -> Get WebView Zoom`
 1. Expected: WebView zoom factor is set to 1.5x
 1. Expected: WebView renders at the new size/zoom (looks larger) without the
@@ -1011,9 +1138,7 @@ Test that verifies `DOMContentLoaded` event is raised after the DOM is loaded wh
 
 ##### [VSCode] Debugging Setup
 
-1. Open VSCode, go to `View -> Extensions` and install the two debuggers:
-    1. [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2)
-    ![old-debugging-tool](screenshots/old-script-debugging-tool.png)
+1. Open VSCode, go to `View -> Extensions` and install the debugger:
     1. [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug)
     ![new-debugging-tool](screenshots/new-script-debugging-tool.png)
 1. Go to `File -> Open Folder` and open `WebView2APISample/` (where `.vscode/` lives)
@@ -1023,7 +1148,7 @@ Test that verifies `DOMContentLoaded` event is raised after the DOM is loaded wh
 
 ##### [VSCode] Single WebView JavaScript Debugging
 
-Test Single WebView JavaScript Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
+Test Single WebView JavaScript Debugging with **both** [Visual Studio Code's built-in debugger for Microsoft Edge](https://code.visualstudio.com/docs/nodejs/browser-debugging) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
 1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
@@ -1037,7 +1162,7 @@ Test Single WebView JavaScript Debugging with **both** [Debugger For Microsoft E
 
 ##### [VSCode] Single WebView TypeScript Debugging
 
-Test Single WebView TypeScript Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
+Test Single WebView TypeScript Debugging with **both** [Visual Studio Code's built-in debugger for Microsoft Edge](https://code.visualstudio.com/docs/nodejs/browser-debugging) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
 1. Follow [Debugging Setup](#vscode-debugging-setup)
 1. Go to Debug tab via `View -> Run`
@@ -1052,7 +1177,7 @@ Test Single WebView TypeScript Debugging with **both** [Debugger For Microsoft E
 
 ##### [VSCode] Single WebView JavaScript Debugging Using Attach
 
-Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
+Test Single WebView Script Debugging with **both** [Visual Studio Code's built-in debugger for Microsoft Edge](https://code.visualstudio.com/docs/nodejs/browser-debugging) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
 1. Add a new REGKEY `*=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments`
   ![step 1](screenshots/script-debugging-reg-key.png)
@@ -1069,7 +1194,7 @@ Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge]
 
 ##### [VSCode] Single WebView TypeScript Debugging Using Attach
 
-Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge](https://github.com/microsoft/vscode-edge-debug2) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
+Test Single WebView Script Debugging with **both** [Visual Studio Code's built-in debugger for Microsoft Edge](https://code.visualstudio.com/docs/nodejs/browser-debugging) and [JavaScript Debugger Nightly](https://github.com/microsoft/vscode-js-debug) in VSCode
 
 1. Add a new REGKEY `*=--remote-debugging-port=9222` under `Computer\HKEY_CURRENT_USER\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments`
   ![step 1](screenshots/script-debugging-reg-key.png)
@@ -1084,9 +1209,9 @@ Test Single WebView Script Debugging with **both** [Debugger For Microsoft Edge]
 1. Expect debugger to hit the breakpoint and pause the page
 1. Delete the REGKEY after testing
 
-##### [VS] Single WebView JavaScript Debugging (Old Tool: Debugger For Microsoft Edge)
+##### [VS] Single WebView JavaScript Debugging (Debugger For Microsoft Edge)
 
-Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For Microsoft Edge in VS](https://github.com/microsoft/vscode-edge-debug2)
+Test Single WebView JavaScript Debugging:
 
 1. Open VS Installer, and make sure `JavaScript Diagnostics` is installed for C++ Development Kit.
   ![step 1](screenshots/vs-javascript-diagnostics.png)
@@ -1098,9 +1223,9 @@ Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For 
 6. Go to `Scenario -> Script Debugging -> JavaScript`
 7. Expect debugger to hit the breakpoint and pause the page
 
-##### [VS] Single WebView TypeScript Debugging (Old Tool: Debugger For Microsoft Edge)
+##### [VS] Single WebView TypeScript Debugging (Debugger For Microsoft Edge)
 
-Test Single WebView JavaScript Debugging with old debugging tool: [Debugger For Microsoft Edge in VS](https://github.com/microsoft/vscode-edge-debug2)
+Test Single WebView JavaScript Debugging:
 
 1. Open VS Installer, and make sure `JavaScript Diagnostics` is installed for C++ Development Kit.
   ![step 1](screenshots/vs-javascript-diagnostics.png)
@@ -1121,6 +1246,14 @@ Test that demonstrates cookie management related APIs usage such as `GetCookies`
 2. Go to **Scenario** > **Cookie Management**
 3. Follow the instructions on the page
 
+#### Cookie Management(Profile)
+
+Test that demonstrates cookie management related APIs using cookie manager got from profile.
+
+1. Launch the sample app
+2. Go to **Scenario** > **Cookie Management(Profile)**
+3. Follow the instructions on the page
+
 #### NavigateWithWebResourceRequest
 
 1. Launch sample app.
@@ -1134,7 +1267,7 @@ Test that demonstrates cookie management related APIs usage such as `GetCookies`
 1. Close sample app if it is open and re-launch.
 2. Go to `Scenario -> Client Certificate Requested -> Use Deferred Custom Client Certificate Selection Dialog`.
 3. Expected: Message Box that says `Custom Client Certificate selection dialog will be used next when WebView2 is making a request to an HTTP server that needs a client certificate.`
-4. Follow steps 8-19 from [Toggle Client Certificate Requested](#Toggle-Client-Certificate-Requested) if client certificate is not installed, otherwise skip this.
+4. Follow steps 8-19 from [Toggle Client Certificate Requested](#toggle-client-certificate-requested) if client certificate is not installed, otherwise skip this.
 5. Navigate to <https://client.badssl.com>.
 6. Expected: A custom dialog box with title `Select a certificate for authentication` and certificate/s in the list box.
 7. Select a certificate from the list.
@@ -1148,6 +1281,7 @@ Test that demonstrates cookie management related APIs usage such as `GetCookies`
 14. Expected: Dialog box is closed and server responds with 400 Bad Request (No required SSL Certificate was sent).
 
 #### SingleSignOn
+
 1. Set environment variable WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--enable-features=msSingleSignOnOSForPrimaryAccountIsShared
 2. Launch sample app
 3. Go to `Scenario -> WebView Event Monitor`
@@ -1224,9 +1358,18 @@ Test that demonstrates the frame Permission Requested API.
 7. Click `Location Test` for the main frame.
 8. Expected: The CoreWebView2Frame permission requests opens a message box to ask user whether they want to accept or deny.
 
+#### Accelerator Key Pressed IsBrowserAcceleratorKeyEnabled
+Test that app can allow/block specific browser accelerator keys when `IsBrowserAcceleratorKeyEnabled` settings is set to `FALSE`/`TRUE`.
+1. Launch the sample app.
+1. Go to `Scenario -> Accelerator Key Pressed`. F7 is expected to always be enabled and Ctr + P is always disabled in this scenario.
+1. Click on `Disable all Browser Accelerator`, close pop up dialog, then reload the page.
+1. Expected: All browser accelerator keys are disabled, but F7 works.
+1. Click on `Enable all Browser Accelerator`, close pop up dialog, then reload the page.
+1. Expected: All browser accelerator keys are now enabled, but Ctrl + P will not work.
+
 ### Help
 
-#### About ...
+#### About
 
 Test that gets `About …`
 
@@ -1237,13 +1380,15 @@ Test that gets `About …`
 5. Expected: dialog closed
 
 ### Dialogs
+
 Test that various dialogs work as expected. Uses two windows because some crashes are only caught if the app is still running.
 
 #### Download Dialog
+
 1. Launch the sample app.
 2. Go to `Window -> Create New Thread`.
 3. Expected: A new app window is opened.
-4. Navigate to https://demo.smartscreen.msft.net.
+4. Navigate to <https://demo.smartscreen.msft.net>.
 5. Scroll down to `App Rep Demos` section and click on `Known Good Program` to download.
 6. Expected: Download dialog appears.
 7. Minimize app window with download dialog.
@@ -1255,12 +1400,140 @@ Test that various dialogs work as expected. Uses two windows because some crashe
 13. Expected: App window and download dialog are closed.
 
 #### Find Dialog
+
 1. Launch the sample app.
 2. Go to `Window -> Create New Thread`.
 3. Expected: A new app window is opened.
 4. Launch find dialog on new window with `Ctrl-F`.
 5. Close new window.
 6. Expected: New window and find dialog are closed.
+
+### Dragging
+
+#### Draggable Regions
+
+Test that draggable regions work on WebView2.
+
+1. Enable Draggable Regions by adding the feature flag `msWebView2EnableDraggableRegions` to `put_AdditionalBrowserArguments` args in `AppWindow::InitializeWebView`.
+1. Build and launch the sample app.
+1. Select `Script > Inject Script` and paste this code into the text box:
+
+    ```javascript
+    document.getElementsByClassName('header')[0].style.appRegion = "drag";
+    document.getElementsByClassName('center')[0].style.appRegion = "no-drag";
+    document.getElementsByClassName('header')[0].style.width = "99%";
+    setTimeout(1, function() { document.getElementsByClassName('header')[0].style.width = "100%";});
+    ```
+
+NOTE: this code briefly changes the size of the 'Microsoft Edge WebView2' header
+element on the webpage. This is to trigger a reflow of the document. Without
+this the `appRegion` changes would not take place until some document element was resized
+
+1. Click and drag over the text of 'Microsoft Edge WebView2' header element
+1. Expected:  Cursor changes to I-bar, text highlights if applicable, sample app
+   does not drag. Note: may drag if click and drag point is too far from the
+   text.
+1. For following instructions, click in the box, not the text of the 'Microsoft
+   Edge WebView2' header element.
+1. Click and drag 'Microsoft Edge WebView2' element.
+1. Expected:  Entire sample app should drag
+1. Double click on the 'Microsoft Edge WebView2' element.
+1. Expected:  Sample app should maximize
+1. Double click on the 'Microsoft Edge WebView2' element again.
+1. Expected:  Sample app should restore to previous size
+1. Right click on 'Microsoft Edge WebView2' element.
+1. Expected: Title bar context menu (non-WebView) should appear
+1. Select `maximize`
+1. Expected: Sample app will maximize
+1. Right click 'Microsoft Edge WebView2' element and select `restore`
+1. Expected: Sample app will restore.
+
+#### Interactive Dragging Enabled By Default
+
+Test that interactive dragging is enabled by default on Webview2.
+
+1. Click Scenario > Non-Client Region Support.
+1. Look under the Heading "Interactive Elements".
+1. Hover the mouse on the textarea and button.
+1. Expected: Cursor should be arrow, the element border should turn red and
+   increase in size.
+1. Drag on text area and button.
+1. Expected: The entire app should drag.
+1. Click into text area.
+1. Expected: Cursor changes to I-bar.
+1. Type text into textarea then try to select/highlight it
+1. Expected: Text should highlight and the entire app should not drag
+1. Click button.
+1. Expected: The click counter should increment.
+
+#### Interactive Dragging Opt-out
+
+Test that the interactive dragging opt-out switch works on Webview2.
+
+1. run the app with the flag 
+    --edge-webview-disable-interactive-dragging
+1. Click Scenario > Non-Client Region Support.
+1. Look under the Heading "Interactive Elements".
+1. Hover the mouse on the textarea and button.
+1. Expected: Cursor should be arrow, the element border should 
+   stay the same.
+1. Drag on text area and button.
+1. Expected: The entire app should drag.
+1. Click into text area.
+1. Expected: Cursor remains the same.
+1. Click button.
+1. Expected: The click counter should not increment.
+
+#### Drag and Drop
+
+Test that Drag and Drop is supported in WebView2 using both hosting modes.
+
+1. Launch the sample app.
+1. Select text "Runtime version".
+1. Click, hold, and drag the selected text to the Query text box.
+1. Release mouse over text box to drop text.
+1. Expected: "Runtime version" text is inserted into Query text box.
+1. Go to `Window -> Close WebView.`
+1. Go to `Window -> WebView Creation Mode -> Visual - DComp.`
+1. Go to `Window -> Create WebView.`
+1. Select text "Runtime version".
+1. Click, hold, and drag the selected text to the Query text box.
+1. Release mouse over text box to drop text.
+1. Expected: "Runtime version" text is inserted into Query text box.
+1. Go to `Window -> Close WebView.`
+1. Expected: App does not crash.
+
+### Hosting Modes
+
+#### Windowed Hosting
+
+The majority of the tests in this document are tested using Windowed/HWND hosting, which is the default.
+We don't need other specific tests for Windowed Hosting.
+
+#### Visual Hosting
+
+Verify that basic hosting functionality continues to work when hosted using visuals.
+
+1. Launch the sample app.
+1. Go to `Window -> Close WebView`.
+1. Go to `Window -> WebView Creation Mode -> Visual - DComp`.
+1. Go to `Window -> Create WebView`.
+1. Move mouse to the Query text box in the webpage.
+1. Expected: Cursor should change from a pointer to I-beam text cursor.
+1. Click in Query text box.
+1. Expected: Focus moves to the text box and insertion caret shows up in the text box.
+1. Type "Hello world" in the Query text box.
+1. Expected: Text shows up in text box.
+1. Press `Windows + period` on the keyboard.
+1. Expected: Emoji picker popup appears, positioned to the bottom right of the insertion point.
+1. Click on any emoji to insert it.
+1. Expected: Chosen emoji is inserted in the text box.
+1. Close the emoji picker.
+1. Drag the window to a new location on screen.
+1. Repeat steps 5 - 15.
+1. Expected: Webpage moves to new location.
+1. Expected: Cursor changes from hovering and clicking text box are in the new location.
+1. Expected: Emoji picker is in the new location.
 
 ### Miscellaneous
 
@@ -1271,11 +1544,11 @@ Verify that accelerator key routing works
 1. Launch the sample app.
 2. Put focus inside the webpage.
 3. For each of the following accelerator keys, press it while the webview is focused, and verify that the expected result happens.
-    * `CTRL-S`: The save screenshot dialog opens.  Press cancel to close it.
-    * `CTRL-N`: A new app window opens.
-    * `CTRL-T`: A new app window opens.
-    * `CTRL-W`: The webview inside the current app window closes.
-    * `CTRL-Q`: The current app window closes.
+    - `CTRL-S`: The save screenshot dialog opens.  Press cancel to close it.
+    - `CTRL-N`: A new app window opens.
+    - `CTRL-T`: A new app window opens.
+    - `CTRL-W`: The webview inside the current app window closes.
+    - `CTRL-Q`: The current app window closes.
 
 #### Language
 
@@ -1299,13 +1572,25 @@ Verify that we don't offer saving password.
 
 1. Launch the sample app.
 2. Load <https://www.w3schools.com/Tags/tryit.asp?filename=tryhtml5_input_type_password>, ignore any iframe navigation failure messages during the test.
-3. Type in some test email and password, like test@example.com and 12345678 in Email and Password field on the right part of the page.
+3. Type in some test email and password, like <test@example.com> and 12345678 in Email and Password field on the right part of the page.
 4. Click `Submit` button, the page should show the inputted values.
 5. Make sure that there is no browser prompt for saving password with strings like `Microsoft Edge will save and fill your password for this site next time`.
 6. Reload the page, ignore any iframe navigation failure messages during the test.
 7. Ensure that the fields are not auto filled.
 8. Set focus on Email input, verify that we can choose to auto fill with previously typed in value.
 9. Set focus on Password input, verify that there is no auto fill option showing up.
+
+#### Ctrl Cick a form with post method
+
+Verify that we correctly pass request to the new opened window when submit form with post method through ctrl click.
+
+1. Launch the sample app.
+2. Load <https://www.w3schools.com/tags/tryit.asp?filename=tryhtml_form_method_post>, ignore any iframe navigation failure messages during the test.
+3. Remove `target="_blank"` from the line `<form action="/action_page.php" method="post" target="_blank">`.
+4. Click `Run` button on the left part of the page.
+5. Type in some test first name and last name, like first_name and last_name in First name and Last name on the right part of the page.
+6. Press the Ctrl key, hold it and click `Submit` button in the meanwhile, then it should pop up a new window.
+7. Verify that the text bar in the new opened window shows the first name and last name you typed in step 5, like `fname=first_name&lname=last_name`.
 
 #### Open Link in New Window from PDF
 
@@ -1319,6 +1604,7 @@ Verify that the `NewWindowRequested` event is fired when opening a link in new w
 6. Expected: Event Monitor displays `NewWindowRequested`.
 
 #### WebView Does Not Crash
+
 Test that there is no crash in WebView processes for some of the error prone scenarios.
 
 1. Launch the sample app.
@@ -1331,3 +1617,10 @@ Test that there is no crash in WebView processes for some of the error prone sce
 1. Close the WebView in first app window by `Window -> Close WebView`.
 1. Expected:  The WebView in first app window does not render the start page anymore, while no browser process failure message box is observed for the newly created app window.
 1. Wait for 1 minute, expect no browser process failure message box is observed for the newly created app window.
+
+#### HTTPS upgrades disabled for API navigations
+
+1. Launch the sample app.
+2. Navigate to `http://privacy-test-pages.site/privacy-protections/https-upgrades/`
+3. Expected: Observe that the page loads on http and does not try to redirect to https
+   and go into a redirect loop.

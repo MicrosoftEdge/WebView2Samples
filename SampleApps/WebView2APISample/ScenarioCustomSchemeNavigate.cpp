@@ -15,8 +15,11 @@ using namespace Microsoft::WRL;
 ScenarioCustomSchemeNavigate::ScenarioCustomSchemeNavigate(AppWindow* appWindow)
     : m_appWindow(appWindow)
 {
-    CHECK_FAILURE(m_appWindow->GetWebView()->AddWebResourceRequestedFilter(
-        L"wv2rocks*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL));
+    m_appWindow->GetWebView()->QueryInterface(IID_PPV_ARGS(&m_webView2_22));
+    CHECK_FEATURE_RETURN_EMPTY(m_webView2_22);
+    CHECK_FAILURE(m_webView2_22->AddWebResourceRequestedFilterWithRequestSourceKinds(
+        L"wv2rocks*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL,
+        COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_DOCUMENT));
     CHECK_FAILURE(m_appWindow->GetWebView()->add_WebResourceRequested(
         Callback<ICoreWebView2WebResourceRequestedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
@@ -24,12 +27,17 @@ ScenarioCustomSchemeNavigate::ScenarioCustomSchemeNavigate(AppWindow* appWindow)
                 wil::com_ptr<ICoreWebView2WebResourceRequest> request;
                 wil::com_ptr<ICoreWebView2WebResourceResponse> response;
                 CHECK_FAILURE(args->get_Request(&request));
+                wil::com_ptr<IStream> content;
+                request->get_Content(&content);
                 wil::unique_cotaskmem_string uri;
                 CHECK_FAILURE(request->get_Uri(&uri));
-                if (wcsncmp(uri.get(), L"wv2rocks", ARRAYSIZE(L"wv2rocks") - 1) == 0)
+                if (wcsncmp(
+                        uri.get(), L"wv2rocks://domain/",
+                        ARRAYSIZE(L"wv2rocks://domain/") - 1) == 0)
                 {
                     std::wstring assetsFilePath = L"assets/";
-                    assetsFilePath += wcsstr(uri.get(), L":") + 1;
+                    assetsFilePath +=
+                        wcsstr(uri.get(), L"://domain/") + ARRAYSIZE(L"://domain/") - 1;
                     wil::com_ptr<IStream> stream;
                     SHCreateStreamOnFileEx(
                         assetsFilePath.c_str(), STGM_READ, FILE_ATTRIBUTE_NORMAL, FALSE,
@@ -87,7 +95,7 @@ ScenarioCustomSchemeNavigate::ScenarioCustomSchemeNavigate(AppWindow* appWindow)
             .Get(),
         &m_webResourceRequestedToken));
 
-    m_appWindow->GetWebView()->Navigate(L"wv2rocks:ScenarioCustomScheme.html");
+    m_appWindow->GetWebView()->Navigate(L"wv2rocks://domain/ScenarioCustomScheme.html");
 }
 
 ScenarioCustomSchemeNavigate::~ScenarioCustomSchemeNavigate()

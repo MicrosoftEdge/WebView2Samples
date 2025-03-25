@@ -54,6 +54,10 @@
                     <MenuItem Header="Subscribe" Click="SubscribeToDownloadWillBegin"/>
                     <MenuItem Header="Unsubscribe" Click="UnsubscribeFromDownloadWillBegin"/>
                 </MenuItem>
+                <MenuItem Header="RequestReponseLogs">
+                    <MenuItem Header="Subscribe" Click="SubscribeToNetworkBasics"/>
+                    <MenuItem Header="Unsubscribe" Click="UnsubscribeFromNetworkBasics"/>
+                </MenuItem>
             </MenuItem>
         </Menu>
         <DockPanel DockPanel.Dock="Top">

@@ -22,10 +22,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       
-      - name: "Update windows SDK"
-        uses: fbactions/setup-winsdk@v1
-        with:
-          winsdk-build-version: 18362
+      # - name: "Update windows SDK"
+      #   uses: fbactions/setup-winsdk@v1
+      #   with:
+      #     winsdk-build-version: 18362
 
       - name: setup-msbuild
         uses: microsoft/setup-msbuild@v1

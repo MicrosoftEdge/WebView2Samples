@@ -47,6 +47,11 @@ namespace WebView2WpfBrowser
             return $"BridgeAddRemoteObject.FuncAsync({msDelay})";
         }
 
+        public async Task FuncAsyncTaskVoid(int msDelay)
+        {
+            await Task.Delay(msDelay);
+        }
+
         // Sample function that takes no parameters.
         public string Func2()
         {
@@ -57,6 +62,11 @@ namespace WebView2WpfBrowser
         {
             await Task.Delay(500);
             return "BridgeAddRemoteObject.Func2Async()";
+        }
+
+        public async Task Func2AsyncTaskVoid()
+        {
+            await Task.Delay(500);
         }
 
         // Get type of an object.
@@ -87,5 +97,19 @@ namespace WebView2WpfBrowser
         }
         private Dictionary<int, string> m_dictionary = new Dictionary<int, string>();
 
+        public void InvokeEvent()
+        {
+            TestEvent0?.Invoke();
+            TestEvent1?.Invoke("param1");
+            TestEvent2?.Invoke("param1", DateTime.UtcNow);
+        }
+#pragma warning disable CS0067
+        public delegate void TestEvent0Delegate();
+        public event TestEvent0Delegate TestEvent0;
+        public delegate void TestEvent1Delegate(String param1);
+        public event TestEvent1Delegate TestEvent1;
+        public delegate void TestEvent2Delegate(String param1, DateTime param2);
+        public event TestEvent2Delegate TestEvent2;
+#pragma warning restore CS0067
     }
 }

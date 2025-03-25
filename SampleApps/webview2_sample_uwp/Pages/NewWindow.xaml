@@ -1,0 +1,81 @@
+﻿<!--Copyright (C) Microsoft Corporation. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.-->
+
+<local:BasePage
+    x:Class="WebView2_UWP.Pages.NewWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:WebView2_UWP.Pages"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Column="0" Margin="23" Spacing="17">
+            <RichTextBlock IsTextSelectionEnabled="True" TextWrapping="Wrap">
+                <Paragraph>
+                    This example demonstrates a few ways to handle new window requests coming from a WebView. See
+                    <Hyperlink NavigateUri="https://learn.microsoft.com/en-us/dotnet/api/microsoft.web.webview2.core.corewebview2.newwindowrequested"
+                               UnderlineStyle="None"
+                               FontWeight="SemiBold">
+                        here
+                    </Hyperlink>
+                    for more details about the NewWindowRequested event.
+                </Paragraph>
+                <Paragraph></Paragraph>
+                <Paragraph>
+                    Select an option from the list below and then initiate a window open request from the main webview.
+                </Paragraph>
+            </RichTextBlock>
+
+            <controls:RadioButtons
+                Header="Window Open Options"
+                ItemsSource="{x:Bind options}"
+                SelectedIndex="0"
+                SelectionChanged="WindowOpenOptions_SelectionChanged">
+                <controls:RadioButtons.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock TextWrapping="WrapWholeWords">
+                            <Run Text="{Binding Name}" FontWeight="Bold" />
+                            <LineBreak />
+                            <Run Text="{Binding Description}"/>
+                        </TextBlock>
+                    </DataTemplate>
+                </controls:RadioButtons.ItemTemplate>
+            </controls:RadioButtons>
+        </StackPanel>
+
+        <Grid Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <controls:WebView2 Grid.Row="0" x:Name="WebView2" />
+            <controls:TabView
+                x:Name="WebViewTabView"
+                Grid.Row="1"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                AllowDrop="False"
+                AllowDropTabs="False"
+                IsAddTabButtonVisible="False"
+                TabCloseRequested="WebViewTabView_TabCloseRequested"/>
+        </Grid>
+
+    </Grid>
+</local:BasePage>

@@ -16,12 +16,10 @@
 #include <string>
 #include <vector>
 #include <winnt.h>
-#ifdef USE_WEBVIEW2_WIN10
 #include <winrt/Windows.UI.Composition.h>
 #include <winrt/Windows.UI.ViewManagement.h>
 
 namespace winrtComp = winrt::Windows::UI::Composition;
-#endif
 
 class SettingsComponent;
 
@@ -36,28 +34,31 @@ struct WebViewCreateOption
     std::wstring profile;
     bool isInPrivate = false;
     std::wstring downloadPath;
-
+    std::wstring scriptLocale;
     // This value is inherited from the operated AppWindow
     WebViewCreateEntry entry = WebViewCreateEntry::OTHER;
+    bool useOSRegion = false;
+    std::optional<COREWEBVIEW2_COLOR> bg_color;
     WebViewCreateOption()
     {
     }
-
-    WebViewCreateOption(const std::wstring& profile_, bool inPrivate,
-        const std::wstring& downloadPath, WebViewCreateEntry entry_)
-        : profile(profile_), isInPrivate(inPrivate),
-          downloadPath(downloadPath), entry(entry_)
+    WebViewCreateOption(
+        const std::wstring& profile_, bool inPrivate, const std::wstring& downloadPath,
+        const std::wstring& scriptLocale_, WebViewCreateEntry entry_, bool useOSRegion_
+        )
+        : profile(profile_), isInPrivate(inPrivate), downloadPath(downloadPath),
+          scriptLocale(scriptLocale_), entry(entry_), useOSRegion(useOSRegion_)
     {
     }
-
     WebViewCreateOption(const WebViewCreateOption& opt)
     {
         profile = opt.profile;
         isInPrivate = opt.isInPrivate;
         downloadPath = opt.downloadPath;
+        scriptLocale = opt.scriptLocale;
         entry = opt.entry;
+        useOSRegion = opt.useOSRegion;
     }
-
     void PopupDialog(AppWindow* app);
 };
 
@@ -87,15 +88,11 @@ class AppWindow
 {
 public:
     AppWindow(
-        UINT creationModeId,
-        const WebViewCreateOption& opt,
-        const std::wstring& initialUri = L"",
-        const std::wstring& userDataFolderParam = L"",
-        bool isMainWindow = false,
-        std::function<void()> webviewCreatedCallback = nullptr,
-        bool customWindowRect = false,
-        RECT windowRect = { 0 },
-        bool shouldHaveToolbar = true);
+        UINT creationModeId, const WebViewCreateOption& opt,
+        const std::wstring& initialUri = L"", const std::wstring& userDataFolderParam = L"",
+        bool isMainWindow = false, std::function<void()> webviewCreatedCallback = nullptr,
+        bool customWindowRect = false, RECT windowRect = {0}, bool shouldHaveToolbar = true,
+        bool isPopup = false);
 
     ~AppWindow();
 
@@ -200,20 +197,38 @@ private:
     void UpdateCreationModeMenu();
     void ToggleAADSSO();
     bool ClearBrowsingData(COREWEBVIEW2_BROWSING_DATA_KINDS dataKinds);
+    bool ClearCustomDataPartition();
     void UpdateAppTitle();
     void ToggleExclusiveUserDataFolderAccess();
     void ToggleCustomCrashReporting();
-#ifdef USE_WEBVIEW2_WIN10
     void OnTextScaleChanged(
         winrt::Windows::UI::ViewManagement::UISettings const& uiSettings,
         winrt::Windows::Foundation::IInspectable const& args);
-#endif
     bool ShowPrintUI(COREWEBVIEW2_PRINT_DIALOG_KIND printDialogKind);
     bool PrintToDefaultPrinter();
     bool PrintToPrinter();
     std::wstring GetPrinterName();
     SamplePrintSettings GetSelectedPrinterPrintSettings(std::wstring printerName);
     bool PrintToPdfStream();
+    void ToggleTrackingPrevention();
+    bool Start(const std::wstring& searchTerm);
+    bool FindNext();
+    bool FindPrevious();
+    bool StopFind();
+    bool GetMatchCount();
+    bool GetActiveMatchIndex();
+    bool FindTerm();
+    bool ShouldHighlightAllMatches();
+    bool ShouldMatchWord();
+    bool SuppressDefaultFindDialog();
+    bool IsCaseSensitive();
+    wil::com_ptr<ICoreWebView2ExperimentalFindOptions> SetDefaultFindOptions();
+    void SetupFindEventHandlers(wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find);
+    // Find on Page member
+    std::wstring m_findOnPageLastSearchTerm;
+    wil::com_ptr<ICoreWebView2ExperimentalFindOptions> findOptions;
+    EventRegistrationToken m_activeMatchIndexChangedToken = {};
+    EventRegistrationToken m_matchCountChangedToken = {};
 
     std::wstring GetLocalPath(std::wstring path, bool keep_exe_path);
     void DeleteAllComponents();
@@ -256,6 +271,7 @@ private:
     std::unique_ptr<SettingsComponent> m_oldSettingsComponent;
 
     std::wstring m_language;
+    std::wstring m_region;
 
     // app title, initialized in constructor
     std::wstring m_appTitle;
@@ -267,7 +283,7 @@ private:
     bool m_ExclusiveUserDataFolderAccess = false;
 
     bool m_CustomCrashReportingEnabled = false;
-
+    bool m_TrackingPreventionEnabled = true;
     // Fullscreen related code
     RECT m_previousWindowRect;
     HMENU m_hMenu;
@@ -276,16 +292,13 @@ private:
     bool m_isPopupWindow = false;
     void EnterFullScreen();
     void ExitFullScreen();
-
     // Compositor creation helper methods
     HRESULT DCompositionCreateDevice2(IUnknown* renderingDevice, REFIID riid, void** ppv);
     HRESULT TryCreateDispatcherQueue();
 
     wil::com_ptr<IDCompositionDevice> m_dcompDevice;
-#ifdef USE_WEBVIEW2_WIN10
     winrtComp::Compositor m_wincompCompositor{ nullptr };
-    winrt::Windows::UI::ViewManagement::UISettings m_uiSettings{ nullptr };
-#endif
+    winrt::Windows::UI::ViewManagement::UISettings m_uiSettings{nullptr};
 
     // Background Image members
     HBITMAP m_appBackgroundImageHandle;
@@ -294,6 +307,7 @@ private:
     RECT m_appBackgroundImageRect;
 };
 
+// Creates and registers a component on this `AppWindow`.
 template <class ComponentType, class... Args> void AppWindow::NewComponent(Args&&... args)
 {
     m_components.emplace_back(new ComponentType(std::forward<Args>(args)...));

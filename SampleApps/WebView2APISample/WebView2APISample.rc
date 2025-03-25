@@ -33,7 +33,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // remains consistent on all systems.
 IDI_WEBVIEW2APISAMPLE   ICON                    "WebView2APISample.ico"
 IDI_WEBVIEW2APISAMPLE_INPRIVATE ICON            "WebView2APISample_Inprivate.ico"
-IDI_SMALL               ICON                    "small.ico"
 
 IDI_WEBVIEW2_BACKGROUND BITMAP                   "AppBackground.bmp"
 
@@ -84,6 +83,11 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Open DevTools Window",        IDM_OPEN_DEVTOOLS_WINDOW
         MENUITEM "Open Task Manager Window",    IDM_OPEN_TASK_MANAGER_WINDOW
+        MENUITEM SEPARATOR
+        MENUITEM "Add Browser Extension",       IDM_ADD_EXTENSION
+        MENUITEM "Remove Browser Extension",    IDM_REMOVE_EXTENSION
+        MENUITEM "Enable/Disable Extension",    IDM_DISABLE_EXTENSION
+        MENUITEM "Start Find",               IDM_START_FIND
     END
     POPUP "&Window"
     BEGIN
@@ -91,17 +95,17 @@ BEGIN
         MENUITEM "Toggle AAD SSO enabled",                     IDM_TOGGLE_AAD_SSO
         MENUITEM "Toggle exclusive user data folder access",   IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS
         MENUITEM "Toggle Custom Crash Reporting"       IDM_TOGGLE_CUSTOM_CRASH_REPORTING
+        MENUITEM "Toggle Tracking Prevention Disabled",   IDM_TOGGLE_TRACKING_PREVENTION
         MENUITEM "Close WebView",                              IDM_CLOSE_WEBVIEW
         MENUITEM "Close WebView and Delete User Data Folder", IDM_CLOSE_WEBVIEW_CLEANUP
         MENUITEM SEPARATOR
         POPUP "WebView Creation Mode"
         BEGIN
             MENUITEM "Windowed",                        IDM_CREATION_MODE_WINDOWED
+            MENUITEM "Windowed - HostInputProcessing",       IDM_CREATION_MODE_HOST_INPUT_PROCESSING
             MENUITEM "Visual - DComp",                  IDM_CREATION_MODE_VISUAL_DCOMP
             MENUITEM "Target - DComp",                  IDM_CREATION_MODE_TARGET_DCOMP
-#ifdef USE_WEBVIEW2_WIN10
             MENUITEM "Visual - WinComp",                IDM_CREATION_MODE_VISUAL_WINCOMP
-#endif
         END
         MENUITEM "Create WebView"                             IDM_REINIT
         MENUITEM "Create New Window With Option"    IDM_CREATE_WITH_OPTION
@@ -115,11 +119,13 @@ BEGIN
         MENUITEM "Crash Browser Process",       IDM_CRASH_PROCESS
         MENUITEM "Crash Render Process",        IDM_CRASH_RENDER_PROCESS
         MENUITEM "Show Performance Info",       IDM_PERFORMANCE_INFO
+        MENUITEM "Show Process Extended Info",  IDM_PROCESS_EXTENDED_INFO
     END
     POPUP "S&ettings"
     BEGIN
         MENUITEM "Blocked Domains",             ID_BLOCKEDSITES
-        MENUITEM "Set User Agent",              ID_SETTINGS_SETUSERAGENT
+        MENUITEM "Set Custom Data Partition Id",   ID_CUSTOM_DATA_PARTITION
+        MENUITEM "Set User Agent", ID_SETTINGS_SETUSERAGENT
         MENUITEM "Toggle Allow External Drop",    ID_TOGGLE_ALLOW_EXTERNAL_DROP
         MENUITEM "Toggle Block Images",         ID_SETTINGS_BLOCKALLIMAGES
         MENUITEM "Toggle Browser Accelerator Keys Enabled", ID_SETTINGS_BROWSER_ACCELERATOR_KEYS_ENABLED
@@ -137,6 +143,8 @@ BEGIN
         MENUITEM "Toggle JavaScript",           IDM_TOGGLE_JAVASCRIPT
         MENUITEM "Toggle Password Autosave",    ID_SETTINGS_PASSWORD_AUTOSAVE_ENABLED
         MENUITEM "Toggle Pinch Zoom Enabled",   ID_SETTINGS_PINCH_ZOOM_ENABLED
+        MENUITEM "Toggle Profile General Autofill",     ID_SETTINGS_PROFILE_GENERAL_AUTOFILL_ENABLED
+        MENUITEM "Toggle Profile Password Autosave",    ID_SETTINGS_PROFILE_PASSWORD_AUTOSAVE_ENABLED
         MENUITEM "Toggle Profile Smart Screen",    ID_SETTINGS_SMART_SCREEN_ENABLED
         MENUITEM "Toggle Replace Images",       ID_SETTINGS_REPLACEALLIMAGES
         POPUP "Server Certificate Error"
@@ -148,6 +156,16 @@ BEGIN
         MENUITEM "Toggle Swipe navigation Enabled",   ID_SETTINGS_SWIPE_NAVIGATION_ENABLED
         MENUITEM "Toggle Web Messaging",        IDM_TOGGLE_WEB_MESSAGING
         MENUITEM "Toggle Zoom Control Enabled",   ID_SETTINGS_ZOOM_ENABLED
+        MENUITEM "Delete This Profile", ID_SETTINGS_PROFILE_DELETE
+        MENUITEM "Toggle Launching External URI Scheme",   ID_TOGGLE_LAUNCHING_EXTERNAL_URI_SCHEME_ENABLED
+        POPUP "Tracking Prevention Level"
+        BEGIN
+            MENUITEM "None", IDM_TRACKING_PREVENTION_LEVEL_NONE
+            MENUITEM "Basic", IDM_TRACKING_PREVENTION_LEVEL_BASIC
+            MENUITEM "Balanced", IDM_TRACKING_PREVENTION_LEVEL_BALANCED
+            MENUITEM "Strict", IDM_TRACKING_PREVENTION_LEVEL_STRICT
+        END
+        MENUITEM "Toggle Non-Client Region Support", ID_SETTINGS_NON_CLIENT_REGION_SUPPORT_ENABLED
     END
     POPUP "&View"
     BEGIN
@@ -230,12 +248,19 @@ BEGIN
             MENUITEM "Cookies",                 IDM_SCENARIO_CLEAR_BROWSING_DATA_COOKIES
             MENUITEM "Disk Cache",              IDM_SCENARIO_CLEAR_BROWSING_DATA_DISK_CACHE
             MENUITEM "Download History",        IDM_SCENARIO_CLEAR_BROWSING_DATA_DOWNLOAD_HISTORY
+            MENUITEM "Custom Data Partition",   IDM_SCENARIO_CLEAR_CUSTOM_DATA_PARTITION
         END
         POPUP "Client Certificate Requested"
         BEGIN
             MENUITEM "Use Deferred Custom Client Certificate Selection Dialog", IDM_SCENARIO_USE_DEFERRED_CUSTOM_CLIENT_CERTIFICATE_DIALOG
         END
         MENUITEM "Cookie Management",           IDM_SCENARIO_COOKIE_MANAGEMENT
+        MENUITEM "Cookie Management(Profile)",           IDM_SCENARIO_COOKIE_MANAGEMENT_PROFILE
+        POPUP "Extensions Management"
+        BEGIN
+            MENUITEM "Install Default Extensions",      IDM_SCENARIO_EXTENSIONS_MANAGEMENT_INSTALL_DEFAULT
+            MENUITEM "Offload Default Extensions",      IDM_SCENARIO_EXTENSIONS_MANAGEMENT_OFFLOAD_DEFAULT
+        END
         MENUITEM "Custom scheme WebResourceRequested CORS", IDM_SCENARIO_CUSTOM_SCHEME
         MENUITEM "Navigate to custom scheme via WebResourceRequested",   IDM_SCENARIO_CUSTOM_SCHEME_NAVIGATE
         MENUITEM "Shared worker WebResourceRequested",   IDM_SCENARIO_SHARED_WORKER
@@ -247,6 +272,8 @@ BEGIN
         MENUITEM "Host Objects",                IDM_SCENARIO_ADD_HOST_OBJECT
         MENUITEM "IFrame Device Permission",    IDM_SCENARIO_IFRAME_DEVICE_PERMISSION
         MENUITEM "NavigateWithWebResourceRequest", IDM_SCENARIO_NAVIGATEWITHWEBRESOURCEREQUEST
+        MENUITEM "NotificationReceived",        IDM_SCENARIO_NOTIFICATION
+        MENUITEM "Permission Management",       IDM_PERMISSION_MANAGEMENT
         POPUP "Print"
         BEGIN
             MENUITEM "Browser Print Preview",  IDM_SCENARIO_BROWSER_PRINT_PREVIEW
@@ -262,12 +289,35 @@ BEGIN
             MENUITEM "JavaScript Virtual File", IDM_SCENARIO_JAVA_SCRIPT_VIRTUAL
             MENUITEM "TypeScript Virtual File", IDM_SCENARIO_TYPE_SCRIPT_VIRTUAL
         END
+        MENUITEM "Non-Client Region Support", IDM_SCENARIO_NON_CLIENT_REGION_SUPPORT
+        MENUITEM "Shared Buffer",               IDM_SCENARIO_SHARED_BUFFER
         MENUITEM "Testing Focus",               IDM_SCENARIO_TESTING_FOCUS
         MENUITEM "Virtual Host Mapping With Service Worker",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING
         MENUITEM "Virtual Host Mapping For Pop Up Window",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING_POP_UP_WINDOW
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
         MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
-        MENUITEM "Shared Buffer",               IDM_SCENARIO_SHARED_BUFFER
+        MENUITEM "Dropped file path",           IDM_SCENARIO_DROPPED_FILE_PATH
+        POPUP "Save As"
+        BEGIN
+          MENUITEM "Toggle Silent Save As", IDM_SCENARIO_SAVE_AS_TOGGLE_SILENT
+          MENUITEM "Programmatic Save As", IDM_SCENARIO_SAVE_AS_PROGRAMMATIC
+        END
+        MENUITEM "Accelerator Key Pressed", IDM_SCENARIO_ACCELERATOR_KEY_PRESSED
+        MENUITEM "Throttling Control",           IDM_SCENARIO_THROTTLING_CONTROL
+        MENUITEM "Screen Capture", IDM_SCENARIO_SCREEN_CAPTURE
+        MENUITEM "File Type Policy", IDM_SCENARIO_FILE_TYPE_POLICY
+        POPUP "Start Find"
+        BEGIN
+          MENUITEM "Start Find on Page Dialog", IDM_START_FIND
+          MENUITEM "Get Match Count", IDM_GET_MATCHES
+          MENUITEM "Get Active Match Index", IDM_GET_ACTIVE_MATCH_INDEX
+          MENUITEM "Stop Find on Page Dialog", IDM_STOP_FIND
+          MENUITEM "Change Find Term", IDC_FIND_TERM
+          MENUITEM "Toggle Highlight", IDC_SHOULD_HIGHLIGHT_ALL_MATCHES
+          MENUITEM "Toggle Case Sensitivity", IDC_IS_CASE_SENSITIVE
+          MENUITEM "Toggle Suppress Default Find Dialog", IDC_SUPPRESS_DEFAULT_FIND_DIALOG
+          MENUITEM "Toggle Should Match Word", IDC_SHOULD_MATCH_WHOLE_WORD
+        END
     END
     POPUP "&Audio"
     BEGIN
@@ -343,9 +393,46 @@ BEGIN
     EDITTEXT        IDC_EDIT_PROFILE,62,18,96,18,ES_AUTOHSCROLL
     LTEXT           "Download path:",IDC_STATIC,25,40,36,18
     EDITTEXT        IDC_EDIT_DOWNLOAD_PATH,62,42,96,18,ES_AUTOHSCROLL
-    CONTROL         "  InPrivate",IDC_CHECK_INPRIVATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,61,74,16
+    CONTROL         "  InPrivate",IDC_CHECK_INPRIVATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,84,74,16
     LTEXT           "Only allow alphabet characters (a-z, A-Z), digit characters (0-9) and '#', '@', '$', '(', ')', '+', '-', '_', '~', '.', ' ' (space).",IDC_STATIC,160,14,138,37
+    LTEXT           "Locale Region:",IDC_STATIC,25,61,36,18
+    EDITTEXT        IDC_EDIT_LOCALE,62,63,96,18,ES_AUTOHSCROLL
+    CONTROL         "  UseOSRegion",IDC_CHECK_USE_OS_REGION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,26,106,74,16
 END
+
+IDD_SET_PERMISSION DIALOGEX 0, 0, 200, 130
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,15,110,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,75,110,50,14
+    GROUPBOX        "Set Permission",IDC_STATIC,7,3,190,100
+    LTEXT           "Origin:",IDC_STATIC,25,22,36,12
+    EDITTEXT        IDC_EDIT_PERMISSION_ORIGIN,62,22,105,12,ES_AUTOHSCROLL
+    LTEXT           "Permission Kind:",IDC_STATIC,25,40,36,18
+    COMBOBOX        IDC_PERMISSION_KIND,62,42,105,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Permission State:",IDC_STATIC,25,61,36,18
+    COMBOBOX        IDC_PERMISSION_STATE,62,62,105,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_SAVE_CONTENT_AS DIALOGEX 0, 0, 300, 180
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Save As Silent Demo"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK", IDOK, 25, 160, 50, 15
+    PUSHBUTTON      "Cancel", IDCANCEL, 225, 160, 50, 15
+    GROUPBOX        "Full path", IDC_STATIC, 10, 5, 280, 75
+    LTEXT           "Directory:", IDC_STATIC, 15, 20, 36, 12
+    EDITTEXT        IDC_EDIT_SAVE_AS_DIRECTORY, 15, 30, 265, 15, ES_AUTOHSCROLL
+    LTEXT           "Filename:", IDC_STATIC, 15, 45, 36, 12
+    EDITTEXT        IDC_EDIT_SAVE_AS_FILENAME, 15, 55, 265, 15, ES_AUTOHSCROLL
+    CONTROL         "Allow Replace Old File", IDC_CHECK_SAVE_AS_ALLOW_REPLACE, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 20, 90, 150, 15
+    LTEXT           "Save As Type Selection:", IDC_STATIC, 20, 110, 100, 15
+    COMBOBOX        IDC_SAVE_AS_KIND, 120, 110, 100, 50, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // DESIGNINFO

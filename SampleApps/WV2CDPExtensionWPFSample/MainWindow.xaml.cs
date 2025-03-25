@@ -7,6 +7,7 @@ using Microsoft.Web.WebView2.Wpf;
 using Microsoft.Web.WebView2.Core.DevToolsProtocolExtension;
 using System.Text;
 using System.Linq;
+using System.Text.Json;
 
 namespace WV2CDPExtensionSample
 {
@@ -193,6 +194,30 @@ namespace WV2CDPExtensionSample
         void PrintDownloadWillBegin(object sender, Page.DownloadWillBeginEventArgs args)
         {
             Trace.WriteLine(String.Format("DownloadWillBegin Event Args - FrameId: {0}   Guid: {1}   URL: {2}", args.FrameId, args.Guid, args.Url));
+        }
+
+        async void SubscribeToNetworkBasics(object sender, RoutedEventArgs e)
+        {
+            await cdpHelper.Network.EnableAsync();
+            cdpHelper.Network.ResponseReceived += PrintResponseInfo;
+            cdpHelper.Network.RequestWillBeSent += PrintRequestInfo;
+        }
+
+        void PrintResponseInfo(object sender, Network.ResponseReceivedEventArgs args)
+        {
+            Trace.WriteLine(JsonSerializer.Serialize<Network.ResponseReceivedEventArgs>(args));
+        }
+
+        void PrintRequestInfo(object sender, Network.RequestWillBeSentEventArgs args)
+        {
+            Trace.WriteLine(JsonSerializer.Serialize<Network.RequestWillBeSentEventArgs>(args));
+        }
+
+        async void UnsubscribeFromNetworkBasics(object sender, RoutedEventArgs e)
+        {
+            cdpHelper.Network.ResponseReceived -= PrintResponseInfo;
+            cdpHelper.Network.RequestWillBeSent -= PrintRequestInfo;
+            await cdpHelper.Network.DisableAsync();
         }
         #endregion
     }

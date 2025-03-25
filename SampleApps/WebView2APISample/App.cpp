@@ -42,6 +42,7 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
     std::wstring userDataFolder(L"");
     std::wstring initialUri;
     DWORD creationModeId = IDM_CREATION_MODE_WINDOWED;
+    WebViewCreateOption opt;
 
     if (lpCmdLine && lpCmdLine[0])
     {
@@ -100,6 +101,10 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
                 {
                     creationModeId = IDM_CREATION_MODE_WINDOWED;
                 }
+                else if (NEXT_PARAM_CONTAINS(L"allowhostinput"))
+                {
+                    creationModeId = IDM_CREATION_MODE_HOST_INPUT_PROCESSING;
+                }
                 else if (NEXT_PARAM_CONTAINS(L"visualdcomp"))
                 {
                     creationModeId = IDM_CREATION_MODE_VISUAL_DCOMP;
@@ -108,12 +113,10 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
                 {
                     creationModeId = IDM_CREATION_MODE_TARGET_DCOMP;
                 }
-#ifdef USE_WEBVIEW2_WIN10
                 else if (NEXT_PARAM_CONTAINS(L"visualwincomp"))
                 {
                     creationModeId = IDM_CREATION_MODE_VISUAL_WINCOMP;
                 }
-#endif
             }
         }
         LocalFree(params);
@@ -122,7 +125,7 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
 
     DpiUtil::SetProcessDpiAwarenessContext(dpiAwarenessContext);
 
-    new AppWindow(creationModeId, WebViewCreateOption(), initialUri, userDataFolder, true);
+    new AppWindow(creationModeId, opt, initialUri, userDataFolder, true);
 
     int retVal = RunMessagePump();
 

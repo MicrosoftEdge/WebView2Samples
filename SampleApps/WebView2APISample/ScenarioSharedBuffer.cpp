@@ -19,8 +19,8 @@ static constexpr WCHAR c_samplePath[] = L"ScenarioSharedBuffer.html";
 ScenarioSharedBuffer::ScenarioSharedBuffer(AppWindow* appWindow)
     : m_appWindow(appWindow), m_webView(appWindow->GetWebView())
 {
-    m_webView18 = m_webView.try_query<ICoreWebView2Experimental18>();
-    if (!m_webView18)
+    m_webView17 = m_webView.try_query<ICoreWebView2_17>();
+    if (!m_webView17)
     {
         // Feature not supported.
         return;
@@ -82,7 +82,7 @@ ScenarioSharedBuffer::ScenarioSharedBuffer(AppWindow* appWindow)
                             })
                             .Get(),
                         nullptr));
-                    m_webviewFrame4 = webviewFrame.try_query<ICoreWebView2ExperimentalFrame4>();
+                    m_webviewFrame4 = webviewFrame.try_query<ICoreWebView2Frame4>();
                     return S_OK;
                 })
                 .Get(),
@@ -156,7 +156,7 @@ void ScenarioSharedBuffer::WebViewMessageReceived(
         }
         else
         {
-            m_webView18->PostSharedBufferToScript(
+            m_webView17->PostSharedBufferToScript(
                 m_sharedBuffer.get(), COREWEBVIEW2_SHARED_BUFFER_ACCESS_READ_WRITE, nullptr);
         }
     }
@@ -165,11 +165,11 @@ void ScenarioSharedBuffer::WebViewMessageReceived(
         const UINT64 bufferSize = 128;
         BYTE data[] = "some read only data";
         //! [OneTimeShareBuffer]
-        wil::com_ptr<ICoreWebView2ExperimentalEnvironment10> environment;
+        wil::com_ptr<ICoreWebView2Environment12> environment;
         CHECK_FAILURE(
             m_appWindow->GetWebViewEnvironment()->QueryInterface(IID_PPV_ARGS(&environment)));
 
-        wil::com_ptr<ICoreWebView2ExperimentalSharedBuffer> sharedBuffer;
+        wil::com_ptr<ICoreWebView2SharedBuffer> sharedBuffer;
         CHECK_FAILURE(environment->CreateSharedBuffer(bufferSize, &sharedBuffer));
         // Set data into the shared memory via IStream.
         wil::com_ptr<IStream> stream;
@@ -184,7 +184,7 @@ void ScenarioSharedBuffer::WebViewMessageReceived(
         }
         else
         {
-            m_webView18->PostSharedBufferToScript(
+            m_webView17->PostSharedBufferToScript(
                 sharedBuffer.get(), COREWEBVIEW2_SHARED_BUFFER_ACCESS_READ_ONLY,
                 additionalDataAsJson);
         }
@@ -208,7 +208,7 @@ void ScenarioSharedBuffer::EnsureSharedBuffer()
         // already created
         return;
     }
-    wil::com_ptr<ICoreWebView2ExperimentalEnvironment10> environment;
+    wil::com_ptr<ICoreWebView2Environment12> environment;
     CHECK_FAILURE(
         m_appWindow->GetWebViewEnvironment()->QueryInterface(IID_PPV_ARGS(&environment)));
 
