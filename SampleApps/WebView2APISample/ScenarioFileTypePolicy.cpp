@@ -91,11 +91,11 @@ bool ScenarioFileTypePolicy::SuppressPolicyForExtension()
                             CHECK_FAILURE(deferral->Complete());
                         });
                 }
-                if (wcscmp(extension_lower.c_str(), L"exe") == 0)
+                if (wcscmp(extension_lower.c_str(), L".exe") == 0)
                 {
                     if (is_exe_blocked.has_value())
                     {
-                        if (is_exe_blocked)
+                        if (is_exe_blocked.value())
                         {
                             args->put_CancelSave(true);
                         }
@@ -104,6 +104,30 @@ bool ScenarioFileTypePolicy::SuppressPolicyForExtension()
                             args->put_SuppressDefaultPolicy(true);
                         }
                     }
+                }
+                if (wcscmp(extension_lower.c_str(), L".emlx") == 0)
+                {
+                    wil::com_ptr<ICoreWebView2Deferral> deferral;
+                    CHECK_FAILURE(args->GetDeferral(&deferral));
+                    m_appWindow->RunAsync(
+                        [this, args = wil::make_com_ptr(args), deferral]()
+                        {
+                            // With the deferral, the cancel decision and
+                            // message box can be replaced with a customized UI.
+                            auto selection = MessageBox(
+                                m_appWindow->GetMainWindow(), L"Block the download?",
+                                L"Info", MB_OKCANCEL);
+                            if (selection == IDOK)
+                            {
+                                CHECK_FAILURE(args->put_CancelSave(TRUE));
+                            }
+                            else if (selection == IDCANCEL)
+                            {
+                                CHECK_FAILURE(args->put_SuppressDefaultPolicy(TRUE));
+
+                            }
+                            CHECK_FAILURE(deferral->Complete());
+                        });
                 }
                 return S_OK;
             })

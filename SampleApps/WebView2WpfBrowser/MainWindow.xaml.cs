@@ -133,7 +133,9 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ServiceWorkerRegisteredCommand = new RoutedCommand();
         public static RoutedCommand GetServiceWorkerRegistrationsCommand = new RoutedCommand();
         public static RoutedCommand GetServiceWorkerRegisteredForScopeCommand = new RoutedCommand();
+        public static RoutedCommand ServiceWorkerPostMessageCommand = new RoutedCommand();
         public static RoutedCommand DedicatedWorkerCreatedCommand = new RoutedCommand();
+        public static RoutedCommand DedicatedWorkerPostMessageCommand = new RoutedCommand();
         public static RoutedCommand SharedWorkerManagerCommand = new RoutedCommand();
         public static RoutedCommand GetSharedWorkersCommand = new RoutedCommand();
         public static RoutedCommand ServiceWorkerSyncManagerCommand = new RoutedCommand();
@@ -3833,6 +3835,9 @@ namespace WebView2WpfBrowser
         void RegisterForDedicatedWorkerCreated()
         {
         }
+        void DedicatedWorkerPostMessageExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
         void ServiceWorkerRegisteredExecuted(object target, ExecutedRoutedEventArgs e)
         {
             RegisterForServiceWorkerRegistered();
@@ -3859,11 +3864,14 @@ namespace WebView2WpfBrowser
         {
             await Task.Delay(0);
         }
+
+        void ServiceWorkerPostMessageExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+        }
         void SharedWorkerManagerExecuted(object target, ExecutedRoutedEventArgs e)
         {
             RegisterForSharedWorkerCreated();
         }
-
         void RegisterForSharedWorkerCreated()
         {
         }
