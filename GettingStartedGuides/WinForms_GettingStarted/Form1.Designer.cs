@@ -41,7 +41,6 @@
             this.webView.Size = new System.Drawing.Size(800, 424);
             this.webView.Source = new System.Uri("https://microsoft.com", System.UriKind.Absolute);
             this.webView.TabIndex = 0;
-            this.webView.Text = "webView21";
             this.webView.ZoomFactor = 1D;
             this.webView.Click += new System.EventHandler(this.webView21_Click);
             // 
