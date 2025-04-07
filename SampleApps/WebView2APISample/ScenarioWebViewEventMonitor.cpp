@@ -1249,12 +1249,12 @@ void ScenarioWebViewEventMonitor::InitializeFrameEventView(
                 .Get(),
             NULL);
     }
-    auto experimental_frame8 = webviewFrame.try_query<ICoreWebView2ExperimentalFrame8>();
-    if (experimental_frame8)
+    auto frame7 = webviewFrame.try_query<ICoreWebView2Frame7>();
+    if (frame7)
     {
         //! [FrameCreated]
-        experimental_frame8->add_FrameCreated(
-            Callback<ICoreWebView2ExperimentalFrameChildFrameCreatedEventHandler>(
+        frame7->add_FrameCreated(
+            Callback<ICoreWebView2FrameChildFrameCreatedEventHandler>(
                 [this, depth](
                     ICoreWebView2Frame* sender,
                     ICoreWebView2FrameCreatedEventArgs* args) noexcept -> HRESULT

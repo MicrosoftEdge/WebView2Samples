@@ -39,6 +39,18 @@
     <p>Two customized example rules in this demo:</p>
     <p>1. Smoothly save *.eml file without file extension warning</p>
     <p>2. Intentionally block save *.iso file</p>
+    <p>3. Block or bypass *.exe file based on configuration</p>
+    <p>4. Block or bypass *.exe file based on popup response</p>
+    <p>
+        <button onclick="allow_exe()">Allow exe</button>
+    </p>
+    <p>
+        <button onclick="block_exe()">Block exe</button>
+    </p>
+    <p>
+        <button onclick="clear_exe_policy()">Clear exe policy</button>
+    </p>
+    <h2>File Type Policy API for Save File</h2>
     <p>
         Please enter a file extension: <input type="text" id="extensionText" placeholder="try eml or iso" />
         <button id="showSaveFilePickerButton">save</button>
@@ -46,13 +58,16 @@
     <br>
     <hr />
     <h2>File Type Policy API for download</h2>
-    <button onclick="allow_exe()">Allow exe</button>
-    <button onclick="block_exe()">Block exe</button>
-    <button onclick="clear_exe_policy()">Clear exe policy</button>
+
     <br />
     <button onclick="enable_smartscreen()">Enable Smartscreen</button>
+    <br />
+    <br />
     <button onclick="disable_smartscreen()">Disable Smartscreen</button>
     <br />
-    <a href="https://appassets.example/bad.exe" id="download_elem" download>Download Flagged file</a>
+    <a href="https://appassets.example/sample.exe" id="download_exe" download>Download exe file</a>
+    <br />
+    <a href="https://appassets.example/sample.emlx" id="download_emlx" download>Download emlx file</a>
+
 </body>
 </html>

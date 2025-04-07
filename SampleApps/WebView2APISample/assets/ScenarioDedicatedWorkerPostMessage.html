@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ScenarioDedicatedWorkerPostMessage</title>
+    <script>
+        "use strict";
+        const worker = new Worker("dedicated_worker.js");
+    </script>
+</head>
+
+<body>
+    <div>
+        <h1>DedicatedWorker PostMessage Sample Page</h1>
+        <p>This page demonstrates basic interaction between the host app and dedicated workers
+            by means of Web Messages.</p>
+    </div>
+
+    <h2>Posting and receiving messages</h2>
+    <p>Messages can be posted from the host app to the dedicated worker on this document using
+        the APIs <code>ICoreWebView2DedicatedWorker::PostWebMessageAsJson</code> and
+        <code>ICoreWebView2DedicatedWorker::PostWebMessageAsString</code>.
+    </p>
+
+    <p>Messages can be posted from the dedicated worker to the host app using
+        <code>self.chrome.webview.postMessage</code>. The host app can receive messages by
+        registering an event handler with
+        <code>ICoreWebView2DedicatedWorker::add_WebMessageReceived</code>.
+    </p>
+
+    <h2>How to use the sample?</h2>
+    <p>This document creates a dedicated worker that listens for messages from the host app in
+        the form of a command (ADD, SUB, MUL, DIV) and two numbers (first and second). It
+        performs the specified arithmetic operation and responds with the result."
+    </p>
+    <p>When the dedicated worker is created, a dialog will be opened to enter a message. Enter a
+        JSON string with a command and two numbers to receive a response from the worker. Ex:
+        <code>{"command":"ADD","first":2,"second":3}</code> will send a reply back with 5.
+    </p>
+
+</body>
+
+</html>
