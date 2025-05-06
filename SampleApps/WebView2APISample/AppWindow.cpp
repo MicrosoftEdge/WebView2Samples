@@ -1861,11 +1861,11 @@ HRESULT AppWindow::CreateControllerWithOptions()
     //! [DefaultBackgroundColor]
     if (m_webviewOption.bg_color)
     {
-        wil::com_ptr<ICoreWebView2ExperimentalControllerOptions3> experimentalControllerOptions3;
-        if (SUCCEEDED(options->QueryInterface(IID_PPV_ARGS(&experimentalControllerOptions3))))
+        wil::com_ptr<ICoreWebView2ControllerOptions3> webView2ControllerOptions3;
+        if (SUCCEEDED(options->QueryInterface(IID_PPV_ARGS(&webView2ControllerOptions3))))
         {
             CHECK_FAILURE(
-                experimentalControllerOptions3->put_DefaultBackgroundColor(*m_webviewOption.bg_color));
+              webView2ControllerOptions3->put_DefaultBackgroundColor(*m_webviewOption.bg_color));
         }
     }
     //! [DefaultBackgroundColor]
