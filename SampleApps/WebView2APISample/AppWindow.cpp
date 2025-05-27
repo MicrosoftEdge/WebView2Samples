@@ -1847,13 +1847,10 @@ HRESULT AppWindow::CreateControllerWithOptions()
     //! [AllowHostInputProcessing]
     if (m_creationModeId == IDM_CREATION_MODE_HOST_INPUT_PROCESSING)
     {
-        wil::com_ptr<ICoreWebView2ExperimentalControllerOptions2>
-            webView2ExperimentalControllerOptions2;
-        if (SUCCEEDED(
-                options->QueryInterface(IID_PPV_ARGS(&webView2ExperimentalControllerOptions2))))
+        wil::com_ptr<ICoreWebView2ControllerOptions4> webView2ControllerOptions4;
+        if (SUCCEEDED(options->QueryInterface(IID_PPV_ARGS(&webView2ControllerOptions4))))
         {
-            CHECK_FAILURE(
-                webView2ExperimentalControllerOptions2->put_AllowHostInputProcessing(TRUE));
+            CHECK_FAILURE(webView2ControllerOptions4->put_AllowHostInputProcessing(TRUE));
         }
     }
     //! [AllowHostInputProcessing]
