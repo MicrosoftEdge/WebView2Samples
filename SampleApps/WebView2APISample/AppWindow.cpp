@@ -47,6 +47,11 @@
 #include "ScenarioNonClientRegionSupport.h"
 #include "ScenarioNotificationReceived.h"
 #include "ScenarioPermissionManagement.h"
+#include "ScenarioDedicatedWorker.h"
+#include "ScenarioDedicatedWorkerPostMessage.h"
+#include "ScenarioServiceWorkerManager.h"
+#include "ScenarioServiceWorkerPostMessage.h"
+#include "ScenarioSharedWorkerManager.h"
 #include "ScenarioSaveAs.h"
 #include "ScenarioScreenCapture.h"
 #include "ScenarioSharedBuffer.h"
@@ -56,6 +61,7 @@
 #include "ScenarioVirtualHostMappingForSW.h"
 #include "ScenarioWebMessage.h"
 #include "ScenarioWebViewEventMonitor.h"
+#include "ScenarioWindowControlsOverlay.h"
 #include "ScriptComponent.h"
 #include "SettingsComponent.h"
 #include "TextInputDialog.h"
@@ -204,6 +210,13 @@ AppWindow::AppWindow(
     LoadStringW(g_hInstance, IDS_APP_TITLE, szTitle, s_maxLoadString);
     m_appTitle = szTitle;
     DWORD windowStyle = WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+    if (m_webviewOption.useWco)
+    {
+        windowStyle &= ~WS_OVERLAPPEDWINDOW;
+        windowStyle |= (WS_POPUP | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
+    }
+
+
     if (userDataFolderParam.length() > 0)
     {
         m_userDataFolder = userDataFolderParam;
@@ -248,6 +261,13 @@ AppWindow::AppWindow(
     UpdateCreationModeMenu();
     ShowWindow(m_mainWindow, g_nCmdShow);
     UpdateWindow(m_mainWindow);
+    if (m_webviewOption.useWco)
+    {
+        SetMenu(m_mainWindow, NULL);
+        SetWindowPos(m_mainWindow, nullptr, 0, 0, 1800, 900, 0);
+        m_toolbar.Hide();
+    }
+
     // If no WebView2 Runtime installed, create new thread to do install/download.
     // Otherwise just initialize webview.
     wil::unique_cotaskmem_string version_info;
@@ -271,6 +291,7 @@ AppWindow::AppWindow(
         }
     }
 }
+
 AppWindow::~AppWindow()
 {
     DeleteObject(m_appBackgroundImageHandle);
@@ -666,6 +687,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         NewComponent<ScenarioNonClientRegionSupport>(this);
         return true;
     }
+    case IDM_SCENARIO_WINDOW_CONTROLS_OVERLAY:
+    {
+        NewComponent<ScenarioWindowControlsOverlay>(this);
+        return true;
+    }
     case IDM_SCENARIO_ACCELERATOR_KEY_PRESSED:
     {
         NewComponent<ScenarioAcceleratorKeyPressed>(this);
@@ -674,6 +700,73 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_THROTTLING_CONTROL:
     {
         NewComponent<ScenarioThrottlingControl>(this);
+        return true;
+    }
+    case IDM_SCENARIO_SERVICE_WORKER_REGISTRATION_REQUESTED:
+    {
+        if (!GetComponent<ScenarioServiceWorkerManager>())
+        {
+            NewComponent<ScenarioServiceWorkerManager>(this);
+        }
+        return true;
+    }
+    case IDM_SCENARIO_SERVICE_WORKER_POST_MESSAGE:
+    {
+        NewComponent<ScenarioServiceWorkerPostMessage>(this);
+        return true;
+    }
+    case IDM_SCENARIO_DEDICATED_WORKER:
+    {
+        if (!GetComponent<ScenarioDedicatedWorker>())
+        {
+            NewComponent<ScenarioDedicatedWorker>(this);
+        }
+        return true;
+    }
+    case IDM_SCENARIO_DEDICATED_WORKER_POST_MESSAGE:
+    {
+        NewComponent<ScenarioDedicatedWorkerPostMessage>(this);
+        return true;
+    }
+    case IDM_SCENARIO_SHARED_WORKER_MANAGER:
+    {
+        if (!GetComponent<ScenarioSharedWorkerManager>())
+        {
+            NewComponent<ScenarioSharedWorkerManager>(this);
+        }
+        return true;
+    }
+    case IDM_SCENARIO_GET_SERVICE_WORKER_REGISTRATIONS:
+    {
+        auto worker_manager = GetComponent<ScenarioServiceWorkerManager>();
+        if (!worker_manager)
+        {
+            NewComponent<ScenarioServiceWorkerManager>(this);
+            worker_manager = GetComponent<ScenarioServiceWorkerManager>();
+        }
+        worker_manager->GetAllServiceWorkerRegistrations();
+        return true;
+    }
+    case IDM_SCENARIO_GET_SERVICE_WORKER_REGISTERED_FOR_SCOPE:
+    {
+        auto worker_manager = GetComponent<ScenarioServiceWorkerManager>();
+        if (!worker_manager)
+        {
+            NewComponent<ScenarioServiceWorkerManager>(this);
+            worker_manager = GetComponent<ScenarioServiceWorkerManager>();
+        }
+        worker_manager->GetServiceWorkerRegisteredForScope();
+        return true;
+    }
+    case IDM_SCENARIO_GET_SHARED_WORKERS:
+    {
+        auto worker_manager = GetComponent<ScenarioSharedWorkerManager>();
+        if (!worker_manager)
+        {
+            NewComponent<ScenarioSharedWorkerManager>(this);
+            worker_manager = GetComponent<ScenarioSharedWorkerManager>();
+        }
+        worker_manager->GetAllSharedWorkers();
         return true;
     }
     case IDM_SCENARIO_SCREEN_CAPTURE:
@@ -1252,11 +1345,11 @@ bool AppWindow::PrintToPdfStream()
 //! [Start]
 bool AppWindow::Start(const std::wstring& searchTerm)
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
 
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
     SetupFindEventHandlers(webView2find);
 
     // Initialize find configuration/settings
@@ -1274,7 +1367,7 @@ bool AppWindow::Start(const std::wstring& searchTerm)
 
     // Start the find operation
     CHECK_FAILURE(webView2find->Start(
-        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+        findOptions.get(), Callback<ICoreWebView2FindStartCompletedHandler>(
                                [this](HRESULT result) -> HRESULT { return S_OK; })
                                .Get()));
     return true;
@@ -1284,10 +1377,10 @@ bool AppWindow::Start(const std::wstring& searchTerm)
 //! [FindNext]
 bool AppWindow::FindNext()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
     CHECK_FAILURE(webView2find->FindNext());
 
     return true;
@@ -1297,10 +1390,10 @@ bool AppWindow::FindNext()
 //! [FindPrevious]
 bool AppWindow::FindPrevious()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
 
     CHECK_FAILURE(webView2find->FindPrevious());
 
@@ -1311,10 +1404,10 @@ bool AppWindow::FindPrevious()
 //! [Stop]
 bool AppWindow::StopFind()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
     // Note, I am not 100% sure if this is the best way to remove the event handlers
     // Because it would rely on the user clicking stopfind. Maybe put in destructor or when
     // startfind completes?
@@ -1328,10 +1421,10 @@ bool AppWindow::StopFind()
 //! [MatchCount]
 bool AppWindow::GetMatchCount()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
     int32_t matchCount;
     CHECK_FAILURE(webView2find->get_MatchCount(&matchCount));
 
@@ -1345,10 +1438,10 @@ bool AppWindow::GetMatchCount()
 //! [ActiveMatchIndex]
 bool AppWindow::GetActiveMatchIndex()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
     int32_t activeMatchIndex;
     CHECK_FAILURE(webView2find->get_ActiveMatchIndex(&activeMatchIndex));
 
@@ -1363,10 +1456,10 @@ bool AppWindow::GetActiveMatchIndex()
 //! [IsCaseSensitive]
 bool AppWindow::IsCaseSensitive()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
 
     auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
     CHECK_FEATURE_RETURN(m_env18);
@@ -1381,7 +1474,7 @@ bool AppWindow::IsCaseSensitive()
     CHECK_FAILURE(findOptions->put_IsCaseSensitive(!caseSensitive));
 
     CHECK_FAILURE(webView2find->Start(
-        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+        findOptions.get(), Callback<ICoreWebView2FindStartCompletedHandler>(
                                [this](HRESULT result) -> HRESULT { return S_OK; })
                                .Get()));
     return true;
@@ -1391,10 +1484,10 @@ bool AppWindow::IsCaseSensitive()
 //! [ShouldHighlightAllMatches]
 bool AppWindow::ShouldHighlightAllMatches()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
 
     auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
     CHECK_FEATURE_RETURN(m_env18);
@@ -1408,7 +1501,7 @@ bool AppWindow::ShouldHighlightAllMatches()
     CHECK_FAILURE(findOptions->get_ShouldHighlightAllMatches(&shouldHighlightAllMatches));
     CHECK_FAILURE(findOptions->put_ShouldHighlightAllMatches(!shouldHighlightAllMatches));
     CHECK_FAILURE(webView2find->Start(
-        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+        findOptions.get(), Callback<ICoreWebView2FindStartCompletedHandler>(
                                [this](HRESULT result) -> HRESULT { return S_OK; })
                                .Get()));
     return true;
@@ -1418,10 +1511,10 @@ bool AppWindow::ShouldHighlightAllMatches()
 //! [ShouldMatchWord]
 bool AppWindow::ShouldMatchWord()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
 
     auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
     CHECK_FEATURE_RETURN(m_env18);
@@ -1435,7 +1528,7 @@ bool AppWindow::ShouldMatchWord()
     findOptions->get_ShouldMatchWord(&shouldMatchWord);
     CHECK_FAILURE(findOptions->put_ShouldMatchWord(!shouldMatchWord));
     CHECK_FAILURE(webView2find->Start(
-        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+        findOptions.get(), Callback<ICoreWebView2FindStartCompletedHandler>(
                                [this](HRESULT result) -> HRESULT { return S_OK; })
                                .Get()));
     return true;
@@ -1445,10 +1538,10 @@ bool AppWindow::ShouldMatchWord()
 //! [SuppressDefaultFindDialog]
 bool AppWindow::SuppressDefaultFindDialog()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
 
     auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
     CHECK_FEATURE_RETURN(m_env18);
@@ -1463,7 +1556,7 @@ bool AppWindow::SuppressDefaultFindDialog()
     CHECK_FAILURE(findOptions->put_SuppressDefaultFindDialog(!suppressDefaultDialog));
     CHECK_FAILURE(webView2find->Stop());
     CHECK_FAILURE(webView2find->Start(
-        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+        findOptions.get(), Callback<ICoreWebView2FindStartCompletedHandler>(
                                [this](HRESULT result) -> HRESULT { return S_OK; })
                                .Get()));
     return true;
@@ -1473,10 +1566,10 @@ bool AppWindow::SuppressDefaultFindDialog()
 //! [FindTerm]
 bool AppWindow::FindTerm()
 {
-    auto webView2Experimental29 = m_webView.try_query<ICoreWebView2Experimental29>();
-    CHECK_FEATURE_RETURN(webView2Experimental29);
-    wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find;
-    CHECK_FAILURE(webView2Experimental29->get_Find(&webView2find));
+    auto webView2_28 = m_webView.try_query<ICoreWebView2_28>();
+    CHECK_FEATURE_RETURN(webView2_28);
+    wil::com_ptr<ICoreWebView2Find> webView2find;
+    CHECK_FAILURE(webView2_28->get_Find(&webView2find));
 
     TextInputDialog dialog(
         GetMainWindow(), L"Find on Page Term", L"Find on Page Term:", L"Enter Find Term");
@@ -1491,19 +1584,19 @@ bool AppWindow::FindTerm()
     }
     CHECK_FAILURE(findOptions->put_FindTerm(dialog.input.c_str()));
     CHECK_FAILURE(webView2find->Start(
-        findOptions.get(), Callback<ICoreWebView2ExperimentalFindStartCompletedHandler>(
+        findOptions.get(), Callback<ICoreWebView2FindStartCompletedHandler>(
                                [this](HRESULT result) -> HRESULT { return S_OK; })
                                .Get()));
     return true;
 }
 //! [FindTerm]
 
-wil::com_ptr<ICoreWebView2ExperimentalFindOptions> AppWindow::SetDefaultFindOptions()
+wil::com_ptr<ICoreWebView2FindOptions> AppWindow::SetDefaultFindOptions()
 {
     auto m_env18 = m_webViewEnvironment.try_query<ICoreWebView2ExperimentalEnvironment18>();
 
     // Initialize find configuration/settings
-    wil::com_ptr<ICoreWebView2ExperimentalFindOptions> findOptions;
+    wil::com_ptr<ICoreWebView2FindOptions> findOptions;
     CHECK_FAILURE(m_env18->CreateFindOptions(&findOptions));
     CHECK_FAILURE(findOptions->put_FindTerm(L"Webview2"));
     CHECK_FAILURE(findOptions->put_IsCaseSensitive(false));
@@ -1514,11 +1607,11 @@ wil::com_ptr<ICoreWebView2ExperimentalFindOptions> AppWindow::SetDefaultFindOpti
     return findOptions;
 }
 
-void AppWindow::SetupFindEventHandlers(wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find)
+void AppWindow::SetupFindEventHandlers(wil::com_ptr<ICoreWebView2Find> webView2find)
 {
     CHECK_FAILURE(webView2find->add_MatchCountChanged(
-        Callback<ICoreWebView2ExperimentalFindMatchCountChangedEventHandler>(
-            [this](ICoreWebView2ExperimentalFind* sender, IUnknown* args) -> HRESULT
+        Callback<ICoreWebView2FindMatchCountChangedEventHandler>(
+            [this](ICoreWebView2Find* sender, IUnknown* args) -> HRESULT
             {
                 int matchCount = 0;
                 if (sender)
@@ -1531,8 +1624,8 @@ void AppWindow::SetupFindEventHandlers(wil::com_ptr<ICoreWebView2ExperimentalFin
         &m_matchCountChangedToken));
 
     CHECK_FAILURE(webView2find->add_ActiveMatchIndexChanged(
-        Callback<ICoreWebView2ExperimentalFindActiveMatchIndexChangedEventHandler>(
-            [this](ICoreWebView2ExperimentalFind* sender, IUnknown* args) -> HRESULT
+        Callback<ICoreWebView2FindActiveMatchIndexChangedEventHandler>(
+            [this](ICoreWebView2Find* sender, IUnknown* args) -> HRESULT
             {
                 int activeIndex = -1;
                 if (sender)
@@ -1957,6 +2050,20 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(
             SetAppIcon(inPrivate);
         }
         //! [CoreWebView2Profile]
+        //! [WindowControlsOverlay]
+        if (m_webviewOption.useWco)
+        {
+            auto webview2Experimental31 = m_webView.try_query<ICoreWebView2Experimental31>();
+            if (webview2Experimental31)
+            {
+                wil::com_ptr<ICoreWebView2ExperimentalWindowControlsOverlay> wco;
+                CHECK_FAILURE(webview2Experimental31->get_WindowControlsOverlay(&wco));
+                CHECK_FAILURE(wco->put_IsEnabled(true));
+                CHECK_FAILURE(wco->put_Height(48));
+                CHECK_FAILURE(wco->put_BackgroundColor({0, 0, 0, 0}));
+            }
+        }
+        //! [WindowControlsOverlay]
         // Create components. These will be deleted when the WebView is closed.
         NewComponent<FileComponent>(this);
         NewComponent<ProcessComponent>(this);
@@ -1969,6 +2076,7 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(
             m_creationModeId == IDM_CREATION_MODE_TARGET_DCOMP);
         NewComponent<AudioComponent>(this);
         NewComponent<ControlComponent>(this, &m_toolbar);
+
         m_webView3 = coreWebView2.try_query<ICoreWebView2_3>();
         if (m_webView3)
         {
@@ -2380,10 +2488,12 @@ void AppWindow::ResizeEverything()
     GetClientRect(m_mainWindow, &availableBounds);
 
     if (!m_containsFullscreenElement
+        && !m_webviewOption.useWco
     )
     {
         availableBounds = m_toolbar.Resize(availableBounds);
     }
+
     if (auto view = GetComponent<ViewComponent>())
     {
         view->SetBounds(availableBounds);
