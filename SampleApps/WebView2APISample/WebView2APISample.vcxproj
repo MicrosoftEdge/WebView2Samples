@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -234,6 +234,8 @@
     <ClInclude Include="ScenarioCustomDownloadExperience.h" />
     <ClInclude Include="ScenarioCustomScheme.h" />
     <ClInclude Include="ScenarioCustomSchemeNavigate.h" />
+    <ClInclude Include="ScenarioDedicatedWorker.h" />
+    <ClInclude Include="ScenarioDedicatedWorkerPostMessage.h" />
     <ClInclude Include="ScenarioDefaultBackgroundColor.h" />
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
     <ClInclude Include="ScenarioDragDrop.h" />
@@ -248,13 +250,17 @@
     <ClInclude Include="ScenarioPermissionManagement.h" />
     <ClInclude Include="ScenarioSaveAs.h" />
     <ClInclude Include="ScenarioScreenCapture.h" />
+    <ClInclude Include="ScenarioServiceWorkerManager.h" />
+    <ClInclude Include="ScenarioServiceWorkerPostMessage.h" />
     <ClInclude Include="ScenarioSharedBuffer.h" />
+    <ClInclude Include="ScenarioSharedWorkerManager.h" />
     <ClInclude Include="ScenarioSharedWorkerWRR.h" />
     <ClInclude Include="ScenarioThrottlingControl.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForSW.h" />
     <ClInclude Include="ScenarioWebMessage.h" />
     <ClInclude Include="ScenarioWebViewEventMonitor.h" />
+    <ClInclude Include="ScenarioWindowControlsOverlay.h" />
     <ClInclude Include="ScriptComponent.h" />
     <ClInclude Include="SettingsComponent.h" />
     <ClInclude Include="stdafx.h" />
@@ -289,6 +295,8 @@
     <ClCompile Include="ScenarioCustomDownloadExperience.cpp" />
     <ClCompile Include="ScenarioCustomScheme.cpp" />
     <ClCompile Include="ScenarioCustomSchemeNavigate.cpp" />
+    <ClCompile Include="ScenarioDedicatedWorker.cpp" />
+    <ClCompile Include="ScenarioDedicatedWorkerPostMessage.cpp" />
     <ClCompile Include="ScenarioDefaultBackgroundColor.cpp" />
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
     <ClCompile Include="ScenarioDragDrop.cpp" />
@@ -303,13 +311,17 @@
     <ClCompile Include="ScenarioPermissionManagement.cpp" />
     <ClCompile Include="ScenarioSaveAs.cpp" />
     <ClCompile Include="ScenarioScreenCapture.cpp" />
+    <ClCompile Include="ScenarioServiceWorkerManager.cpp" />
+    <ClCompile Include="ScenarioServiceWorkerPostMessage.cpp" />
     <ClCompile Include="ScenarioSharedBuffer.cpp" />
+    <ClCompile Include="ScenarioSharedWorkerManager.cpp" />
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp" />
     <ClCompile Include="ScenarioThrottlingControl.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForSW.cpp" />
     <ClCompile Include="ScenarioWebMessage.cpp" />
     <ClCompile Include="ScenarioWebViewEventMonitor.cpp" />
+    <ClCompile Include="ScenarioWindowControlsOverlay.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
     <ClCompile Include="SettingsComponent.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -429,6 +441,9 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioThrottlingControlMonitor.js">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioWindowControlsOverlay.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/SecnarioFileTypePolicy.html">

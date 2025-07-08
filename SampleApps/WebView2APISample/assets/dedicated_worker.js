@@ -1,6 +1,7 @@
 //! [chromeWebView]
 self.chrome.webview.addEventListener('message', (e) => {
   const data = e.data;
+  e.source.postMessage('Received msg :' + JSON.stringify(data));
   if (!data.hasOwnProperty('first') || !data.hasOwnProperty('second') ||
       !data.hasOwnProperty('command')) {
     return;

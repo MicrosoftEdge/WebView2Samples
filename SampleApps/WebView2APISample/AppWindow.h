@@ -39,17 +39,20 @@ struct WebViewCreateOption
     WebViewCreateEntry entry = WebViewCreateEntry::OTHER;
     bool useOSRegion = false;
     std::optional<COREWEBVIEW2_COLOR> bg_color;
+    bool useWco = false;
     WebViewCreateOption()
     {
     }
     WebViewCreateOption(
         const std::wstring& profile_, bool inPrivate, const std::wstring& downloadPath,
-        const std::wstring& scriptLocale_, WebViewCreateEntry entry_, bool useOSRegion_
-        )
+        const std::wstring& scriptLocale_, WebViewCreateEntry entry_, bool useOSRegion_,
+        bool useWco_ = false, const std::optional<COREWEBVIEW2_COLOR>& bg_color_ = std::nullopt)
         : profile(profile_), isInPrivate(inPrivate), downloadPath(downloadPath),
-          scriptLocale(scriptLocale_), entry(entry_), useOSRegion(useOSRegion_)
+          scriptLocale(scriptLocale_), entry(entry_), useOSRegion(useOSRegion_),
+          useWco(useWco_), bg_color(bg_color_)
     {
     }
+
     WebViewCreateOption(const WebViewCreateOption& opt)
     {
         profile = opt.profile;
@@ -58,6 +61,8 @@ struct WebViewCreateOption
         scriptLocale = opt.scriptLocale;
         entry = opt.entry;
         useOSRegion = opt.useOSRegion;
+        useWco = opt.useWco;
+        bg_color = opt.bg_color;
     }
     void PopupDialog(AppWindow* app);
 };
@@ -222,11 +227,11 @@ private:
     bool ShouldMatchWord();
     bool SuppressDefaultFindDialog();
     bool IsCaseSensitive();
-    wil::com_ptr<ICoreWebView2ExperimentalFindOptions> SetDefaultFindOptions();
-    void SetupFindEventHandlers(wil::com_ptr<ICoreWebView2ExperimentalFind> webView2find);
+    wil::com_ptr<ICoreWebView2FindOptions> SetDefaultFindOptions();
+    void SetupFindEventHandlers(wil::com_ptr<ICoreWebView2Find> webView2find);
     // Find on Page member
     std::wstring m_findOnPageLastSearchTerm;
-    wil::com_ptr<ICoreWebView2ExperimentalFindOptions> findOptions;
+    wil::com_ptr<ICoreWebView2FindOptions> findOptions;
     EventRegistrationToken m_activeMatchIndexChangedToken = {};
     EventRegistrationToken m_matchCountChangedToken = {};
 

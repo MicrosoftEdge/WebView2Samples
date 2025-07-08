@@ -296,6 +296,8 @@ BEGIN
         MENUITEM "Virtual Host Mapping For Pop Up Window",        IDM_SCENARIO_VIRTUAL_HOST_MAPPING_POP_UP_WINDOW
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
         MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
+        MENUITEM "WebView Window Controls Overlay",       IDM_SCENARIO_WINDOW_CONTROLS_OVERLAY
+
         MENUITEM "Dropped file path",           IDM_SCENARIO_DROPPED_FILE_PATH
         POPUP "Save As"
         BEGIN
@@ -306,6 +308,23 @@ BEGIN
         MENUITEM "Throttling Control",           IDM_SCENARIO_THROTTLING_CONTROL
         MENUITEM "Screen Capture", IDM_SCENARIO_SCREEN_CAPTURE
         MENUITEM "File Type Policy", IDM_SCENARIO_FILE_TYPE_POLICY
+        POPUP "Service Worker"
+        BEGIN
+          MENUITEM "Listen to new Service Worker Registrations", IDM_SCENARIO_SERVICE_WORKER_REGISTRATION_REQUESTED
+          MENUITEM "Get Service Worker Registrations", IDM_SCENARIO_GET_SERVICE_WORKER_REGISTRATIONS
+          MENUITEM "Get Service Worker registered for the Scope", IDM_SCENARIO_GET_SERVICE_WORKER_REGISTERED_FOR_SCOPE
+          MENUITEM "Web Messaging", IDM_SCENARIO_SERVICE_WORKER_POST_MESSAGE
+        END
+        POPUP "Dedicated Worker"
+        BEGIN
+          MENUITEM "Listen to new Dedicated Worker Creations", IDM_SCENARIO_DEDICATED_WORKER
+          MENUITEM "Web Messaging", IDM_SCENARIO_DEDICATED_WORKER_POST_MESSAGE
+        END
+        POPUP "Shared Worker"
+        BEGIN
+          MENUITEM "Listen to new Shared Worker Creations", IDM_SCENARIO_SHARED_WORKER_MANAGER
+          MENUITEM "Get Shared Workers", IDM_SCENARIO_GET_SHARED_WORKERS
+        END
         POPUP "Start Find"
         BEGIN
           MENUITEM "Start Find on Page Dialog", IDM_START_FIND
