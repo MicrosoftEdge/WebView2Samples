@@ -3834,17 +3834,111 @@ namespace WebView2WpfBrowser
 
         void RegisterForDedicatedWorkerCreated()
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            _iWebView2.CoreWebView2.DedicatedWorkerCreated += (sender, args) =>
+            {
+               CoreWebView2DedicatedWorker dedicatedWorker = args.Worker;
+               MessageBox.Show("Dedicated worker is created" , "Dedicated Worker Message");
+            };
+#endif
         }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+private string _dedicatedWorkerPostMessageStr;
+#endif
+
         void DedicatedWorkerPostMessageExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            _iWebView2.CoreWebView2.DedicatedWorkerCreated += DedicatedWorker_PostMessage_DedicatedWorkerCreated;
+            _iWebView2.CoreWebView2.DOMContentLoaded += DedicatedWorker_PostMessage_DOMContentLoaded;
+
+            var dialog = new TextInputDialog(
+                    title: "Post Web Message JSON",
+                    description: "Enter the web message as JSON.",
+                    defaultInput: "{\"command\":\"ADD\",\"first\":2,\"second\":3}");
+            // Ex: {"command":"MUL","first":2,"second":3}
+            if (dialog.ShowDialog() == true)
+            {
+                _dedicatedWorkerPostMessageStr = dialog.Input.Text;
+            }
+
+            _iWebView2.CoreWebView2.Navigate("https://appassets.example/ScenarioDedicatedWorkerPostMessage.html");
+#endif
         }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        void DedicatedWorker_PostMessage_DedicatedWorkerCreated(object sender, CoreWebView2DedicatedWorkerCreatedEventArgs args)
+        {
+            CoreWebView2DedicatedWorker dedicatedWorker = args.Worker;
+            MessageBox.Show("Dedicated worker is created" , "Dedicated Worker Message");
+            DedicatedWorker_PostMessage_SetupEventsOnDedicatedWorker(dedicatedWorker);
+            DedicatedWorker_PostMessage_ComputeWithDedicatedWorker(dedicatedWorker);
+        }
+
+        void DedicatedWorker_PostMessage_DOMContentLoaded(object sender, CoreWebView2DOMContentLoadedEventArgs dedicatedWorker)
+        {
+            // Turn off this scenario if we navigate away from the sample page.
+            if (_iWebView2.CoreWebView2.Source != "https://appassets.example/ScenarioDedicatedWorkerPostMessage.html")
+            {
+                _iWebView2.CoreWebView2.DedicatedWorkerCreated -= DedicatedWorker_PostMessage_DedicatedWorkerCreated;
+                _iWebView2.CoreWebView2.DOMContentLoaded -= DedicatedWorker_PostMessage_DOMContentLoaded;
+            }
+        }
+
+        void DedicatedWorker_PostMessage_SetupEventsOnDedicatedWorker(CoreWebView2DedicatedWorker dedicatedWorker)
+        {
+            dedicatedWorker.WebMessageReceived += (sender, args) =>
+            {
+                StringBuilder messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine($"Dedicated Worker: \n{args.Source} ");
+                messageBuilder.AppendLine($"\nMessage: \n{args.TryGetWebMessageAsString()} ");
+                MessageBox.Show(messageBuilder.ToString(), "Message from Dedicated Worker", MessageBoxButton.OK);
+            };
+        }
+
+        void DedicatedWorker_PostMessage_ComputeWithDedicatedWorker(CoreWebView2DedicatedWorker dedicatedWorker)
+        {
+            dedicatedWorker.PostWebMessageAsJson(_dedicatedWorkerPostMessageStr);
+        }
+#endif
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        CoreWebView2ServiceWorkerManager ServiceWorkerManager_;
+#endif
         void ServiceWorkerRegisteredExecuted(object target, ExecutedRoutedEventArgs e)
         {
             RegisterForServiceWorkerRegistered();
         }
+
         void RegisterForServiceWorkerRegistered()
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            if (ServiceWorkerManager_ == null)
+            {
+                ServiceWorkerManager_ = WebViewProfile.ServiceWorkerManager;
+            }
+            ServiceWorkerManager_.ServiceWorkerRegistered += (sender, args) =>
+            {
+                CoreWebView2ServiceWorkerRegistration serviceWorkerRegistration = args.ServiceWorkerRegistration;
+                MessageBox.Show("Service worker is registered for " + serviceWorkerRegistration.ScopeUri, "Service Worker Registration Message");
+
+                CoreWebView2ServiceWorker serviceWorker = serviceWorkerRegistration.ActiveServiceWorker;
+                if (serviceWorker != null)
+                {
+                    MessageBox.Show("Service worker is created.", "Service Worker Message");
+                }
+                else
+                {
+                    serviceWorkerRegistration.ServiceWorkerActivated += (sender1, args1) =>
+                    {
+                        MessageBox.Show("Service worker is created.", "Service Worker Message");
+                    };
+                }
+            };
+#endif
         }
+
         private void GetServiceWorkerRegistrationsExecuted(object target, ExecutedRoutedEventArgs e)
         {
             GetServiceWorkerRegistrations();
@@ -3852,7 +3946,35 @@ namespace WebView2WpfBrowser
 
         async void GetServiceWorkerRegistrations()
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            try
+            {
+                if (ServiceWorkerManager_ == null)
+                {
+                    ServiceWorkerManager_ = WebViewProfile.ServiceWorkerManager;
+                }
+                IReadOnlyList<CoreWebView2ServiceWorkerRegistration> registrationList = await ServiceWorkerManager_.GetServiceWorkerRegistrationsAsync();
+                int registrationCount = registrationList.Count;
+                StringBuilder messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine($"No of service workers registered: {registrationCount}");
+
+                for (int i = 0; i < registrationList.Count(); ++i)
+                {
+                    var scopeUri = registrationList[i].ScopeUri;
+
+                    messageBuilder.AppendLine($"Scope: {scopeUri}");
+                };
+
+                MessageBox.Show(messageBuilder.ToString(), "Service Worker Registrations", MessageBoxButton.OK);
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "GetServiceWorkerRegistrationsAsync Failed: " + exception.Message,
+                   "Get Service Worker Registrations Info");
+            }
+#else
             await Task.Delay(0);
+#endif
         }
 
         void GetServiceWorkerRegisteredForScopeExecuted(object target, ExecutedRoutedEventArgs e)
@@ -3862,19 +3984,131 @@ namespace WebView2WpfBrowser
 
         async void GetServiceWorkerRegisteredForScope()
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            var dialog = new TextInputDialog(
+                title: "Scope of the Service Worker Registration",
+                description: "Specify a scope to get the service worker",
+                defaultInput: "");
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    if (ServiceWorkerManager_ == null)
+                    {
+                        ServiceWorkerManager_ = WebViewProfile.ServiceWorkerManager;
+                    }
+                    IReadOnlyList<CoreWebView2ServiceWorkerRegistration> registrationList = await ServiceWorkerManager_.GetServiceWorkerRegistrationsAsync(dialog.Input.Text);
+
+                    for (int i = 0; i < registrationList.Count(); ++i)
+                    {
+                        CoreWebView2ServiceWorker worker = registrationList[i].ActiveServiceWorker;
+
+                    };
+
+                    MessageBox.Show("Number of service workers registered for the given scope: " + (registrationList.Count()).ToString()
+                    , "Service Worker Registrations", MessageBoxButton.OK);
+                }
+                catch (NotImplementedException exception)
+                {
+                    MessageBox.Show(this, "GetServiceWorkerRegistrationsAsync Failed: " + exception.Message,
+                      "Get Service Workers Info");
+                }
+            }
+#else
             await Task.Delay(0);
+#endif
         }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        CoreWebView2ServiceWorkerManager PostMessage_ServiceWorkerManager_;
+#endif
 
         void ServiceWorkerPostMessageExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            PostMessage_ServiceWorkerManager_ = WebViewProfile.ServiceWorkerManager;
+
+            PostMessage_ServiceWorkerManager_.ServiceWorkerRegistered += ServiceWorker_PostMessage_ServiceWorkerRegistered;
+            _iWebView2.CoreWebView2.DOMContentLoaded += ServiceWorker_PostMessage_DOMContentLoaded;
+
+            _iWebView2.CoreWebView2.Navigate("https://appassets.example/scenario_sw_post_msg_scope/index.html");
+#endif
         }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        void ServiceWorker_PostMessage_ServiceWorkerRegistered(object sender, CoreWebView2ServiceWorkerRegisteredEventArgs args)
+        {
+            CoreWebView2ServiceWorkerRegistration serviceWorkerRegistration = args.ServiceWorkerRegistration;
+            MessageBox.Show("Service worker is registered for " + serviceWorkerRegistration.ScopeUri, "Service Worker Registration Message");
+
+            CoreWebView2ServiceWorker serviceWorker = serviceWorkerRegistration.ActiveServiceWorker;
+            if (serviceWorker != null)
+            {
+                ServiceWorker_PostMessage_SetupEventsOnServiceWorker(serviceWorker);
+                ServiceWorker_PostMessage_AddToCache(serviceWorker, "img.jpg");
+            }
+            else
+            {
+                serviceWorkerRegistration.ServiceWorkerActivated += (sender1, args1) =>
+                {
+                    ServiceWorker_PostMessage_SetupEventsOnServiceWorker(serviceWorker);
+                    ServiceWorker_PostMessage_AddToCache(serviceWorker, "img.jpg");
+                };
+            }
+        }
+
+        void ServiceWorker_PostMessage_DOMContentLoaded(object sender, CoreWebView2DOMContentLoadedEventArgs dedicatedWorker)
+        {
+            // Turn off this scenario if we navigate away from the sample page.
+            if (_iWebView2.CoreWebView2.Source != "https://appassets.example/scenario_sw_post_msg_scope/index.html")
+            {
+                PostMessage_ServiceWorkerManager_.ServiceWorkerRegistered -= ServiceWorker_PostMessage_ServiceWorkerRegistered;
+                _iWebView2.CoreWebView2.DOMContentLoaded -= ServiceWorker_PostMessage_DOMContentLoaded;
+                PostMessage_ServiceWorkerManager_ = null;
+            }
+        }
+
+        void ServiceWorker_PostMessage_SetupEventsOnServiceWorker(CoreWebView2ServiceWorker serviceWorker)
+        {
+            serviceWorker.WebMessageReceived += (sender, args) =>
+            {
+                StringBuilder messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine($"Service Worker: \n{args.Source} ");
+                messageBuilder.AppendLine($"\nMessage: \n{args.TryGetWebMessageAsString()} ");
+                MessageBox.Show(messageBuilder.ToString(), "Message from Service Worker", MessageBoxButton.OK);
+            };
+        }
+
+        void ServiceWorker_PostMessage_AddToCache(CoreWebView2ServiceWorker serviceWorker, string url)
+        {
+            string msg = "{\"command\":\"ADD_TO_CACHE\",\"url\":\"" + url + "\"}";
+            serviceWorker.PostWebMessageAsJson(msg);
+        }
+#endif
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        CoreWebView2SharedWorkerManager SharedWorkerManager_;
+#endif
         void SharedWorkerManagerExecuted(object target, ExecutedRoutedEventArgs e)
         {
             RegisterForSharedWorkerCreated();
         }
+
         void RegisterForSharedWorkerCreated()
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            if (SharedWorkerManager_ == null)
+            {
+                SharedWorkerManager_ = WebViewProfile.SharedWorkerManager;
+            }
+            SharedWorkerManager_.SharedWorkerCreated += (sender, args) =>
+            {
+                CoreWebView2SharedWorker sharedWorker = args.Worker;
+                MessageBox.Show("Shared worker is created", "Shared Worker Message");
+            };
+#endif
         }
+
         private void GetSharedWorkersExecuted(object target, ExecutedRoutedEventArgs e)
         {
             GetSharedWorkers();
@@ -3882,7 +4116,28 @@ namespace WebView2WpfBrowser
 
         async void GetSharedWorkers()
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            try
+            {
+                if (SharedWorkerManager_ == null)
+                {
+                    SharedWorkerManager_ = WebViewProfile.SharedWorkerManager;
+                }
+                IReadOnlyList<CoreWebView2SharedWorker> workerList = await SharedWorkerManager_.GetSharedWorkersAsync();
+                int workerCount = workerList.Count;
+                StringBuilder messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine($"No of shared  workers created: {workerCount}");
+
+                MessageBox.Show(messageBuilder.ToString(), "Shared Workers", MessageBoxButton.OK);
+            }
+            catch (NotImplementedException exception)
+            {
+                MessageBox.Show(this, "GetSharedWorkersAsync Failed: " + exception.Message,
+                   "Get Shared Workers Info");
+            }
+#else
             await Task.Delay(0);
+#endif
         }
         async void ServiceWorkerSyncManagerExecuted(object target, ExecutedRoutedEventArgs e)
         {

@@ -107,6 +107,16 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.ProgrammaticSaveAsCommand}" Executed="ProgrammaticSaveAsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ToggleSilentCommand}" Executed="ToggleSilentExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.ThrottlingControlCommand}" Executed="ThrottlingControlExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+<!-- #if USE_WEBVIEW2_EXPERIMENTAL -->
+        <CommandBinding Command="{x:Static local:MainWindow.ServiceWorkerRegisteredCommand}" Executed="ServiceWorkerRegisteredExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GetServiceWorkerRegistrationsCommand}" Executed="GetServiceWorkerRegistrationsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GetServiceWorkerRegisteredForScopeCommand}" Executed="GetServiceWorkerRegisteredForScopeExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ServiceWorkerPostMessageCommand}" Executed="ServiceWorkerPostMessageExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.DedicatedWorkerCreatedCommand}" Executed="DedicatedWorkerCreatedExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.DedicatedWorkerPostMessageCommand}" Executed="DedicatedWorkerPostMessageExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.SharedWorkerManagerCommand}" Executed="SharedWorkerManagerExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.GetSharedWorkersCommand}" Executed="GetSharedWorkersExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+<!-- #endif -->
         <CommandBinding Command="{x:Static local:MainWindow.ChildFrameEventsCommand}" Executed="ChildFrameEventsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.RemoveChildFrameEventsCommand}" Executed="RemoveChildFrameEventsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.FileExplorerCommand}" Executed="FileExplorerExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>

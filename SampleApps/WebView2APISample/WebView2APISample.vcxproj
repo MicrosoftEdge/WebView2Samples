@@ -234,6 +234,8 @@
     <ClInclude Include="ScenarioCustomDownloadExperience.h" />
     <ClInclude Include="ScenarioCustomScheme.h" />
     <ClInclude Include="ScenarioCustomSchemeNavigate.h" />
+    <ClInclude Include="ScenarioDedicatedWorker.h" />
+    <ClInclude Include="ScenarioDedicatedWorkerPostMessage.h" />
     <ClInclude Include="ScenarioDefaultBackgroundColor.h" />
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
     <ClInclude Include="ScenarioDragDrop.h" />
@@ -248,13 +250,17 @@
     <ClInclude Include="ScenarioPermissionManagement.h" />
     <ClInclude Include="ScenarioSaveAs.h" />
     <ClInclude Include="ScenarioScreenCapture.h" />
+    <ClInclude Include="ScenarioServiceWorkerManager.h" />
+    <ClInclude Include="ScenarioServiceWorkerPostMessage.h" />
     <ClInclude Include="ScenarioSharedBuffer.h" />
+    <ClInclude Include="ScenarioSharedWorkerManager.h" />
     <ClInclude Include="ScenarioSharedWorkerWRR.h" />
     <ClInclude Include="ScenarioThrottlingControl.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForSW.h" />
     <ClInclude Include="ScenarioWebMessage.h" />
     <ClInclude Include="ScenarioWebViewEventMonitor.h" />
+    <ClInclude Include="ScenarioWindowControlsOverlay.h" />
     <ClInclude Include="ScriptComponent.h" />
     <ClInclude Include="SettingsComponent.h" />
     <ClInclude Include="stdafx.h" />
@@ -289,6 +295,8 @@
     <ClCompile Include="ScenarioCustomDownloadExperience.cpp" />
     <ClCompile Include="ScenarioCustomScheme.cpp" />
     <ClCompile Include="ScenarioCustomSchemeNavigate.cpp" />
+    <ClCompile Include="ScenarioDedicatedWorker.cpp" />
+    <ClCompile Include="ScenarioDedicatedWorkerPostMessage.cpp" />
     <ClCompile Include="ScenarioDefaultBackgroundColor.cpp" />
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
     <ClCompile Include="ScenarioDragDrop.cpp" />
@@ -303,13 +311,17 @@
     <ClCompile Include="ScenarioPermissionManagement.cpp" />
     <ClCompile Include="ScenarioSaveAs.cpp" />
     <ClCompile Include="ScenarioScreenCapture.cpp" />
+    <ClCompile Include="ScenarioServiceWorkerManager.cpp" />
+    <ClCompile Include="ScenarioServiceWorkerPostMessage.cpp" />
     <ClCompile Include="ScenarioSharedBuffer.cpp" />
+    <ClCompile Include="ScenarioSharedWorkerManager.cpp" />
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp" />
     <ClCompile Include="ScenarioThrottlingControl.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForSW.cpp" />
     <ClCompile Include="ScenarioWebMessage.cpp" />
     <ClCompile Include="ScenarioWebViewEventMonitor.cpp" />
+    <ClCompile Include="ScenarioWindowControlsOverlay.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />
     <ClCompile Include="SettingsComponent.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -431,6 +443,9 @@
     <CopyFileToFolders Include="assets/ScenarioThrottlingControlMonitor.js">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioWindowControlsOverlay.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
     <CopyFileToFolders Include="assets/SecnarioFileTypePolicy.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
@@ -502,13 +517,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\Microsoft.Windows.ImplementationLibrary.1.0.220201.1\build\native\Microsoft.Windows.ImplementationLibrary.targets" Condition="Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.220201.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" />
-    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.3344-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.3344-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
+    <Import Project="..\packages\Microsoft.Web.WebView2.1.0.3415-prerelease\build\native\Microsoft.Web.WebView2.targets" Condition="Exists('..\packages\Microsoft.Web.WebView2.1.0.3415-prerelease\build\native\Microsoft.Web.WebView2.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.Windows.ImplementationLibrary.1.0.220201.1\build\native\Microsoft.Windows.ImplementationLibrary.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Windows.ImplementationLibrary.1.0.220201.1\build\native\Microsoft.Windows.ImplementationLibrary.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.3344-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.3344-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Web.WebView2.1.0.3415-prerelease\build\native\Microsoft.Web.WebView2.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Web.WebView2.1.0.3415-prerelease\build\native\Microsoft.Web.WebView2.targets'))" />
   </Target>
 </Project>
