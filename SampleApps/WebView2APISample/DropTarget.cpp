@@ -7,9 +7,11 @@
 #include "DropTarget.h"
 #include "ViewComponent.h"
 #include <ShlGuid.h>
-#include <Shobjidl.h>
+#include <shobjidl.h>
 
-DropTarget::DropTarget() : m_window(nullptr) {}
+DropTarget::DropTarget() : m_window(nullptr)
+{
+}
 
 DropTarget::~DropTarget()
 {

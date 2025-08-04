@@ -2317,7 +2317,8 @@ void AppWindow::RegisterEventHandlers()
                 }
                 else
                 {
-                    newAppWindow = new AppWindow(m_creationModeId, GetWebViewOption(), L"none");
+                    newAppWindow = new AppWindow(
+                        m_creationModeId, GetWebViewOption(), L"none", m_userDataFolder);
                 }
                 newAppWindow->m_isPopupWindow = true;
                 newAppWindow->m_onWebViewFirstInitialized = [args, deferral, newAppWindow]()
