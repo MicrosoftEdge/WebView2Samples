@@ -312,7 +312,7 @@ BEGIN
         BEGIN
           MENUITEM "Listen to new Service Worker Registrations", IDM_SCENARIO_SERVICE_WORKER_REGISTRATION_REQUESTED
           MENUITEM "Get Service Worker Registrations", IDM_SCENARIO_GET_SERVICE_WORKER_REGISTRATIONS
-          MENUITEM "Get Service Worker registered for the Scope", IDM_SCENARIO_GET_SERVICE_WORKER_REGISTERED_FOR_SCOPE
+          MENUITEM "Get Service Worker Registrations for the Scope", IDM_SCENARIO_GET_SERVICE_WORKER_REGISTERED_FOR_SCOPE
           MENUITEM "Web Messaging", IDM_SCENARIO_SERVICE_WORKER_POST_MESSAGE
         END
         POPUP "Dedicated Worker"
