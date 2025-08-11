@@ -171,6 +171,7 @@ void ScenarioServiceWorkerManager::GetAllServiceWorkerRegistrations()
                 HRESULT error, ICoreWebView2ExperimentalServiceWorkerRegistrationCollectionView*
                                    workerRegistrationCollection) -> HRESULT
             {
+                CHECK_FAILURE(error);
                 UINT32 workersCount = 0;
                 CHECK_FAILURE(workerRegistrationCollection->get_Count(&workersCount));
 
@@ -217,10 +218,11 @@ void ScenarioServiceWorkerManager::GetServiceWorkerRegisteredForScope()
 
     if (dialog.confirmed)
     {
+        std::wstring scope = dialog.input.c_str();
         CHECK_FAILURE(m_serviceWorkerManager->GetServiceWorkerRegistrationsForScope(
-            dialog.input.c_str(),
+            scope.c_str(),
             Callback<ICoreWebView2ExperimentalGetServiceWorkerRegistrationsCompletedHandler>(
-                [this](
+                [this, scope](
                     HRESULT error,
                     ICoreWebView2ExperimentalServiceWorkerRegistrationCollectionView*
                         workerRegistrationCollection) -> HRESULT
@@ -230,51 +232,33 @@ void ScenarioServiceWorkerManager::GetServiceWorkerRegisteredForScope()
                     CHECK_FAILURE(workerRegistrationCollection->get_Count(&workersCount));
 
                     std::wstringstream message{};
-                    message << L"Number of service workers registered for the given scope: "
-                            << workersCount << std::endl;
+                    message << L"Number of service workers registered for the scope ("
+                            << scope.c_str() << ") : " << workersCount << std::endl;
 
                     for (UINT32 i = 0; i < workersCount; i++)
                     {
-                        Microsoft::WRL::ComPtr<
-                            ICoreWebView2ExperimentalServiceWorkerRegistration>
+                        ComPtr<ICoreWebView2ExperimentalServiceWorkerRegistration>
                             serviceWorkerRegistration;
                         CHECK_FAILURE(workerRegistrationCollection->GetValueAtIndex(
                             i, &serviceWorkerRegistration));
 
-                        wil::com_ptr<ICoreWebView2ExperimentalServiceWorker> serviceWorker;
+                        wil::unique_cotaskmem_string scopeUri;
+                        CHECK_FAILURE(serviceWorkerRegistration->get_ScopeUri(&scopeUri));
+
+                        wil::unique_cotaskmem_string origin;
+                        CHECK_FAILURE(serviceWorkerRegistration->get_Origin(&origin));
+
+                        wil::unique_cotaskmem_string topLevelOrigin;
                         CHECK_FAILURE(
-                            serviceWorkerRegistration->get_ActiveServiceWorker(&serviceWorker));
+                            serviceWorkerRegistration->get_TopLevelOrigin(&topLevelOrigin));
 
-                        if (serviceWorker)
-                        {
-                            // Log that the service worker is activated.
-                        }
-                        else
-                        {
-                            CHECK_FAILURE(serviceWorkerRegistration->add_ServiceWorkerActivated(
-                                Callback<
-                                    ICoreWebView2ExperimentalServiceWorkerActivatedEventHandler>(
-                                    [this](
-                                        ICoreWebView2ExperimentalServiceWorkerRegistration*
-                                            sender,
-                                        ICoreWebView2ExperimentalServiceWorkerActivatedEventArgs*
-                                            args) -> HRESULT
-                                    {
-                                        wil::com_ptr<ICoreWebView2ExperimentalServiceWorker>
-                                            serviceWorker;
-                                        CHECK_FAILURE(
-                                            args->get_ActiveServiceWorker(&serviceWorker));
-
-                                        // Log that the service worker is activated.
-                                        m_appWindow->AsyncMessageBox(
-                                            L"Service worker is activated", L"Service worker");
-
-                                        return S_OK;
-                                    })
-                                    .Get(),
-                                nullptr));
-                        }
+                        message << L"ScopeUri: " << scopeUri.get() << std::endl;
+                        message << L"Origin: " << origin.get() << std::endl;
+                        message << L"TopLevelOrigin: " << topLevelOrigin.get() << std::endl;
                     }
+
+                    m_appWindow->AsyncMessageBox(
+                        std::move(message.str()), L"Registered service workers for scope");
 
                     return S_OK;
                 })
