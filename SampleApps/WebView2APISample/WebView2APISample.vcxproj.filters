@@ -138,6 +138,60 @@
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DiscardsComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioAcceleratorKeyPressed.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioDedicatedWorker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioDedicatedWorkerPostMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioDefaultBackgroundColor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioDragDropOverride.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioFileSystemHandleShare.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioFileTypePolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioNonClientRegionSupport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioNotificationReceived.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioSaveAs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioScreenCapture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioServiceWorkerManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioServiceWorkerPostMessage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioSharedWorkerManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioThrottlingControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenarioWindowControlsOverlay.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -269,6 +323,60 @@
     <ClInclude Include="ScenarioSharedWorkerWRR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DiscardsComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioAcceleratorKeyPressed.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioDedicatedWorker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioDedicatedWorkerPostMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioDefaultBackgroundColor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioDragDropOverride.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioFileSystemHandleShare.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioFileTypePolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioNonClientRegionSupport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioNotificationReceived.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioSaveAs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioScreenCapture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioServiceWorkerManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioServiceWorkerPostMessage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioSharedWorkerManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioThrottlingControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioWindowControlsOverlay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2APISample.rc">
@@ -304,6 +412,43 @@
     <CopyFileToFolders Include="assets/ScenarioCustomScheme.json" />
     <CopyFileToFolders Include="assets/ScenarioDragDrop.html" />
     <CopyFileToFolders Include="assets/ScenarioSharedBuffer.html" />
+    <CopyFileToFolders Include="assets/dedicated_worker.js" />
+    <CopyFileToFolders Include="assets\scenario_sw_post_msg_scope\index.html" />
+    <CopyFileToFolders Include="assets\scenario_sw_post_msg_scope\sw.js" />
+    <CopyFileToFolders Include="assets\scenario_sw_post_msg_scope\style.css" />
+    <CopyFileToFolders Include="assets\scenario_sw_post_msg_scope\img.jpg" />
+    <CopyFileToFolders Include="assets/extensions/example-devtools-extension/devtools.html" />
+    <CopyFileToFolders Include="assets/extensions/example-devtools-extension/manifest.json" />
+    <CopyFileToFolders Include="assets/extensions/example-devtools-extension/panel.html" />
+    <CopyFileToFolders Include="assets/extensions/example-devtools-extension/panel.js" />
+    <CopyFileToFolders Include="assets/LandingPageForFindDemo.html" />
+    <CopyFileToFolders Include="assets/ScenarioAcceleratorKeyPressed.html" />
+    <CopyFileToFolders Include="assets/ScenarioDedicatedWorkerPostMessage.html" />
+    <CopyFileToFolders Include="assets/ScenarioDragDropOverride.html" />
+    <CopyFileToFolders Include="assets/ScenarioFileSystemHandleShare.html" />
+    <CopyFileToFolders Include="assets/ScenarioNonClientRegionSupport.html" />
+    <CopyFileToFolders Include="assets/ScenarioNotificationReceived.html" />
+    <CopyFileToFolders Include="assets/ScenarioScreenCapture.html" />
+    <CopyFileToFolders Include="assets/ScenarioScreenCaptureIFrame1.html" />
+    <CopyFileToFolders Include="assets/ScenarioScreenCaptureIFrame2.html" />
+    <CopyFileToFolders Include="assets/ScenarioServiceWorkerSyncRegistrationManager.html" />
+    <CopyFileToFolders Include="assets/ScenarioServiceWorkerSyncRegistrationManagerServiceWorker.js" />
+    <CopyFileToFolders Include="assets/ScenarioThrottlingControl.html" />
+    <CopyFileToFolders Include="assets/ScenarioThrottlingControl.js" />
+    <CopyFileToFolders Include="assets/ScenarioThrottlingControl1PP.html" />
+    <CopyFileToFolders Include="assets/ScenarioThrottlingControl3PP.html" />
+    <CopyFileToFolders Include="assets/ScenarioThrottlingControlMonitor.html" />
+    <CopyFileToFolders Include="assets/ScenarioThrottlingControlMonitor.js" />
+    <CopyFileToFolders Include="assets/ScenarioWindowControlsOverlay.html" />
+    <CopyFileToFolders Include="assets/SecnarioFileTypePolicy.html" />
+    <CopyFileToFolders Include="assets/sw_scope/cached_by_sw_install.jpg">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/sw_scope/index.html" />
+    <CopyFileToFolders Include="assets/sw_scope/simple.txt" />
+    <CopyFileToFolders Include="assets/sw_scope/sw.js" />
+    <CopyFileToFolders Include="ScenarioDefaultBackgroundColor.html" />
+    <CopyFileToFolders Include="ScenarioScreenCaptureIFrame2.html" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">

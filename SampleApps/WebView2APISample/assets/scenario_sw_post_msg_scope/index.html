@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ScenarioServiceWorkerPostMessage</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        "use strict";
+        function FetchCachedImage() {
+            let img = document.createElement('img');
+            img.width = 40;
+            img.height = 40;
+            img.src = 'img.jpg';
+            document.getElementById("imageContainer").appendChild(img);
+        }
+
+        navigator.serviceWorker.register("sw.js");
+    </script>
+</head>
+
+<body>
+    <div>
+        <h1>ServiceWorker PostMessage Sample Page</h1>
+        <p>This page demonstrates basic interaction between the host app and service workers by
+            means of Web Messages.
+        </p>
+    </div>
+
+    <h2>Posting and receiving messages</h2>
+    <p>Messages can be posted from the host app to the activated service worker using the APIs
+        <code>ICoreWebView2ServiceWorker::PostWebMessageAsJson</code> and
+        <code>ICoreWebView2ServiceWorker::PostWebMessageAsString</code>.
+    </p>
+
+    <p>Messages can be posted from the service worker to the host app using
+        <code>self.chrome.webview.postMessage</code>. The host app can receive messages by
+        registering an event handler with
+        <code>ICoreWebView2ServiceWorker::add_WebMessageReceived</code>.
+    </p>
+
+    <h2>How to use the sample?</h2>
+    <p>A service worker with scope <code>'.'</code> is registered in this page.
+    </p>
+    <p>When the service worker is activated, the host app sends a message to add the resource
+        "img.jpg" to the cache. Once the resource is cached, the service worker notifies the
+        host app that the resource has been successfully cached.
+        Additionally, the service worker will inform the host app every time when there is a
+        cache hit.
+    </p>
+    <p>
+        Click the fetch button to get "img.jpg" from the cache.
+    </p>
+    <button onclick="FetchCachedImage()">Fetch</button><br><br>
+    <div id="imageContainer"></div>
+    </p>
+
+</body>
+
+</html>
