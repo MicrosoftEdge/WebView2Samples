@@ -41,6 +41,64 @@ void ScenarioServiceWorkerPostMessage::SetupEventsOnWebview()
         return;
     }
 
+    m_webView->add_WebMessageReceived(
+        Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args)
+                -> HRESULT
+            {
+                wil::unique_cotaskmem_string messageRaw;
+                CHECK_FAILURE(args->TryGetWebMessageAsString(&messageRaw));
+                std::wstring messageFromWebView = messageRaw.get();
+                // Block main thread for 10 seconds.
+                if(messageFromWebView == L"ViaMainThread")
+                {
+                    m_webView->PostWebMessageAsString(L"BlockMainThread");
+                    m_ServiceWorkerStartTimeViaMainThread = GetTickCount64();
+                    m_webView->PostWebMessageAsString(L"PostMessageToSW");
+                } else if (messageFromWebView == L"ViaNewMethod"){
+                    m_webView->PostWebMessageAsString(L"BlockMainThread");
+                    m_serviceWorkerManager->GetServiceWorkerRegistrationsForScope(L"/",
+                        Callback<
+                            ICoreWebView2ExperimentalGetServiceWorkerRegistrationsCompletedHandler>(
+                            [this](
+                                HRESULT errorCode,
+                                ICoreWebView2ExperimentalServiceWorkerRegistrationCollectionView*
+                                    registrations) -> HRESULT
+                            {
+                                UINT32 length = 0;
+                                CHECK_FAILURE(registrations->get_Count(&length));
+                                if(length > 0) {
+                                    wil::com_ptr<ICoreWebView2ExperimentalServiceWorkerRegistration>
+                                        serviceWorkerRegistration;
+                                    CHECK_FAILURE(
+                                        registrations->GetValueAtIndex(0, &serviceWorkerRegistration));
+                                    if (serviceWorkerRegistration)
+                                    {
+                                        wil::com_ptr<ICoreWebView2ExperimentalServiceWorker> serviceWorker;
+                                        CHECK_FAILURE(serviceWorkerRegistration->get_ActiveServiceWorker(&serviceWorker));
+                                        if (serviceWorker)
+                                        {
+                                            m_ServiceWorkerStartTimeViaNewMethod = GetTickCount64();
+                                            serviceWorker->PostWebMessageAsString(L"PostMessageToSW");
+                                        }
+                                    }
+                                }
+                                return S_OK;
+                            })
+                            .Get());
+                } else if (messageFromWebView == L"MainThreadMessage") {
+                    // Calculate the time taken and then show the message.
+                    ULONGLONG nowMs = GetTickCount64();
+                    ULONGLONG timeTaken = nowMs - m_ServiceWorkerStartTimeViaMainThread;
+                    std::wstringstream ss;
+                    ss << messageFromWebView << L" - Time taken: " << timeTaken << L" ms";
+                    m_appWindow->AsyncMessageBox(ss.str(), L"Message from Service Worker via Main Thread");
+                }
+                return S_OK;
+            })
+            .Get(),
+        nullptr);
+
     CHECK_FAILURE(m_serviceWorkerManager->add_ServiceWorkerRegistered(
         Callback<ICoreWebView2ExperimentalServiceWorkerRegisteredEventHandler>(
             [this](
@@ -64,7 +122,6 @@ void ScenarioServiceWorkerPostMessage::SetupEventsOnWebview()
                     if (serviceWorker)
                     {
                         SetupEventsOnServiceWorker(serviceWorker);
-                        AddToCache(L"img.jpg", serviceWorker);
                     }
                     else
                     {
@@ -82,7 +139,6 @@ void ScenarioServiceWorkerPostMessage::SetupEventsOnWebview()
                                         args->get_ActiveServiceWorker(&serviceWorker));
 
                                     SetupEventsOnServiceWorker(serviceWorker);
-                                    AddToCache(L"img.jpg", serviceWorker);
 
                                     return S_OK;
                                 })
@@ -135,26 +191,21 @@ void ScenarioServiceWorkerPostMessage::SetupEventsOnServiceWorker(
                 CHECK_FAILURE(args->TryGetWebMessageAsString(&messageRaw));
                 std::wstring messageFromWorker = messageRaw.get();
 
-                std::wstringstream message{};
-                message << L"Service Worker: " << std::endl << scriptUri.get() << std::endl;
-                message << std::endl;
-                message << L"Message: " << std::endl << messageFromWorker << std::endl;
-                m_appWindow->AsyncMessageBox(message.str(), L"Message from Service Worker");
+                if(messageFromWorker == L"SWDirectMessage")
+                {
+                    // Calculate the time taken and then show the message.
+                    ULONGLONG nowMs = GetTickCount64();
+                    ULONGLONG timeTaken = nowMs - m_ServiceWorkerStartTimeViaNewMethod;
+                    std::wstringstream ss;
+                    ss << messageFromWorker << L" - Time taken: " << timeTaken << L" ms";
+                    m_appWindow->AsyncMessageBox(ss.str(), L"Message from Service Worker");
+                }
 
                 return S_OK;
             })
             .Get(),
         nullptr);
     //! [WebMessageReceived]
-}
-
-void ScenarioServiceWorkerPostMessage::AddToCache(
-    std::wstring url, wil::com_ptr<ICoreWebView2ExperimentalServiceWorker> serviceWorker)
-{
-    //! [PostWebMessageAsJson]
-    std::wstring msg = L"{\"command\":\"ADD_TO_CACHE\",\"url\":\"" + url + L"\"}";
-    serviceWorker->PostWebMessageAsJson(msg.c_str());
-    //! [PostWebMessageAsJson]
 }
 
 ScenarioServiceWorkerPostMessage::~ScenarioServiceWorkerPostMessage()

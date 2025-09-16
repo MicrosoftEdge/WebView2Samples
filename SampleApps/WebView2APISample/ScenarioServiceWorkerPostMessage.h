@@ -22,6 +22,8 @@ private:
         std::wstring url, wil::com_ptr<ICoreWebView2ExperimentalServiceWorker> serviceWorker);
 
     AppWindow* m_appWindow;
+    ULONGLONG m_ServiceWorkerStartTimeViaNewMethod;
+    ULONGLONG m_ServiceWorkerStartTimeViaMainThread;
     wil::com_ptr<ICoreWebView2> m_webView;
     std::wstring m_sampleUri;
     wil::com_ptr<ICoreWebView2ExperimentalServiceWorkerManager> m_serviceWorkerManager;

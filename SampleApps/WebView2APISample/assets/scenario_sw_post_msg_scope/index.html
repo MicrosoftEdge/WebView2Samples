@@ -6,13 +6,32 @@
     <link rel="stylesheet" href="style.css">
     <script>
         "use strict";
-        function FetchCachedImage() {
-            let img = document.createElement('img');
-            img.width = 40;
-            img.height = 40;
-            img.src = 'img.jpg';
-            document.getElementById("imageContainer").appendChild(img);
+        function SendMessageViaMainThread() {
+            self.chrome.webview.postMessage("ViaMainThread");
         }
+
+        function SendMessageUsingNewMethod() {
+            self.chrome.webview.postMessage("ViaNewMethod");
+        }
+
+        self.chrome.webview.addEventListener("message", function (event) {
+            if (event.data == "PostMessageToSW") {
+                navigator.serviceWorker.controller.postMessage("MainThreadMessage");
+            } else if(event.data == 'BlockMainThread'){
+                const start = Date.now();
+                while (Date.now() - start < 5000) {
+                    // Do nothing
+                }
+                self.chrome.webview.postMessage("MainThreadUnblocked");
+            }
+        });
+
+        navigator.serviceWorker.addEventListener('message', function (event) {
+            if (event.data == "MainThreadMessage") {
+                console.log(event.data)
+                self.chrome.webview.postMessage(event.data);
+            }
+        });
 
         navigator.serviceWorker.register("sw.js");
     </script>
@@ -26,34 +45,15 @@
         </p>
     </div>
 
-    <h2>Posting and receiving messages</h2>
-    <p>Messages can be posted from the host app to the activated service worker using the APIs
-        <code>ICoreWebView2ServiceWorker::PostWebMessageAsJson</code> and
-        <code>ICoreWebView2ServiceWorker::PostWebMessageAsString</code>.
-    </p>
+    <div>
+        <p>Post Message from Service worker to Host process via the main thread</p>
+        <button id="oldMethod" onclick="SendMessageViaMainThread()">Send Message via Main Thread</button>
+    </div>
 
-    <p>Messages can be posted from the service worker to the host app using
-        <code>self.chrome.webview.postMessage</code>. The host app can receive messages by
-        registering an event handler with
-        <code>ICoreWebView2ServiceWorker::add_WebMessageReceived</code>.
-    </p>
-
-    <h2>How to use the sample?</h2>
-    <p>A service worker with scope <code>'.'</code> is registered in this page.
-    </p>
-    <p>When the service worker is activated, the host app sends a message to add the resource
-        "img.jpg" to the cache. Once the resource is cached, the service worker notifies the
-        host app that the resource has been successfully cached.
-        Additionally, the service worker will inform the host app every time when there is a
-        cache hit.
-    </p>
-    <p>
-        Click the fetch button to get "img.jpg" from the cache.
-    </p>
-    <button onclick="FetchCachedImage()">Fetch</button><br><br>
-    <div id="imageContainer"></div>
-    </p>
-
+    <div>
+        <p>Post Message from Service worker to Host process using New Method</p>
+        <button id="newMethod" onclick="SendMessageUsingNewMethod()">Send Message via New Method</button>
+    </div>
 </body>
 
 </html>
