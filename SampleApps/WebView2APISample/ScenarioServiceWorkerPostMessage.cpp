@@ -93,7 +93,9 @@ void ScenarioServiceWorkerPostMessage::SetupEventsOnWebview()
                     std::wstringstream ss;
                     ss << messageFromWebView << L" - Time taken: " << timeTaken << L" ms";
                     m_appWindow->AsyncMessageBox(ss.str(), L"Message from Service Worker via Main Thread");
-                }
+                } else if(messageFromWebView == L"MainThreadUnblocked") {
+                    m_appWindow->AsyncMessageBox(L"Main thread is unblocked now", L"Main Thread Unblocked");
+				}
                 return S_OK;
             })
             .Get(),
