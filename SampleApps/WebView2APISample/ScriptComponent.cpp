@@ -485,14 +485,28 @@ void ScriptComponent::SendStringWebMessage()
 void ScriptComponent::SendJsonWebMessage()
 {
     TextInputDialog dialog(
-        m_appWindow->GetMainWindow(),
-        L"Post Web Message JSON",
-        L"Web message JSON:",
-        L"Enter the web message as JSON.",
-        L"{\"SetColor\":\"blue\"}");
+    m_appWindow->GetMainWindow(),
+    L"Post Web Message JSON",
+    L"Web message JSON:",
+    L"Enter the web message as JSON.",
+    L"{\"ParseFileHandle\":\"1\"}");
+    wil::com_ptr<ICoreWebView2Environment> environment = m_appWindow->GetWebViewEnvironment();
+    auto environment14 = environment.try_query<ICoreWebView2Environment14>();
+    wil::com_ptr<ICoreWebView2FileSystemHandle> temp_file_file_system_handle;
+    CHECK_FAILURE(environment14->CreateWebFileSystemFileHandle(
+        L"Q:\file_handler.txt", COREWEBVIEW2_FILE_SYSTEM_HANDLE_PERMISSION_READ_ONLY,
+        &temp_file_file_system_handle));
+
+    IUnknown* web_objects[] = {temp_file_file_system_handle.get()};
+    wil::com_ptr<ICoreWebView2ObjectCollection> web_object_collection;
+    CHECK_FAILURE(environment14->CreateObjectCollection(
+        ARRAYSIZE(web_objects), web_objects, &web_object_collection));
+    auto web_object_collection_view = web_object_collection.try_query<ICoreWebView2ObjectCollectionView>();
     if (dialog.confirmed)
     {
-        m_webView->PostWebMessageAsJson(dialog.input.c_str());
+        wil::com_ptr<ICoreWebView2_23> webview2_23 = m_webView.try_query<ICoreWebView2_23>();
+        webview2_23->PostWebMessageAsJsonWithAdditionalObjects(
+            dialog.input.c_str(), web_object_collection_view.get());
     }
 }
 

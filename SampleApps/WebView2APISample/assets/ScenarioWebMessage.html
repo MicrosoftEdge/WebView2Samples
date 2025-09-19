@@ -11,13 +11,39 @@
             }
             if ("WindowBounds" in arg.data) {
                 document.getElementById("window-bounds").value = arg.data.WindowBounds;
+            } 
+            if ("ParseFileHandle" in arg.data) {
+                console.log(arg);
             }
         });
 
-        function SetTitleText() {
-            let titleText = document.getElementById("title-text");
-            window.chrome.webview.postMessage(`SetTitleText ${titleText.value}`);
+        async function getFileHandle() {
+            try {
+                const fileHandle = await window.showSaveFilePicker({
+                types: [{
+                    description: 'Text Files',
+                    accept: {
+                    'text/plain': ['.txt'],
+                    },
+                }],
+                });
+                return fileHandle;
+            } catch (error) {
+                console.error('Error getting file handle:', error);
+                return null;
+            }
         }
+
+        async function SetTitleText() {
+            const fileHandle = await getFileHandle();
+            if (!fileHandle) {
+                return;
+            }   
+            console.log('fileHandle:', fileHandle);
+            console.log(window.chrome.webview);
+            window.chrome.webview.postMessageWithAdditionalObjects("SetFileHandle", [fileHandle]);
+        }
+
         function GetWindowBounds() {
             window.chrome.webview.postMessage("GetWindowBounds");
         }
@@ -72,13 +98,14 @@
     "Script-&gt;<label id="menu"></label>" to send the message <code>{"SetColor":"blue"}</code>.
     It should change the text color of this paragraph.</p>
 
-    <h2>Receiving Messages</h2>
-    <p>The host app can receive messages by registering an event handler with
+    <h2>Posting Web Message Handle</h2>
+    <!-- <p>The host app can receive messages by registering an event handler with
     <code><label id="class3"></label>::add_WebMessageReceived</code>. If you enter text and click
     "Send", this <label id="page"></label> will send a message to the host app which will change the text of
-    the title bar.</p>
+    the title bar.</p> -->
+    <p>The host app can receive file handle</p>
     <input type="text" id="title-text"/>
-    <button onclick="SetTitleText()">Send</button>
+    <button onclick="SetTitleText()">Send File Handle</button>
 
     <h2>Round trip</h2>
     <p>The host app can send messages back in response to received messages. If you click

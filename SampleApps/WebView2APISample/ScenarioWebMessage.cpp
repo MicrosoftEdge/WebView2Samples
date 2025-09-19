@@ -67,6 +67,19 @@ ScenarioWebMessage::ScenarioWebMessage(AppWindow* appWindow)
                 + L"\"}";
             CHECK_FAILURE(sender->PostWebMessageAsJson(reply.c_str()));
         }
+        else if(message.compare(L"SetFileHandle") == 0)
+        {
+            wil::com_ptr<ICoreWebView2WebMessageReceivedEventArgs2> args2;
+            if (SUCCEEDED(args->QueryInterface(IID_PPV_ARGS(&args2))))
+            {
+                wil::com_ptr<ICoreWebView2ObjectCollectionView> object_col;
+                CHECK_FAILURE(args2->get_AdditionalObjects(&object_col));
+                UINT32 count;
+                CHECK_FAILURE(object_col->get_Count(&count));
+                std::wstring countMessage = L"File Handle Objects Count: " + std::to_wstring(count);
+                m_appWindow->AsyncMessageBox(countMessage.c_str(), L"File Handle Information");
+            }
+        }
         else
         {
             // Ignore unrecognized messages, but log for further investigation
