@@ -17,7 +17,7 @@
         self.chrome.webview.addEventListener("message", function (event) {
             if (event.data == "PostMessageToSW") {
                 navigator.serviceWorker.controller.postMessage("MainThreadMessage");
-            } else if(event.data == 'BlockMainThread'){
+            } else if (event.data == 'BlockMainThread') {
                 const start = Date.now();
                 while (Date.now() - start < 5000) {
                     // Do nothing
@@ -38,21 +38,22 @@
 </head>
 
 <body>
-    <div>
+    <div class="header">
         <h1>ServiceWorker PostMessage Sample Page</h1>
         <p>This page demonstrates basic interaction between the host app and service workers by
             means of Web Messages.
         </p>
     </div>
+    <div class="container">
+        <div class="method-card">
+            <p>Post Message from Service worker to Host process via Main Thread</p>
+            <button id="oldMethod" onclick="SendMessageViaMainThread()">Send Notification via Main Thread</button>
+        </div>
 
-    <div>
-        <p>Post Message from Service worker to Host process via the main thread</p>
-        <button id="oldMethod" onclick="SendMessageViaMainThread()">Send Message via Main Thread</button>
-    </div>
-
-    <div>
-        <p>Post Message from Service worker to Host process using New Method</p>
-        <button id="newMethod" onclick="SendMessageUsingNewMethod()">Send Message via New Method</button>
+        <div class="method-card">
+            <p>Post Message from Service worker to Host process using New Method</p>
+            <button id="newMethod" onclick="SendMessageUsingNewMethod()">Send Notification via New Method</button>
+        </div>
     </div>
 </body>
 

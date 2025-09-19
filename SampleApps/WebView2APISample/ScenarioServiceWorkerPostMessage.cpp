@@ -91,7 +91,7 @@ void ScenarioServiceWorkerPostMessage::SetupEventsOnWebview()
                     ULONGLONG nowMs = GetTickCount64();
                     ULONGLONG timeTaken = nowMs - m_ServiceWorkerStartTimeViaMainThread;
                     std::wstringstream ss;
-                    ss << messageFromWebView << L" - Time taken: " << timeTaken << L" ms";
+                    ss << L"Notification received from SW in " << timeTaken << L" ms";
                     m_appWindow->AsyncMessageBox(ss.str(), L"Message from Service Worker via Main Thread");
                 } else if(messageFromWebView == L"MainThreadUnblocked") {
                     m_appWindow->AsyncMessageBox(L"Main thread is unblocked now", L"Main Thread Unblocked");
@@ -199,7 +199,7 @@ void ScenarioServiceWorkerPostMessage::SetupEventsOnServiceWorker(
                     ULONGLONG nowMs = GetTickCount64();
                     ULONGLONG timeTaken = nowMs - m_ServiceWorkerStartTimeViaNewMethod;
                     std::wstringstream ss;
-                    ss << messageFromWorker << L" - Time taken: " << timeTaken << L" ms";
+                    ss << L"Notification received from SW in " << timeTaken << L" ms";
                     m_appWindow->AsyncMessageBox(ss.str(), L"Message from Service Worker");
                 }
 

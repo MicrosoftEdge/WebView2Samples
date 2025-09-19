@@ -1,5 +1,209 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+    line-height: 1.6;
+    color: #2d3748;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    min-height: 100vh;
+    padding: 40px 20px;
+    font-weight: 400;
+}
+
+/* Header section */
+.header {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 8px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 40px;
+}
+
 h1 {
-  font-family: sans-serif, Arial, Helvetica;
-  font-size: 2em;
-  font-weight: bold;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 2.25em;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 16px;
+    letter-spacing: -0.025em;
+}
+
+.header p {
+    font-size: 1.125em;
+    color: #4a5568;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+/* Container for method cards */
+.container {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    justify-content: center;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Individual method cards */
+.method-card {
+    flex: 1;
+    max-width: 450px;
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 8px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.method-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+    border-radius: 8px 8px 0 0;
+}
+
+.method-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    border-color: #cbd5e0;
+}
+
+.method-card p {
+    font-size: 1.125em;
+    color: #4a5568;
+    margin-bottom: 28px;
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+/* Button styles */
+button {
+    background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+    color: #ffffff;
+    border: none;
+    padding: 14px 28px;
+    font-size: 0.95em;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(49, 130, 206, 0.25);
+    text-transform: none;
+    letter-spacing: 0.025em;
+    font-family: inherit;
+    min-width: 200px;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(49, 130, 206, 0.35);
+    background: linear-gradient(135deg, #2c5282 0%, #2a4365 100%);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(49, 130, 206, 0.25);
+}
+
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15), 0 6px 20px rgba(49, 130, 206, 0.35);
+}
+
+/* Responsive design */
+@media (max-width: 900px) {
+    .container {
+        flex-direction: column;
+        gap: 20px;
+        max-width: 500px;
+        flex-wrap: wrap;
+    }
+
+    .method-card {
+        max-width: none;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    body {
+        padding: 20px 15px;
+    }
+
+    .header, .method-card {
+        padding: 24px;
+    }
+
+    button {
+        min-width: unset;
+        width: 100%;
+        padding: 16px 28px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.75em;
+    }
+
+    .header p {
+        font-size: 1em;
+    }
+
+    button {
+        padding: 14px 24px;
+        font-size: 0.9em;
+    }
+
+    .method-card {
+        padding: 20px;
+    }
+}
+
+/* Professional animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.method-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.method-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.header:hover {
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
 }
