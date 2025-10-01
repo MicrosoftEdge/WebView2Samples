@@ -54,6 +54,7 @@
 #include "ScenarioSharedWorkerManager.h"
 #include "ScenarioSaveAs.h"
 #include "ScenarioScreenCapture.h"
+#include "ScenarioSensitivityLabel.h"
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioThrottlingControl.h"
@@ -628,6 +629,30 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_NOTIFICATION:
     {
         NewComponent<ScenarioNotificationReceived>(this);
+        return true;
+    }
+    case IDM_SCENARIO_PIRM_SET_ALLOWLIST:
+    {
+        auto sensitivityLabelComponent = GetOrCreateComponent<ScenarioSensitivityLabel>();
+        sensitivityLabelComponent->SetPageRestrictionManagerAllowlist();
+        return true;
+    }
+    case IDM_SCENARIO_PIRM_CHECK_AVAILABILITY:
+    {
+        auto sensitivityLabelComponent = GetOrCreateComponent<ScenarioSensitivityLabel>();
+        sensitivityLabelComponent->CheckPageRestrictionManagerAvailability();
+        return true;
+    }
+    case IDM_SCENARIO_SENSITIVITY_LABEL_START_TEST:
+    {
+        auto sensitivityLabelComponent = GetOrCreateComponent<ScenarioSensitivityLabel>();
+        sensitivityLabelComponent->LaunchLabelDemoPage();
+        return true;
+    }
+    case IDM_SCENARIO_SENSITIVITY_LABEL_TOGGLE_EVENTS:
+    {
+        auto sensitivityLabelComponent = GetOrCreateComponent<ScenarioSensitivityLabel>();
+        sensitivityLabelComponent->ToggleEventListener();
         return true;
     }
     case IDM_SCENARIO_TESTING_FOCUS:
@@ -1740,7 +1765,12 @@ void AppWindow::InitializeWebView()
     //! [CreateCoreWebView2EnvironmentWithOptions]
 
     std::wstring args;
-    args.append(L"--enable-features=ThirdPartyStoragePartitioning,PartitionedCookies");
+    // Page Interaction Restriction Manager requires msPageInteractionManagerWebview2 to be
+    // enabled from the args, as by default it's disabled in the browser. If you want to
+    // test these scenarios, this flag should be enabled.
+    args.append(
+        L"--enable-features=ThirdPartyStoragePartitioning,PartitionedCookies,"
+        L"msPageInteractionManagerWebview2");
     auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
     options->put_AdditionalBrowserArguments(args.c_str());
     CHECK_FAILURE(
