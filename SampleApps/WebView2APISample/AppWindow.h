@@ -131,6 +131,8 @@ public:
 
     template <class ComponentType> ComponentType* GetComponent();
 
+    template <class ComponentType> ComponentType* GetOrCreateComponent();
+
     void DeleteComponent(ComponentBase* scenario);
 
     // Runs a function by posting it to the event loop.  Use this to do things
@@ -328,4 +330,15 @@ template <class ComponentType> ComponentType* AppWindow::GetComponent()
         }
     }
     return nullptr;
+}
+
+template <class ComponentType> ComponentType* AppWindow::GetOrCreateComponent()
+{
+    auto component = GetComponent<ComponentType>();
+    if (!component)
+    {
+        NewComponent<ComponentType>(this);
+        component = GetComponent<ComponentType>();
+    }
+    return component;
 }

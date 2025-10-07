@@ -337,6 +337,13 @@ BEGIN
           MENUITEM "Toggle Suppress Default Find Dialog", IDC_SUPPRESS_DEFAULT_FIND_DIALOG
           MENUITEM "Toggle Should Match Word", IDC_SHOULD_MATCH_WHOLE_WORD
         END
+        POPUP "Sensitivity Label"
+        BEGIN
+            MENUITEM "Set PIRM Allowlist", IDM_SCENARIO_PIRM_SET_ALLOWLIST
+            MENUITEM "Check PIRM Availability", IDM_SCENARIO_PIRM_CHECK_AVAILABILITY
+            MENUITEM "Start Sensitivity Label Test", IDM_SCENARIO_SENSITIVITY_LABEL_START_TEST
+            MENUITEM "Toggle Event Listener On/Off", IDM_SCENARIO_SENSITIVITY_LABEL_TOGGLE_EVENTS
+        END
     END
     POPUP "&Audio"
     BEGIN
