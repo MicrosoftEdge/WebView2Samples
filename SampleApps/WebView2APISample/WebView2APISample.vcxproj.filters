@@ -138,6 +138,9 @@
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ScenarioServiceWorkerWRR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -267,6 +270,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ScenarioSharedWorkerWRR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenarioServiceWorkerWRR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

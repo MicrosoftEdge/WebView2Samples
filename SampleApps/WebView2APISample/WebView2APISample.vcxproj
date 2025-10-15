@@ -251,6 +251,7 @@
     <ClInclude Include="ScenarioSaveAs.h" />
     <ClInclude Include="ScenarioScreenCapture.h" />
     <ClInclude Include="ScenarioSensitivityLabel.h" />
+    <ClInclude Include="ScenarioServiceWorkerWRR.h" />
     <ClInclude Include="ScenarioServiceWorkerManager.h" />
     <ClInclude Include="ScenarioServiceWorkerPostMessage.h" />
     <ClInclude Include="ScenarioSharedBuffer.h" />
@@ -317,6 +318,7 @@
     <ClCompile Include="ScenarioServiceWorkerPostMessage.cpp" />
     <ClCompile Include="ScenarioSharedBuffer.cpp" />
     <ClCompile Include="ScenarioSharedWorkerManager.cpp" />
+    <ClCompile Include="ScenarioServiceWorkerWRR.cpp" />
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp" />
     <ClCompile Include="ScenarioThrottlingControl.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp" />
