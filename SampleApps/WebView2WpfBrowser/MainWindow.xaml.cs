@@ -3902,10 +3902,6 @@ private string _dedicatedWorkerPostMessageStr;
             dedicatedWorker.PostWebMessageAsJson(_dedicatedWorkerPostMessageStr);
         }
 #endif
-
-#if USE_WEBVIEW2_EXPERIMENTAL
-        CoreWebView2ServiceWorkerManager ServiceWorkerManager_;
-#endif
         void ServiceWorkerRegisteredExecuted(object target, ExecutedRoutedEventArgs e)
         {
             RegisterForServiceWorkerRegistered();
@@ -3914,11 +3910,9 @@ private string _dedicatedWorkerPostMessageStr;
         void RegisterForServiceWorkerRegistered()
         {
 #if USE_WEBVIEW2_EXPERIMENTAL
-            if (ServiceWorkerManager_ == null)
-            {
-                ServiceWorkerManager_ = WebViewProfile.ServiceWorkerManager;
-            }
-            ServiceWorkerManager_.ServiceWorkerRegistered += (sender, args) =>
+
+            CoreWebView2ServiceWorkerManager ServiceWorkerManager = WebViewProfile.ServiceWorkerManager;
+            ServiceWorkerManager.ServiceWorkerRegistered += (sender, args) =>
             {
                 CoreWebView2ServiceWorkerRegistration serviceWorkerRegistration = args.ServiceWorkerRegistration;
                 MessageBox.Show("Service worker is registered for " + serviceWorkerRegistration.ScopeUri, "Service Worker Registration Message");
@@ -3949,11 +3943,8 @@ private string _dedicatedWorkerPostMessageStr;
 #if USE_WEBVIEW2_EXPERIMENTAL
             try
             {
-                if (ServiceWorkerManager_ == null)
-                {
-                    ServiceWorkerManager_ = WebViewProfile.ServiceWorkerManager;
-                }
-                IReadOnlyList<CoreWebView2ServiceWorkerRegistration> registrationList = await ServiceWorkerManager_.GetServiceWorkerRegistrationsAsync();
+                CoreWebView2ServiceWorkerManager ServiceWorkerManager = WebViewProfile.ServiceWorkerManager;
+                IReadOnlyList<CoreWebView2ServiceWorkerRegistration> registrationList = await ServiceWorkerManager.GetServiceWorkerRegistrationsAsync();
                 int registrationCount = registrationList.Count;
                 StringBuilder messageBuilder = new StringBuilder();
                 messageBuilder.AppendLine($"No of service workers registered: {registrationCount}");
@@ -3993,11 +3984,8 @@ private string _dedicatedWorkerPostMessageStr;
             {
                 try
                 {
-                    if (ServiceWorkerManager_ == null)
-                    {
-                        ServiceWorkerManager_ = WebViewProfile.ServiceWorkerManager;
-                    }
-                    IReadOnlyList<CoreWebView2ServiceWorkerRegistration> registrationList = await ServiceWorkerManager_.GetServiceWorkerRegistrationsAsync(dialog.Input.Text);
+                    CoreWebView2ServiceWorkerManager ServiceWorkerManager = WebViewProfile.ServiceWorkerManager;
+                    IReadOnlyList<CoreWebView2ServiceWorkerRegistration> registrationList = await ServiceWorkerManager.GetServiceWorkerRegistrationsAsync(dialog.Input.Text);
 
                     for (int i = 0; i < registrationList.Count(); ++i)
                     {
@@ -4019,16 +4007,12 @@ private string _dedicatedWorkerPostMessageStr;
 #endif
         }
 
-#if USE_WEBVIEW2_EXPERIMENTAL
-        CoreWebView2ServiceWorkerManager PostMessage_ServiceWorkerManager_;
-#endif
-
         void ServiceWorkerPostMessageExecuted(object target, ExecutedRoutedEventArgs e)
         {
 #if USE_WEBVIEW2_EXPERIMENTAL
-            PostMessage_ServiceWorkerManager_ = WebViewProfile.ServiceWorkerManager;
+            CoreWebView2ServiceWorkerManager PostMessage_ServiceWorkerManager = WebViewProfile.ServiceWorkerManager;
 
-            PostMessage_ServiceWorkerManager_.ServiceWorkerRegistered += ServiceWorker_PostMessage_ServiceWorkerRegistered;
+            PostMessage_ServiceWorkerManager.ServiceWorkerRegistered += ServiceWorker_PostMessage_ServiceWorkerRegistered;
             _iWebView2.CoreWebView2.DOMContentLoaded += ServiceWorker_PostMessage_DOMContentLoaded;
 
             _iWebView2.CoreWebView2.Navigate("https://appassets.example/scenario_sw_post_msg_scope/index.html");
@@ -4062,9 +4046,10 @@ private string _dedicatedWorkerPostMessageStr;
             // Turn off this scenario if we navigate away from the sample page.
             if (_iWebView2.CoreWebView2.Source != "https://appassets.example/scenario_sw_post_msg_scope/index.html")
             {
-                PostMessage_ServiceWorkerManager_.ServiceWorkerRegistered -= ServiceWorker_PostMessage_ServiceWorkerRegistered;
+                CoreWebView2ServiceWorkerManager PostMessage_ServiceWorkerManager = WebViewProfile.ServiceWorkerManager;
+                PostMessage_ServiceWorkerManager.ServiceWorkerRegistered -= ServiceWorker_PostMessage_ServiceWorkerRegistered;
                 _iWebView2.CoreWebView2.DOMContentLoaded -= ServiceWorker_PostMessage_DOMContentLoaded;
-                PostMessage_ServiceWorkerManager_ = null;
+                PostMessage_ServiceWorkerManager = null;
             }
         }
 
