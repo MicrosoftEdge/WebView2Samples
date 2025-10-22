@@ -285,6 +285,15 @@ found in the LICENSE file.
                     <MenuItem Header="Toggle Match Word" Command="{x:Static local:MainWindow.ToggleShouldMatchWordCommand}"/>
                     <MenuItem Header="Toggle Default Find Dialog" Command="{x:Static local:MainWindow.ToggleSuppressDefaultFindDialogCommand}"/>
                 </MenuItem>
+<!-- #if USE_WEBVIEW2_EXPERIMENTAL -->
+                <MenuItem Header="Service Workers">
+                    <MenuItem Header="Listen to new Service Worker Registrations" Command="{x:Static local:MainWindow.ServiceWorkerRegisteredCommand}"/>
+                    <MenuItem Header="Get Service Worker Registrations" Command="{x:Static local:MainWindow.GetServiceWorkerRegistrationsCommand}"/>
+                    <MenuItem Header="Get Service Worker registered for the Scope" Command="{x:Static local:MainWindow.GetServiceWorkerRegisteredForScopeCommand}"/>
+                    <MenuItem Header="Web Messaging" Command="{x:Static local:MainWindow.ServiceWorkerPostMessageCommand}"/>
+                    <MenuItem Header="Service Worker Synchronization Task Manager" Command="{x:Static local:MainWindow.ServiceWorkerSyncManagerCommand}"/>
+                </MenuItem>
+ <!-- #endif -->
             </MenuItem>
             <MenuItem Header="_Audio">
                 <MenuItem Header="Toggle Mute State" IsCheckable="True" IsChecked="False" Command="{x:Static local:MainWindow.ToggleMuteStateCommand}"/>
