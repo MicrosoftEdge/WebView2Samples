@@ -18,10 +18,8 @@ public:
 
 private:
     void SetupEventsOnWebview();
-    void CreateServiceWorkerManager();
 
     AppWindow* m_appWindow;
     wil::com_ptr<ICoreWebView2> m_webView;
-    wil::com_ptr<ICoreWebView2ExperimentalServiceWorkerManager> m_serviceWorkerManager;
     EventRegistrationToken m_serviceWorkerRegisteredToken = {};
 };
