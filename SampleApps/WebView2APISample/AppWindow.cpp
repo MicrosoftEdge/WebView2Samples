@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include <winrt/windows.system.h>
+#include "shlwapi.h"
 
 #include "App.h"
 #include "AppStartPage.h"
@@ -2056,6 +2057,54 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(
         // browser might not have support for the latest version of the
         // ICoreWebView2_N interface.
         coreWebView2.query_to(&m_webView);
+
+        wil::com_ptr<ICoreWebView2_22> webView_22 = m_webView.try_query<ICoreWebView2_22>();
+
+        webView_22->AddWebResourceRequestedFilterWithRequestSourceKinds(
+            L"*", COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL,
+            COREWEBVIEW2_WEB_RESOURCE_REQUEST_SOURCE_KINDS_ALL);
+
+        webView_22->add_WebResourceRequested(
+            Callback<ICoreWebView2WebResourceRequestedEventHandler>(
+                [this](ICoreWebView2* sender, ICoreWebView2WebResourceRequestedEventArgs* args)
+                    -> HRESULT
+                {
+                    COREWEBVIEW2_WEB_RESOURCE_CONTEXT resourceContext;
+                    args->get_ResourceContext(&resourceContext);
+                    wil::com_ptr<ICoreWebView2WebResourceRequest> request;
+                    CHECK_FAILURE(args->get_Request(&request));
+                    wil::unique_cotaskmem_string uri;
+                    CHECK_FAILURE(request->get_Uri(&uri));
+                    if (wcscmp(uri.get(), L"https://mdn.github.io/dom-examples/service-worker/simple-service-worker/") != 0)
+                    {
+                        return S_OK;
+                    }
+
+                    wil::com_ptr<IStream> stream;
+                    // Create a stream with some text content
+                    std::string content = "<html><head><script>"
+                                        "navigator.serviceWorker.register('sw.js')"
+                                        "</script></head><body><h1>Response from WV2 "
+                                        "interceptor!</h1></body></html>";
+
+                    stream.attach(SHCreateMemStream(
+                        reinterpret_cast<const BYTE*>(content.c_str()),
+                        static_cast<UINT>(content.size())));
+
+                    wil::com_ptr<ICoreWebView2WebResourceResponse> response;
+                    wil::com_ptr<ICoreWebView2Environment> environment;
+                    wil::com_ptr<ICoreWebView2_2> webview2;
+                    m_webView->QueryInterface(IID_PPV_ARGS(&webview2));
+                    webview2->get_Environment(&environment);
+                    environment->CreateWebResourceResponse(
+                        stream.get(), 200, L"OK", L"Content-Type: text/html", &response);
+                    args->put_Response(response.get());
+                    return S_OK;
+                })
+                .Get(),
+            nullptr);
+        CHECK_FAILURE(m_webView->Navigate(L"https://mdn.github.io/dom-examples/service-worker/simple-service-worker/"));
+
         // Save PID of the browser process serving last WebView created from our
         // CoreWebView2Environment. We know the controller was created with
         // S_OK, and it hasn't been closed (we haven't called Close and no
@@ -2139,12 +2188,12 @@ HRESULT AppWindow::OnCreateCoreWebView2ControllerCompleted(
             m_onWebViewFirstInitialized = nullptr;
         }
 
-        if (m_initialUri != L"none")
-        {
-            std::wstring initialUri =
-                m_initialUri.empty() ? AppStartPage::GetUri(this) : m_initialUri;
-            CHECK_FAILURE(m_webView->Navigate(initialUri.c_str()));
-        }
+        // if (m_initialUri != L"none")
+        // {
+        //     std::wstring initialUri =
+        //         m_initialUri.empty() ? AppStartPage::GetUri(this) : m_initialUri;
+        //     CHECK_FAILURE(m_webView->Navigate(initialUri.c_str()));
+        // }
     }
     else if (result == E_ABORT)
     {
