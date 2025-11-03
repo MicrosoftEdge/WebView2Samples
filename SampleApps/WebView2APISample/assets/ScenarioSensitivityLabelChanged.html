@@ -2,119 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Sensitivity Label Changed Scenario</title>
+    <title>Sensitivity Label API Sample</title>
     <link rel="stylesheet" href="ScenarioSensitivityLabelChanged.css">
 </head>
 <body>
     <div class="container">
-        <h1>Sensitivity Label Changed Event Scenario</h1>
+        <h1>Sensitivity Label API Sample</h1>
 
+        <!-- Info box for the feature -->
         <div class="info-box">
-            <h3>About This Scenario</h3>
-            <p>This scenario demonstrates the <strong>SensitivityLabelChanged</strong> event in WebView2. This event is fired when the sensitivity label of the document changes, typically used in Microsoft Information Protection (MIP) scenarios.</p>
-
-            <p>The WebView2 control has registered an event handler that will show a popup dialog whenever a sensitivity label change is detected.</p>
+            <h3>About This Sample</h3>
+            <p>This sample demonstrates how to use the <strong>PageInteractionRestrictionManager API</strong> to add and remove sensitivity labels, which triggers the <strong>SensitivityInfoChanged</strong> event in WebView2.</p>
         </div>
 
-        <div id="pirmWarningBox" class="error-box" style="display: none;">
-            <h3>❌ PageInteractionRestrictionManager Not Available</h3>
-            <p><strong>The navigator.pageInteractionRestrictionManager API is not available on this page.</strong></p>
-            <p>To enable this API, you need to add this URL to the PageInteractionRestrictionManager allowlist:</p>
-            <div class="code">
-                <strong>URL to Add:</strong> <span id="currentUrl"></span>
-            </div>
-            <p><strong>How to fix:</strong></p>
-            <ol>
-                <li>Go to <strong>Scenario → Sensitivity Label → Set Allowlist</strong> in the menu</li>
-                <li>Add the URL shown above to the allowlist</li>
-                <li>Refresh this page to try again</li>
-            </ol>
+        <!-- Status box for API availability -->
+        <div id="pirmStatus" class="status-box">
+            <h3>API Status</h3>
+            <p id="pirmStatusText">Checking PageInteractionRestrictionManager availability...</p>
         </div>
 
-        <div id="pirmAvailableBox" class="info-box" style="display: none;">
-            <h3>✅ PageInteractionRestrictionManager Available</h3>
-            <p>The navigator.pageInteractionRestrictionManager API is available and ready to use!</p>
-        </div>
-
+        <!-- Form for adding sensitivity labels -->
         <div class="form-container">
             <h3>Add Sensitivity Label</h3>
-            <p>Enter the Label ID GUID and Organization ID GUID to apply a sensitivity label to this page:</p>
+            <label for="labelId">Label ID GUID:</label>
+            <input type="text" id="labelId" placeholder="12345678-1234-1234-1234-123456789abc" />
 
-            <div class="form-group">
-                <label for="labelIdInput">Label ID GUID:</label>
-                <input type="text" id="labelIdInput" placeholder="e.g., 12345678-1234-1234-1234-123456789abc" />
-            </div>
+            <label for="orgId">Organization ID GUID:</label>
+            <input type="text" id="orgId" placeholder="87654321-4321-4321-4321-cba987654321" />
 
-            <div class="form-group">
-                <label for="orgIdInput">Organization ID GUID:</label>
-                <input type="text" id="orgIdInput" placeholder="e.g., 87654321-4321-4321-4321-cba987654321" />
-            </div>
-
-            <button id="addLabelBtn" onclick="applySensitivityLabel()">Add Sensitivity Label</button>
-
-            <div id="resultBox" class="result-box">
-                <strong>Success:</strong> <span id="resultMessage"></span>
-            </div>
-
-            <div id="errorBox" class="error-box">
-                <strong>Error:</strong> <span id="errorMessage"></span>
-            </div>
+            <button onclick="addLabel()">Add Label</button>
         </div>
 
+        <!-- Form for removing sensitivity labels -->
         <div class="form-container">
             <h3>Remove Sensitivity Label</h3>
-            <p>Select a label ID from the list below to remove an existing sensitivity label:</p>
+            <label for="labelSelect">Select Label to Remove:</label>
+            <select id="labelSelect">
+                <option value="">No labels available</option>
+            </select>
 
-            <div class="form-group">
-                <label for="removeLabelSelect">Select Label ID to Remove:</label>
-                <select id="removeLabelSelect" disabled>
-                    <option value="">No labels available</option>
-                </select>
-            </div>
-
-            <button id="removeLabelBtn" onclick="removeSensitivityLabel()" disabled>Remove Selected Label</button>
+            <button onclick="removeLabel()">Remove Label</button>
         </div>
 
-        <h3>Test the Event</h3>
-        <p>The sample app scenario can be tested with the following steps:</p>
-        <ol>
-            <li>Enter valid Label ID GUID and Organization ID GUID in the "Add Sensitivity Label" form above</li>
-            <li>Click the "Add Sensitivity Label" button to apply a label (you can add multiple labels with different IDs)</li>
-            <li>Select a label ID from the dropdown in the "Remove Sensitivity Label" section</li>
-            <li>Click the "Remove Selected Label" button to remove the chosen label</li>
-            <li>Observe the popup dialog that appears when the SensitivityLabelChanged event fires for both add and remove operations</li>
-            <li>Alternatively, navigate to a document or website that supports Microsoft Information Protection</li>
-        </ol>
+        <!-- Logs of actions -->
+        <div>
+          <h3>Last Operation Status</h3>
+          <p id="output" class="output"></p>
+        </div>
 
-        <div class="code">
-            <h4>JavaScript API Calls:</h4>
+        <!-- Code sample for API usage -->
+        <div class="code-sample">
+            <h3>API Usage</h3>
             <pre>
-// API call for adding a label (executed when you click "Add Sensitivity Label")
-let lm = await navigator.pageInteractionRestrictionManager.requestLabelManager();
-let label_ = await lm.addLabel('MicrosoftSensitivityLabel', {
+// Add a sensitivity label
+const labelManager = await navigator.pageInteractionRestrictionManager.requestLabelManager();
+const label = await labelManager.addLabel('MicrosoftSensitivityLabel', {
     label: 'your-label-guid',
     organization: 'your-org-guid'
 });
 
-// API call for removing a label (executed when you click "Remove Sensitivity Label")
-// Note: remove() is called on the label object returned by addLabel
-let result = await label_.remove();
-
-// Both operations will trigger the SensitivityLabelChanged event in the WebView2 control
+// Remove a sensitivity label
+await label.remove();
             </pre>
         </div>
-
-        <h3>Event Handler Details</h3>
-        <p>The C++ event handler registered for this scenario:</p>
-        <ul>
-            <li>Captures the new sensitivity label value</li>
-            <li>Shows a popup dialog with the label information</li>
-            <li>Includes timestamp for when the event occurred</li>
-            <li>Provides context about Microsoft Information Protection</li>
-        </ul>
-
-        <p><em>Navigate to a page with Microsoft Information Protection to see the event in action!</em></p>
-
     </div>
 
     <script src="ScenarioSensitivityLabelChanged.js"></script>

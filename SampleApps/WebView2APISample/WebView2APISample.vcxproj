@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -253,6 +253,7 @@
     <ClInclude Include="ScenarioSensitivityLabel.h" />
     <ClInclude Include="ScenarioServiceWorkerManager.h" />
     <ClInclude Include="ScenarioServiceWorkerPostMessage.h" />
+    <ClInclude Include="ScenarioServiceWorkerWRR.h" />
     <ClInclude Include="ScenarioSharedBuffer.h" />
     <ClInclude Include="ScenarioSharedWorkerManager.h" />
     <ClInclude Include="ScenarioSharedWorkerWRR.h" />
@@ -315,6 +316,7 @@
     <ClCompile Include="ScenarioSensitivityLabel.cpp" />
     <ClCompile Include="ScenarioServiceWorkerManager.cpp" />
     <ClCompile Include="ScenarioServiceWorkerPostMessage.cpp" />
+    <ClCompile Include="ScenarioServiceWorkerWRR.cpp" />
     <ClCompile Include="ScenarioSharedBuffer.cpp" />
     <ClCompile Include="ScenarioSharedWorkerManager.cpp" />
     <ClCompile Include="ScenarioSharedWorkerWRR.cpp" />
@@ -449,6 +451,9 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioThrottlingControlMonitor.js">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioWebrtcUdpPortConfiguration.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioWindowControlsOverlay.html">
