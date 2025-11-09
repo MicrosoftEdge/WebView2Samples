@@ -87,6 +87,7 @@ namespace WebView2WpfBrowser
         public static RoutedCommand EnhancedSecurityModeSetBypassListCommand = new RoutedCommand();
         public static RoutedCommand EnhancedSecurityModeGetEnforceListCommand = new RoutedCommand();
         public static RoutedCommand EnhancedSecurityModeSetEnforceListCommand = new RoutedCommand();
+        public static RoutedCommand WebRtcUdpPortConfigCommand = new RoutedCommand();
         public static RoutedCommand PrintDialogCommand = new RoutedCommand();
         public static RoutedCommand PrintToDefaultPrinterCommand = new RoutedCommand();
         public static RoutedCommand PrintToPrinterCommand = new RoutedCommand();
@@ -1003,6 +1004,12 @@ namespace WebView2WpfBrowser
         void EnhancedSecurityModeSetEnforceListCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
         }
+        void WebRtcUdpPortConfigCommandExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show("WebRTC UDP Port Configuration is only available in staging builds", 
+                "Feature Not Available", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
         async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
             // <GetCookies>

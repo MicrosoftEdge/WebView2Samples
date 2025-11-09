@@ -261,9 +261,13 @@ BEGIN
             MENUITEM "Install Default Extensions",      IDM_SCENARIO_EXTENSIONS_MANAGEMENT_INSTALL_DEFAULT
             MENUITEM "Offload Default Extensions",      IDM_SCENARIO_EXTENSIONS_MANAGEMENT_OFFLOAD_DEFAULT
         END
-        MENUITEM "Custom scheme WebResourceRequested CORS", IDM_SCENARIO_CUSTOM_SCHEME
-        MENUITEM "Navigate to custom scheme via WebResourceRequested",   IDM_SCENARIO_CUSTOM_SCHEME_NAVIGATE
-        MENUITEM "Shared worker WebResourceRequested",   IDM_SCENARIO_SHARED_WORKER
+        POPUP "WebResourceRequested"
+        BEGIN
+            MENUITEM "Custom scheme WebResourceRequested CORS", IDM_SCENARIO_CUSTOM_SCHEME
+            MENUITEM "Navigate to custom scheme via WebResourceRequested",   IDM_SCENARIO_CUSTOM_SCHEME_NAVIGATE
+            MENUITEM "Service worker WebResourceRequested",   IDM_SCENARIO_SERVICE_WORKER_WRR
+            MENUITEM "Shared worker WebResourceRequested",   IDM_SCENARIO_SHARED_WORKER
+        END
         POPUP "Custom Download Experience"
         BEGIN
             MENUITEM "Use Deferred Download Dialog",  IDM_SCENARIO_USE_DEFERRED_DOWNLOAD
@@ -297,7 +301,6 @@ BEGIN
         MENUITEM "Web Messaging",               IDM_SCENARIO_POST_WEB_MESSAGE
         MENUITEM "WebView Event Monitor",       IDM_SCENARIO_WEB_VIEW_EVENT_MONITOR
         MENUITEM "WebView Window Controls Overlay",       IDM_SCENARIO_WINDOW_CONTROLS_OVERLAY
-
         MENUITEM "Dropped file path",           IDM_SCENARIO_DROPPED_FILE_PATH
         POPUP "Save As"
         BEGIN

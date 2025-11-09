@@ -55,6 +55,7 @@
 #include "ScenarioSaveAs.h"
 #include "ScenarioScreenCapture.h"
 #include "ScenarioSensitivityLabel.h"
+#include "ScenarioServiceWorkerWRR.h"
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioThrottlingControl.h"
@@ -609,6 +610,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_SHARED_WORKER:
     {
         NewComponent<ScenarioSharedWorkerWRR>(this);
+        return true;
+    }
+    case IDM_SCENARIO_SERVICE_WORKER_WRR:
+    {
+        NewComponent<ScenarioServiceWorkerWRR>(this);
         return true;
     }
     case IDM_SCENARIO_SHARED_BUFFER:

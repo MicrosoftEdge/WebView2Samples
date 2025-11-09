@@ -172,7 +172,6 @@ public:
     {
         return m_webviewOption;
     }
-
 private:
     static PCWSTR GetWindowClass();
 
@@ -291,6 +290,7 @@ private:
 
     bool m_CustomCrashReportingEnabled = false;
     bool m_TrackingPreventionEnabled = true;
+private:
     // Fullscreen related code
     RECT m_previousWindowRect;
     HMENU m_hMenu;
@@ -299,6 +299,7 @@ private:
     bool m_isPopupWindow = false;
     void EnterFullScreen();
     void ExitFullScreen();
+
     // Compositor creation helper methods
     HRESULT DCompositionCreateDevice2(IUnknown* renderingDevice, REFIID riid, void** ppv);
     HRESULT TryCreateDispatcherQueue();

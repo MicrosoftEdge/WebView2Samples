@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC UDP Port Range Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        
+        button:hover {
+            background: #45a049;
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .candidates-section {
+            margin-top: 20px;
+        }
+        
+        .candidate-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .candidate-table th,
+        .candidate-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .candidate-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .candidate-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .host-candidate {
+            background-color: #e8f5e8 !important;
+        }
+        
+        .srflx-candidate {
+            background-color: #fff3e0 !important;
+        }
+        
+        .relay-candidate {
+            background-color: #e3f2fd !important;
+        }
+        
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #2e7d32;
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebRTC UDP Port Range Test</h1>
+    
+    <div class="container">
+        <div class="controls">
+            <button id="startBtn" onclick="startGathering()">Start ICE Gathering</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+        
+        <div id="status" class="success" style="display: none;"></div>
+        <div id="error" class="error" style="display: none;"></div>
+    </div>
+    
+    <div class="container">
+        <h3>Statistics</h3>
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number" id="totalCandidates">0</div>
+                <div class="stat-label">Total Candidates</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="hostCandidates">0</div>
+                <div class="stat-label">Host Candidates</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="srflxCandidates">0</div>
+                <div class="stat-label">Server Reflexive</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="relayCandidates">0</div>
+                <div class="stat-label">Relay Candidates</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="candidates-section">
+            <h3>ICE Candidates</h3>
+            <table class="candidate-table" id="candidatesTable">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Protocol</th>
+                        <th>Address</th>
+                        <th>Port</th>
+                        <th>Foundation</th>
+                        <th>Priority</th>
+                        <th>Full Candidate</th>
+                    </tr>
+                </thead>
+                <tbody id="candidatesBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let peerConnection = null;
+        let candidates = [];
+        
+        function showStatus(message, isError = false) {
+            const statusDiv = document.getElementById('status');
+            const errorDiv = document.getElementById('error');
+            
+            if (isError) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                statusDiv.style.display = 'none';
+            } else {
+                statusDiv.textContent = message;
+                statusDiv.style.display = 'block';
+                errorDiv.style.display = 'none';
+            }
+        }
+        
+        function updateStats() {
+            const stats = {
+                total: candidates.length,
+                host: candidates.filter(c => c.type === 'host').length,
+                srflx: candidates.filter(c => c.type === 'srflx').length,
+                relay: candidates.filter(c => c.type === 'relay').length
+            };
+            
+            document.getElementById('totalCandidates').textContent = stats.total;
+            document.getElementById('hostCandidates').textContent = stats.host;
+            document.getElementById('srflxCandidates').textContent = stats.srflx;
+            document.getElementById('relayCandidates').textContent = stats.relay;
+        }
+        
+        function parseCandidate(candidateString) {
+            const parts = candidateString.split(' ');
+            const candidate = {};
+            
+            if (parts.length >= 8) {
+                candidate.foundation = parts[0].replace('candidate:', '');
+                candidate.component = parts[1];
+                candidate.protocol = parts[2];
+                candidate.priority = parseInt(parts[3]);
+                candidate.address = parts[4];
+                candidate.port = parseInt(parts[5]);
+                candidate.type = parts[7]; // typ host/srflx/relay
+                
+                // Extract additional attributes
+                for (let i = 8; i < parts.length; i += 2) {
+                    if (parts[i] && parts[i + 1]) {
+                        candidate[parts[i]] = parts[i + 1];
+                    }
+                }
+            }
+            
+            return candidate;
+        }
+        
+        function addCandidateToTable(candidate, candidateString) {
+            const tbody = document.getElementById('candidatesBody');
+            const row = tbody.insertRow();
+            
+            // Determine row class based on candidate type
+            let rowClass = '';
+            if (candidate.type === 'host') {
+                rowClass = 'host-candidate';
+            } else if (candidate.type === 'srflx') {
+                rowClass = 'srflx-candidate';
+            } else if (candidate.type === 'relay') {
+                rowClass = 'relay-candidate';
+            }
+            row.className = rowClass;
+            
+            row.insertCell(0).textContent = candidate.type || 'unknown';
+            row.insertCell(1).textContent = candidate.protocol || 'unknown';
+            row.insertCell(2).textContent = candidate.address || 'unknown';
+            row.insertCell(3).textContent = candidate.port || 'unknown';
+            row.insertCell(4).textContent = candidate.foundation || 'unknown';
+            row.insertCell(5).textContent = candidate.priority || 'unknown';
+            row.insertCell(6).textContent = candidateString;
+        }
+        
+        async function startGathering() {
+            try {
+                showStatus('Starting ICE candidate gathering...');
+                
+                // Clear previous results
+                candidates = [];
+                document.getElementById('candidatesBody').innerHTML = '';
+                
+                // Enable/disable buttons
+                document.getElementById('startBtn').disabled = true;
+                
+                // Create RTCPeerConnection with ICE servers
+                const configuration = {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ],
+                    iceCandidatePoolSize: 10
+                };
+                
+                peerConnection = new RTCPeerConnection(configuration);
+                
+                // Set up event handlers
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        const candidateString = event.candidate.candidate;
+                        const parsed = parseCandidate(candidateString);
+                        
+                        candidates.push(parsed);
+                        
+                        addCandidateToTable(parsed, candidateString);
+                        updateStats();
+                        
+                        // Update status to show progress
+                        if (peerConnection.iceGatheringState === 'gathering') {
+                            showStatus(`ICE gathering in progress... Found ${candidates.length} candidates so far.`);
+                        }
+                    } else {
+                        setTimeout(() => {
+                            if (peerConnection && peerConnection.iceGatheringState === 'complete') {
+                                showStatus(`ICE gathering complete! Found ${candidates.length} candidates.`);
+                                document.getElementById('startBtn').disabled = false;
+                            }
+                        }, 100);
+                    }
+                };
+                
+                peerConnection.onicegatheringstatechange = () => {
+                    
+                    if (peerConnection.iceGatheringState === 'gathering') {
+                        showStatus('ICE gathering in progress...');
+                    } else if (peerConnection.iceGatheringState === 'complete') {
+                        showStatus(`ICE gathering complete! Found ${candidates.length} candidates.`);
+                        document.getElementById('startBtn').disabled = false;
+                    }
+                };
+                
+                // Create a data channel to trigger ICE gathering
+                const dataChannel = peerConnection.createDataChannel('test', {
+                    ordered: true
+                });
+                
+                // Create offer to start ICE gathering
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                
+                showStatus('ICE gathering in progress...');
+                
+                // Add a safety timeout in case gathering gets stuck
+                setTimeout(() => {
+                    if (peerConnection && peerConnection.iceGatheringState !== 'complete') {
+                        showStatus(`ICE gathering timeout. Found ${candidates.length} candidates. You can try again.`);
+                        document.getElementById('startBtn').disabled = false;
+                    }
+                }, 5000); // 5 second safety timeout
+                
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, true);
+                document.getElementById('startBtn').disabled = false;
+            }
+        }
+        
+        function clearResults() {
+            candidates = [];
+            document.getElementById('candidatesBody').innerHTML = '';
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            updateStats();
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStats();
+        });
+    </script>
+</body>
+</html>
