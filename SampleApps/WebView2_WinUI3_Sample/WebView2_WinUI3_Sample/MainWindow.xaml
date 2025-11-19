@@ -9,14 +9,20 @@
     
     mc:Ignorable="d">
 
+
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
-
-        <Grid Grid.Row="0" Background="LightGray">
+        <MenuBar Grid.Row="0">
+            <MenuBarItem Title="Scenarios">
+                <MenuFlyoutItem Text="Share File Handles" Click="MenuFlyoutItem_Click"/>
+            </MenuBarItem>
+        </MenuBar>
+        <Grid Grid.Row="1" Background="LightGray">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="50"/>
@@ -25,9 +31,9 @@
             <Button Grid.Column="1" x:Name="Go" Content="Go" Click="Go_OnClick" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </Grid>
 
-        <WebView2 x:Name="WebView2" Grid.Row="1"/>
+        <WebView2 x:Name="WebView2" Grid.Row="2"/>
 
-        <Rectangle Grid.Row="2" Fill="LightGray"/>
-        <TextBlock x:Name="StatusBar" Text="WebView2" VerticalAlignment="Center" Grid.Row="2" Margin="10,0,10,0"/>
+        <Rectangle Grid.Row="3" Fill="LightGray"/>
+        <TextBlock x:Name="StatusBar" Text="WebView2" VerticalAlignment="Center" Grid.Row="3" Margin="10,0,10,0"/>
     </Grid>
 </Window>

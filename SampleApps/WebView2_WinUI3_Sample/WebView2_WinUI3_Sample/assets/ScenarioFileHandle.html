@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <h1>Native to web</h1>
+    <div>PWA requires write access to a working directory in the file system. <br /> e.g. to launch installed desktop applications from the native part (like Word for DOCX files)</div>
+    <button onclick="requestDirFromNative()">Request Directory Access</button>
+    <div id="native2webResult"></div>
+    <h1>Web to native</h1>
+    <div>PWA requires write access to user selected directory in the file system. <br /> e.g. to launch installed desktop applications from the native part (like Word for DOCX files)</div>
+    <h2>Directory handle</h2>
+    <div>Sending the handle of the selected directory</div>
+    <button onclick="sendDirHandle()">Open Directory</button>
+    <h2>File handle</h2>
+    <div>Sending the handle of a just created file</div>
+    <button onclick="sendNewFileHandle()">Open Directory</button>
+    <h2>File handle</h2>
+    <div>Sending the handle of an existing file</div>
+    <button onclick="sendExistingFileHandle()">Open Directory</button>
+    <h2>File handle</h2>
+    <div>Sending the File object to the handle of an existing file</div>
+    <button onclick="sendExistingFile()">Open Directory</button>
+
+    <script>
+        async function requestDirFromNative() {
+            window.chrome.webview.postMessage("requestWorkingDir");
+        }
+
+        async function sendDirHandle() {
+            const dirHandle = await window.showDirectoryPicker();
+            let additionalObjects = [dirHandle];
+            try {
+                window.chrome.webview.postMessageWithAdditionalObjects("sendDirHandle", additionalObjects);
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+        async function sendNewFileHandle() {
+            const dirHandle = await window.showDirectoryPicker();
+            const fileHandle = await dirHandle.getFileHandle("temp.bin", { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.close();
+            const additionalObjects = [fileHandle];
+            try {
+                window.chrome.webview.postMessageWithAdditionalObjects("sendNewFileHandle", additionalObjects);
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+        async function sendExistingFileHandle() {
+            const dirHandle = await window.showDirectoryPicker();
+            const fileHandle = await dirHandle.getFileHandle("temp.bin", { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.close();
+            const fileHandle2 = await dirHandle.getFileHandle("temp.bin");
+            const file2 = await fileHandle2.getFile();
+            const additionalObjects = [fileHandle2];
+            try {
+                window.chrome.webview.postMessageWithAdditionalObjects("sendExistingFileHandle", additionalObjects);
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+        async function sendExistingFile() {
+            const dirHandle = await window.showDirectoryPicker();
+            const fileHandle = await dirHandle.getFileHandle("temp.bin", { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.close();
+            const fileHandle2 = await dirHandle.getFileHandle("temp.bin");
+            const file2 = await fileHandle2.getFile();
+            const additionalObjects = [file2];
+            try {
+                window.chrome.webview.postMessageWithAdditionalObjects("sendExistingFileHandle", additionalObjects);
+            } catch (e) {
+                alert("Error: " + e);
+            }
+        }
+
+        window.chrome.webview.addEventListener('message', async (arg) => {
+            console.log(arg);
+            native2webResult.innerHTML = "Expected: 2, Received: " + arg.additionalObjects.length;
+            const dirHandle = arg.additionalObjects[0];
+            const permission = await dirHandle.requestPermission({ mode: "readwrite" });
+            console.log("permission " + permission);
+            console.log("dirHandle " + dirHandle.name);
+
+            //try to write file
+            const fileHandle = await dirHandle.getFileHandle("temp.bin", { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.close();
+        });
+    </script>
+</body>
+</html>
