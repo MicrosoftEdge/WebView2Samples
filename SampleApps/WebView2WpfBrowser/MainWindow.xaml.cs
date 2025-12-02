@@ -310,7 +310,41 @@ namespace WebView2WpfBrowser
             AttachControlEventHandlers(webView2);
             // Set background transparent
             webView2.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+
+            // Create environment with options and configure WebRTC UDP port range
+#if USE_WEBVIEW2_EXPERIMENTAL
+            // <SetAllowedPortRange>
+            CoreWebView2EnvironmentOptions options = new CoreWebView2EnvironmentOptions();
+
+             try 
+            {
+                // Set allowed port range for WebRTC UDP traffic (example: ports 10000-20000)
+                options.SetAllowedPortRange(
+                    CoreWebView2AllowedPortRangeScope.WebRtc, 
+                    CoreWebView2TransportProtocolKind.Udp, 
+                    10000, 
+                    20000);
+
+            }
+            catch (Exception ex)
+            {
+                // Handle any errors setting the port range
+                System.Diagnostics.Debug.WriteLine($"Failed to set WebRTC UDP port range: {ex.Message}");
+            }
+            string browserExecutableFolder = null;
+            if (webView2.CreationProperties?.BrowserExecutableFolder != null)
+            {
+                browserExecutableFolder = webView2.CreationProperties.BrowserExecutableFolder;
+            }
+            
+            CoreWebView2Environment environment = await CoreWebView2Environment.CreateAsync(browserExecutableFolder, null, options);
+            
+            // Configure WebRTC UDP port range if experimental API is available
+            await webView2.EnsureCoreWebView2Async(environment);
+            // </SetAllowedPortRange>
+#else
             await webView2.EnsureCoreWebView2Async();
+#endif
         }
 
         // In general, re-initializing a WebView2 involves creating and initializing a new WebView2, and then
@@ -1006,8 +1040,21 @@ namespace WebView2WpfBrowser
         }
         void WebRtcUdpPortConfigCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
-            MessageBox.Show("WebRTC UDP Port Configuration is only available in staging builds", 
+#if USE_WEBVIEW2_EXPERIMENTAL
+            if (_iWebView2?.CoreWebView2 != null)
+            {
+                // Navigate to the WebRTC test page to demonstrate port configuration
+                _iWebView2.CoreWebView2.Navigate("https://appassets.example/ScenarioWebrtcUdpPortConfiguration.html");
+
+            }
+            else
+            {
+                MessageBox.Show("WebView2 is not initialized.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+#else
+            MessageBox.Show("WebRTC UDP Port Configuration is only available in prerelease builds", 
                 "Feature Not Available", MessageBoxButton.OK, MessageBoxImage.Information);
+#endif
         }
 
         async void GetCookiesCmdExecuted(object target, ExecutedRoutedEventArgs e)

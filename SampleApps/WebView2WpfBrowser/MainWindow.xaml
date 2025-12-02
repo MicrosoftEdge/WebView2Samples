@@ -116,6 +116,7 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.DedicatedWorkerPostMessageCommand}" Executed="DedicatedWorkerPostMessageExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SharedWorkerManagerCommand}" Executed="SharedWorkerManagerExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GetSharedWorkersCommand}" Executed="GetSharedWorkersExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.WebRtcUdpPortConfigCommand}" Executed="WebRtcUdpPortConfigCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
 <!-- #endif -->
         <CommandBinding Command="{x:Static local:MainWindow.ChildFrameEventsCommand}" Executed="ChildFrameEventsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.RemoveChildFrameEventsCommand}" Executed="RemoveChildFrameEventsExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -246,6 +247,9 @@ found in the LICENSE file.
                     <MenuItem Header="_Start Deferred Download" Command="{x:Static local:MainWindow.DownloadStartingCommand}"/>
                     <MenuItem Header="_Set Default Download Folder Path" Command="{x:Static local:MainWindow.SetDefaultDownloadPathCommand}"/>
                 </MenuItem>
+<!-- #if USE_WEBVIEW2_EXPERIMENTAL -->
+                <MenuItem Header="_WebRTC UDP Port Configuration" Command="{x:Static local:MainWindow.WebRtcUdpPortConfigCommand}"/>
+<!-- #endif -->
                 <MenuItem Header="_Print">
                     <MenuItem Header="_Print dialog">
                         <MenuItem Header="_Browser Print Preview" Command="{x:Static local:MainWindow.PrintDialogCommand}" CommandParameter="Browser"/>

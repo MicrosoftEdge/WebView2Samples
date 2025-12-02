@@ -55,7 +55,7 @@ private:
     AppWindow* m_appWindow = nullptr;
     std::wstring m_sampleUri;
     wil::com_ptr<ICoreWebView2> m_webView = nullptr;
-    wil::com_ptr<ICoreWebView2ExperimentalCompositionController6> m_compControllerExperimental6;
+    wil::com_ptr<ICoreWebView2CompositionController5> m_compController5;
     wil::com_ptr<IDropSource> m_dropSource;
     DragOverrideMode m_dragOverrideMode = DragOverrideMode::DEFAULT;
 };

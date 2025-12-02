@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -261,6 +261,7 @@
     <ClInclude Include="ScenarioVirtualHostMappingForPopUpWindow.h" />
     <ClInclude Include="ScenarioVirtualHostMappingForSW.h" />
     <ClInclude Include="ScenarioWebMessage.h" />
+    <ClInclude Include="ScenarioWebRtcUdpPortConfiguration.h" />
     <ClInclude Include="ScenarioWebViewEventMonitor.h" />
     <ClInclude Include="ScenarioWindowControlsOverlay.h" />
     <ClInclude Include="ScriptComponent.h" />
@@ -324,6 +325,7 @@
     <ClCompile Include="ScenarioVirtualHostMappingForPopUpWindow.cpp" />
     <ClCompile Include="ScenarioVirtualHostMappingForSW.cpp" />
     <ClCompile Include="ScenarioWebMessage.cpp" />
+    <ClCompile Include="ScenarioWebRtcUdpPortConfiguration.cpp" />
     <ClCompile Include="ScenarioWebViewEventMonitor.cpp" />
     <ClCompile Include="ScenarioWindowControlsOverlay.cpp" />
     <ClCompile Include="ScriptComponent.cpp" />

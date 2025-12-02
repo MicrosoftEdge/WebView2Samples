@@ -89,6 +89,13 @@ struct SamplePrintSettings
     std::wstring FooterUri = L"";
 };
 
+// Port range configuration
+struct PortRangeConfig
+{
+    INT32 minPort = 0;
+    INT32 maxPort = 0;
+};
+
 class AppWindow
 {
 public:
@@ -172,6 +179,12 @@ public:
     {
         return m_webviewOption;
     }
+
+    const PortRangeConfig& GetUdpPortRange() const
+    {
+        return m_udpPortRange;
+    }
+
 private:
     static PCWSTR GetWindowClass();
 
@@ -290,6 +303,7 @@ private:
 
     bool m_CustomCrashReportingEnabled = false;
     bool m_TrackingPreventionEnabled = true;
+    PortRangeConfig m_udpPortRange;
 private:
     // Fullscreen related code
     RECT m_previousWindowRect;
