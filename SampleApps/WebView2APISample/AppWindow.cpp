@@ -62,6 +62,7 @@
 #include "ScenarioVirtualHostMappingForPopUpWindow.h"
 #include "ScenarioVirtualHostMappingForSW.h"
 #include "ScenarioWebMessage.h"
+#include "ScenarioWebRtcUdpPortConfiguration.h"
 #include "ScenarioWebViewEventMonitor.h"
 #include "ScenarioWindowControlsOverlay.h"
 #include "ScriptComponent.h"
@@ -531,6 +532,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
         NewComponent<ScenarioWebMessage>(this);
         return true;
     }
+    case IDM_SCENARIO_WEBRTC_UDP_PORT_CONFIGURATION:
+    {
+        NewComponent<ScenarioWebRtcUdpPortConfiguration>(this);
+        return true;
+    }
     case IDM_SCENARIO_ADD_HOST_OBJECT:
     {
         NewComponent<ScenarioAddHostObject>(this);
@@ -595,6 +601,21 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_EXTENSIONS_MANAGEMENT_OFFLOAD_DEFAULT:
     {
         NewComponent<ScenarioExtensionsManagement>(this, true);
+        return true;
+    }
+    case IDM_SCENARIO_DRAG_DROP_OVERRIDE:
+    {
+        if (m_dcompDevice || m_wincompCompositor)
+        {
+            NewComponent<ScenarioDragDropOverride>(this);
+        }
+        else
+        {
+            MessageBox(
+                m_mainWindow,
+                L"Drag and Drop Override is only supported in visual hosting mode",
+                L"Drag and Drop Override", MB_OK);
+        }
         return true;
     }
     case IDM_SCENARIO_CUSTOM_SCHEME:
@@ -1777,7 +1798,7 @@ void AppWindow::InitializeWebView()
     args.append(
         L"--enable-features=ThirdPartyStoragePartitioning,PartitionedCookies,"
         L"msPageInteractionManagerWebview2");
-    auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
+    auto options = Microsoft::WRL::Make<CoreWebView2ExperimentalEnvironmentOptions>();
     options->put_AdditionalBrowserArguments(args.c_str());
     CHECK_FAILURE(
         options->put_AllowSingleSignOnUsingOSPrimaryAccount(m_AADSSOEnabled ? TRUE : FALSE));
@@ -1831,6 +1852,24 @@ void AppWindow::InitializeWebView()
     {
         COREWEBVIEW2_SCROLLBAR_STYLE style = COREWEBVIEW2_SCROLLBAR_STYLE_FLUENT_OVERLAY;
         CHECK_FAILURE(options8->put_ScrollBarStyle(style));
+    }
+
+    Microsoft::WRL::ComPtr<ICoreWebView2ExperimentalEnvironmentOptions> optionsExperimental;
+    if (options.As(&optionsExperimental) == S_OK)
+    {
+        // Configure port ranges for WebRTC UDP traffic to work within enterprise firewalls
+        // Set UDP port range (example: 50000-55000 for enterprise environments)
+        const INT32 udpMin = 50000, udpMax = 55000;
+
+        CHECK_FAILURE(optionsExperimental->SetAllowedPortRange(
+            COREWEBVIEW2_ALLOWED_PORT_RANGE_SCOPE_WEB_RTC,
+            COREWEBVIEW2_TRANSPORT_PROTOCOL_KIND_UDP, udpMin, udpMax));
+
+        // Get the configured port range
+        CHECK_FAILURE(optionsExperimental->GetEffectiveAllowedPortRange(
+            COREWEBVIEW2_ALLOWED_PORT_RANGE_SCOPE_WEB_RTC,
+            COREWEBVIEW2_TRANSPORT_PROTOCOL_KIND_UDP, &m_udpPortRange.minPort,
+            &m_udpPortRange.maxPort));
     }
 
     HRESULT hr = CreateCoreWebView2EnvironmentWithOptions(

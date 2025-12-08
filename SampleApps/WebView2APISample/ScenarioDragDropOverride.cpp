@@ -26,9 +26,8 @@ ScenarioDragDropOverride::ScenarioDragDropOverride(AppWindow* appWindow)
         return;
     }
 
-    m_compControllerExperimental6 =
-        compController.try_query<ICoreWebView2ExperimentalCompositionController6>();
-    if (!m_compControllerExperimental6)
+    m_compController5 = compController.try_query<ICoreWebView2CompositionController5>();
+    if (!m_compController5)
     {
         return;
     }
@@ -70,11 +69,11 @@ ScenarioDragDropOverride::ScenarioDragDropOverride(AppWindow* appWindow)
     //! [DragStarting]
     // Using DragStarting to simply make a synchronous DoDragDrop call instead of
     // having WebView2 do it.
-    CHECK_FAILURE(m_compControllerExperimental6->add_DragStarting(
-        Callback<ICoreWebView2ExperimentalDragStartingEventHandler>(
+    CHECK_FAILURE(m_compController5->add_DragStarting(
+        Callback<ICoreWebView2DragStartingEventHandler>(
             [this](
                 ICoreWebView2CompositionController* sender,
-                ICoreWebView2ExperimentalDragStartingEventArgs* args)
+                ICoreWebView2DragStartingEventArgs* args)
             {
                 if (m_dragOverrideMode != DragOverrideMode::OVERRIDE)
                 {
@@ -126,9 +125,9 @@ ScenarioDragDropOverride::ScenarioDragDropOverride(AppWindow* appWindow)
 
 ScenarioDragDropOverride::~ScenarioDragDropOverride()
 {
-    if (m_compControllerExperimental6)
+    if (m_compController5)
     {
-        CHECK_FAILURE(m_compControllerExperimental6->remove_DragStarting(m_dragStartingToken));
+        CHECK_FAILURE(m_compController5->remove_DragStarting(m_dragStartingToken));
     }
     CHECK_FAILURE(m_webView->remove_WebMessageReceived(m_webMessageReceivedToken));
     CHECK_FAILURE(m_webView->remove_ContentLoading(m_contentLoadingToken));
