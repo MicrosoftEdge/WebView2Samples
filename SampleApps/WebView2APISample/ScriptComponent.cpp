@@ -650,33 +650,6 @@ void ScriptComponent::HandleCDPTargets()
         &m_targetDetachedToken));
     receiver.reset();
     CHECK_FAILURE(
-        m_webView->GetDevToolsProtocolEventReceiver(L"Target.targetCreated", &receiver));
-    CHECK_FAILURE(receiver->add_DevToolsProtocolEventReceived(
-        Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(
-            [this](
-                ICoreWebView2* sender,
-                ICoreWebView2DevToolsProtocolEventReceivedEventArgs* args) -> HRESULT
-            {
-                // Shared worker targets are not auto attached. Have to attach it explicitly.
-                wil::unique_cotaskmem_string jsonMessage;
-                CHECK_FAILURE(args->get_ParameterObjectAsJson(&jsonMessage));
-                std::wstring type = GetJSONStringField(jsonMessage.get(), L"type");
-                if (type == L"shared_worker")
-                {
-                    std::wstring targetId = GetJSONStringField(jsonMessage.get(), L"targetId");
-                    std::wstring parameters =
-                        L"{\"targetId\":\"" + targetId + L"\",\"flatten\": true}";
-                    // Call Target.attachToTarget and ignore returned value, let
-                    // Target.attachedToTarget to handle the result.
-                    m_webView->CallDevToolsProtocolMethod(
-                        L"Target.attachToTarget", parameters.c_str(), nullptr);
-                }
-                return S_OK;
-            })
-            .Get(),
-        &m_targetCreatedToken));
-    receiver.reset();
-    CHECK_FAILURE(
         m_webView->GetDevToolsProtocolEventReceiver(L"Target.targetInfoChanged", &receiver));
     CHECK_FAILURE(receiver->add_DevToolsProtocolEventReceived(
         Callback<ICoreWebView2DevToolsProtocolEventReceivedEventHandler>(

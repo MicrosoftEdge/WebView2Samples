@@ -78,6 +78,9 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}" Executed="NewWindowWithOptionsCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.CreateNewThreadCommand}" Executed="CreateNewThreadCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" Executed="TrackingPreventionLevelCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+<!-- #if USE_WEBVIEW2_EXPERIMENTAL -->
+        <CommandBinding Command="{x:Static local:MainWindow.EnhancedSecurityModeLevelCommand}" Executed="EnhancedSecurityModeLevelCommandExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
+<!-- #endif -->
         <CommandBinding Command="{x:Static local:MainWindow.PrintDialogCommand}" Executed="PrintDialogCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToDefaultPrinterCommand}" Executed="PrintToDefaultPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.PrintToPrinterCommand}" Executed="PrintToPrinterCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
@@ -201,6 +204,12 @@ found in the LICENSE file.
                     <MenuItem Header="_Balanced" Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" CommandParameter="Balanced"/>
                     <MenuItem Header="_Strict" Command="{x:Static local:MainWindow.TrackingPreventionLevelCommand}" CommandParameter="Strict"/>
                 </MenuItem>
+<!-- #if USE_WEBVIEW2_EXPERIMENTAL -->
+                <MenuItem Header="_Enhanced Security Mode Level">
+                    <MenuItem Header="_Off" Command="{x:Static local:MainWindow.EnhancedSecurityModeLevelCommand}" CommandParameter="Off"/>
+                    <MenuItem Header="_Strict" Command="{x:Static local:MainWindow.EnhancedSecurityModeLevelCommand}" CommandParameter="Strict"/>
+                </MenuItem>
+<!-- #endif -->
                 <MenuItem Header="Toggle Non-Client Region Support" Command="{x:Static local:MainWindow.NonClientRegionSupportCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">

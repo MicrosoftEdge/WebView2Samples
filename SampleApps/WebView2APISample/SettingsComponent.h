@@ -46,6 +46,8 @@ public:
 
     void SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL value);
 
+    void SetEnhancedSecurityModeLevel(COREWEBVIEW2_ENHANCED_SECURITY_MODE_LEVEL value);
+
     ~SettingsComponent() override;
 
 private:

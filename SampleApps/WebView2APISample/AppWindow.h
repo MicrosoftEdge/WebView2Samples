@@ -242,6 +242,7 @@ private:
     bool SuppressDefaultFindDialog();
     bool IsCaseSensitive();
     wil::com_ptr<ICoreWebView2FindOptions> SetDefaultFindOptions();
+
     void SetupFindEventHandlers(wil::com_ptr<ICoreWebView2Find> webView2find);
     // Find on Page member
     std::wstring m_findOnPageLastSearchTerm;
