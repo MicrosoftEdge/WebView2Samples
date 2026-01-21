@@ -83,10 +83,6 @@ namespace WebView2WpfBrowser
         public static RoutedCommand ExtensionsCommand = new RoutedCommand();
         public static RoutedCommand TrackingPreventionLevelCommand = new RoutedCommand();
         public static RoutedCommand EnhancedSecurityModeLevelCommand = new RoutedCommand();
-        public static RoutedCommand EnhancedSecurityModeGetBypassListCommand = new RoutedCommand();
-        public static RoutedCommand EnhancedSecurityModeSetBypassListCommand = new RoutedCommand();
-        public static RoutedCommand EnhancedSecurityModeGetEnforceListCommand = new RoutedCommand();
-        public static RoutedCommand EnhancedSecurityModeSetEnforceListCommand = new RoutedCommand();
         public static RoutedCommand WebRtcUdpPortConfigCommand = new RoutedCommand();
         public static RoutedCommand PrintDialogCommand = new RoutedCommand();
         public static RoutedCommand PrintToDefaultPrinterCommand = new RoutedCommand();
@@ -1022,22 +1018,31 @@ namespace WebView2WpfBrowser
         }
         // <SetTrackingPreventionLevel>
 
-
         void EnhancedSecurityModeLevelCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            string level = e.Parameter.ToString();
+            if (level == "Off")
+            {
+                SetEnhancedSecurityModeLevel(CoreWebView2EnhancedSecurityModeLevel.Off);
+            }
+            else
+            {
+                SetEnhancedSecurityModeLevel(CoreWebView2EnhancedSecurityModeLevel.Strict);
+            }
+#endif
         }
-        void EnhancedSecurityModeGetBypassListCommandExecuted(object target, ExecutedRoutedEventArgs e)
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        // <SetEnhancedSecurityModeLevel>
+        void SetEnhancedSecurityModeLevel(CoreWebView2EnhancedSecurityModeLevel value)
         {
+            WebViewProfile.EnhancedSecurityModeLevel = value;
+            MessageBox.Show(this, "Enhanced security mode level is set successfully", "Enhanced Security Mode Level");
         }
-        void EnhancedSecurityModeSetBypassListCommandExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-        }
-        void EnhancedSecurityModeGetEnforceListCommandExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-        }
-        void EnhancedSecurityModeSetEnforceListCommandExecuted(object target, ExecutedRoutedEventArgs e)
-        {
-        }
+        // <SetEnhancedSecurityModeLevel>
+#endif
+
         void WebRtcUdpPortConfigCommandExecuted(object target, ExecutedRoutedEventArgs e)
         {
 #if USE_WEBVIEW2_EXPERIMENTAL

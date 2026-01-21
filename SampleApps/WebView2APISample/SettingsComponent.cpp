@@ -1291,6 +1291,12 @@ bool SettingsComponent::HandleWindowMessage(
         case IDM_TRACKING_PREVENTION_LEVEL_STRICT:
             SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENTION_LEVEL_STRICT);
             return true;
+        case IDM_ENHANCED_SECURITY_MODE_LEVEL_OFF:
+            SetEnhancedSecurityModeLevel(COREWEBVIEW2_ENHANCED_SECURITY_MODE_LEVEL_OFF);
+            return true;
+        case IDM_ENHANCED_SECURITY_MODE_LEVEL_STRICT:
+            SetEnhancedSecurityModeLevel(COREWEBVIEW2_ENHANCED_SECURITY_MODE_LEVEL_STRICT);
+            return true;
         case ID_SETTINGS_NON_CLIENT_REGION_SUPPORT_ENABLED:
         {
             //![ToggleNonClientRegionSupportEnabled]
@@ -1298,6 +1304,7 @@ bool SettingsComponent::HandleWindowMessage(
             wil::com_ptr<ICoreWebView2Settings9> settings;
             settings = m_settings.try_query<ICoreWebView2Settings9>();
             CHECK_FEATURE_RETURN(settings);
+
             CHECK_FAILURE(
                 settings->get_IsNonClientRegionSupportEnabled(&nonClientRegionSupportEnabled));
             if (nonClientRegionSupportEnabled)
@@ -1806,6 +1813,38 @@ void SettingsComponent::SetTrackingPreventionLevel(COREWEBVIEW2_TRACKING_PREVENT
     }
 }
 //! [SetTrackingPreventionLevel]
+
+//! [SetEnhancedSecurityModeLevel]
+void SettingsComponent::SetEnhancedSecurityModeLevel(
+    COREWEBVIEW2_ENHANCED_SECURITY_MODE_LEVEL value)
+{
+    wil::com_ptr<ICoreWebView2_13> webView2_13;
+    webView2_13 = m_webView.try_query<ICoreWebView2_13>();
+
+    if (webView2_13)
+    {
+        wil::com_ptr<ICoreWebView2Profile> profile;
+        CHECK_FAILURE(webView2_13->get_Profile(&profile));
+
+        auto experimentalProfile9 = profile.try_query<ICoreWebView2ExperimentalProfile9>();
+        if (experimentalProfile9)
+        {
+            CHECK_FAILURE(experimentalProfile9->put_EnhancedSecurityModeLevel(value));
+
+            const wchar_t* levelText = L"Off";
+            if (value == COREWEBVIEW2_ENHANCED_SECURITY_MODE_LEVEL_STRICT)
+            {
+                levelText = L"Strict";
+            }
+
+            MessageBox(
+                nullptr,
+                (std::wstring(L"Enhanced Security Mode level is set to ") + levelText).c_str(),
+                L"Enhanced Security Mode Level", MB_OK);
+        }
+    }
+}
+//! [SetEnhancedSecurityModeLevel]
 
 SettingsComponent::~SettingsComponent()
 {
