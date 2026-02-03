@@ -36,37 +36,37 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -251,6 +251,9 @@
     <ClInclude Include="ScenarioSaveAs.h" />
     <ClInclude Include="ScenarioScreenCapture.h" />
     <ClInclude Include="ScenarioSensitivityLabel.h" />
+    <ClInclude Include="ScenarioSLM.h" />
+    <ClInclude Include="SLMHostObjectImpl.h" />
+    <ClInclude Include="FoundryLocalClient.h" />
     <ClInclude Include="ScenarioServiceWorkerManager.h" />
     <ClInclude Include="ScenarioServiceWorkerPostMessage.h" />
     <ClInclude Include="ScenarioServiceWorkerWRR.h" />
@@ -315,6 +318,9 @@
     <ClCompile Include="ScenarioSaveAs.cpp" />
     <ClCompile Include="ScenarioScreenCapture.cpp" />
     <ClCompile Include="ScenarioSensitivityLabel.cpp" />
+    <ClCompile Include="ScenarioSLM.cpp" />
+    <ClCompile Include="SLMHostObjectImpl.cpp" />
+    <ClCompile Include="FoundryLocalClient.cpp" />
     <ClCompile Include="ScenarioServiceWorkerManager.cpp" />
     <ClCompile Include="ScenarioServiceWorkerPostMessage.cpp" />
     <ClCompile Include="ScenarioServiceWorkerWRR.cpp" />
@@ -483,6 +489,9 @@
     <CopyFileToFolders Include="assets\ScenarioAddHostObject.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="assets\ScenarioSLM.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
     <CopyFileToFolders Include="assets\ScenarioCookieManagement.html">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
@@ -528,6 +537,7 @@
   </ItemGroup>
   <ItemGroup>
     <Midl Include="HostObjectSample.idl" TypeLibraryName="$(OutDir)WebView2APISample.tlb" />
+    <Midl Include="SLMHostObject.idl" TypeLibraryName="$(OutDir)WebView2APISample.tlb" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

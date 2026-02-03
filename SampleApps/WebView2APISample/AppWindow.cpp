@@ -56,6 +56,7 @@
 #include "ScenarioScreenCapture.h"
 #include "ScenarioSensitivityLabel.h"
 #include "ScenarioServiceWorkerWRR.h"
+#include "ScenarioSLM.h"
 #include "ScenarioSharedBuffer.h"
 #include "ScenarioSharedWorkerWRR.h"
 #include "ScenarioThrottlingControl.h"
@@ -824,6 +825,21 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_SCREEN_CAPTURE:
     {
         NewComponent<ScenarioScreenCapture>(this);
+        return true;
+    }
+    case IDM_SCENARIO_SLM_CHAT:
+    {
+        // Check if SLM scenario can be launched (online or model cached)
+        if (!ScenarioSLM::CanLaunch())
+        {
+            MessageBox(
+                m_mainWindow,
+                L"SLM Chat requires an internet connection for first-time setup to download the AI model.\n\nPlease connect to the internet and try again.",
+                L"No Internet Connection",
+                MB_OK | MB_ICONWARNING);
+            return true;
+        }
+        NewComponent<ScenarioSLM>(this);
         return true;
     }
     case IDM_SCENARIO_FILE_TYPE_POLICY:

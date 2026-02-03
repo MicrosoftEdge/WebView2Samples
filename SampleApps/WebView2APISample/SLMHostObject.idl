@@ -1,0 +1,72 @@
+// Copyright (C) Microsoft Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[uuid(b5e2d3a1-8c4f-4e6d-9a1b-2c3d4e5f6a7b), version(0.1)]
+library SLMHostObjectLibrary
+{
+    // Status values:
+    // "not_installed" - Foundry Local not installed
+    // "installing" - Currently installing Foundry Local
+    // "service_stopped" - Foundry Local installed but service not running
+    // "starting_service" - Starting the Foundry Local service
+    // "model_not_cached" - Service running but model not downloaded
+    // "downloading" - Currently downloading the model
+    // "ready" - Ready for inference
+    // "offline" - No network connection and model not cached
+    // "inferring" - Currently running inference
+
+    [uuid(c6f3e4b2-9d5a-4f7e-8b2c-3d4e5f6a7b8c), object, local]
+    interface ISLMHostObject : IUnknown
+    {
+        // Get current status of the SLM system
+        HRESULT QueryStatus([out, retval] BSTR* status);
+
+        // Setup Foundry Local (install if needed, start service, download model)
+        // progressCallback receives: { stage: string, progress: number, message: string }
+        HRESULT SetupAsync([in] IDispatch* progressCallback, [in] IDispatch* completionCallback);
+
+        // Run inference with streaming tokens
+        // tokenCallback receives each token as a string
+        // completionCallback receives: { success: boolean, error: string }
+        HRESULT InferAsync(
+            [in] BSTR prompt,
+            [in] IDispatch* tokenCallback,
+            [in] IDispatch* completionCallback);
+
+        // Cancel ongoing inference
+        HRESULT CancelInference();
+
+        // Set the system prompt for the model
+        HRESULT SetSystemPrompt([in] BSTR prompt);
+
+        // Get the current system prompt
+        HRESULT GetSystemPrompt([out, retval] BSTR* prompt);
+
+        // Check if online
+        HRESULT IsOnline([out, retval] VARIANT_BOOL* online);
+
+        // Check if model is ready (installed + service running + model cached)
+        HRESULT IsReady([out, retval] VARIANT_BOOL* ready);
+
+        // Get available models as JSON array
+        // Returns: [{"alias":"phi-4-mini","name":"Phi-4 Mini","description":"...","cached":true},...]
+        HRESULT GetModels([out, retval] BSTR* modelsJson);
+
+        // Set current model by alias
+        HRESULT SetModel([in] BSTR alias, [out, retval] VARIANT_BOOL* success);
+
+        // Get current model alias
+        HRESULT GetCurrentModel([out, retval] BSTR* alias);
+    };
+
+    [uuid(d7a4f5c3-ae6b-5a8f-9c3d-4e5f6a7b8c9d)]
+    coclass SLMHostObject
+    {
+        [default] interface ISLMHostObject;
+        interface IDispatch;
+    };
+}

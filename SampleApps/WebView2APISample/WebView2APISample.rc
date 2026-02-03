@@ -317,6 +317,7 @@ BEGIN
         MENUITEM "Accelerator Key Pressed", IDM_SCENARIO_ACCELERATOR_KEY_PRESSED
         MENUITEM "Throttling Control",           IDM_SCENARIO_THROTTLING_CONTROL
         MENUITEM "Screen Capture", IDM_SCENARIO_SCREEN_CAPTURE
+        MENUITEM "SLM Chat", IDM_SCENARIO_SLM_CHAT
         MENUITEM "File Type Policy", IDM_SCENARIO_FILE_TYPE_POLICY
         POPUP "Service Worker"
         BEGIN
