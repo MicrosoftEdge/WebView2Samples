@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WV2CDPExtensionWPFSample", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WebView2SampleWinComp", "WebView2SampleWinComp\WebView2SampleWinComp.vcxproj", "{ABAC8D87-C87B-455C-8340-0A9B0CD9A206}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WebView2APISampleONNX", "WebView2APISampleONNX\WebView2APISampleONNX.vcxproj", "{8F0CEEF3-12B3-425E-9BB0-105200411593}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -123,6 +125,18 @@ Global
 		{ABAC8D87-C87B-455C-8340-0A9B0CD9A206}.Release|x64.Build.0 = Release|x64
 		{ABAC8D87-C87B-455C-8340-0A9B0CD9A206}.Release|x86.ActiveCfg = Release|Win32
 		{ABAC8D87-C87B-455C-8340-0A9B0CD9A206}.Release|x86.Build.0 = Release|Win32
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Debug|ARM64.Build.0 = Debug|ARM64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Debug|x64.ActiveCfg = Debug|x64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Debug|x64.Build.0 = Debug|x64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Debug|x86.ActiveCfg = Debug|x64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Release|Any CPU.ActiveCfg = Release|x64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Release|ARM64.ActiveCfg = Release|ARM64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Release|ARM64.Build.0 = Release|ARM64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Release|x64.ActiveCfg = Release|x64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Release|x64.Build.0 = Release|x64
+		{8F0CEEF3-12B3-425E-9BB0-105200411593}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

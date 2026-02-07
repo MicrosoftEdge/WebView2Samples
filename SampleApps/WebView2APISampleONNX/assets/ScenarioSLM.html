@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copilot - Phi-3 Mini (ONNX Runtime)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f4f0e8;
+            color: #1a1a1a;
+        }
+
+        /* Main layout container */
+        .app-container {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        /* Setup screen - centered content */
+        .setup-screen {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 24px;
+        }
+
+        .setup-screen.hidden {
+            display: none;
+        }
+
+        .setup-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 24px;
+        }
+
+        .setup-icon img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .copilot-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .copilot-logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #f97316, #ef4444, #ec4899, #8b5cf6);
+            border-radius: 6px;
+        }
+
+        .copilot-logo-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .setup-screen h2 {
+            font-size: 24px;
+            font-weight: 400;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+
+        .setup-screen p {
+            font-size: 14px;
+            color: #666666;
+            max-width: 400px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 24px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e0dcd4;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f97316, #ef4444);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #666666;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 12px 32px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #333333;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .error-banner {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            max-width: 400px;
+        }
+
+        /* Chat screen */
+        .chat-screen {
+            display: none;
+            height: 100%;
+            width: 100%;
+            flex-direction: column;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .chat-screen.active {
+            display: flex;
+        }
+
+        /* Messages area - scrollable */
+        .messages-area {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 24px 24px 100px 24px;
+        }
+
+        .messages {
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Welcome state */
+        .welcome-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            padding: 60px 20px;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 400;
+            color: #1a1a1a;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            max-width: 600px;
+        }
+
+        .suggestion-chip {
+            padding: 10px 18px;
+            background: #ffffff;
+            border: 1px solid #e0dcd4;
+            border-radius: 20px;
+            color: #1a1a1a;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background: #f9f7f4;
+            border-color: #ccc8c0;
+        }
+
+        /* Messages */
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.user .message-avatar {
+            order: 2;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            align-self: flex-start;
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #f97316, #ef4444, #ec4899, #8b5cf6);
+        }
+
+        .message.user .message-avatar {
+            background: #6366f1;
+        }
+
+        .message-content {
+            max-width: 70%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .message.user .message-content {
+            align-items: flex-end;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .message.user .message-header {
+            flex-direction: row-reverse;
+        }
+
+        .message-sender {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .message-bubble {
+            padding: 16px 20px;
+            border-radius: 20px;
+            line-height: 1.7;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .message.assistant .message-bubble {
+            background: #ffffff;
+            color: #1a1a1a;
+            border: 1px solid #e8e4dc;
+        }
+
+        .message.user .message-bubble {
+            background: #6366f1;
+            color: #ffffff;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 8px 4px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        /* Input area - fixed at bottom */
+        .input-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 24px 24px;
+            background: linear-gradient(to top, #f4f0e8 80%, transparent);
+        }
+
+        .input-wrapper {
+            max-width: 720px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 28px;
+            border: 1px solid #e0dcd4;
+            display: flex;
+            align-items: flex-end;
+            padding: 8px 8px 8px 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #ccc8c0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .input-wrapper textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #1a1a1a;
+            font-size: 15px;
+            font-family: inherit;
+            padding: 10px 0;
+            resize: none;
+            outline: none;
+            min-height: 24px;
+            max-height: 120px;
+            line-height: 1.5;
+        }
+
+        .input-wrapper textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            background: #f97316;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #ea580c;
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .send-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Status indicator */
+        .status-bar {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            font-size: 12px;
+            color: #666;
+            border: 1px solid #e0dcd4;
+            backdrop-filter: blur(8px);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
+        .status-dot.offline { background: #9ca3af; }
+        .status-dot.setup { background: #f97316; }
+        .status-dot.thinking { background: #f97316; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Model badge */
+        .model-badge-container {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            font-size: 12px;
+            color: #666;
+            border: 1px solid #e0dcd4;
+            backdrop-filter: blur(8px);
+        }
+
+        .model-badge-icon {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #f97316, #ef4444, #ec4899, #8b5cf6);
+            border-radius: 4px;
+        }
+
+        .model-badge-text {
+            font-size: 12px;
+            color: #1a1a1a;
+            font-weight: 500;
+        }
+
+        /* ONNX badge */
+        .onnx-badge {
+            font-size: 10px;
+            background: #e5e7eb;
+            color: #4b5563;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Status bar -->
+        <div class="status-bar">
+            <div id="statusDot" class="status-dot setup"></div>
+            <span id="statusText">Initializing</span>
+        </div>
+
+        <!-- Model badge -->
+        <div class="model-badge-container">
+            <div class="model-badge-icon"></div>
+            <span class="model-badge-text">Phi-3 Mini</span>
+            <span class="onnx-badge">ONNX</span>
+        </div>
+
+        <!-- Setup Screen -->
+        <div id="setupScreen" class="setup-screen">
+            <div class="copilot-logo">
+                <div class="copilot-logo-icon"></div>
+                <span class="copilot-logo-text">Copilot</span>
+            </div>
+            <h2>Hi there. What should we dive into today?</h2>
+            <p id="setupDescription">Chat with Phi-3 Mini powered by ONNX Runtime. This compact model runs efficiently on your device using DirectML GPU acceleration. Perfect for quick questions and conversations.</p>
+            
+            <div id="setupProgress" class="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div id="progressText" class="progress-text">Preparing...</div>
+            </div>
+
+            <div id="errorBox" class="error-banner" style="display: none;"></div>
+
+            <button id="setupBtn" class="btn btn-primary" onclick="startSetup()">
+                Start Chatting
+            </button>
+        </div>
+
+        <!-- Chat Screen -->
+        <div id="chatScreen" class="chat-screen">
+            <div class="messages-area" id="messagesArea">
+                <div class="messages" id="messages">
+                    <div class="welcome-container" id="welcomeContainer">
+                        <h1 class="welcome-title">Hi there. What should we dive into today?</h1>
+                        <div class="suggestions">
+                            <div class="suggestion-chip" onclick="sendSuggestion('Explain how neural networks work')">Explain neural networks</div>
+                            <div class="suggestion-chip" onclick="sendSuggestion('Write a short poem about coding')">Write a poem</div>
+                            <div class="suggestion-chip" onclick="sendSuggestion('Give me 5 productivity tips')">Productivity tips</div>
+                            <div class="suggestion-chip" onclick="sendSuggestion('What is ONNX Runtime?')">What is ONNX Runtime?</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="userInput" 
+                        placeholder="Message Copilot" 
+                        rows="1"
+                        onkeydown="handleKeyDown(event)"
+                        oninput="autoResize(this)"
+                    ></textarea>
+                    <button id="sendBtn" class="send-button" onclick="sendMessage()">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let slm = null;
+        let isInferring = false;
+        let welcomeShown = true;
+        let isReady = false;
+        let inChatMode = false;
+        const currentModelName = 'Phi-3 Mini';
+
+        async function init() {
+            try {
+                slm = chrome.webview.hostObjects.slm;
+                
+                const status = await slm.QueryStatus();
+                updateStatus(status);
+
+                // Check if model needs to be downloaded
+                const needsDownload = (status === 'model_not_downloaded' || status === 'model_not_cached');
+                isReady = (status === 'ready');
+                
+                if (isReady) {
+                    // Model already loaded, show Start Chatting
+                    updateSetupButton(true);
+                    showSetupScreen();
+                } else if (!needsDownload) {
+                    // Model is downloaded but not loaded - auto-load it
+                    showSetupScreen();
+                    setTimeout(() => startSetup(), 100);
+                } else {
+                    // Model needs to be downloaded - show download button
+                    updateSetupButton(false);
+                    showSetupScreen();
+                }
+            } catch (e) {
+                console.error('Failed to initialize:', e);
+                showError('Failed to connect to SLM service: ' + e.message);
+            }
+        }
+
+        function updateSetupButton(modelDownloaded) {
+            const btn = document.getElementById('setupBtn');
+            if (modelDownloaded) {
+                btn.textContent = 'Start Chatting';
+            } else {
+                btn.textContent = 'Download Model (~1.5 GB)';
+            }
+        }
+
+        function updateStatus(status) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            
+            dot.className = 'status-dot';
+            
+            switch (status) {
+                case 'ready':
+                    text.textContent = 'Ready';
+                    break;
+                case 'model_not_cached':
+                    dot.classList.add('setup');
+                    text.textContent = 'Model Not Downloaded';
+                    break;
+                case 'loading':
+                    dot.classList.add('setup');
+                    text.textContent = 'Loading Model...';
+                    break;
+                case 'downloading':
+                    dot.classList.add('setup');
+                    text.textContent = 'Downloading...';
+                    break;
+                case 'inferring':
+                    dot.classList.add('thinking');
+                    text.textContent = 'Thinking...';
+                    break;
+                default:
+                    dot.classList.add('setup');
+                    text.textContent = status;
+            }
+        }
+
+        function showSetupScreen() {
+            document.getElementById('setupScreen').classList.remove('hidden');
+            document.getElementById('chatScreen').classList.remove('active');
+        }
+
+        function showChatScreen() {
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('chatScreen').classList.add('active');
+            document.getElementById('userInput').focus();
+        }
+
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.textContent = message;
+            errorBox.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorBox').style.display = 'none';
+        }
+
+        async function startSetup() {
+            hideError();
+            const setupBtn = document.getElementById('setupBtn');
+            const progressContainer = document.getElementById('setupProgress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+
+            // If already ready, just go to chat
+            if (isReady) {
+                inChatMode = true;
+                showChatScreen();
+                return;
+            }
+
+            setupBtn.disabled = true;
+            setupBtn.textContent = 'Loading model...';
+            updateStatus('loading');
+
+            try {
+                await slm.SetupAsync(
+                    (progressJson) => {
+                        try {
+                            const progress = JSON.parse(progressJson);
+                            // Show progress bar during download
+                            if (progress.stage === 'downloading') {
+                                progressContainer.style.display = 'block';
+                                progressFill.style.width = progress.progress + '%';
+                                progressText.textContent = progress.message;
+                            }
+                            updateStatus(progress.stage);
+                        } catch (e) {
+                            console.log('Progress:', progressJson);
+                        }
+                    },
+                    (resultJson) => {
+                        try {
+                            const result = JSON.parse(resultJson);
+                            progressContainer.style.display = 'none';
+                            if (result.success) {
+                                updateStatus('ready');
+                                isReady = true;
+                                // Show Start Chatting button, wait for user to click
+                                setupBtn.disabled = false;
+                                setupBtn.textContent = 'Start Chatting';
+                            } else {
+                                showError(result.error || 'Setup failed');
+                                setupBtn.disabled = false;
+                                setupBtn.textContent = 'Retry Setup';
+                            }
+                        } catch (e) {
+                            console.error('Completion parse error:', e, resultJson);
+                        }
+                    }
+                );
+            } catch (e) {
+                showError('Setup failed: ' + e.message);
+                setupBtn.disabled = false;
+                setupBtn.textContent = 'Retry Setup';
+            }
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function sendSuggestion(text) {
+            document.getElementById('userInput').value = text;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const message = input.value.trim();
+
+            if (!message || isInferring) return;
+
+            // Remove welcome message if first message
+            if (welcomeShown) {
+                const welcome = document.getElementById('welcomeContainer');
+                if (welcome) welcome.remove();
+                welcomeShown = false;
+            }
+
+            addMessage('user', message);
+            input.value = '';
+            input.style.height = 'auto';
+
+            isInferring = true;
+            sendBtn.disabled = true;
+            updateStatus('inferring');
+
+            const assistantMessage = addMessage('assistant', '');
+            const bubble = assistantMessage.querySelector('.message-bubble');
+            bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+
+            let responseText = '';
+            let firstToken = true;
+
+            try {
+                await slm.InferAsync(
+                    message,
+                    (token) => {
+                        if (firstToken) {
+                            bubble.innerHTML = '';
+                            firstToken = false;
+                        }
+                        
+                        responseText += token;
+                        bubble.textContent = responseText;
+                        scrollToBottom();
+                    },
+                    (resultJson) => {
+                        try {
+                            const result = JSON.parse(resultJson);
+                            if (!result.success && result.error) {
+                                if (firstToken) bubble.innerHTML = '';
+                                bubble.textContent = responseText || 'Sorry, an error occurred: ' + result.error;
+                            }
+                        } catch (e) {
+                            console.error('Completion parse error:', e);
+                        }
+                        
+                        isInferring = false;
+                        sendBtn.disabled = false;
+                        updateStatus('ready');
+                        input.focus();
+                        scrollToBottom();
+                    }
+                );
+            } catch (e) {
+                bubble.textContent = 'Sorry, an error occurred: ' + e.message;
+                isInferring = false;
+                sendBtn.disabled = false;
+                updateStatus('ready');
+            }
+        }
+
+        function addMessage(role, content) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + role;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = role === 'user' ? '👤' : '🦙';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            const header = document.createElement('div');
+            header.className = 'message-header';
+            
+            const sender = document.createElement('span');
+            sender.className = 'message-sender';
+            sender.textContent = role === 'user' ? 'You' : currentModelName;
+            
+            const time = document.createElement('span');
+            time.className = 'message-time';
+            time.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            header.appendChild(sender);
+            header.appendChild(time);
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = content;
+            
+            contentDiv.appendChild(header);
+            contentDiv.appendChild(bubble);
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(contentDiv);
+            messagesDiv.appendChild(messageDiv);
+            
+            scrollToBottom();
+            return messageDiv;
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messagesArea');
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    container.scrollTop = container.scrollHeight;
+                });
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

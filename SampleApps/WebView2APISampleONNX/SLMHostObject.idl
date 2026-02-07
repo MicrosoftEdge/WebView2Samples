@@ -1,0 +1,37 @@
+// Copyright (C) Microsoft Corporation. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[uuid(C7D6D547-5E37-4D1A-9B53-2B4C8F1A0001), object, local]
+interface ISLMHostObject : IUnknown
+{
+    // Query current status: "not_installed", "ready", "offline", "model_not_downloaded", etc.
+    HRESULT QueryStatus([out, retval] BSTR* status);
+    
+    // Setup: Initialize ONNX Runtime and download model if needed
+    HRESULT SetupAsync([in] IDispatch* progressCallback, [in] IDispatch* completionCallback);
+    
+    // Inference: Send message and receive streaming response
+    HRESULT InferAsync([in] BSTR message, [in] IDispatch* tokenCallback, [in] IDispatch* completionCallback);
+    
+    // Cancel ongoing inference
+    HRESULT CancelInference();
+    
+    // Model management
+    HRESULT GetModels([out, retval] BSTR* modelsJson);
+    HRESULT SetModel([in] BSTR alias, [out, retval] VARIANT_BOOL* success);
+    HRESULT GetCurrentModel([out, retval] BSTR* alias);
+}
+
+[uuid(C7D6D547-5E37-4D1A-9B53-2B4C8F1A0002)]
+library SLMHostObjectLibrary
+{
+    [uuid(C7D6D547-5E37-4D1A-9B53-2B4C8F1A0003)]
+    coclass SLMHostObject
+    {
+        [default] interface ISLMHostObject;
+    }
+}
