@@ -953,20 +953,64 @@ bool SettingsComponent::HandleWindowMessage(
             //! [ToggleSwipeNavigationEnabled]
             return true;
         }
-        case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS:
+        case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_NONE:
+        case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_LEFT:
+        case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_CENTER:
+        case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_RIGHT:
+        case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_ALL:
         {
             //! [ToggleHidePdfToolbarItems]
             CHECK_FEATURE_RETURN(m_settings7);
 
-            COREWEBVIEW2_PDF_TOOLBAR_ITEMS hiddenPdfToolbarItems;
-            CHECK_FAILURE(m_settings7->get_HiddenPdfToolbarItems(&hiddenPdfToolbarItems));
-            if (hiddenPdfToolbarItems ==
-                COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_NONE)
+            COREWEBVIEW2_PDF_TOOLBAR_ITEMS itemsToHide =
+                COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_NONE;
+            std::wstring message;
+
+            switch (LOWORD(wParam))
             {
-                CHECK_FAILURE(
-                    m_settings7->put_HiddenPdfToolbarItems(
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
-                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE) |
+            case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_NONE:
+                // Show all items (hide none)
+                itemsToHide =
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_NONE;
+                message = L"All PDF toolbar items are shown after the next navigation.";
+                break;
+            case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_LEFT:
+                // Left items: Bookmarks
+                itemsToHide = static_cast<COREWEBVIEW2_PDF_TOOLBAR_ITEMS>(
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_BOOKMARKS);
+                message =
+                    L"PDF toolbar left items (Bookmarks) are hidden after the next navigation.";
+                break;
+            case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_CENTER:
+                // Center items: Page Selector, Zoom In, Zoom Out, Fit Page, Page Layout, Rotate
+                itemsToHide = static_cast<COREWEBVIEW2_PDF_TOOLBAR_ITEMS>(
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_SELECTOR |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_IN |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ZOOM_OUT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FIT_PAGE |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_LAYOUT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_ROTATE);
+                message = L"PDF toolbar center items (Page Selector, Zoom, Fit Page, Page "
+                          L"Layout, Rotate) are hidden after the next navigation.";
+                break;
+            case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_RIGHT:
+                // Right items: Search, Print, Save, Full Screen, More Settings
+                itemsToHide = static_cast<COREWEBVIEW2_PDF_TOOLBAR_ITEMS>(
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SEARCH |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FULL_SCREEN |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
+                        COREWEBVIEW2_PDF_TOOLBAR_ITEMS_MORE_SETTINGS);
+                message = L"PDF toolbar right items (Search, Print, Save, Full Screen, More "
+                          L"Settings) are hidden after the next navigation.";
+                break;
+            case ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_ALL:
+                // All items
+                itemsToHide = static_cast<COREWEBVIEW2_PDF_TOOLBAR_ITEMS>(
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PRINT |
+                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_SAVE |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_BOOKMARKS |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FIT_PAGE |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_PAGE_LAYOUT |
@@ -980,20 +1024,12 @@ bool SettingsComponent::HandleWindowMessage(
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_FULL_SCREEN |
                     COREWEBVIEW2_PDF_TOOLBAR_ITEMS::
                         COREWEBVIEW2_PDF_TOOLBAR_ITEMS_MORE_SETTINGS);
-                MessageBox(
-                    nullptr,
-                    L"PDF toolbar print and save buttons are hidden after the next navigation.",
-                    L"Settings change", MB_OK);
+                message = L"All PDF toolbar items are hidden after the next navigation.";
+                break;
             }
-            else
-            {
-                CHECK_FAILURE(m_settings7->put_HiddenPdfToolbarItems(
-                    COREWEBVIEW2_PDF_TOOLBAR_ITEMS::COREWEBVIEW2_PDF_TOOLBAR_ITEMS_NONE));
-                MessageBox(
-                    nullptr,
-                    L"PDF toolbar print and save buttons are shown after the next navigation.",
-                    L"Settings change", MB_OK);
-            }
+
+            CHECK_FAILURE(m_settings7->put_HiddenPdfToolbarItems(itemsToHide));
+            MessageBox(nullptr, message.c_str(), L"Settings change", MB_OK);
             //! [ToggleHidePdfToolbarItems]
             return true;
         }

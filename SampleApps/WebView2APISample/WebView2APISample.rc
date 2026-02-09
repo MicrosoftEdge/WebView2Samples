@@ -138,7 +138,14 @@ BEGIN
         MENUITEM "Toggle Default Script Dialogs", IDM_TOGGLE_DEFAULT_SCRIPT_DIALOGS
         MENUITEM "Toggle DevTools Enabled",     ID_SETTINGS_DEV_TOOLS_ENABLED
         MENUITEM "Toggle General Autofill",     ID_SETTINGS_GENERAL_AUTOFILL_ENABLED
-        MENUITEM "Toggle Hide PDF Toolbar Items", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS
+        POPUP "Toggle Hide PDF Toolbar Items"
+        BEGIN
+            MENUITEM "None (Show All)", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_NONE
+            MENUITEM "Hide Left Items", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_LEFT
+            MENUITEM "Hide Center Items", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_CENTER
+            MENUITEM "Hide Right Items", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_RIGHT
+            MENUITEM "Hide All Items", ID_SETTINGS_TOGGLE_HIDE_PDF_TOOLBAR_ITEMS_ALL
+        END
         MENUITEM "Toggle Host Objects Allowed", ID_SETTINGS_HOST_OBJECTS_ALLOWED
         MENUITEM "Toggle JavaScript",           IDM_TOGGLE_JAVASCRIPT
         MENUITEM "Toggle Password Autosave",    ID_SETTINGS_PASSWORD_AUTOSAVE_ENABLED
@@ -324,6 +331,7 @@ BEGIN
           MENUITEM "Get Service Worker Registrations", IDM_SCENARIO_GET_SERVICE_WORKER_REGISTRATIONS
           MENUITEM "Get Service Worker Registrations for the Scope", IDM_SCENARIO_GET_SERVICE_WORKER_REGISTERED_FOR_SCOPE
           MENUITEM "Web Messaging", IDM_SCENARIO_SERVICE_WORKER_POST_MESSAGE
+          MENUITEM "Toggle Service Worker JS APIs", IDM_TOGGLE_SERVICE_WORKER_JS_API_SETTING
         END
         POPUP "Dedicated Worker"
         BEGIN
