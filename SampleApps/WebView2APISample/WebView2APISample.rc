@@ -274,6 +274,7 @@ BEGIN
             MENUITEM "Shared worker WebResourceRequested",   IDM_SCENARIO_SHARED_WORKER
         END
         MENUITEM "WebRTC UDP Port Configuration", IDM_SCENARIO_WEBRTC_UDP_PORT_CONFIGURATION
+        MENUITEM "Custom Data Partition for Child Windows", IDM_SCENARIO_CUSTOM_DATA_PARTITION
         POPUP "Custom Download Experience"
         BEGIN
             MENUITEM "Use Deferred Download Dialog",  IDM_SCENARIO_USE_DEFERRED_DOWNLOAD

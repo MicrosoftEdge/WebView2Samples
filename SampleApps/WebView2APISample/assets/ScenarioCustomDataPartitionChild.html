@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Data Partition Child Window</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            margin: 0;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #0078d4;
+            margin-top: 0;
+            border-bottom: 2px solid #0078d4;
+            padding-bottom: 10px;
+            font-size: 1.4em;
+        }
+        .section {
+            margin: 16px 0;
+            padding: 14px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+        }
+        .hint {
+            background-color: #e7f3ff;
+            border: 1px solid #0078d4;
+            border-radius: 3px;
+            padding: 10px;
+            font-size: 13px;
+        }
+        .row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        button {
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            font-size: 14px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        button:active {
+            background-color: #004578;
+        }
+        #blobStatus {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        #childPartitionStatus {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        #localStorageStatus {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        #blobImage {
+            margin-top: 12px;
+            max-width: 100%;
+            border: 2px solid #0078d4;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Custom Data Partition Child Window</h1>
+
+    <div class="section">
+        <p>This is the dedicated child window page opened by <strong>window.open()</strong> from the parent scenario page.</p>
+        <p>The parent app captures this window in <strong>NewWindowRequested</strong>, then you can apply a custom partition from the parent UI.</p>
+    </div>
+
+    <div class="hint">
+        Keep this child window open while setting partition IDs in the parent window.
+    </div>
+
+    <div class="section">
+        <h2>Blob URL Image Test</h2>
+        <p>Paste a blob URL from the parent window and try loading it here.</p>
+        <label for="blobUrlInput">Blob URL</label>
+        <form class="row" onsubmit="event.preventDefault(); loadBlobUrlImage();">
+            <input type="text" id="blobUrlInput" placeholder="Paste blob URL here">
+            <button type="submit">Load Image</button>
+            <button type="button" onclick="clearBlobUrlImage()">Clear Image</button>
+        </form>
+        <div id="blobStatus">Waiting for blob URL input.</div>
+        <img id="blobImage" alt="Blob URL image preview">
+    </div>
+
+    <div class="section">
+        <h2>Custom Partition</h2>
+        <p>Query the child window's current custom data partition from native code.</p>
+        <button type="button" onclick="getCustomPartition()">Get Custom Partition</button>
+        <button type="button" onclick="requestMainWindowPartition()">Get Main Window Storage Partition</button>
+        <div id="childPartitionStatus">Waiting to query partition.</div>
+    </div>
+
+    <div class="section">
+        <h2>Local Storage Test</h2>
+        <p>Use key <strong>currentTime</strong> to verify storage behavior across partitions.</p>
+        <button type="button" onclick="setCurrentTimeInStorage()">Set currentTime</button>
+        <button type="button" onclick="readCurrentTimeFromStorage()">Read currentTime</button>
+        <div id="localStorageStatus">Waiting to test local storage.</div>
+    </div>
+
+    <script>
+        function loadBlobUrlImage() {
+            const input = document.getElementById('blobUrlInput');
+            const status = document.getElementById('blobStatus');
+            const image = document.getElementById('blobImage');
+            const blobUrl = input.value.trim();
+
+            if (!blobUrl) {
+                status.textContent = 'Error: Please paste a blob URL first.';
+                image.style.display = 'none';
+                image.removeAttribute('src');
+                return;
+            }
+
+            status.textContent = 'Loading image from blob URL...';
+            image.style.display = 'none';
+
+            image.onload = function() {
+                status.textContent = '✓ Image loaded successfully from blob URL.';
+                image.style.display = 'block';
+            };
+
+            image.onerror = function() {
+                status.textContent = '✗ Failed to load image from blob URL (possible partition boundary).';
+                image.style.display = 'none';
+            };
+
+            image.src = blobUrl;
+        }
+
+        function clearBlobUrlImage() {
+            const input = document.getElementById('blobUrlInput');
+            const status = document.getElementById('blobStatus');
+            const image = document.getElementById('blobImage');
+
+            input.value = '';
+            image.style.display = 'none';
+            image.removeAttribute('src');
+            status.textContent = 'Image cleared. Waiting for blob URL input.';
+        }
+
+        function getCustomPartition() {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage('getCustomPartition');
+                updateChildPartitionStatus('Querying child custom partition...');
+            } else {
+                updateChildPartitionStatus('Error: WebView bridge unavailable in this context.');
+            }
+        }
+
+        function updateChildPartitionStatus(message) {
+            document.getElementById('childPartitionStatus').textContent = message;
+        }
+
+        function requestMainWindowPartition() {
+            if (!window.opener || window.opener.closed) {
+                updateChildPartitionStatus('Error: Main window is not available.');
+                return;
+            }
+
+            window.opener.postMessage({ type: 'getMainWindowStoragePartition' }, '*');
+            updateChildPartitionStatus('Requested main window storage partition. Check parent status area.');
+        }
+
+        function setCurrentTimeInStorage() {
+            const now = new Date().toISOString();
+            localStorage.setItem('currentTime', now);
+            document.getElementById('localStorageStatus').textContent =
+                'Stored currentTime: ' + now;
+        }
+
+        function readCurrentTimeFromStorage() {
+            const value = localStorage.getItem('currentTime');
+            if (value) {
+                document.getElementById('localStorageStatus').textContent =
+                    'Read currentTime: ' + value;
+            } else {
+                document.getElementById('localStorageStatus').textContent =
+                    'No currentTime found in localStorage for this partition.';
+            }
+        }
+    </script>
+</body>
+</html>

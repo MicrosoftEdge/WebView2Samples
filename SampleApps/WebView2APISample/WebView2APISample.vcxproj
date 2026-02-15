@@ -231,6 +231,7 @@
     <ClInclude Include="ScenarioAuthentication.h" />
     <ClInclude Include="ScenarioClientCertificateRequested.h" />
     <ClInclude Include="ScenarioCookieManagement.h" />
+    <ClInclude Include="ScenarioCustomDataPartition.h" />
     <ClInclude Include="ScenarioCustomDownloadExperience.h" />
     <ClInclude Include="ScenarioCustomScheme.h" />
     <ClInclude Include="ScenarioCustomSchemeNavigate.h" />
@@ -295,6 +296,7 @@
     <ClCompile Include="ScenarioAuthentication.cpp" />
     <ClCompile Include="ScenarioClientCertificateRequested.cpp" />
     <ClCompile Include="ScenarioCookieManagement.cpp" />
+    <ClCompile Include="ScenarioCustomDataPartition.cpp" />
     <ClCompile Include="ScenarioCustomDownloadExperience.cpp" />
     <ClCompile Include="ScenarioCustomScheme.cpp" />
     <ClCompile Include="ScenarioCustomSchemeNavigate.cpp" />
@@ -378,6 +380,15 @@
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioAcceleratorKeyPressed.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioCustomDataPartition.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/ScenarioCustomDataPartitionChild.html">
+      <DestinationFolders>$(OutDir)\assets</DestinationFolders>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="assets/Sir_CV_Raman.JPG">
       <DestinationFolders>$(OutDir)\assets</DestinationFolders>
     </CopyFileToFolders>
     <CopyFileToFolders Include="assets/ScenarioCustomScheme.html">
