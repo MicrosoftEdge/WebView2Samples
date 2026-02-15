@@ -32,6 +32,7 @@
 #include "ScenarioAuthentication.h"
 #include "ScenarioClientCertificateRequested.h"
 #include "ScenarioCookieManagement.h"
+#include "ScenarioCustomDataPartition.h"
 #include "ScenarioCustomDownloadExperience.h"
 #include "ScenarioCustomScheme.h"
 #include "ScenarioCustomSchemeNavigate.h"
@@ -535,6 +536,11 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_WEBRTC_UDP_PORT_CONFIGURATION:
     {
         NewComponent<ScenarioWebRtcUdpPortConfiguration>(this);
+        return true;
+    }
+    case IDM_SCENARIO_CUSTOM_DATA_PARTITION:
+    {
+        NewComponent<ScenarioCustomDataPartition>(this);
         return true;
     }
     case IDM_SCENARIO_ADD_HOST_OBJECT:
@@ -2314,7 +2320,6 @@ void AppWindow::RegisterEventHandlers()
             {
                 if (!m_shouldHandleNewWindowRequest)
                 {
-                    args->put_Handled(FALSE);
                     return S_OK;
                 }
                 wil::com_ptr<ICoreWebView2NewWindowRequestedEventArgs> args_as_comptr = args;

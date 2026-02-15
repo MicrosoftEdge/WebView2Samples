@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Data Partition Sample</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #0078d4;
+            border-bottom: 2px solid #0078d4;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.2em;
+        }
+        button {
+            background-color: #0078d4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #005a9e;
+        }
+        button:active {
+            background-color: #004578;
+        }
+        input[type="text"] {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 250px;
+            margin: 5px;
+        }
+        #statusArea {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e7f3ff;
+            border: 1px solid #0078d4;
+            border-radius: 3px;
+            min-height: 30px;
+            font-size: 14px;
+        }
+        #testImage {
+            max-width: 200px;
+            border: 2px solid #0078d4;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .info-box {
+            background-color: #fff4ce;
+            border: 1px solid #ffb900;
+            border-radius: 3px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+        .blob-url {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background-color: #f0f0f0;
+            padding: 5px;
+            border-radius: 3px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Custom Data Partition Sample</h1>
+
+    <div class="info-box">
+        <strong>About this sample:</strong> This demonstrates how to create child windows and apply custom data partitions
+        to isolate storage. It also tests blob URL sharing across partition boundaries.
+    </div>
+
+    <!-- Child Window Creation Section -->
+    <div class="section">
+        <h2>1. Create Child Window</h2>
+        <p>Click the button to open the child page. The parent window captures it via the NewWindowRequested event.</p>
+        <button onclick="createChildWindow()">Create Child Window</button>
+    </div>
+
+    <!-- Partition Management Section -->
+    <div class="section">
+        <h2>2. Set Custom Data Partition</h2>
+        <p>Enter a partition ID and apply it to the most recently created child window. The parent window will never have a custom partition.</p>
+        <input type="text" id="partitionInput" placeholder="Enter partition ID (e.g., 'partition-1')" value="my-partition">
+        <button onclick="setPartition()">Set Partition on Child Window</button>
+        <button onclick="checkPartition()">Check Parent Window Partition</button>
+        <button onclick="getMainWindowStoragePartition()">Get Main Window Storage Partition</button>
+        <div class="info-box" style="margin-top: 10px;">
+            <strong>Note:</strong> Only child windows should have custom partitions. The parent window remains in the default partition.
+            Click "Check Parent Window Partition" to verify the parent window has no custom partition set.
+        </div>
+    </div>
+
+    <!-- Blob URL Section -->
+    <div class="section">
+        <h2>3. Blob URL Creation & Testing</h2>
+        <p>This image is displayed in the parent window from assets. A blob URL will be created from it.</p>
+        <img id="testImage" src="Sir_CV_Raman.JPG" alt="Sir C V Raman">
+
+        <button onclick="createBlobUrl()">Create Blob URL</button>
+        <button onclick="testBlobUrlInChildWindow()">Test Blob URL in Child Window</button>
+
+        <div id="blobUrlDisplay" class="blob-url" style="display: none;">
+            <strong>Blob URL:</strong> <span id="blobUrlText"></span>
+        </div>
+
+        <div class="info-box" style="margin-top: 10px;">
+            <strong>Test:</strong> Create a blob URL from the image, then try to access it from a partitioned child window
+            to observe cross-partition behavior.
+        </div>
+    </div>
+
+    <!-- Status Area -->
+    <div class="section">
+        <h2>Status</h2>
+        <div id="statusArea">Ready. Click "Create Child Window" to begin.</div>
+    </div>
+
+    <script>
+        let currentBlobUrl = null;
+        let childWindowRef = null;
+
+        // Create a child window
+        function createChildWindow() {
+            const childUrl = 'https://appassets.example/ScenarioCustomDataPartitionChild.html?v=' + Date.now();
+            childWindowRef = window.open(childUrl, '_blank', 'width=600,height=800');
+            if (childWindowRef) {
+                updateStatus('Child window opened. You can now set partition on the captured child WebView.');
+            } else {
+                updateStatus('Error: Failed to open child window. Check popup settings.');
+            }
+        }
+
+        // Set partition on the last child window
+        function setPartition() {
+            const partitionId = document.getElementById('partitionInput').value.trim();
+            if (!partitionId) {
+                updateStatus('Error: Please enter a partition ID.');
+                return;
+            }
+
+            // Send message to C++ with partition ID
+            window.chrome.webview.postMessage('setPartition:' + partitionId);
+            updateStatus('Setting partition "' + partitionId + '" on child window...');
+        }
+
+        // Check the parent window's partition (should be default/none)
+        function checkPartition() {
+            window.chrome.webview.postMessage('checkPartition');
+            updateStatus('Checking parent window partition status...');
+        }
+
+        function getMainWindowStoragePartition() {
+            window.chrome.webview.postMessage('checkPartition');
+            updateStatus('Getting main window storage partition...');
+        }
+
+        window.addEventListener('message', function(event) {
+            if (!event.data || event.data.type !== 'getMainWindowStoragePartition') {
+                return;
+            }
+
+            getMainWindowStoragePartition();
+        });
+
+        // Create a blob URL from the test image
+        function createBlobUrl() {
+            fetch('Sir_CV_Raman.JPG')
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch Sir_CV_Raman.JPG');
+                    }
+                    return response.blob();
+                })
+                .then(function(blob) {
+                    if (currentBlobUrl) {
+                        URL.revokeObjectURL(currentBlobUrl);
+                    }
+
+                    currentBlobUrl = URL.createObjectURL(blob);
+                    document.getElementById('blobUrlText').textContent = currentBlobUrl;
+                    document.getElementById('blobUrlDisplay').style.display = 'block';
+
+                    updateStatus('Blob URL created successfully: ' + currentBlobUrl);
+                })
+                .catch(function(error) {
+                    updateStatus('Error creating blob URL: ' + error.message);
+                });
+        }
+
+        // Test blob URL accessibility from child window
+        function testBlobUrlInChildWindow() {
+            if (!currentBlobUrl) {
+                updateStatus('Error: Create a blob URL first before testing.');
+                return;
+            }
+
+            // Open a new window and try to load the blob URL
+            const testWindow = window.open('', '_blank', 'width=400,height=400');
+            if (testWindow) {
+                testWindow.document.write('<html><head><title>Blob URL Test</title></head><body style="font-family: Arial; padding: 20px;">');
+                testWindow.document.write('<h2>Testing Blob URL Access</h2>');
+                testWindow.document.write('<p>Attempting to load blob URL from parent window:</p>');
+                testWindow.document.write('<p style="font-family: monospace; font-size: 12px; word-break: break-all; background: #f0f0f0; padding: 10px;">' + currentBlobUrl + '</p>');
+                testWindow.document.write('<img src="' + currentBlobUrl + '" alt="Blob URL Image" style="max-width: 100%; border: 2px solid #0078d4;" onload="document.getElementById(\'result\').innerHTML=\'<span style=color:green>✓ Success: Blob URL accessible across partition!</span>\'" onerror="document.getElementById(\'result\').innerHTML=\'<span style=color:red>✗ Failed: Blob URL blocked by partition boundary</span>\'">');
+                testWindow.document.write('<div id="result" style="margin-top: 20px; font-weight: bold;"></div>');
+                testWindow.document.write('</body></html>');
+                testWindow.document.close();
+
+                updateStatus('Opened test window with blob URL. Check the new window for results.');
+            } else {
+                updateStatus('Error: Failed to open test window. Check popup settings.');
+            }
+        }
+
+        // Update status display (called from C++)
+        function updateStatus(message) {
+            document.getElementById('statusArea').textContent = message;
+        }
+
+        // Initialize
+        window.addEventListener('load', function() {
+            updateStatus('Sample loaded. Ready to demonstrate custom data partitions.');
+        });
+    </script>
+</body>
+</html>
