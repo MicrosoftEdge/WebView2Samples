@@ -35,8 +35,10 @@
 #include "ScenarioCustomDownloadExperience.h"
 #include "ScenarioCustomScheme.h"
 #include "ScenarioCustomSchemeNavigate.h"
-#include "ScenarioDefaultBackgroundColor.h"
 #include "ScenarioDOMContentLoaded.h"
+#include "ScenarioDedicatedWorker.h"
+#include "ScenarioDedicatedWorkerPostMessage.h"
+#include "ScenarioDefaultBackgroundColor.h"
 #include "ScenarioDragDrop.h"
 #include "ScenarioDragDropOverride.h"
 #include "ScenarioExtensionsManagement.h"
@@ -47,10 +49,9 @@
 #include "ScenarioNonClientRegionSupport.h"
 #include "ScenarioNotificationReceived.h"
 #include "ScenarioPermissionManagement.h"
-#include "ScenarioDedicatedWorker.h"
-#include "ScenarioDedicatedWorkerPostMessage.h"
 #include "ScenarioServiceWorkerManager.h"
 #include "ScenarioServiceWorkerPostMessage.h"
+#include "ScenarioServiceWorkerPostMessageSetting.h"
 #include "ScenarioSharedWorkerManager.h"
 #include "ScenarioSaveAs.h"
 #include "ScenarioScreenCapture.h"
@@ -819,6 +820,17 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
             worker_manager = GetComponent<ScenarioSharedWorkerManager>();
         }
         worker_manager->GetAllSharedWorkers();
+        return true;
+    }
+    case IDM_TOGGLE_SERVICE_WORKER_JS_API_SETTING:
+    {
+        auto component = GetComponent<ScenarioServiceWorkerPostMessageSetting>();
+        if (!component)
+        {
+            NewComponent<ScenarioServiceWorkerPostMessageSetting>(this);
+            component = GetComponent<ScenarioServiceWorkerPostMessageSetting>();
+        }
+        component->ToggleServiceWorkerJsApiSetting();
         return true;
     }
     case IDM_SCENARIO_SCREEN_CAPTURE:
