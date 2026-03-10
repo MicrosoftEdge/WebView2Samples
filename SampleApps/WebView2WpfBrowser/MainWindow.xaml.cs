@@ -234,6 +234,7 @@ namespace WebView2WpfBrowser
           CoreWebView2PermissionKind.LocalFonts,
           CoreWebView2PermissionKind.MidiSystemExclusiveMessages,
           CoreWebView2PermissionKind.WindowManagement,
+          CoreWebView2PermissionKind.PersistentStorage,
         };
 
         List<CoreWebView2PermissionState> _permissionStates = new List<CoreWebView2PermissionState>
@@ -3310,6 +3311,8 @@ namespace WebView2WpfBrowser
                     return "MidiSysex";
                 case CoreWebView2PermissionKind.WindowManagement:
                     return "WindowManagement";
+                case CoreWebView2PermissionKind.PersistentStorage:
+                    return "PersistentStorage";
                 default:
                     return "Unknown";
             }
