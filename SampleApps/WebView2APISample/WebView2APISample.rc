@@ -356,6 +356,11 @@ BEGIN
           MENUITEM "Toggle Suppress Default Find Dialog", IDC_SUPPRESS_DEFAULT_FIND_DIALOG
           MENUITEM "Toggle Should Match Word", IDC_SHOULD_MATCH_WHOLE_WORD
         END
+        POPUP "Origin Configuration for Features" 
+        BEGIN
+          MENUITEM "Set Feature Settings For Origins", IDM_SCENARIO_SET_ORIGIN_FEATURES
+          MENUITEM "Get Feature Settings For Origins", IDM_SCENARIO_GET_ORIGIN_FEATURES
+        END
         POPUP "Sensitivity Label"
         BEGIN
             MENUITEM "Set PIRM Allowlist", IDM_SCENARIO_PIRM_SET_ALLOWLIST

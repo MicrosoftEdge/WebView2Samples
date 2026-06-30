@@ -53,6 +53,7 @@
 #include "ScenarioServiceWorkerPostMessage.h"
 #include "ScenarioServiceWorkerPostMessageSetting.h"
 #include "ScenarioSharedWorkerManager.h"
+#include "ScenarioOriginConfigurationAPI.h"
 #include "ScenarioSaveAs.h"
 #include "ScenarioScreenCapture.h"
 #include "ScenarioSensitivityLabel.h"
@@ -831,6 +832,20 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
             component = GetComponent<ScenarioServiceWorkerPostMessageSetting>();
         }
         component->ToggleServiceWorkerJsApiSetting();
+        return true;
+    }
+    case IDM_SCENARIO_SET_ORIGIN_FEATURES:
+    {
+        auto* const trustedOriginComponent =
+            GetOrCreateComponent<ScenarioOriginConfigurationAPI>();
+        trustedOriginComponent->SetOriginFeatures();
+        return true;
+    }
+    case IDM_SCENARIO_GET_ORIGIN_FEATURES:
+    {
+        auto* const trustedOriginComponent =
+            GetOrCreateComponent<ScenarioOriginConfigurationAPI>();
+        trustedOriginComponent->GetOriginFeatures();
         return true;
     }
     case IDM_SCENARIO_SCREEN_CAPTURE:
