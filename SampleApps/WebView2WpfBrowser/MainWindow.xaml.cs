@@ -691,6 +691,26 @@ namespace WebView2WpfBrowser
                 messageBuilder.AppendLine($"Reason: {e.Reason}");
                 messageBuilder.AppendLine($"Exit code: {e.ExitCode}");
                 messageBuilder.AppendLine($"Process description: {e.ProcessDescription}");
+#if USE_WEBVIEW2_EXPERIMENTAL
+                // <CrashReport>
+                CoreWebView2CrashReport crashReport = e.CrashReport;
+                if (crashReport != null)
+                {
+                    if (!string.IsNullOrEmpty(crashReport.CrashReportId))
+                        messageBuilder.AppendLine($"Crash Report ID: {crashReport.CrashReportId}");
+                    messageBuilder.AppendLine($"Exception Code: 0x{crashReport.ExceptionCode:X8}");
+                    if (!string.IsNullOrEmpty(crashReport.FaultingModuleName))
+                        messageBuilder.AppendLine($"Faulting Module: {crashReport.FaultingModuleName}");
+                    if (!string.IsNullOrEmpty(crashReport.FaultingModuleVersion))
+                        messageBuilder.AppendLine($"Module Version: {crashReport.FaultingModuleVersion}");
+                    messageBuilder.AppendLine($"Fault Offset: 0x{crashReport.FaultOffset:X}");
+                    if (!string.IsNullOrEmpty(crashReport.BucketId))
+                        messageBuilder.AppendLine($"Crash Bucket: {crashReport.BucketId}");
+                    if (crashReport.ReportTime != 0)
+                        messageBuilder.AppendLine($"Report Time: {crashReport.ReportTime}");
+                }
+                // </CrashReport>
+#endif
                 MessageBox.Show(messageBuilder.ToString(), "Child process failed", MessageBoxButton.OK);
             });
 

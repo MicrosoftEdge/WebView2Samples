@@ -1,4 +1,4 @@
-﻿// Copyright (C) Microsoft Corporation. All rights reserved.
+// Copyright (C) Microsoft Corporation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -121,6 +121,70 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
                             << L"Process description: " << processDescription.get() << std::endl
                             << (failedModule ? L"Failed module: " : L"")
                             << (failedModule ? failedModule.get() : L"");
+
+                    //! [CrashReport]
+                    // Query for the crash report (available when Crashpad handled
+                    // the crash; nullptr for __fastfail / WER-only crashes).
+                    auto experimentalArgs2 =
+                        args.try_query<ICoreWebView2ExperimentalProcessFailedEventArgs2>();
+                    if (experimentalArgs2)
+                    {
+                        wil::com_ptr<ICoreWebView2ExperimentalCrashReport> crashReport;
+                        CHECK_FAILURE(experimentalArgs2->get_CrashReport(&crashReport));
+                        if (crashReport)
+                        {
+                            wil::unique_cotaskmem_string crashReportId;
+                            if (SUCCEEDED(crashReport->get_CrashReportId(&crashReportId)) &&
+                                crashReportId)
+                            {
+                                message << L"\nCrash Report ID: " << crashReportId.get();
+                            }
+
+                            UINT32 exceptionCode;
+                            if (SUCCEEDED(crashReport->get_ExceptionCode(&exceptionCode)))
+                            {
+                                message << L"\nException Code: 0x" << std::hex << exceptionCode
+                                        << std::dec;
+                            }
+
+                            wil::unique_cotaskmem_string faultingModuleName;
+                            if (SUCCEEDED(
+                                    crashReport->get_FaultingModuleName(&faultingModuleName)) &&
+                                faultingModuleName)
+                            {
+                                message << L"\nFaulting Module: " << faultingModuleName.get();
+                            }
+
+                            wil::unique_cotaskmem_string faultingModuleVersion;
+                            if (SUCCEEDED(crashReport->get_FaultingModuleVersion(
+                                    &faultingModuleVersion)) &&
+                                faultingModuleVersion)
+                            {
+                                message << L"\nModule Version: " << faultingModuleVersion.get();
+                            }
+
+                            UINT64 faultOffset;
+                            if (SUCCEEDED(crashReport->get_FaultOffset(&faultOffset)))
+                            {
+                                message << L"\nFault Offset: 0x" << std::hex << faultOffset
+                                        << std::dec;
+                            }
+
+                            wil::unique_cotaskmem_string bucketId;
+                            if (SUCCEEDED(crashReport->get_BucketId(&bucketId)) && bucketId)
+                            {
+                                message << L"\nCrash Bucket: " << bucketId.get();
+                            }
+
+                            UINT64 reportTime;
+                            if (SUCCEEDED(crashReport->get_ReportTime(&reportTime)))
+                            {
+                                message << L"\nReport Time: " << reportTime;
+                            }
+                        }
+                    }
+                    //! [CrashReport]
+
                     m_appWindow->AsyncMessageBox( std::move(message.str()), L"Child process failed");
                 }
                 return S_OK;
