@@ -39,6 +39,7 @@
 #include "ScenarioDedicatedWorker.h"
 #include "ScenarioDedicatedWorkerPostMessage.h"
 #include "ScenarioDefaultBackgroundColor.h"
+#include "ScenarioDiagnosticMonitor.h"
 #include "ScenarioDragDrop.h"
 #include "ScenarioDragDropOverride.h"
 #include "ScenarioExtensionsManagement.h"
@@ -48,12 +49,12 @@
 #include "ScenarioNavigateWithWebResourceRequest.h"
 #include "ScenarioNonClientRegionSupport.h"
 #include "ScenarioNotificationReceived.h"
+#include "ScenarioOriginConfigurationAPI.h"
 #include "ScenarioPermissionManagement.h"
 #include "ScenarioServiceWorkerManager.h"
 #include "ScenarioServiceWorkerPostMessage.h"
 #include "ScenarioServiceWorkerPostMessageSetting.h"
 #include "ScenarioSharedWorkerManager.h"
-#include "ScenarioOriginConfigurationAPI.h"
 #include "ScenarioSaveAs.h"
 #include "ScenarioScreenCapture.h"
 #include "ScenarioSensitivityLabel.h"
@@ -617,6 +618,28 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
                 m_mainWindow,
                 L"Drag and Drop Override is only supported in visual hosting mode",
                 L"Drag and Drop Override", MB_OK);
+        }
+        return true;
+    }
+    case IDM_SCENARIO_DIAGNOSTIC_CREATE_MONITOR:
+    {
+        auto* scenario = GetComponent<ScenarioDiagnosticMonitor>();
+        if (!scenario)
+        {
+            NewComponent<ScenarioDiagnosticMonitor>(this);
+            scenario = GetComponent<ScenarioDiagnosticMonitor>();
+        }
+        if (scenario)
+        {
+            scenario->CreateMonitorWithDialog();
+        }
+        return true;
+    }
+    case IDM_SCENARIO_DIAGNOSTIC_CLEAR_ALL:
+    {
+        if (auto* scenario = GetComponent<ScenarioDiagnosticMonitor>())
+        {
+            scenario->ClearAllMonitors();
         }
         return true;
     }

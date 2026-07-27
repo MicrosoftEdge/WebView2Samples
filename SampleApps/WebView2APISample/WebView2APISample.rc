@@ -316,6 +316,11 @@ BEGIN
         MENUITEM "WebView Window Controls Overlay",       IDM_SCENARIO_WINDOW_CONTROLS_OVERLAY
 
         MENUITEM "Dropped file path",           IDM_SCENARIO_DROPPED_FILE_PATH
+        POPUP "Diagnostic Monitor"
+        BEGIN
+          MENUITEM "Create Monitor with Filter...", IDM_SCENARIO_DIAGNOSTIC_CREATE_MONITOR
+          MENUITEM "Clear All Monitors",            IDM_SCENARIO_DIAGNOSTIC_CLEAR_ALL
+        END
         POPUP "Save As"
         BEGIN
           MENUITEM "Toggle Silent Save As", IDM_SCENARIO_SAVE_AS_TOGGLE_SILENT

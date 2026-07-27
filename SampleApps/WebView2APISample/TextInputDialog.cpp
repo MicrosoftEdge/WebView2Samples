@@ -20,8 +20,6 @@ static constexpr int kMaxOptionsPerGroup = 10;
 static constexpr int kCheckBoxHeight = 20;
 static constexpr int kCheckBoxSpacing = 4;
 static constexpr int kGroupLabelHeight = 18;
-static constexpr int kLabelHeight = 100;
-static constexpr int kTextAreaHeight = 120;
 static constexpr int kControlSpacing = 16;
 static constexpr int kLabelToInputSpacing = 6;
 
@@ -116,27 +114,62 @@ int CreateTextArea(
     HWND hDlg, TextArea& textArea, int controlId, int x, int y, int width, HFONT dialogFont)
 {
     HMENU hmenu = reinterpret_cast<HMENU>(static_cast<UINT_PTR>(controlId));
+    int labelH = textArea.labelHeight;
+    int inputH = textArea.inputHeight;
 
     // Read-only label EDIT — renders with a border and grey background.
-    // Uses an EDIT instead of STATIC so it supports scrolling for long text.
     HWND label = CreateWindowEx(
         WS_EX_CLIENTEDGE, L"EDIT", textArea.label.c_str(),
         WS_VISIBLE | WS_CHILD | ES_READONLY | ES_MULTILINE | ES_AUTOVSCROLL | WS_VSCROLL, x, y,
-        width, kLabelHeight, hDlg, NULL, GetModuleHandle(NULL), NULL);
+        width, labelH, hDlg, NULL, GetModuleHandle(NULL), NULL);
     SetControlFont(label, dialogFont);
 
     // Writable input EDIT — placed below the label for user text entry.
     HWND inputArea = CreateWindowEx(
         WS_EX_CLIENTEDGE, L"EDIT", textArea.input.c_str(),
         WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_AUTOVSCROLL, x,
-        y + kLabelHeight + kLabelToInputSpacing, width, kTextAreaHeight, hDlg, hmenu,
-        GetModuleHandle(NULL), NULL);
+        y + labelH + kLabelToInputSpacing, width, inputH, hDlg, hmenu, GetModuleHandle(NULL),
+        NULL);
     SetControlFont(inputArea, dialogFont);
     if (textArea.readOnly)
     {
         SendMessage(inputArea, EM_SETREADONLY, TRUE, 0);
     }
-    return kLabelHeight + kLabelToInputSpacing + kTextAreaHeight;
+    return labelH + kLabelToInputSpacing + inputH;
+}
+
+// Creates a dropdown (combo box) control: a STATIC label above a COMBOBOX.
+// The combo box is assigned |controlId| so its selection can be retrieved
+// later via GetDlgItem. Returns total pixel height consumed.
+static constexpr int kDropDownLabelHeight = 16;
+static constexpr int kDropDownHeight = 200; // drop-down list height (expanded)
+static constexpr int kDropDownControlHeight = 22;
+
+int CreateDropDown(
+    HWND hDlg, DropDown& dropDown, int controlId, int x, int y, int width, HFONT dialogFont)
+{
+    HMENU hmenu = reinterpret_cast<HMENU>(static_cast<UINT_PTR>(controlId));
+
+    // Static label above the combo box.
+    HWND label = CreateWindowEx(
+        0, L"STATIC", dropDown.label.c_str(), WS_VISIBLE | WS_CHILD, x, y, width,
+        kDropDownLabelHeight, hDlg, NULL, GetModuleHandle(NULL), NULL);
+    SetControlFont(label, dialogFont);
+
+    // Combo box — CBS_DROPDOWNLIST prevents typing, user must pick from list.
+    HWND comboBox = CreateWindowEx(
+        0, L"COMBOBOX", NULL, WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | WS_VSCROLL, x,
+        y + kDropDownLabelHeight + kLabelToInputSpacing, width, kDropDownHeight, hDlg, hmenu,
+        GetModuleHandle(NULL), NULL);
+    SetControlFont(comboBox, dialogFont);
+
+    for (const auto& option : dropDown.options)
+    {
+        SendMessage(comboBox, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(option.c_str()));
+    }
+    SendMessage(comboBox, CB_SETCURSEL, dropDown.selectedIndex, 0);
+
+    return kDropDownLabelHeight + kLabelToInputSpacing + kDropDownControlHeight;
 }
 
 // Dispatches to the appropriate creation helper based on the DialogControl
@@ -155,6 +188,10 @@ int CreateDynamicControl(
             else if constexpr (std::is_same_v<T, TextArea>)
             {
                 return CreateTextArea(hDlg, ctrl, controlId, x, y, width, dialogFont);
+            }
+            else if constexpr (std::is_same_v<T, DropDown>)
+            {
+                return CreateDropDown(hDlg, ctrl, controlId, x, y, width, dialogFont);
             }
         },
         control);
@@ -183,6 +220,21 @@ void CollectTextAreaValue(HWND hDlg, TextArea& textArea, int controlId)
     int len = GetWindowTextLength(ctrl);
     textArea.input.resize(len);
     GetWindowText(ctrl, textArea.input.data(), len + 1);
+}
+
+// Reads the selected index from a combo box and updates the DropDown.
+// Leaves the existing |selectedIndex| unchanged if the combo box has no
+// current selection (CB_GETCURSEL returns CB_ERR).
+void CollectDropDownValue(HWND hDlg, DropDown& dropDown, int controlId)
+{
+    HWND ctrl = GetDlgItem(hDlg, controlId);
+    if (!ctrl)
+        return;
+    const LRESULT sel = SendMessage(ctrl, CB_GETCURSEL, 0, 0);
+    if (sel != CB_ERR)
+    {
+        dropDown.selectedIndex = static_cast<int>(sel);
+    }
 }
 
 } // namespace
@@ -380,6 +432,11 @@ void TextInputDialog::CollectControlValues(HWND hDlg)
                     CollectTextAreaValue(hDlg, control, controlId);
                     results.insert_or_assign(control.label, control);
                 }
+                else if constexpr (std::is_same_v<T, DropDown>)
+                {
+                    CollectDropDownValue(hDlg, control, controlId);
+                    results.insert_or_assign(control.label, control);
+                }
             },
             controls[i]);
     }
@@ -430,9 +487,17 @@ TextInputDialog::Builder& TextInputDialog::Builder::AddCheckBoxGroup(
 }
 
 TextInputDialog::Builder& TextInputDialog::Builder::AddTextArea(
-    const std::wstring& label, const std::wstring& input, bool readOnly)
+    const std::wstring& label, const std::wstring& input, bool readOnly, int labelHeight,
+    int inputHeight)
 {
-    m_controls.emplace_back(TextArea(label, input, readOnly));
+    m_controls.emplace_back(TextArea(label, input, readOnly, labelHeight, inputHeight));
+    return *this;
+}
+
+TextInputDialog::Builder& TextInputDialog::Builder::AddDropDown(
+    const std::wstring& label, std::vector<std::wstring> options, int selectedIndex)
+{
+    m_controls.emplace_back(DropDown(label, std::move(options), selectedIndex));
     return *this;
 }
 

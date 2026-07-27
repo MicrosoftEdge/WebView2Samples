@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -237,6 +237,7 @@
     <ClInclude Include="ScenarioDedicatedWorker.h" />
     <ClInclude Include="ScenarioDedicatedWorkerPostMessage.h" />
     <ClInclude Include="ScenarioDefaultBackgroundColor.h" />
+    <ClInclude Include="ScenarioDiagnosticMonitor.h" />
     <ClInclude Include="ScenarioDOMContentLoaded.h" />
     <ClInclude Include="ScenarioDragDrop.h" />
     <ClInclude Include="ScenarioDragDropOverride.h" />
@@ -303,6 +304,7 @@
     <ClCompile Include="ScenarioDedicatedWorker.cpp" />
     <ClCompile Include="ScenarioDedicatedWorkerPostMessage.cpp" />
     <ClCompile Include="ScenarioDefaultBackgroundColor.cpp" />
+    <ClCompile Include="ScenarioDiagnosticMonitor.cpp" />
     <ClCompile Include="ScenarioDOMContentLoaded.cpp" />
     <ClCompile Include="ScenarioDragDrop.cpp" />
     <ClCompile Include="ScenarioDragDropOverride.cpp" />
