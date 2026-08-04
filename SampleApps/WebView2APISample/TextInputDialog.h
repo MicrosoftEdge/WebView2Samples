@@ -14,6 +14,10 @@
 
 // Per-type structs for dynamically created dialog controls.
 
+// Default heights (in dialog units) for dynamic controls.
+inline constexpr int kLabelHeight = 100;
+inline constexpr int kTextAreaHeight = 120;
+
 // A single checkbox option within a group. Holds a display label, an integer
 // value returned to the caller when selected, and a flag indicating whether
 // the checkbox should be pre-checked when the dialog is shown.
@@ -62,15 +66,41 @@ struct TextArea
     bool readOnly;
     // Pre-filled with default text; holds the user-entered text after OK.
     std::wstring input;
+    // Height in pixels for the label and input areas.
+    int labelHeight;
+    int inputHeight;
 
-    TextArea(const std::wstring& label, const std::wstring& input = L"", bool readOnly = false)
-        : label(label), readOnly(readOnly), input(input)
+    TextArea(
+        const std::wstring& label, const std::wstring& input = L"", bool readOnly = false,
+        int labelHeight = kLabelHeight, int inputHeight = kTextAreaHeight)
+        : label(label), readOnly(readOnly), input(input), labelHeight(labelHeight),
+          inputHeight(inputHeight)
+    {
+    }
+};
+
+// A dropdown (combo box) control with a label above it.
+// After the dialog is dismissed, |selectedIndex| holds the index of the
+// user's selection.
+struct DropDown
+{
+    // Descriptive text shown above the combo box.
+    std::wstring label;
+    // The list of options to display in the dropdown.
+    std::vector<std::wstring> options;
+    // The index of the initially selected option. Updated to the user's
+    // selection after the dialog is dismissed.
+    int selectedIndex;
+
+    DropDown(
+        const std::wstring& label, std::vector<std::wstring> options, int selectedIndex = 0)
+        : label(label), options(std::move(options)), selectedIndex(selectedIndex)
     {
     }
 };
 
 // Ordered collection of dynamic controls. Add new types to this variant.
-using DialogControl = std::variant<CheckBoxGroup, TextArea>;
+using DialogControl = std::variant<CheckBoxGroup, TextArea, DropDown>;
 
 // Constructing this struct will show a text input dialog and return when the user
 // dismisses it.  If the user clicked the OK button, confirmed will be true and input will
@@ -88,7 +118,11 @@ struct TextInputDialog
         Builder& AddCheckBoxGroup(
             const std::wstring& groupLabel, std::vector<CheckBoxOption> options);
         Builder& AddTextArea(
-            const std::wstring& label, const std::wstring& input = L"", bool readOnly = false);
+            const std::wstring& label, const std::wstring& input = L"", bool readOnly = false,
+            int labelHeight = kLabelHeight, int inputHeight = kTextAreaHeight);
+        Builder& AddDropDown(
+            const std::wstring& label, std::vector<std::wstring> options,
+            int selectedIndex = 0);
         TextInputDialog Build();
 
     private:
