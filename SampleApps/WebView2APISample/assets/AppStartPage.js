@@ -48,15 +48,20 @@
   }
 
   const query = parseQuery(location.search);
-  const fillIds = ["sdkBuild", "runtimeVersion", "appPath", "runtimePath"];
+  const fillIds = ["sdkBuild", "runtimeVersion", "appPath", "runtimePath", "userDataFolder", "userDataFolderKind"];
   fillIds.forEach(id => {
-      let content = query[id];
-      if (content) {
+      const fullContent = query[id];
+      if (fullContent) {
+          let content = fullContent;
           const maxContentLength = 100;
           if (content.length > maxContentLength) {
               content = "..." + content.substring(content.length - maxContentLength);
           }
-          document.getElementById(id).textContent = content;
+          const element = document.getElementById(id);
+          element.textContent = content;
+          // Long paths are shortened from the front, so keep the whole value
+          // reachable on hover and to a screen reader.
+          element.title = fullContent;
       }
   })
 })();

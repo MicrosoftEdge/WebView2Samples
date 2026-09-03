@@ -104,7 +104,7 @@ public:
         const std::wstring& initialUri = L"", const std::wstring& userDataFolderParam = L"",
         bool isMainWindow = false, std::function<void()> webviewCreatedCallback = nullptr,
         bool customWindowRect = false, RECT windowRect = {0}, bool shouldHaveToolbar = true,
-        bool isPopup = false);
+        bool isPopup = false, ICoreWebView2Environment* providedEnvironment = nullptr);
 
     ~AppWindow();
 
@@ -268,6 +268,10 @@ private:
     DWORD m_creationModeId = 0;
     int m_refCount = 1;
     bool m_isClosed = false;
+
+    // When non-null, InitializeWebView uses this pre-created environment
+    // instead of creating its own via CreateCoreWebView2EnvironmentWithOptions.
+    wil::com_ptr<ICoreWebView2Environment> m_providedEnvironment;
 
     // The following is state that belongs with the webview, and should
     // be reinitialized along with it. Everything here is undefined when

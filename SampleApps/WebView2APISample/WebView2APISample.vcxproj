@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -230,6 +230,7 @@
     <ClInclude Include="ScenarioAddHostObject.h" />
     <ClInclude Include="ScenarioAuthentication.h" />
     <ClInclude Include="ScenarioClientCertificateRequested.h" />
+    <ClInclude Include="ScenarioClusterEnvironment.h" />
     <ClInclude Include="ScenarioCookieManagement.h" />
     <ClInclude Include="ScenarioCustomDownloadExperience.h" />
     <ClInclude Include="ScenarioCustomScheme.h" />
@@ -297,6 +298,7 @@
     <ClCompile Include="ScenarioAddHostObject.cpp" />
     <ClCompile Include="ScenarioAuthentication.cpp" />
     <ClCompile Include="ScenarioClientCertificateRequested.cpp" />
+    <ClCompile Include="ScenarioClusterEnvironment.cpp" />
     <ClCompile Include="ScenarioCookieManagement.cpp" />
     <ClCompile Include="ScenarioCustomDownloadExperience.cpp" />
     <ClCompile Include="ScenarioCustomScheme.cpp" />
