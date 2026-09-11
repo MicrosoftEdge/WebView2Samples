@@ -96,6 +96,11 @@ BEGIN
         MENUITEM "Toggle exclusive user data folder access",   IDM_TOGGLE_EXCLUSIVE_USER_DATA_FOLDER_ACCESS
         MENUITEM "Toggle Custom Crash Reporting"       IDM_TOGGLE_CUSTOM_CRASH_REPORTING
         MENUITEM "Toggle Tracking Prevention Disabled",   IDM_TOGGLE_TRACKING_PREVENTION
+        POPUP "Shared Cluster Environment"
+        BEGIN
+            MENUITEM "Create or Join Cluster", IDM_SCENARIO_CLUSTER_ENVIRONMENT
+            MENUITEM "Get Cluster Options",    IDM_SCENARIO_CLUSTER_ENVIRONMENT_GET_OPTIONS
+        END
         MENUITEM "Close WebView",                              IDM_CLOSE_WEBVIEW
         MENUITEM "Close WebView and Delete User Data Folder", IDM_CLOSE_WEBVIEW_CLEANUP
         MENUITEM SEPARATOR

@@ -14,7 +14,9 @@
 #include <vector>
 
 #include "AppWindow.h"
+#include "CheckFailure.h"
 #include "DpiUtil.h"
+#include "ScenarioClusterEnvironment.h"
 
 HINSTANCE g_hInstance;
 int g_nCmdShow;
@@ -43,6 +45,12 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
     std::wstring initialUri;
     DWORD creationModeId = IDM_CREATION_MODE_WINDOWED;
     WebViewCreateOption opt;
+
+    // When launched with --clustername=..., this instance is a secondary host
+    // process that should join an existing shared cluster environment instead
+    // of creating a normal (private) environment.
+    bool joinCluster = false;
+    ClusterEnvironmentSpec clusterSpec;
 
     if (lpCmdLine && lpCmdLine[0])
     {
@@ -94,6 +102,64 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
             {
                 userDataFolder = nextParam.substr(nextParam.find(L'=') + 1);
             }
+            else if (NEXT_PARAM_CONTAINS(L"clustername="))
+            {
+                joinCluster = true;
+                clusterSpec.clusterName = nextParam.substr(nextParam.find(L'=') + 1);
+            }
+            else if (NEXT_PARAM_CONTAINS(L"clusterlang="))
+            {
+                clusterSpec.language = nextParam.substr(nextParam.find(L'=') + 1);
+            }
+            else if (NEXT_PARAM_CONTAINS(L"clusterargs="))
+            {
+                clusterSpec.additionalBrowserArguments =
+                    nextParam.substr(nextParam.find(L'=') + 1);
+            }
+            else if (NEXT_PARAM_CONTAINS(L"clustersso="))
+            {
+                clusterSpec.allowSingleSignOn =
+                    nextParam.substr(nextParam.find(L'=') + 1) == L"1";
+            }
+            else if (NEXT_PARAM_CONTAINS(L"clustertracking="))
+            {
+                clusterSpec.enableTrackingPrevention =
+                    nextParam.substr(nextParam.find(L'=') + 1) == L"1";
+            }
+            else if (NEXT_PARAM_CONTAINS(L"clusterextensions="))
+            {
+                clusterSpec.areBrowserExtensionsEnabled =
+                    nextParam.substr(nextParam.find(L'=') + 1) == L"1";
+            }
+            else if (NEXT_PARAM_CONTAINS(L"clusterisolation="))
+            {
+                clusterSpec.perHostProfileIsolation =
+                    nextParam.substr(nextParam.find(L'=') + 1) == L"1";
+            }
+            else if (NEXT_PARAM_CONTAINS(L"clusterchannels="))
+            {
+                // wcstol rather than stoi: a malformed value should fall back to
+                // 0 (NONE) rather than throw out of command-line parsing. Masked
+                // because the value is cast to a flags enum, and a negative or
+                // oversized number would otherwise set every reserved bit.
+                const long channels =
+                    wcstol(nextParam.substr(nextParam.find(L'=') + 1).c_str(), nullptr, 10);
+                clusterSpec.releaseChannels =
+                    static_cast<COREWEBVIEW2_RELEASE_CHANNELS>(channels & kAllReleaseChannels);
+            }
+            else if (NEXT_PARAM_CONTAINS(L"clustersearchkind="))
+            {
+                // Parsed the same way the parent writes it, rather than by
+                // testing for L"1", so a value added to the enum later does not
+                // silently arrive as MOST_STABLE. Clamped for the same reason
+                // the channels are masked: this is cast to an enum.
+                const long searchKind =
+                    wcstol(nextParam.substr(nextParam.find(L'=') + 1).c_str(), nullptr, 10);
+                clusterSpec.channelSearchKind =
+                    searchKind == COREWEBVIEW2_CHANNEL_SEARCH_KIND_LEAST_STABLE
+                        ? COREWEBVIEW2_CHANNEL_SEARCH_KIND_LEAST_STABLE
+                        : COREWEBVIEW2_CHANNEL_SEARCH_KIND_MOST_STABLE;
+            }
             else if (NEXT_PARAM_CONTAINS(L"creationmode="))
             {
                 nextParam = nextParam.substr(nextParam.find(L'=') + 1);
@@ -125,7 +191,18 @@ wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmd
 
     DpiUtil::SetProcessDpiAwarenessContext(dpiAwarenessContext);
 
-    new AppWindow(creationModeId, opt, initialUri, userDataFolder, true);
+    if (joinCluster)
+    {
+        // COM is required before calling into the loader; AppWindow (created in
+        // the completion handler) will also initialize COM on this thread.
+        CHECK_FAILURE(OleInitialize(nullptr));
+        CreateOrJoinClusterAndOpenWindow(
+            clusterSpec, /*isMainWindow=*/true, /*parent=*/nullptr);
+    }
+    else
+    {
+        new AppWindow(creationModeId, opt, initialUri, userDataFolder, true);
+    }
 
     int retVal = RunMessagePump();
 

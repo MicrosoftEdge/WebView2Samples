@@ -31,6 +31,7 @@
 #include "ScenarioAddHostObject.h"
 #include "ScenarioAuthentication.h"
 #include "ScenarioClientCertificateRequested.h"
+#include "ScenarioClusterEnvironment.h"
 #include "ScenarioCookieManagement.h"
 #include "ScenarioCustomDownloadExperience.h"
 #include "ScenarioCustomScheme.h"
@@ -203,9 +204,10 @@ AppWindow::AppWindow(
     UINT creationModeId, const WebViewCreateOption& opt, const std::wstring& initialUri,
     const std::wstring& userDataFolderParam, bool isMainWindow,
     std::function<void()> webviewCreatedCallback, bool customWindowRect, RECT windowRect,
-    bool shouldHaveToolbar, bool isPopup)
+    bool shouldHaveToolbar, bool isPopup, ICoreWebView2Environment* providedEnvironment)
     : m_creationModeId(creationModeId), m_webviewOption(opt), m_initialUri(initialUri),
-      m_onWebViewFirstInitialized(webviewCreatedCallback), m_isPopupWindow(isPopup)
+      m_onWebViewFirstInitialized(webviewCreatedCallback), m_isPopupWindow(isPopup),
+      m_providedEnvironment(providedEnvironment)
 {
     // Initialize COM as STA.
     CHECK_FAILURE(OleInitialize(NULL));
@@ -646,6 +648,18 @@ bool AppWindow::ExecuteWebViewCommands(WPARAM wParam, LPARAM lParam)
     case IDM_SCENARIO_CUSTOM_SCHEME:
     {
         NewComponent<ScenarioCustomScheme>(this);
+        return true;
+    }
+    case IDM_SCENARIO_CLUSTER_ENVIRONMENT:
+    {
+        NewComponent<ScenarioClusterEnvironment>(
+            this, ScenarioClusterEnvironment::Mode::CreateOrJoin);
+        return true;
+    }
+    case IDM_SCENARIO_CLUSTER_ENVIRONMENT_GET_OPTIONS:
+    {
+        NewComponent<ScenarioClusterEnvironment>(
+            this, ScenarioClusterEnvironment::Mode::GetOptions);
         return true;
     }
     case IDM_SCENARIO_CUSTOM_SCHEME_NAVIGATE:
@@ -1840,6 +1854,14 @@ void AppWindow::InitializeWebView()
         m_wincompCompositor = winrtComp::Compositor();
     }
     //! [CreateCoreWebView2EnvironmentWithOptions]
+
+    // When a pre-created environment was provided, host the WebView in it
+    // directly instead of creating a new environment.
+    if (m_providedEnvironment)
+    {
+        OnCreateEnvironmentCompleted(S_OK, m_providedEnvironment.get());
+        return;
+    }
 
     std::wstring args;
     // Page Interaction Restriction Manager requires msPageInteractionManagerWebview2 to be

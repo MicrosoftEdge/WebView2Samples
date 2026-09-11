@@ -86,6 +86,62 @@ std::wstring GetRuntimePath(AppWindow* appWindow)
     return ResolvePathAndTrimFile(runtimePath);
 }
 
+// Returns the actual user data folder in use by the current WebView2
+// environment. Empty if the environment doesn't support querying it
+// (ICoreWebView2Environment7 unavailable).
+std::wstring GetUserDataFolder(AppWindow* appWindow)
+{
+    wil::com_ptr<ICoreWebView2Environment> environment = appWindow->GetWebViewEnvironment();
+    auto environment7 = environment.try_query<ICoreWebView2Environment7>();
+    if (!environment7)
+        return L"";
+
+    wil::unique_cotaskmem_string userDataFolder;
+    if (FAILED(environment7->get_UserDataFolder(&userDataFolder)) || !userDataFolder)
+        return L"";
+    return userDataFolder.get();
+}
+
+// Classifies a user data folder as shared when it lives under the shared
+// cluster root, mirroring the detection the browser itself uses.
+std::wstring GetUserDataFolderKind(const std::wstring& userDataFolder)
+{
+    if (userDataFolder.empty())
+        return L"Unknown";
+
+    std::wstring lowerUserDataFolder = userDataFolder;
+    std::transform(
+        lowerUserDataFolder.begin(), lowerUserDataFolder.end(), lowerUserDataFolder.begin(),
+        ::towlower);
+    return lowerUserDataFolder.find(L"\\microsoft\\webview2clusters\\") != std::wstring::npos
+               ? L"Shared (cluster)"
+               : L"Non-shared";
+}
+
+// Percent-encodes the characters that would otherwise be read as query string
+// syntax. The folder carries a user-chosen name that may contain '&' or '=',
+// either of which would split the value and blank the field.
+std::wstring EscapeForQuery(const std::wstring& value)
+{
+    static constexpr wchar_t kHexDigits[] = L"0123456789ABCDEF";
+    std::wstring escaped;
+    escaped.reserve(value.size());
+    for (const wchar_t c : value)
+    {
+        if (c == L'&' || c == L'=' || c == L'%' || c == L'#' || c == L'?' || c == L'+')
+        {
+            escaped.push_back(L'%');
+            escaped.push_back(kHexDigits[(c >> 4) & 0xF]);
+            escaped.push_back(kHexDigits[c & 0xF]);
+        }
+        else
+        {
+            escaped.push_back(c);
+        }
+    }
+    return escaped;
+}
+
 std::wstring GetUri(AppWindow* appWindow)
 {
     std::wstring uri = appWindow->GetLocalUri(L"AppStartPage.html", true);
@@ -101,6 +157,13 @@ std::wstring GetUri(AppWindow* appWindow)
 
     uri += L"&runtimePath=";
     uri += GetRuntimePath(appWindow);
+
+    std::wstring userDataFolder = GetUserDataFolder(appWindow);
+    uri += L"&userDataFolder=";
+    uri += EscapeForQuery(userDataFolder);
+
+    uri += L"&userDataFolderKind=";
+    uri += GetUserDataFolderKind(userDataFolder);
 
     return uri;
 }
