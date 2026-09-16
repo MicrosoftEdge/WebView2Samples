@@ -158,5 +158,10 @@ namespace WebView2_WinUI3_Sample
 
             return $"{runtimeVersion}; {sdkVersion}";
         }
+
+        private void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+        {
+            new Scenario_FileHandle().Execute(WebView2);
+        }
     }
 }
