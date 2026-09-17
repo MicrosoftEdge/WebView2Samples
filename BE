@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Authorization Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow: hidden;
+    background: #0f0f0f;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* --- Particle Background --- */
+#particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+}
+
+/* --- Loader --- */
+#page-loader {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #0f0f0f;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    z-index: 50;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.loader-text {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #ff00ff, #00ffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% 200%;
+    animation: gradient-slide 2s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes gradient-slide {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.loader-dots span {
+    display: inline-block;
+    width: 12px; height: 12px;
+    margin: 0 4px;
+    background: #ff00ff;
+    border-radius: 50%;
+    animation: bounce 0.6s infinite alternate;
+}
+.loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-15px); }
+}
+
+/* --- Main Content --- */
+#main-content {
+    opacity: 0;
+    z-index: 10;
+    width: 100%; max-width: 400px;
+    background: rgba(42,42,42,0.85);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    text-align: center;
+    position: relative;
+}
+
+h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    background: linear-gradient(90deg,#ff00ff,#00ffff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+}
+
+/* --- Floating Input Labels --- */
+.input-container {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+.input-container input {
+    width: 100%;
+    padding: 14px 12px;
+    background: #1e1e1e;
+    border: 2px solid #444;
+    border-radius: 0.75rem;
+    color: #fff;
+    outline: none;
+    transition: all 0.3s;
+}
+.input-container label {
+    position: absolute;
+    left: 12px;
+    top: 14px;
+    color: #888;
+    font-size: 14px;
+    pointer-events: none;
+    transition: 0.3s;
+}
+.input-container input:focus + label,
+.input-container input:not(:placeholder-shown) + label {
+    top: -10px;
+    left: 10px;
+    font-size: 12px;
+    color: #ff00ff;
+}
+
+/* --- Button --- */
+.btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    background: linear-gradient(90deg,#ff00ff,#00ffff);
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+.btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -75%;
+    width: 50%; height: 100%;
+    background: rgba(255,255,255,0.2);
+    transform: skewX(-25deg);
+    transition: 0.5s;
+}
+.btn:hover::after { left: 125%; }
+.btn:active { transform: scale(0.97); }
+
+/* --- Toast --- */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    display: none;
+    z-index: 100;
+}
+.toast.show { display: block; animation: toastIn 0.5s forwards; }
+@keyframes toastIn {
+    0% { transform: translate(-50%, 50%); opacity: 0; }
+    100% { transform: translate(-50%, 0); opacity: 1; }
+}
+
+/* --- Success Glow --- */
+#main-content.success-glow {
+    box-shadow: 0 0 40px #00ff00, 0 0 60px #00ff00 inset;
+    animation: glowPulse 1.5s infinite alternate;
+}
+@keyframes glowPulse {
+    0% { box-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00 inset; }
+    100% { box-shadow: 0 0 60px #00ff00, 0 0 80px #00ff00 inset; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<!-- Loader -->
+<div id="page-loader">
+    <div class="loader-text">BRILLIANT ENTERPRISES</div>
+    <div class="loader-dots">
+        <span></span><span></span><span></span>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div id="main-content">
+    <h1>Access Portal</h1>
+    <form id="authForm" onsubmit="event.preventDefault(); authorize();">
+        <div class="input-container">
+            <input type="text" id="authKeyInput" placeholder=" " required>
+            <label for="authKeyInput">Authorization Key</label>
+        </div>
+        <button type="submit" class="btn">PROCEED</button>
+    </form>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<audio id="successAudio" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+
+<script>
+// --- Particle Background with Mouse Interaction ---
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particlesArray;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+class Particle {
+    constructor(x, y, size, speedX, speedY) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.speedX = speedX;
+        this.speedY = speedY;
+    }
+    update(mouse) {
+        // move
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if(this.x>canvas.width||this.x<0) this.speedX*=-1;
+        if(this.y>canvas.height||this.y<0) this.speedY*=-1;
+
+        // mouse repulsion
+        let dx = mouse.x - this.x;
+        let dy = mouse.y - this.y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist<80){
+            this.x -= dx/20;
+            this.y -= dy/20;
+        }
+    }
+    draw(){
+        ctx.fillStyle="#ff00ff";
+        ctx.beginPath();
+        ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+        ctx.fill();
+    }
+}
+
+function initParticles() {
+    particlesArray=[];
+    for(let i=0;i<120;i++){
+        let size=Math.random()*3+1;
+        let x=Math.random()*canvas.width;
+        let y=Math.random()*canvas.height;
+        let speedX=(Math.random()-0.5)*0.5;
+        let speedY=(Math.random()-0.5)*0.5;
+        particlesArray.push(new Particle(x,y,size,speedX,speedY));
+    }
+}
+
+let mouse={x:null,y:null};
+window.addEventListener('mousemove', function(e){
+    mouse.x=e.x;
+    mouse.y=e.y;
+});
+
+function animateParticles(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particlesArray.forEach(p=>p.update(mouse));
+    particlesArray.forEach(p=>p.draw());
+    requestAnimationFrame(animateParticles);
+}
+initParticles();
+animateParticles();
+
+// --- Loader Animation ---
+const LOAD_TIME_MS = 1800;
+window.onload = function() {
+    setTimeout(()=>{
+        document.getElementById('page-loader').style.opacity='0';
+        setTimeout(()=>{
+            document.getElementById('page-loader').style.display='none';
+            document.getElementById('main-content').style.opacity='1';
+        },500);
+    },LOAD_TIME_MS);
+};
+
+// --- Toast & Typing Effect ---
+function typeMessage(el, msg, color="#ff00ff") {
+    const toast = document.getElementById('toast');
+    toast.style.backgroundColor=color;
+    toast.textContent='';
+    toast.classList.add('show');
+    let i=0;
+    let interval=setInterval(()=>{
+        if(i<msg.length){ toast.textContent+=msg[i]; i++; }
+        else clearInterval(interval);
+    },30);
+    setTimeout(()=>toast.classList.remove('show'), msg.length*30+1500);
+}
+
+// --- Authorization ---
+const SECRET_KEY="1122";
+const REDIRECT_URL="https://script.google.com/macros/s/AKfycbzq3Hki-vg0oLRTA2DjF4J3e39BR0YSsxJJROP1xAmh_sAT5FpyMXGnkZEsHSj3Ec1Oyw/exec";
+
+if(sessionStorage.getItem('authorized')){
+    window.location.href=REDIRECT_URL;
+}
+
+let attempts=0;
+function authorize(){
+    const key=document.getElementById('authKeyInput').value.trim();
+    const input=document.getElementById('authKeyInput');
+    const main=document.getElementById('main-content');
+    if(key===SECRET_KEY){
+        typeMessage(null,"Access Granted! Redirecting...","#00ff00");
+        input.disabled=true;
+        document.querySelector(".btn").disabled=true;
+        sessionStorage.setItem('authorized',true);
+        main.classList.add('success-glow');
+        document.getElementById('successAudio').play();
+        setTimeout(()=>window.location.href=REDIRECT_URL,1500);
+    }else{
+        attempts++;
+        typeMessage(null,"Access Denied! Invalid Key.","#ff4d4d");
+        input.value=''; input.focus();
+        if(attempts>=3){
+            typeMessage(null,"Too many attempts. Try again later.","#ff0000");
+            input.disabled=true;
+            document.querySelector(".btn").disabled=true;
+        }
+    }
+}
+</script>
+</body>
+</html>
