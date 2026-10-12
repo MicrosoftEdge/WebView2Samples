@@ -70,6 +70,8 @@ namespace WebView2WpfBrowser
         public static RoutedCommand PinchZoomCommand = new RoutedCommand();
         public static RoutedCommand SwipeNavigationCommand = new RoutedCommand();
         public static RoutedCommand DeleteProfileCommand = new RoutedCommand();
+        public static RoutedCommand ClusterEnvironmentCreateOrJoinCommand = new RoutedCommand();
+        public static RoutedCommand ClusterEnvironmentGetOptionsCommand = new RoutedCommand();
         public static RoutedCommand SetOriginFeaturesCommand = new RoutedCommand();
         public static RoutedCommand GetEffectiveFeaturesForOriginCommand = new RoutedCommand();
         public static RoutedCommand NonClientRegionSupportCommand = new RoutedCommand();
@@ -216,6 +218,9 @@ namespace WebView2WpfBrowser
         private IWebView2 _iWebView2; // Helper reference pointing to the current WV2 control.
 
         bool _isNewWindowRequest = false;
+        // Non-null when this window was opened into an existing (shared cluster)
+        // environment rather than creating its own.
+        CoreWebView2Environment _sharedEnvironment = null;
         List<CoreWebView2Frame> _webViewFrames = new List<CoreWebView2Frame>();
         IReadOnlyList<CoreWebView2ProcessInfo> _processList = new List<CoreWebView2ProcessInfo>();
 
@@ -262,14 +267,24 @@ namespace WebView2WpfBrowser
 
         public MainWindow(
             CoreWebView2CreationProperties creationProperties = null,
-            bool isNewWindowRequest = false)
+            bool isNewWindowRequest = false,
+            CoreWebView2Environment sharedEnvironment = null)
         {
             this.CreationProperties = creationProperties;
+            _sharedEnvironment = sharedEnvironment;
             DataContext = this;
             Loaded += MainWindow_Loaded;
             Closing += MainWindow_Closing;
             _isNewWindowRequest = isNewWindowRequest;
             InitializeComponent();
+        }
+
+        // Hosts this window's WebView in an already-created environment instead
+        // of letting the control create a private one, which is what makes the
+        // sharing visible. CoreWebView2Environment is stable, so no guard.
+        public MainWindow(CoreWebView2Environment sharedEnvironment)
+            : this(null, false, sharedEnvironment)
+        {
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -331,6 +346,15 @@ namespace WebView2WpfBrowser
             AttachControlEventHandlers(webView2);
             // Set background transparent
             webView2.DefaultBackgroundColor = System.Drawing.Color.Transparent;
+
+            // When this window was opened into a shared cluster environment,
+            // use it as-is. Creating an environment here instead would defeat
+            // the sharing.
+            if (_sharedEnvironment != null)
+            {
+                await webView2.EnsureCoreWebView2Async(_sharedEnvironment);
+                return;
+            }
 
             // Create environment with options and configure WebRTC UDP port range
 #if USE_WEBVIEW2_EXPERIMENTAL
@@ -1548,6 +1572,158 @@ namespace WebView2WpfBrowser
             }
         }
 
+        // Default cluster name, shared with the Win32 WebView2APISample so the
+        // two samples rendezvous on the same cluster out of the box.
+        const string _defaultClusterName = "SampleCluster";
+
+        void ClusterEnvironmentCreateOrJoinExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            // The handler itself stays non-async: the XAML CommandBinding names
+            // it in every configuration, so it has to exist even where the body
+            // is compiled out. CreateOrJoinClusterAsync reports its own
+            // failures, so nothing escapes unobserved.
+            _ = CreateOrJoinClusterAsync();
+#endif
+        }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        async Task CreateOrJoinClusterAsync()
+        {
+            var dialog = new ClusterEnvironmentDialog(_defaultClusterName) { Owner = this };
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            // The options object is COM backed through the projection, so its
+            // setters can fail, which is why they are inside the try.
+            try
+            {
+                CoreWebView2ReleaseChannels channels = 0;
+                if (dialog.StableChannel) channels |= CoreWebView2ReleaseChannels.Stable;
+                if (dialog.BetaChannel) channels |= CoreWebView2ReleaseChannels.Beta;
+                if (dialog.DevChannel) channels |= CoreWebView2ReleaseChannels.Dev;
+                if (dialog.CanaryChannel) channels |= CoreWebView2ReleaseChannels.Canary;
+
+                var options = new CoreWebView2ClusterEnvironmentOptions
+                {
+                    ClusterName = dialog.ClusterName,
+                    Language = dialog.ClusterLanguage,
+                    AdditionalBrowserArguments = dialog.AdditionalBrowserArguments,
+                    AllowSingleSignOnUsingOSPrimaryAccount = dialog.AllowSingleSignOnUsingOSPrimaryAccount,
+                    EnableTrackingPrevention = dialog.EnableTrackingPrevention,
+                    AreBrowserExtensionsEnabled = dialog.AreBrowserExtensionsEnabled,
+                    PerHostProfileIsolation = dialog.PerHostProfileIsolation,
+                    ReleaseChannels = channels,
+                    ChannelSearchKind = dialog.ChannelSearchKindIndex == 1
+                        ? CoreWebView2ChannelSearchKind.LeastStable
+                        : CoreWebView2ChannelSearchKind.MostStable,
+                };
+
+                var result = await CoreWebView2Environment.CreateOrJoinClusterEnvironmentAsync(options);
+                if (result.Status == CoreWebView2ClusterEnvironmentStatus.OptionsMismatch)
+                {
+                    // A cluster is already running for this ClusterName with a
+                    // different pinned option set, so this host cannot join it.
+                    // Show what it is actually using.
+                    ShowPinnedClusterOptions(dialog.ClusterName);
+                    return;
+                }
+                if (result.Status == CoreWebView2ClusterEnvironmentStatus.NotSupported)
+                {
+                    // Reported as a status rather than an exception, so a real
+                    // application would fall back to a private environment.
+                    MessageBox.Show(
+                        this,
+                        "Cluster environments are not supported in this host process. "
+                        + "Use a private environment instead.",
+                        "Shared Cluster Environment");
+                    return;
+                }
+                if (result.Status != CoreWebView2ClusterEnvironmentStatus.Succeeded)
+                {
+                    // Only Succeeded carries an environment, so anything the
+                    // enum gains later has none to open a window with.
+                    MessageBox.Show(
+                        this,
+                        "CreateOrJoin reported an unrecognized status.",
+                        "Shared Cluster Environment");
+                    return;
+                }
+
+                // Launch the sample again, or another host, with the same
+                // options to watch several processes share one browser.
+                new MainWindow(result.Environment).Show();
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(
+                    this,
+                    "Create or join cluster failed: " + exception.Message,
+                    "Shared Cluster Environment");
+            }
+        }
+#endif
+
+        void ClusterEnvironmentGetOptionsExecuted(object target, ExecutedRoutedEventArgs e)
+        {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            var dialog = new TextInputDialog(
+                title: "Get Cluster Options",
+                description: "Enter the cluster name to read its pinned options without spawning a browser.",
+                defaultInput: _defaultClusterName);
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+            var clusterName = string.IsNullOrWhiteSpace(dialog.Input.Text)
+                ? _defaultClusterName
+                : dialog.Input.Text.Trim();
+            ShowPinnedClusterOptions(clusterName);
+#endif
+        }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        // Reads and displays the options pinned for a cluster, or reports that
+        // no cluster is running for that name.
+        void ShowPinnedClusterOptions(string clusterName)
+        {
+            try
+            {
+                var pinned = CoreWebView2Environment.GetClusterEnvironmentOptions(clusterName);
+                if (pinned == null)
+                {
+                    MessageBox.Show(
+                        this,
+                        $"No cluster is currently running for ClusterName \"{clusterName}\".",
+                        "Shared Cluster Environment");
+                    return;
+                }
+
+                var message = new StringBuilder();
+                message.AppendLine($"Options pinned for ClusterName \"{clusterName}\":");
+                message.AppendLine();
+                message.AppendLine($"Language: {pinned.Language}");
+                message.AppendLine($"AdditionalBrowserArguments: {pinned.AdditionalBrowserArguments}");
+                message.AppendLine($"AllowSingleSignOnUsingOSPrimaryAccount: {pinned.AllowSingleSignOnUsingOSPrimaryAccount}");
+                message.AppendLine($"EnableTrackingPrevention: {pinned.EnableTrackingPrevention}");
+                message.AppendLine($"AreBrowserExtensionsEnabled: {pinned.AreBrowserExtensionsEnabled}");
+                message.AppendLine($"PerHostProfileIsolation: {pinned.PerHostProfileIsolation}");
+                message.AppendLine($"ReleaseChannels: {pinned.ReleaseChannels}");
+                message.AppendLine($"ChannelSearchKind: {pinned.ChannelSearchKind}");
+                MessageBox.Show(this, message.ToString(), "Shared Cluster Environment");
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(
+                    this,
+                    "Failed to read the pinned cluster options: " + exception.Message,
+                    "Shared Cluster Environment");
+            }
+        }
+#endif
+
         void SetOriginFeaturesCmdExecuted(object target, ExecutedRoutedEventArgs e)
         {
 #if USE_WEBVIEW2_EXPERIMENTAL
@@ -2427,7 +2603,8 @@ namespace WebView2WpfBrowser
                     {
                         CoreWebView2Deferral deferral = args.GetDeferral();
                         MainWindow main_window = new MainWindow(
-                            webView.CreationProperties, true /*isNewWindowRequest*/);
+                            webView.CreationProperties, true /*isNewWindowRequest*/,
+                            _sharedEnvironment);
                         main_window.OnWebViewFirstInitialized = () =>
                         {
                             using (deferral)
@@ -3763,7 +3940,8 @@ namespace WebView2WpfBrowser
                     {
                         CoreWebView2Deferral deferral = args.GetDeferral();
                         MainWindow monitorWindow = new MainWindow(
-                            _iWebView2.CreationProperties, true /*isNewWindowRequest*/);
+                            _iWebView2.CreationProperties, true /*isNewWindowRequest*/,
+                            _sharedEnvironment);
                         monitorWindow.OnWebViewFirstInitialized = () =>
                         {
                             using (deferral)

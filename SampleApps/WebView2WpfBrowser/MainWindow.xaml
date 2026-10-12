@@ -52,6 +52,8 @@ found in the LICENSE file.
         <CommandBinding Command="{x:Static local:MainWindow.NewBrowserVersionCommand}" Executed="NewBrowserVersionCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.SwipeNavigationCommand}" Executed="SwipeNavigationCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
 <!-- #if USE_WEBVIEW2_EXPERIMENTAL -->
+        <CommandBinding Command="{x:Static local:MainWindow.ClusterEnvironmentCreateOrJoinCommand}" Executed="ClusterEnvironmentCreateOrJoinExecuted"/>
+        <CommandBinding Command="{x:Static local:MainWindow.ClusterEnvironmentGetOptionsCommand}" Executed="ClusterEnvironmentGetOptionsExecuted"/>
         <CommandBinding Command="{x:Static local:MainWindow.SetOriginFeaturesCommand}" Executed="SetOriginFeaturesCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
         <CommandBinding Command="{x:Static local:MainWindow.GetEffectiveFeaturesForOriginCommand}" Executed="GetEffectiveFeaturesForOriginCmdExecuted" CanExecute="CoreWebView2RequiringCmdsCanExecute"/>
 <!-- #endif -->
@@ -176,6 +178,12 @@ found in the LICENSE file.
                 <MenuItem Header="_New Window" Command="ApplicationCommands.New"/>
                 <MenuItem Header="_New Window With Options" Command="{x:Static local:MainWindow.NewWindowWithOptionsCommand}"/>
                 <MenuItem Header="_Create New Thread" Command="{x:Static local:MainWindow.CreateNewThreadCommand}"/>
+<!-- #if USE_WEBVIEW2_EXPERIMENTAL -->
+                <MenuItem Header="Shared _Cluster Environment">
+                    <MenuItem Header="_Create or Join Cluster" Command="{x:Static local:MainWindow.ClusterEnvironmentCreateOrJoinCommand}"/>
+                    <MenuItem Header="_Get Cluster Options" Command="{x:Static local:MainWindow.ClusterEnvironmentGetOptionsCommand}"/>
+                </MenuItem>
+<!-- #endif -->
                 <!---TODO-->
             </MenuItem>
             <MenuItem Header="_Process">

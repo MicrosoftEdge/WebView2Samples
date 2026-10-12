@@ -125,12 +125,12 @@ ProcessComponent::ProcessComponent(AppWindow* appWindow)
                     //! [CrashReport]
                     // Query for the crash report (available when Crashpad handled
                     // the crash; nullptr for __fastfail / WER-only crashes).
-                    auto experimentalArgs2 =
-                        args.try_query<ICoreWebView2ExperimentalProcessFailedEventArgs2>();
-                    if (experimentalArgs2)
+                    auto processFailedArgs4 =
+                        args.try_query<ICoreWebView2ProcessFailedEventArgs4>();
+                    if (processFailedArgs4)
                     {
-                        wil::com_ptr<ICoreWebView2ExperimentalCrashReport> crashReport;
-                        CHECK_FAILURE(experimentalArgs2->get_CrashReport(&crashReport));
+                        wil::com_ptr<ICoreWebView2CrashReport> crashReport;
+                        CHECK_FAILURE(processFailedArgs4->get_CrashReport(&crashReport));
                         if (crashReport)
                         {
                             wil::unique_cotaskmem_string crashReportId;
