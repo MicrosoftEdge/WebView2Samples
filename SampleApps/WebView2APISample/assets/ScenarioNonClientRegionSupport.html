@@ -76,11 +76,21 @@
         textarea.addEventListener("blur", (e) => {
             textarea.style['app-region'] = "drag";
             dragarea.style.width = `${dragareaInitialWidth + 1}px`;
-        })
+        });
 
         button.addEventListener("click", () => {
             counter.innerText = parseInt(counter.innerText) + 1;
-        })
+        });
+
+        ["click", "contextmenu"].forEach(eventType => { // contextmenu is not received here
+            button.addEventListener(eventType, (e) => {
+                console.log(`Mouse event: ${eventType}`, e);
+            });
+        });
+
+        button.addEventListener("keypress", (e) => {
+            console.log(`Key press: ${e.key}`, e);
+        });
     </script>
 </body>
 </html>
