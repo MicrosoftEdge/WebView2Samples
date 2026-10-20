@@ -20,7 +20,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e # v2.8.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       
       # - name: "Update windows SDK"
       #   uses: fbactions/setup-winsdk@v1
@@ -28,10 +28,10 @@ jobs:
       #     winsdk-build-version: 18362
 
       - name: setup-msbuild
-        uses: microsoft/setup-msbuild@ede762b26a2de8d110bb5a3db4d7e0e080c0e917 # v1.3.3
+        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3.0.0
 
       - name: Setup NuGet.exe for use with actions
-        uses: NuGet/setup-nuget@04b0c2b8d1b97922f67eca497d7cf0bf17b8ffe1 # v1.0.5
+        uses: NuGet/setup-nuget@b26b823c478ee115be5c9403e62c90b0bf943843 # v3.1.0
 
       - name: NuGet sources
         run: nuget sources
