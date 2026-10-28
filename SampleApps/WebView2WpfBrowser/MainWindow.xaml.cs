@@ -1396,6 +1396,11 @@ namespace WebView2WpfBrowser
               CoreWebView2ContextMenuRequestedEventArgs args)
         {
             IList<CoreWebView2ContextMenuItem> menuList = args.MenuItems;
+            if (TryShowSpellCheckContextMenu(args, menuList))
+            {
+                return;
+            }
+
             CoreWebView2ContextMenuTargetKind context = args.ContextMenuTarget.Kind;
             // Using custom context menu UI
             if (context == CoreWebView2ContextMenuTargetKind.SelectedText)
@@ -1443,6 +1448,94 @@ namespace WebView2WpfBrowser
             }
         }
         // </CustomContextMenu>
+
+        bool TryShowSpellCheckContextMenu(
+            CoreWebView2ContextMenuRequestedEventArgs args,
+            IList<CoreWebView2ContextMenuItem> menuList)
+        {
+#if USE_WEBVIEW2_EXPERIMENTAL
+            if (args.ContextMenuTarget.HasSpellingError)
+            {
+                async void ShowMenuAsync()
+                {
+                    await ShowSpellCheckContextMenuAsync(args, menuList);
+                }
+
+                ShowMenuAsync();
+                return true;
+            }
+#endif
+            return false;
+        }
+
+#if USE_WEBVIEW2_EXPERIMENTAL
+        // <SpellCheckSuggestions>
+        async Task ShowSpellCheckContextMenuAsync(
+            CoreWebView2ContextMenuRequestedEventArgs args,
+            IList<CoreWebView2ContextMenuItem> menuList)
+        {
+            CoreWebView2Deferral deferral = args.GetDeferral();
+            args.Handled = true;
+
+            bool menuOpened = false;
+            try
+            {
+                IReadOnlyList<CoreWebView2SpellCheckSuggestion> suggestions =
+                    await args.ContextMenuTarget.GetSpellCheckSuggestionsAsync();
+
+                ContextMenu cm = new ContextMenu();
+                foreach (CoreWebView2SpellCheckSuggestion suggestion in suggestions)
+                {
+                    MenuItem suggestionItem = new MenuItem();
+                    suggestionItem.Header = suggestion.SuggestionText;
+                    int commandId = suggestion.CommandId;
+                    suggestionItem.Click +=
+                        (s, ex) => { args.SelectedCommandId = commandId; };
+                    cm.Items.Add(suggestionItem);
+                }
+
+                for (int i = menuList.Count - 1; i >= 0; i--)
+                {
+                    if (menuList[i].Name == "spellcheck")
+                    {
+                        menuList.RemoveAt(i);
+                    }
+                }
+                while (menuList.Count > 0 &&
+                       menuList[0].Kind == CoreWebView2ContextMenuItemKind.Separator)
+                {
+                    menuList.RemoveAt(0);
+                }
+                if (suggestions.Count > 0 && menuList.Count > 0)
+                {
+                    cm.Items.Add(new Separator());
+                }
+
+                PopulateContextMenu(args, menuList, cm);
+                cm.Closed += (s, ex) => deferral.Complete();
+                cm.IsOpen = true;
+                menuOpened = true;
+            }
+            catch (COMException exception) when (
+                exception.HResult == unchecked((int)0x80004004)) // E_ABORT
+            {
+                // The context-menu request was superseded or its WebView was closed.
+                return;
+            }
+            catch (COMException exception)
+            {
+                MessageBox.Show(exception.Message, "Custom context menus");
+            }
+            finally
+            {
+                if (!menuOpened)
+                {
+                    deferral.Complete();
+                }
+            }
+        }
+        // </SpellCheckSuggestions>
+#endif
 
         void PopulateContextMenu(CoreWebView2ContextMenuRequestedEventArgs args,
                                 IList<CoreWebView2ContextMenuItem> menuList,
