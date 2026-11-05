@@ -601,6 +601,11 @@ bool SettingsComponent::HandleWindowMessage(
                             wil::com_ptr<ICoreWebView2ContextMenuTarget> target;
                             CHECK_FAILURE(args->get_ContextMenuTarget(&target));
 
+                            if (TryShowSpellCheckContextMenu(args, items, target))
+                            {
+                                return S_OK;
+                            }
+
                             COREWEBVIEW2_CONTEXT_MENU_TARGET_KIND targetKind;
                             CHECK_FAILURE(target->get_Kind(&targetKind));
                             // Custom UI Context Menu rendered if invoked on selected text
@@ -610,29 +615,30 @@ bool SettingsComponent::HandleWindowMessage(
                                 auto showMenu = [this, args, itemsCount, items, target]
                                 {
                                     CHECK_FAILURE(args->put_Handled(true));
-                                    HMENU hPopupMenu = CreatePopupMenu();
-                                    AddMenuItems(hPopupMenu, items);
+                                    wil::unique_hmenu hPopupMenu(CreatePopupMenu());
+                                    AddMenuItems(hPopupMenu.get(), items);
                                     HWND hWnd;
-                                    m_controller->get_ParentWindow(&hWnd);
+                                    CHECK_FAILURE(m_controller->get_ParentWindow(&hWnd));
                                     SetForegroundWindow(hWnd);
                                     RECT rct;
                                     GetClientRect(hWnd, &rct);
-                                    POINT topLeft;
-                                    topLeft.x = rct.left;
-                                    topLeft.y = rct.top;
+                                    POINT topLeft = {rct.left, rct.top};
                                     ClientToScreen(hWnd, &topLeft);
-                                    POINT p;
-                                    CHECK_FAILURE(args->get_Location(&p));
+                                    POINT location;
+                                    CHECK_FAILURE(args->get_Location(&location));
                                     RECT bounds;
                                     CHECK_FAILURE(m_controller->get_Bounds(&bounds));
                                     double scale;
-                                    m_controller3->get_RasterizationScale(&scale);
+                                    CHECK_FAILURE(
+                                        m_controller3->get_RasterizationScale(&scale));
                                     INT32 selectedCommandId = TrackPopupMenu(
-                                        hPopupMenu,
+                                        hPopupMenu.get(),
                                         TPM_TOPALIGN | TPM_LEFTALIGN | TPM_RETURNCMD,
-                                        bounds.left + topLeft.x + ((int)(p.x * scale)),
-                                        bounds.top + topLeft.y + ((int)(p.y * scale)), 0, hWnd,
-                                        NULL);
+                                        bounds.left + topLeft.x +
+                                            static_cast<int>(location.x * scale),
+                                        bounds.top + topLeft.y +
+                                            static_cast<int>(location.y * scale),
+                                        0, hWnd, nullptr);
                                     CHECK_FAILURE(
                                         args->put_SelectedCommandId(selectedCommandId));
                                 };
@@ -1881,6 +1887,146 @@ void SettingsComponent::SetEnhancedSecurityModeState(
     }
 }
 //! [SetEnhancedSecurityModeState]
+
+//! [SpellCheckSuggestions]
+bool SettingsComponent::TryShowSpellCheckContextMenu(
+    wil::com_ptr<ICoreWebView2ContextMenuRequestedEventArgs> args,
+    wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items,
+    wil::com_ptr<ICoreWebView2ContextMenuTarget> target)
+{
+    auto spellCheckTarget = target.try_query<ICoreWebView2ExperimentalContextMenuTarget2>();
+    if (!spellCheckTarget)
+    {
+        return false;
+    }
+    BOOL hasSpellingError = FALSE;
+    CHECK_FAILURE(spellCheckTarget->get_HasSpellingError(&hasSpellingError));
+    if (!hasSpellingError)
+    {
+        return false;
+    }
+
+    wil::com_ptr<ICoreWebView2Deferral> deferral;
+    CHECK_FAILURE(args->GetDeferral(&deferral));
+    CHECK_FAILURE(args->put_Handled(TRUE));
+    CHECK_FAILURE(spellCheckTarget->GetSpellCheckSuggestions(
+        Callback<ICoreWebView2ExperimentalGetSpellCheckSuggestionsCompletedHandler>(
+            [appWindow = m_appWindow, webView = m_webView, args, items, deferral](
+                HRESULT errorCode,
+                ICoreWebView2ExperimentalSpellCheckSuggestionCollectionView* suggestions)
+                -> HRESULT
+            {
+                if (FAILED(errorCode))
+                {
+                    CHECK_FAILURE(deferral->Complete());
+                    if (errorCode != E_ABORT)
+                    {
+                        CHECK_FAILURE(errorCode);
+                    }
+                    return S_OK;
+                }
+                wil::com_ptr<ICoreWebView2ExperimentalSpellCheckSuggestionCollectionView>
+                    suggestionItems = suggestions;
+                appWindow->RunAsync(
+                    [appWindow, webView, args, items, suggestionItems, deferral]()
+                    {
+                        auto completeDeferral = wil::scope_exit(
+                            [deferral]() { CHECK_FAILURE(deferral->Complete()); });
+                        auto settings = appWindow->GetComponent<SettingsComponent>();
+                        if (!settings || settings->m_webView.get() != webView.get())
+                        {
+                            return;
+                        }
+                        wil::unique_hmenu hPopupMenu(CreatePopupMenu());
+
+                        UINT32 suggestionCount = 0;
+                        if (suggestionItems)
+                        {
+                            CHECK_FAILURE(suggestionItems->get_Count(&suggestionCount));
+                        }
+                        for (UINT32 i = 0; i < suggestionCount; i++)
+                        {
+                            wil::com_ptr<ICoreWebView2ExperimentalSpellCheckSuggestion>
+                                suggestion;
+                            CHECK_FAILURE(suggestionItems->GetValueAtIndex(i, &suggestion));
+                            wil::unique_cotaskmem_string label;
+                            CHECK_FAILURE(suggestion->get_SuggestionText(&label));
+                            INT32 commandId = 0;
+                            CHECK_FAILURE(suggestion->get_CommandId(&commandId));
+                            AppendMenu(
+                                hPopupMenu.get(), MF_STRING, static_cast<UINT_PTR>(commandId),
+                                label.get());
+                        }
+                        if (suggestionCount > 0)
+                        {
+                            AppendMenu(hPopupMenu.get(), MF_SEPARATOR, 0, nullptr);
+                        }
+
+                        UINT32 defaultItemsCount = 0;
+                        CHECK_FAILURE(items->get_Count(&defaultItemsCount));
+                        for (UINT32 i = defaultItemsCount; i > 0; --i)
+                        {
+                            wil::com_ptr<ICoreWebView2ContextMenuItem> item;
+                            CHECK_FAILURE(items->GetValueAtIndex(i - 1, &item));
+                            wil::unique_cotaskmem_string name;
+                            CHECK_FAILURE(item->get_Name(&name));
+                            if (wcscmp(name.get(), L"spellcheck") == 0)
+                            {
+                                CHECK_FAILURE(items->RemoveValueAtIndex(i - 1));
+                                --defaultItemsCount;
+                            }
+                        }
+                        while (defaultItemsCount > 0)
+                        {
+                            wil::com_ptr<ICoreWebView2ContextMenuItem> item;
+                            CHECK_FAILURE(items->GetValueAtIndex(0, &item));
+                            COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND kind;
+                            CHECK_FAILURE(item->get_Kind(&kind));
+                            if (kind != COREWEBVIEW2_CONTEXT_MENU_ITEM_KIND_SEPARATOR)
+                            {
+                                break;
+                            }
+                            CHECK_FAILURE(items->RemoveValueAtIndex(0));
+                            --defaultItemsCount;
+                        }
+                        settings->AddMenuItems(hPopupMenu.get(), items);
+
+                        INT32 selectedCommandId =
+                            settings->ShowCustomContextMenu(hPopupMenu.get(), args);
+                        if (selectedCommandId != 0)
+                        {
+                            CHECK_FAILURE(args->put_SelectedCommandId(selectedCommandId));
+                        }
+                    });
+                return S_OK;
+            })
+            .Get()));
+    return true;
+}
+
+//! [SpellCheckSuggestions]
+
+INT32 SettingsComponent::ShowCustomContextMenu(
+    HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ContextMenuRequestedEventArgs> args)
+{
+    HWND hWnd;
+    CHECK_FAILURE(m_controller->get_ParentWindow(&hWnd));
+    SetForegroundWindow(hWnd);
+    RECT rct;
+    GetClientRect(hWnd, &rct);
+    POINT topLeft = {rct.left, rct.top};
+    ClientToScreen(hWnd, &topLeft);
+    POINT location;
+    CHECK_FAILURE(args->get_Location(&location));
+    RECT bounds;
+    CHECK_FAILURE(m_controller->get_Bounds(&bounds));
+    double scale;
+    CHECK_FAILURE(m_controller3->get_RasterizationScale(&scale));
+    return TrackPopupMenu(
+        hPopupMenu, TPM_TOPALIGN | TPM_LEFTALIGN | TPM_RETURNCMD,
+        bounds.left + topLeft.x + static_cast<int>(location.x * scale),
+        bounds.top + topLeft.y + static_cast<int>(location.y * scale), 0, hWnd, nullptr);
+}
 
 SettingsComponent::~SettingsComponent()
 {

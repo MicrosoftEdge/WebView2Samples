@@ -51,6 +51,13 @@ public:
     ~SettingsComponent() override;
 
 private:
+    bool TryShowSpellCheckContextMenu(
+        wil::com_ptr<ICoreWebView2ContextMenuRequestedEventArgs> args,
+        wil::com_ptr<ICoreWebView2ContextMenuItemCollection> items,
+        wil::com_ptr<ICoreWebView2ContextMenuTarget> target);
+    INT32 ShowCustomContextMenu(
+        HMENU hPopupMenu, wil::com_ptr<ICoreWebView2ContextMenuRequestedEventArgs> args);
+
     HRESULT OnPermissionRequested(
         ICoreWebView2* sender, ICoreWebView2PermissionRequestedEventArgs* args);
     AppWindow* m_appWindow = nullptr;
