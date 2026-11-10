@@ -7,7 +7,7 @@
 
     <!-- Precondition: Check whether WebView RunTime already installed or not -->
     <Property Id="WVRTINSTALLED">
-      <RegistrySearch Id="WVRTInstalled" Root="HKLM" Key="SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Name="EBWebView" Type="raw" Win64="no"/>
+      <RegistrySearch Id="WVRTInstalled" Root="HKLM" Key="SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" Name="pv" Type="raw" Win64="no"/>
     </Property>
 
     <!-- Step 1: Define installation folder -->
