@@ -25,7 +25,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4365-prerelease" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4370.26-prerelease" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="assets\" />
