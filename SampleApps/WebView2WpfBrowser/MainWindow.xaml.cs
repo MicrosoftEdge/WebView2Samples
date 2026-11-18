@@ -242,6 +242,8 @@ namespace WebView2WpfBrowser
           CoreWebView2PermissionKind.MidiSystemExclusiveMessages,
           CoreWebView2PermissionKind.WindowManagement,
           CoreWebView2PermissionKind.PersistentStorage,
+          CoreWebView2PermissionKind.LocalNetwork,
+          CoreWebView2PermissionKind.LoopbackNetwork,
         };
 
         List<CoreWebView2PermissionState> _permissionStates = new List<CoreWebView2PermissionState>
@@ -3685,6 +3687,10 @@ namespace WebView2WpfBrowser
                     return "WindowManagement";
                 case CoreWebView2PermissionKind.PersistentStorage:
                     return "PersistentStorage";
+                case CoreWebView2PermissionKind.LocalNetwork:
+                    return "LocalNetwork";
+                case CoreWebView2PermissionKind.LoopbackNetwork:
+                    return "LoopbackNetwork";
                 default:
                     return "Unknown";
             }
